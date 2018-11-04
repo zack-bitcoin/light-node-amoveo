@@ -6,7 +6,7 @@ function headers_main() {
     var top_header;
     var headers_db = {};//store valid headers by hash
     var INITIAL_DIFFICULTY;
-    var headers_batch = 500;
+    var headers_batch = 5000;
     if (mode == "test") {
 	INITIAL_DIFFICULTY = 2500;
 	retarget_frequency = 12;
