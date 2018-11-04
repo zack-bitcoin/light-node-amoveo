@@ -140,4 +140,4 @@ function bets_main() {
     }
     return {main: main, draw: draw};
 }
-bets_object = bets_main(); 
+var bets_object = bets_main(); 

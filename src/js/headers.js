@@ -6,6 +6,7 @@ function headers_main() {
     var top_header;
     var headers_db = {};//store valid headers by hash
     var INITIAL_DIFFICULTY;
+    var headers_batch = 500;
     if (mode == "test") {
 	INITIAL_DIFFICULTY = 2500;
 	retarget_frequency = 12;
@@ -334,7 +335,7 @@ function headers_main() {
         } else {
             n = top_header[1];
         }
-        variable_public_get(["headers", 5001, n], absorb_headers);
+        variable_public_get(["headers", headers_batch + 1, n], absorb_headers);
     }
     function serialize_header(x) {
         var height = x[1]; //4 bytes
@@ -386,4 +387,4 @@ function headers_main() {
     }
     return {sci2int: sci2int, serialize: serialize_header, top: (function() { return top_header; }), db: headers_db, read_ewah: read_ewah};
 }
-headers_object = headers_main();
+var headers_object = headers_main();
