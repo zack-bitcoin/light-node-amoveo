@@ -179,11 +179,10 @@ function tree_number_det_power(base, top, bottom, t) {
 }
 function parse_address(A) {
     //remove spaces or periods. " " "."
-    A2 = A.replace(/\ /g,'');
+    A2 = A.trim();
     A3 = A2.replace(/\./g,'');
-    A4 = A3.replace(/\n/g,'');
     //if it is the wrong length, make an error.
     //88
-    B = ((A4).length == 88);
-    if (B) { return A4; } else { return 0; };
+    B = ((A3).length == 88);
+    if (B) { return A3; } else { return 0; };
 }

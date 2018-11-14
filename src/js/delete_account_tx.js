@@ -14,7 +14,7 @@
     div.appendChild(document.createElement("br"));
     var ca_fee = 152050;
     function create_account() {
-        var to = create_address.value;
+        var to = create_address.value.trim();
         var from = keys.pub();
         variable_public_get(["delete_acc_tx", to, from, ca_fee],
                             function(x) { create_tokens2(x, to, from, ca_fee);}
