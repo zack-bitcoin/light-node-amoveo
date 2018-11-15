@@ -125,6 +125,7 @@ function keys_function1() {
         var file = (file_selector.files)[0];
         var reader = new FileReader();
         reader.onload = function(e) {
+	    set_balance(0);
             keys = ec.keyFromPrivate(reader.result, "hex");
             update_pubkey();
             update_balance();
