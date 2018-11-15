@@ -20,7 +20,7 @@
     div.appendChild(document.createElement("br"));
     var ca_fee = 152050;
     function create_account() {
-        var to = create_address.value;
+        var to = create_address.value.trim();
         var amount = Math.floor(parseFloat(create_amount.value, 10) * token_units());
         var from = keys.pub();
         console.log([amount, ca_fee, from, to]);
@@ -32,7 +32,7 @@
         console.log(tx);
         var amount = Math.floor(parseFloat(create_amount.value, 10) * token_units());
         var amount0 = tx[5];
-        var to = create_address.value;
+        var to = create_address.value.trim();
         var to0 = tx[4];
         var fee0 = tx[3];
         if (!(amount == amount0)) {

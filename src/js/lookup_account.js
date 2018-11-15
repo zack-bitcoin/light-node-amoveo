@@ -23,7 +23,7 @@ function lookup_account1() {
     document.body.appendChild(document.createElement("br"));
 
     function lookup_account_helper() {
-        var x = lookup_account_address.value;
+        var x = lookup_account_address.value.trim();
 	console.log("lookup account");
         variable_public_get(["account", x], lookup_account_helper2);
     }

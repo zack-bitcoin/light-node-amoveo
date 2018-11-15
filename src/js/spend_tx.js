@@ -55,10 +55,10 @@ function spend_1() {
     var fee;
     function spend_tokens() {
         //spend_address = document.getElementById("spend_address");
-        var to0 = spend_address.value;
+        var to0 = spend_address.value.trim();
 	var to = parse_address(to0);
         var amount = Math.floor(parseFloat(spend_amount.value, 10) * token_units());
-	
+
 	if (to == 0) {
 	    error_msg.innerHTML = "Badly formatted address";
 	} else {
@@ -92,7 +92,7 @@ function spend_1() {
     function spend_tokens2(tx) {
         var amount = Math.floor(parseFloat(spend_amount.value, 10) * token_units());
         var amount0 = tx[5];
-        var to = spend_address.value;
+        var to = spend_address.value.trim();
         var to0 = tx[4];
         var fee0 = tx[3];
         if (!(amount == amount0)) {
