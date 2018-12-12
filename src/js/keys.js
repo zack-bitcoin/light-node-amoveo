@@ -120,6 +120,7 @@ function keys_function1() {
     }
     function save_keys() {
         download(keys.getPrivate("hex"), save_name.value, "text/plain");
+	update_pubkey();
     }
     function load_keys() {
         var file = (file_selector.files)[0];
