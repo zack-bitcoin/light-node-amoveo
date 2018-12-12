@@ -8,7 +8,7 @@ function keys_function1() {
     var save_name = document.createElement("input");
     save_name.type = "text";
     save_name.value = "Amoveo private key";
-    var save_button = button_maker2("save private key to file", save_keys);
+    var save_button = button_maker2("Generate new account. Saves the private key to a file.", save_keys);
     var file_selector = document.createElement("input");
     file_selector.type = "file";
     file_selector.onchange = load_keys;
@@ -27,7 +27,7 @@ function keys_function1() {
 
     append_children(div, [load_text, file_selector, br(), pub_div, br(), save_name, save_button, br(), watch_only_instructions, watch_only_pubkey, watch_only_button, br(), new_pubkey_button, new_pubkey_div, br(), bal_div, balance_button]);
 
-    update_pubkey();
+    //update_pubkey();
     function input_maker(val) {
         var x = document.createElement("input");
         x.type = "text";
