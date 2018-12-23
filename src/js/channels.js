@@ -2,7 +2,7 @@
 function channels_main() {
     //Model
     var channel_manager = {};
-    var tv = -1;
+    var tv = -1; //This variable stores how much it costs in satoshis to keep a channel open, per veo being stored, per block of times being stored. -1 is invalid, we store this until we can ask the server for the real value.
     function read(x) {
 	console.log("read channel ");
 	console.log(JSON.stringify(x));
@@ -57,27 +57,16 @@ function channels_main() {
     }
 
     //View
-
-    var channel_title = document.createElement("h3");
-    channel_title.innerHTML = "channel ";
-    var channels_div = document.createElement("div");
     var channel_warning_div = document.createElement("div");
-    var channel_interface_div = document.createElement("div");
     var load_button = document.createElement("input");
     load_button.type = "file";
+    var channel_interface_div = document.createElement("div");
     var save_name = document.createElement("INPUT");
     save_name.type = "text";
     save_name.id = "channel_name";
     save_name.value = "channel state ";
-    var save_button = button_maker2("save channel data to file", save_channel_data);
-    var refresh_channels_button = button_maker2("refresh channels interfaces. Useful if you swich channel servers", function() {
-        variable_public_get(["pubkey"], function(pubkey) {
-            return refresh_channels_interfaces(pubkey);
-        });
-    });
-    document.body.appendChild(channel_title);
-    document.body.appendChild(channels_div);
-    append_children(channels_div, [channel_warning_div, load_button, br(), br(), save_name, save_button, br(), refresh_channels_button, br(), br(), channel_interface_div]);
+
+    main_view();
     
     var fee = 152050;
     var oid = document.createElement("INPUT");
@@ -149,6 +138,23 @@ function channels_main() {
     variable_public_get(["pubkey"], function(pubkey) {
         return refresh_channels_interfaces(pubkey);
     });
+    function main_view() {
+        var channel_title = document.createElement("h3");
+        channel_title.innerHTML = "channel ";
+        var channels_div = document.createElement("div");
+        var save_button = button_maker2("save channel data to file", save_channel_data);
+        var refresh_channels_button = button_maker2("channel with a server mode", function() {
+            variable_public_get(["pubkey"], function(pubkey) {
+                return refresh_channels_interfaces(pubkey);
+            });
+        });
+        var refresh_channels2 = button_maker2("channel with peer mode", function() {
+            return refresh_channels_peer_interfaces();
+        });
+        document.body.appendChild(channel_title);
+        document.body.appendChild(channels_div);
+        append_children(channels_div, [channel_warning_div, load_button, br(), br(), save_name, save_button, br(), refresh_channels_button, refresh_channels2, br(), br(), channel_interface_div]);
+    }
     function channel_warning() {
         channel_warning_div.innerHTML = "channel state needs to be saved!~~~~~~~";
     }
@@ -168,6 +174,19 @@ function channels_main() {
         }
         reader.readAsText(file);
     }
+    function refresh_channels_peer_interfaces(callback) {
+        var div = channel_interface_div;
+        div.innerHTML = "";
+        var channel_server_mode = document.createElement("h3");
+        channel_server_mode.innerHTML = "channel with a peer mode";
+        div.appendChild(channel_server_mode);
+        div.appendChild(br());
+        //ability to load a channel state and display the data.
+        //ability to create a new channel state for a given channel.
+        //ability to update an existing channel state
+        //given 2 channel states, compute the difference
+        
+    }
     function refresh_channels_interfaces(pubkey, callback) {
         console.log("refresh channels interfaces");
         variable_public_get(["time_value"], function(x) {
@@ -179,11 +198,13 @@ function channels_main() {
 	console.log("server pubkey is ");
 	console.log(pubkey);
         load_button.onchange = function() {return load_channels(pubkey) };
-        //refresh_channels_button.onclick = function() {return refresh_channels_interfaces2(pubkey)};
         var div = channel_interface_div;
         div.innerHTML = "";
         var tv_display = document.createElement("div");
         tv_display.innerHTML = ("it costs this much to keep a channel open. per block per coin: ").concat((tv).toString());
+        var channel_server_mode = document.createElement("h3");
+        channel_server_mode.innerHTML = "channel with a server mode";
+        div.appendChild(channel_server_mode);
         div.appendChild(tv_display);
         div.appendChild(channel_sync_button);
         div.appendChild(br());
@@ -390,7 +411,7 @@ function channels_main() {
 	      JSON.stringify(tx_original))) {
 	    console.log(JSON.stringify(tx));
 	    console.log(JSON.stringify(tx_original));
-	    throw("the server illegally manipulated the tx");
+	    throw("the server manipulated the tx in a way we don't know how to handle.");
 	}
 	var a = verify_both(sstx);
 	if (!(a)) {

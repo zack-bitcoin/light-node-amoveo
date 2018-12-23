@@ -30,7 +30,10 @@ function bets_main() {
             var bet = bets[i];
             console.log("bet is ");
             console.log(bet);
-            var oid = bet[3][6];
+            var oid = bet[3][6];//bet[3] is the instructions to re-create the code of the contract.
+            //{market, 2, MarketID, Expires, Pubkey, Period, OID, LowerLimit, UpperLimit}.
+            //{market, 1, MarketID, Expires, Pubkey, Period, OID}.
+            //for lightning, bet[3] is 0.
             var amount = bet[2];
             var order = document.createElement("h8");
             var outcome = "";
