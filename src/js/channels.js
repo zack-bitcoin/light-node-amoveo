@@ -149,6 +149,7 @@ function channels_main() {
             });
         });
         var refresh_channels2 = button_maker2("channel with peer mode", function() {
+            //you have to say your peer's pubkey in order to load your channel with them.
             return refresh_channels_peer_interfaces();
         });
         document.body.appendChild(channel_title);
@@ -182,9 +183,11 @@ function channels_main() {
         div.appendChild(channel_server_mode);
         div.appendChild(br());
         //ability to load a channel state and display the data.
+        //should display a list of who you have channels with. you can select between them, and then it displays the details for that channel state.
+
         //ability to create a new channel state for a given channel.
         //ability to update an existing channel state
-        //given 2 channel states, compute the difference
+        //given 2 channel states, compute the difference to see what was updated.
         
     }
     function refresh_channels_interfaces(pubkey, callback) {
