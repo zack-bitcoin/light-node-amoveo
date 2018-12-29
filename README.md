@@ -5,7 +5,9 @@ This is a light node for the Amoveo cryptocurrency.
 
 [Click this link to download a zip file of the light node](https://github.com/zack-bitcoin/light-node-amoveo/archive/master.zip)
 
-To turn on the light node with python, use this command `sh start.sh`.
-if you have python3, you can use this command `sh python3_start.sh`.
-then direct your browser to `http://localhost:8080/wallet.html`. Then insert the IP address and Port of a full node in order to sync the blocks. There is a list of full nodes here: https://veoscan.io/
+open src/js/wallet.html in a browser.
 
+here is a list of full nodes that you can download headers from: https://veoscan.io/
+put the IP address of a full node into the light node so it knows where to download headers from.
+
+This is the IP of a full node that I maintain:  159.65.120.84

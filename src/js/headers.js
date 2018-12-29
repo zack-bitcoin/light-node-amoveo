@@ -34,7 +34,7 @@ function headers_main() {
     wallet_text = document.createElement("p");
     wallet_text.innerHTML = JSON.stringify([["height", 0], ["total work", 0]]);
     document.body.appendChild(wallet_text);
-    more_headers();
+    //more_headers();
     function write_header(header, ewah) {
 	//console.log("write header");
         var acc_difficulty = header[9];
