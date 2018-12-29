@@ -16,6 +16,10 @@ function title_maker() {
     explorer.innerHTML = ("<a href=\"/explorer.html\">").concat("Explorer on same server").concat("</a>");
     document.body.appendChild(explorer);
 
+    var explorer2 = document.createElement("p");
+    explorer2.innerHTML = ("<a href=\"http://159.65.120.84:8080/explorer.html\">").concat("Explorer on Zack's server").concat("</a>");
+    document.body.appendChild(explorer2);
+
     var blockchain_title = document.createElement("h3");
     blockchain_title.innerHTML = "blockchain ";
     document.body.appendChild(blockchain_title);
