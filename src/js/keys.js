@@ -1,7 +1,7 @@
 
 function keys_function1() {
     var ec = new elliptic.ec('secp256k1');
-    var keys = new_keys();
+    var keys_internal = new_keys();
     var account_title = document.createElement("h3");
     account_title.innerHTML = "account ";
     var div = document.createElement("div");
@@ -44,13 +44,13 @@ function keys_function1() {
         return ec.genKeyPair();
     }
     function pubkey_64() {
-        var pubPoint = keys.getPublic("hex");
+        var pubPoint = keys_internal.getPublic("hex");
         return btoa(fromHex(pubPoint));
     }
     function sign_tx(tx) {
 	if (tx[0] == "signed") {
 	    console.log(JSON.stringify(tx));
-	    var sig = btoa(array_to_string(sign(tx[1], keys)));
+	    var sig = btoa(array_to_string(sign(tx[1], keys_internal)));
 	    var pub = pubkey_64();
 	    if (pub == tx[1][1]) {
 		tx[2] = sig;
@@ -62,7 +62,7 @@ function keys_function1() {
 	    }
 	    return tx;
 	} else {
-            var sig = btoa(array_to_string(sign(tx, keys)));
+            var sig = btoa(array_to_string(sign(tx, keys_internal)));
             return ["signed", tx, sig, [-6]];
 	}
     }
@@ -71,7 +71,7 @@ function keys_function1() {
     }
     function watch_only_func() {
 	var v = watch_only_pubkey.value;
-	keys = new_keys_watch(string_to_array(atob(v)));
+	keys_internal = new_keys_watch(string_to_array(atob(v)));
 	update_pubkey();
     }
     function new_keys_check() {
@@ -93,10 +93,10 @@ function keys_function1() {
             new_pubkey_div.innerHTML = "";
 	    var x = entropy.value;
 	    if (x == '') {//If you don't provide entropy, then it uses a built in random number generator.
-		keys = new_keys();
+		keys_internal = new_keys();
 		set_balance(0);
 	    } else {
-		keys = new_keys_entropy(x);
+		keys_internal = new_keys_entropy(x);
 	    }
             update_pubkey();
         }
@@ -119,7 +119,7 @@ function keys_function1() {
         bal_div.innerHTML = ("your balance ").concat((n).toString()) + " VEO";
     }
     function save_keys() {
-        download(keys.getPrivate("hex"), save_name.value, "text/plain");
+        download(keys_internal.getPrivate("hex"), save_name.value, "text/plain");
 	update_pubkey();
     }
     function load_keys() {
@@ -127,17 +127,17 @@ function keys_function1() {
         var reader = new FileReader();
         reader.onload = function(e) {
 	    set_balance(0);
-            keys = ec.keyFromPrivate(reader.result, "hex");
+            keys_internal = ec.keyFromPrivate(reader.result, "hex");
             update_pubkey();
             update_balance();
         }
         reader.readAsText(file);
     }
     function encrypt(val, to) {
-        return encryption_object.send(val, to, keys);
+        return encryption_object.send(val, to, keys_internal);
     }
     function decrypt(val) {
-	return encryption_object.get(val, keys);
+	return encryption_object.get(val, keys_internal);
     }
     return {make: new_keys, pub: pubkey_64, sign: sign_tx, ec: (function() { return ec; }), encrypt: encrypt, decrypt: decrypt, check_balance: check_balance};
 }
