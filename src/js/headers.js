@@ -1,6 +1,7 @@
 function headers_main() {
     var mode = "production";
     //var mode = "test";
+    //var mode = "testnet";
     var forks;
     var retarget_frequency;
     var top_header;
@@ -12,6 +13,12 @@ function headers_main() {
 	retarget_frequency = 12;
 	forks = {two: 0, four: retarget_frequency, seven:40};
 	top_header = 0;
+    } else if (mode == "testnet") {
+	INITIAL_DIFFICULTY = 2500;
+	retarget_frequency = 2000;
+	forks = {two: 0, four: retarget_frequency, seven:40};
+	top_header = 0;
+
     } else {
 	INITIAL_DIFFICULTY = 8844;
 	retarget_frequency = 2000;
