@@ -15,10 +15,9 @@ function headers_main() {
 	top_header = 0;
     } else if (mode == "testnet") {
 	INITIAL_DIFFICULTY = 2500;
-	retarget_frequency = 2000;
+	retarget_frequency = 12;
 	forks = {two: 0, four: retarget_frequency, seven:40};
 	top_header = 0;
-
     } else {
 	INITIAL_DIFFICULTY = 8844;
 	retarget_frequency = 2000;
@@ -80,9 +79,9 @@ function headers_main() {
     function difficulty_should_be(NextHeader, hash) {
         var header = read_header(hash);//headers_db[hash];
         if ( header == undefined ) {
-            console.log(headers_db);
-            console.log(hash);
-            console.log("received an orphan header");
+            //console.log(headers_db);
+            //console.log(hash);
+            //console.log("received an orphan header");
             return "unknown parent";
         } else {
             var Diff = header[6];
@@ -303,7 +302,7 @@ function headers_main() {
 	return ewah;
     }
     function absorb_headers(h) {
-	console.log(JSON.stringify(h[1]));
+	//console.log(JSON.stringify(h[1]));
         var get_more = false;
         for (var i = 1; i < h.length; i++ ) {
             var bl = check_pow(h[i]);
