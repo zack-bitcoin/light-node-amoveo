@@ -17,7 +17,8 @@ function headers_main() {
 	INITIAL_DIFFICULTY = 2500;
 	retarget_frequency = 12;
 	forks = {two: 0, four: retarget_frequency, seven:40};
-	top_header = 0;
+	top_header = ["header",50,"avmTCvhW62I5b1ZKW/k+hN5VkDTRBUfNOML1IbDeBEM=","HtCW+xejEr+hVx9EU/YWqjkToHfB65LznX/7kYY1qYc=","/nky29gffL519fIShxYtlGYrSl/VvYYSw0Qk2F/+Q4k=",283297347,4861,0,"AAAAAAAAAAAAoAC51HYeqD+RjyH1Ew1tdebVT3/BD6g=",1006239072,746];
+	write_header(top_header, 713104);
     } else {
 	INITIAL_DIFFICULTY = 8844;
 	retarget_frequency = 2000;
