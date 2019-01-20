@@ -194,3 +194,7 @@ function parse_address(A) {
     if (B) { return A3; } else { return 0; };
 }
 
+function read_veo(X) {
+    return Math.floor(parseFloat(X.value, 10) * token_units());
+}
+    

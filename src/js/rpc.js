@@ -6,7 +6,10 @@ function getter(t, u, callback){
     return xmlhttp
 }
 function get(t, callback) {
-    u = url(get_port(), get_ip());
+    return general_get(t, get_port(), callback)
+}
+function general_get(t, port, callback) {
+    u = url(port, get_ip());
     return getter(t, u, callback);
 }
 function url(port, ip) { return "http://".concat(ip).concat(":").concat(port.toString().concat("/")); }
@@ -53,4 +56,7 @@ function var_get(x, callback, cmd) {
 	callback(p[1]);
     }, 100);
 }
-
+function messenger(cmd, callback) {
+    var foobar = general_get(cmd, 8088);
+    var_get(foobar, callback, cmd);
+}
