@@ -1,5 +1,4 @@
 function otc_function() {
-    //Their pubkey
     var div = document.createElement("div");
     document.body.appendChild(div);
 
@@ -12,7 +11,6 @@ function otc_function() {
     div.appendChild(status);
     var their_address = text_input("their_address: ", div);
     div.appendChild(br());
-    //verify internally that our address matches the contract.
     var oracle = text_input("oracle: ", div);
     div.appendChild(br());
     var our_amount = text_input("our bet amount: ", div);
@@ -30,19 +28,13 @@ function otc_function() {
     function start() {
         var db = {};
         db.their_address_val = parse_address(their_address.value);
-        //var their_address_val = parse_address(their_address.value);
         db.oracle_val = oracle.value.trim().replace(/\./g,'');
-        //var oracle_val = oracle.value.trim().replace(/\./g,'');
         if (!(db.oracle_val.length == 44)) {
             status.innerHTML = "status: <font color=\"red\">Error: oracle ID is badly formatted or missing</font>";
             return 0;
         }
-        //var our_amount_val = read_veo(our_amount);
         db.our_amount_val = read_veo(our_amount);
-        //var their_amount_val = read_veo(their_amount);
         db.their_amount_val = read_veo(their_amount);
-        //var oracle_type_val;
-        //var bits_val = parseInt(bits.value, 10);
         db.bits_val = parseInt(bits.value, 10);
         if (oracle_type.value.trim() == "scalar") {
             db.oracle_type_val = 1;
@@ -71,6 +63,7 @@ function otc_function() {
                 status.innerHTML = "status: <font color=\"red\">Error: That oracle does not exist.</font>";
                 return 0;
             }
+            db.oracle = x;
             //check that this server allows for sending encrypted messages. port 8088 message {test} should return ["ok", "success 2"].
             //check that we each have enough money to participate. port 8088 message {account, Pubkey}
             return start2(db);
@@ -85,6 +78,7 @@ function otc_function() {
                 status.innerHTML = "status: <font color=\"red\">Error: you don't have enough funds to make a bet that big.</font>";
                 return 0;
             }
+            db.my_acc = my_acc;
             return variable_public_get(["account", db.their_address_val], function(their_acc) {
                 if (their_acc == "empty") {
                     status.innerHTML = "status: <font color=\"red\">Error: your partner needs to have veo in their account to make a channel.</font>";
@@ -93,6 +87,7 @@ function otc_function() {
                     status.innerHTML = "status: <font color=\"red\">Error: you partner doesn't have enough veo to make a bet that big.</font>";
                     return 0;
                 }
+                db.their_acc = their_acc;
                 return start3(db);
             });
         });
@@ -103,15 +98,15 @@ function otc_function() {
             if (a < 1000000) { //10 milibits
                 status.innerHTML = "status: <font color=\"green\">you don't have enough credits, now puchasing more.</font>";
                 //purchase more credits here.
+                //wait enough confirmations until you have the credits.
             }
-            //wait enough confirmations until you have the credits.
             console.log("my credits");
             console.log(a);
-            status.innerHTML = "status: <font color=\"green\">sending trade request. Tell your partner to check their messages from the same server you are using. </font>";
+            status.innerHTML = "status: <font color=\"blue\">sending trade request. Tell your partner to check their messages from the same server you are using. </font>";
         //generate the contract
         //send signature along with info needed to generate the contract to carol
         //check every 10 seconds if Carol has responded with a signature for the smart contract.
-        //The light node makes a big warning, telling Bob that he needs to save the signed smart contract to a file.
+        //The light node makes a big warning, telling Bob that he needs to save the signed smart contract to a file. once he saves, the message disappears.
             status.innerHTML = "status: <font color=\"green\">trade request was accepted, now making a channel.</font>";
        //The light node signs a tx to make the channel, send it as an encrypted message to Carol.
         //The light node checks every 10 seconds until it sees that the new tx has been included in a block.
