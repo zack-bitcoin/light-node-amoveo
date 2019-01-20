@@ -150,7 +150,14 @@ function text(a) {
     x2.innerHTML = a;
     return x2;
 };
-
+function text_input(query, div) {
+    var x = document.createElement("INPUT");
+    x.type = "text";
+    var q = text(query);
+    div.appendChild(q);
+    div.appendChild(x);
+    return x;
+};
 
 function tree_number_to_value(t) {
     if (t < 101) {
@@ -186,3 +193,4 @@ function parse_address(A) {
     B = ((A3).length == 88);
     if (B) { return A3; } else { return 0; };
 }
+
