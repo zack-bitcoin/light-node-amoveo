@@ -98,44 +98,51 @@ function otc_function() {
             if (a < 1000000) { //10 milibits
                 status.innerHTML = "status: <font color=\"green\">you don't have enough credits, now puchasing more.</font>";
                 return variable_public_get(["pubkey"], function(server_pubkey) {
-                    db.server_pubkey = server_pubkey;
                     return fee_checker(
                         function(x) {
                             var s = "fail. the server's account should already exist.";
                             console.log(s);
                             return s;
                         }, function (Fee) {
-                            //purchase more credits here.
-		            return variable_public_get(["spend_tx", 1200000, Fee, keys.pub, server_pubkey], function(x) {
+		            return variable_public_get(["spend_tx", 1200000, Fee, keys.pub, server_pubkey], function(x) {//this purchases more credits.
                                 return start4(db);
                             });
                         });
                 });
             }
+            return start4(db);
         });
+    };
+    function random_cid(n) {
+        if (n == 0) { return ""; }
+        else {
+            var rn = Math.floor(Math.random() * 256);
+            var rl = String.fromCharCode(rn);
+            return rl.concat(random_cid(n-1))}
+        //btoa(String.fromCharCode(0,255,10));
     };
     function start4(db) {
         return messenger(["account", keys.pub], function(a) {
             if (a < 1000000) { //10 milibits
                 //wait enough confirmations until you have the credits.
-                return setTimeout(function() {return start4(db);}, 5000);
+                return setTimeout(function() {return start4(db);}, 20000);
             }
             console.log("your account ");
             console.log(a);
             status.innerHTML = "status: <font color=\"blue\">sending trade request. Tell your partner to check their messages from the same server you are using. </font>";
-            var maxprice = Math.floor((10000 * (db.our_amount_val)) / (db.their_amount_val + db.our_amount_vala)); //calculation of maxprice is probably wrong.
+            var maxprice = Math.floor((10000 * (db.our_amount_val)) / (db.their_amount_val + db.our_amount_val)); //calculation of maxprice is probably wrong.
             var period = 10000000;
             var amount = db.our_amount_val + db.their_amount_val;
             var oid = db.oracle_val;
             var height = headers_object.top()[1];
-            //generate the contract
-            // bet expires should be 1000 after the oracle expires.
+            var bet_expires = 3000 + db.oracle[10]; // bet expires should be at least 3000 after the oracle can expire.
             var sc = market_contract(db.bet_direction_val, bet_expires, maxprice, keys.pub, period, amount, oid, height);//height
             var delay = 1000;//a little over a week
-            var cid = "";//generate a random 256 byte cid for the new channel.
+            var cid = atob(random_cid(32));//generate a random 32 byte cid for the new channel.
             var spk = ["spk", keys.pub, db.their_address_val, [-6], 0, 0, cid, 0, 0, delay];
-            var cd = channels.new_cd(spk, [], [], [], channel_expires, cid);
+            var cd = channels.new_cd(spk, [], [], [], bet_expires, cid);
             var spk2 = market_trade(cd, amount, maxprice, sc, oid);
+            var sspk2 = keys.sign(spk2);
             //PD = <<Height:32, Price:16, PortionMatched:16, MarketID/binary>>,
             //Signature = keys:raw_sign(PD),
             //<<PD/binary, Signature/binary>>.
