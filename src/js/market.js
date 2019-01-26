@@ -1,4 +1,4 @@
-//use market:teset3() to generate this compiled binary.
+//use market:test3() to generate this compiled binary.
 
 function scalar_market_contract(direction, expires, maxprice, server_pubkey, period, amount, oid, bet_height, lower_limit, upper_limit, many) {
     var a;

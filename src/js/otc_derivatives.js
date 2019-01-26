@@ -23,6 +23,8 @@ function otc_function() {
     div.appendChild(br());
     var bits = text_input("if it is scalar, how many bits does it have?", div);
     div.appendChild(br());
+    var expires = text_input("when does the bet expire?", div);
+    div.appendChild(br());
     startButton = button_maker2("offer to make this trade", start);
     div.appendChild(startButton);
     function start() {
@@ -36,6 +38,7 @@ function otc_function() {
         db.our_amount_val = read_veo(our_amount);
         db.their_amount_val = read_veo(their_amount);
         db.bits_val = parseInt(bits.value, 10);
+        db.expires = parse_int(expires.value, 10);
         if (oracle_type.value.trim() == "scalar") {
             db.oracle_type_val = 1;
             db.bits_val = parseInt(bits, 10);
@@ -64,8 +67,6 @@ function otc_function() {
                 return 0;
             }
             db.oracle = x;
-            //check that this server allows for sending encrypted messages. port 8088 message {test} should return ["ok", "success 2"].
-            //check that we each have enough money to participate. port 8088 message {account, Pubkey}
             return start2(db);
         });
     }
@@ -93,17 +94,48 @@ function otc_function() {
         });
     }
     function start3(db) {
-            
         return messenger(["account", keys.pub], function(a) {
             if (a < 1000000) { //10 milibits
                 status.innerHTML = "status: <font color=\"green\">you don't have enough credits, now puchasing more.</font>";
-                //purchase more credits here.
-                //wait enough confirmations until you have the credits.
+                return variable_public_get(["pubkey"], function(server_pubkey) {
+                    db.server_pubkey = server_pubkey;
+                    return fee_checker(
+                        function(x) {
+                            var s = "fail. the server's account should already exist.";
+                            console.log(s);
+                            return s;
+                        }, function (Fee) {
+                            //purchase more credits here.
+		            return variable_public_get(["spend_tx", 1200000, Fee, keys.pub, server_pubkey], function(x) {
+                                return start4(db);
+                            });
+                        });
+                });
             }
-            console.log("my credits");
+        });
+    };
+    function start4(db) {
+        return messenger(["account", keys.pub], function(a) {
+            if (a < 1000000) { //10 milibits
+                //wait enough confirmations until you have the credits.
+                return setTimeout(function() {return start4(db);}, 5000);
+            }
+            console.log("your account ");
             console.log(a);
             status.innerHTML = "status: <font color=\"blue\">sending trade request. Tell your partner to check their messages from the same server you are using. </font>";
-        //generate the contract
+            var maxprice = Math.floor((10000 * (db.our_amount_val)) / (db.their_amount_val)); //calculation of maxprice is probably wrong.
+            var period = 10000000;
+            var amount = db.our_amount_val + db.their_amount_val;
+            var oid = db.oracle_val;
+            var height = headers_object.top()[1];
+            //generate the contract
+            var sc = market_contract(db.bet_direction_val, db.expires, maxprice, keys.pub, period, amount, oid, height);//height
+            //load cd
+            var spk = market_trade(cd, amount, maxprice, sc, oid);
+            //PD = <<Height:32, Price:16, PortionMatched:16, MarketID/binary>>,
+            //Signature = keys:raw_sign(PD),
+            //<<PD/binary, Signature/binary>>.
+            
         //send signature along with info needed to generate the contract to carol
         //check every 10 seconds if Carol has responded with a signature for the smart contract.
         //The light node makes a big warning, telling Bob that he needs to save the signed smart contract to a file. once he saves, the message disappears.
