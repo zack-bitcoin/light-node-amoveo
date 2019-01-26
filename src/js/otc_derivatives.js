@@ -23,8 +23,8 @@ function otc_function() {
     div.appendChild(br());
     var bits = text_input("if it is scalar, how many bits does it have?", div);
     div.appendChild(br());
-    var expires = text_input("when does the bet expire?", div);
-    div.appendChild(br());
+    //var expires = text_input("when does the bet expire?", div);
+    //div.appendChild(br());
     startButton = button_maker2("offer to make this trade", start);
     div.appendChild(startButton);
     function start() {
@@ -38,7 +38,7 @@ function otc_function() {
         db.our_amount_val = read_veo(our_amount);
         db.their_amount_val = read_veo(their_amount);
         db.bits_val = parseInt(bits.value, 10);
-        db.expires = parse_int(expires.value, 10);
+        //db.expires = parse_int(expires.value, 10);
         if (oracle_type.value.trim() == "scalar") {
             db.oracle_type_val = 1;
             db.bits_val = parseInt(bits, 10);
@@ -123,20 +123,27 @@ function otc_function() {
             console.log("your account ");
             console.log(a);
             status.innerHTML = "status: <font color=\"blue\">sending trade request. Tell your partner to check their messages from the same server you are using. </font>";
-            var maxprice = Math.floor((10000 * (db.our_amount_val)) / (db.their_amount_val)); //calculation of maxprice is probably wrong.
+            var maxprice = Math.floor((10000 * (db.our_amount_val)) / (db.their_amount_val + db.our_amount_vala)); //calculation of maxprice is probably wrong.
             var period = 10000000;
             var amount = db.our_amount_val + db.their_amount_val;
             var oid = db.oracle_val;
             var height = headers_object.top()[1];
             //generate the contract
-            var sc = market_contract(db.bet_direction_val, db.expires, maxprice, keys.pub, period, amount, oid, height);//height
-            //load cd
-            var spk = market_trade(cd, amount, maxprice, sc, oid);
+            // bet expires should be 1000 after the oracle expires.
+            var sc = market_contract(db.bet_direction_val, bet_expires, maxprice, keys.pub, period, amount, oid, height);//height
+            var delay = 1000;//a little over a week
+            var cid = "";//generate a random 256 byte cid for the new channel.
+            var spk = ["spk", keys.pub, db.their_address_val, [-6], 0, 0, cid, 0, 0, delay];
+            var cd = channels.new_cd(spk, [], [], [], channel_expires, cid);
+            var spk2 = market_trade(cd, amount, maxprice, sc, oid);
             //PD = <<Height:32, Price:16, PortionMatched:16, MarketID/binary>>,
             //Signature = keys:raw_sign(PD),
             //<<PD/binary, Signature/binary>>.
             
-        //send signature along with info needed to generate the contract to carol
+            //send signature along with info needed to generate the contract to carol
+            // bet_direction, bet_expires, maxprice, our pubkey, their pubkey, period, amount being bet, oid, height, delay, signature, price_declaration
+
+
         //check every 10 seconds if Carol has responded with a signature for the smart contract.
         //The light node makes a big warning, telling Bob that he needs to save the signed smart contract to a file. once he saves, the message disappears.
             status.innerHTML = "status: <font color=\"green\">trade request was accepted, now making a channel.</font>";
