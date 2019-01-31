@@ -104,8 +104,12 @@ function otc_function() {
                             console.log(s);
                             return s;
                         }, function (Fee) {
-		            return variable_public_get(["spend_tx", 1200000, Fee, keys.pub, server_pubkey], function(x) {//this purchases more credits.
-                                return start4(db);
+		            return variable_public_get(["spend_tx", 1200000, Fee, keys.pub, server_pubkey], function(tx) {
+                                //this tx purchases more credits.
+                                var stx = keys.sign(tx);
+                                variable_public_get(["txs", [-6, stx]], function() {
+                                    return start4(db);
+                                });
                             });
                         });
                 });
@@ -150,14 +154,38 @@ function otc_function() {
             //send signature along with info needed to generate the contract to carol
             // bet_direction, bet_expires, maxprice, our pubkey, their pubkey, period, amount being bet, oid, height, delay, signature, price_declaration
 
+            //{signed, {53412, From, Nonce, Emsg}, Sig, _} = SR,
+            var sr = ["signed", Msg, Sig, [-6]];
+            return messenger(["send", 0, db.their_address_val, sr], function(x) {
+                return start5(db);
+            });
+        });
+    };
+    function start5(db) {
+        return messenger(["read", 0, keys.pub()], function(a) {
+            //check every 10 seconds if Carol has responded with a signature for the smart contract.
+            console.log("start 5 received messages: ");
+            console.log(JSON.stringify(a));
+            if (1==2) {
+                return setTimeout(function() {return starts5(db);}, 10000);
+            }
+            //verify that Carol signed the same contract as us.
 
-        //check every 10 seconds if Carol has responded with a signature for the smart contract.
+
         //The light node makes a big warning, telling Bob that he needs to save the signed smart contract to a file. once he saves, the message disappears.
             status.innerHTML = "status: <font color=\"green\">trade request was accepted, now making a channel.</font>";
-       //The light node signs a tx to make the channel, send it as an encrypted message to Carol.
+            //The light node signs a tx to make the channel, send it as an encrypted message to Carol.
+            return start6(db);
+        });
+    };
+    function start6(db) {
+        merkle.request_proof("channels", db.cid, function(c) {
+            console.log("channel is ");
+            console.log(c);
         //The light node checks every 10 seconds until it sees that the new tx has been included in a block.
+        //keep checking until the channel is existing on-chain.
             status.innerHTML = "status: <font color=\"green\">The channel has been formed, and the smart contract is active. If you have saved a copy of the signed smart contract, then it is now safe to close the browser.</font>";
-        //after you save, the message about needing to save changes to "it is now safe to turn off the light node, make sure to keep a copy of the channel state that you have already saved to a file."
+            //after you save, the message about needing to save changes to "it is now safe to turn off the light node, make sure to keep a copy of the channel state that you have already saved to a file."
         });
     };
     return {};
