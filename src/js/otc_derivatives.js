@@ -94,7 +94,7 @@ function otc_function() {
         });
     }
     function start3(db) {
-        return messenger(["account", keys.pub], function(a) {
+        return messenger(["account", keys.pub()], function(a) {
             if (a < 1000000) { //10 milibits
                 status.innerHTML = "status: <font color=\"green\">you don't have enough credits, now puchasing more.</font>";
                 return variable_public_get(["pubkey"], function(server_pubkey) {
@@ -104,7 +104,7 @@ function otc_function() {
                             console.log(s);
                             return s;
                         }, function (Fee) {
-		            return variable_public_get(["spend_tx", 1200000, Fee, keys.pub, server_pubkey], function(tx) {
+		            return variable_public_get(["spend_tx", 1200000, Fee, keys.pub(), server_pubkey], function(tx) {
                                 //this tx purchases more credits.
                                 var stx = keys.sign(tx);
                                 variable_public_get(["txs", [-6, stx]], function() {
@@ -125,8 +125,27 @@ function otc_function() {
             return rl.concat(random_cid(n-1))}
         //btoa(String.fromCharCode(0,255,10));
     };
+    function make_bytes(bytes, b) {
+        if (bytes == 0) {
+            return "";
+        } else {
+            var r = b % 256;
+            var d = math.floor(b / 256);
+            var l = String.fromCharCode(r);
+            var t = make_bytes(bytes - 1, d);
+            return t.concat(l);
+        }
+    };
+    function pd_maker(height, price, portion, oid) {
+            //PD = <<Height:32, Price:16, PortionMatched:16, MarketID/binary>>,
+        var a = make_bytes(4, height);
+        var b = make_bytes(2, price);
+        var c = make_bytes(2, portion_matched);
+        var d = atob(oid);
+        return a.concat(b).concat(c).concat(d);
+    }
     function start4(db) {
-        return messenger(["account", keys.pub], function(a) {
+        return messenger(["account", keys.pub()], function(a) {
             if (a < 1000000) { //10 milibits
                 //wait enough confirmations until you have the credits.
                 return setTimeout(function() {return start4(db);}, 20000);
@@ -135,29 +154,34 @@ function otc_function() {
             console.log(a);
             status.innerHTML = "status: <font color=\"blue\">sending trade request. Tell your partner to check their messages from the same server you are using. </font>";
             var maxprice = Math.floor((10000 * (db.our_amount_val)) / (db.their_amount_val + db.our_amount_val)); //calculation of maxprice is probably wrong.
-            var period = 10000000;
+            var period = 10000000;//only one period because there is only one bet.
             var amount = db.our_amount_val + db.their_amount_val;
             var oid = db.oracle_val;
             var height = headers_object.top()[1];
             var bet_expires = 3000 + db.oracle[10]; // bet expires should be at least 3000 after the oracle can expire.
-            var sc = market_contract(db.bet_direction_val, bet_expires, maxprice, keys.pub, period, amount, oid, height);//height
+            var sc = market_contract(db.bet_direction_val, bet_expires, maxprice, keys.pub(), period, amount, oid, height);//height
             var delay = 1000;//a little over a week
             var cid = atob(random_cid(32));//generate a random 32 byte cid for the new channel.
-            var spk = ["spk", keys.pub, db.their_address_val, [-6], 0, 0, cid, 0, 0, delay];
+            var spk = ["spk", keys.pub(), db.their_address_val, [-6], 0, 0, cid, 0, 0, delay];
             var cd = channels.new_cd(spk, [], [], [], bet_expires, cid);
             var spk2 = market_trade(cd, amount, maxprice, sc, oid);
             var sspk2 = keys.sign(spk2);
-            //PD = <<Height:32, Price:16, PortionMatched:16, MarketID/binary>>,
-            //Signature = keys:raw_sign(PD),
-            //<<PD/binary, Signature/binary>>.
-            
-            //send signature along with info needed to generate the contract to carol
-            // bet_direction, bet_expires, maxprice, our pubkey, their pubkey, period, amount being bet, oid, height, delay, signature, price_declaration
-
-            //{signed, {53412, From, Nonce, Emsg}, Sig, _} = SR,
-            var sr = ["signed", Msg, Sig, [-6]];
-            return messenger(["send", 0, db.their_address_val, sr], function(x) {
-                return start5(db);
+            var pd = pd_maker(height, maxprice - 1, 9999, OID);
+            var sig = keys.sign(pd)[2];
+            var signedPd = pd.concat(sig);//<<PD/binary, Signature/binary>>.
+            db.signedPD = signedPd,
+            db.sspk2 = sspk2,
+            var imsg = [-6, db.bet_direction_val, bet_expires, maxprice, keys.pub(), db.their_address_val, period, db.our_amount_val, db.their_amount_val, oid, height, delay, contract_sig, signedPD];
+            var emsg = keys.encrypt(imsg, db.their_address_val);
+            messenger(["account", keys.pub()], function(account) {
+                console.log("account is ");
+                console.log(JSON.stringify(account));
+                nonce = 0;//look up nonce from account, add 1 to it.
+                var r = [53412, keys.pub(), nonce, emsg];
+                var sr = keys.sign(r);
+                return messenger(["send", 0, db.their_address_val, sr], function(x) {
+                    return start5(db);
+                });
             });
         });
     };
