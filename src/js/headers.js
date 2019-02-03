@@ -4,10 +4,15 @@ function headers_main() {
     console.log(mode);
     if (mode == "test") {
         mode = "test";
+        server_port.value = "3010";
+        server_ip.value = "127.0.0.1";
     } else if (mode == "testnet") {
         mode = "testnet";
+        server_port.value = "8070";
+        server_ip.value = "139.59.144.76";
     } else {
         mode = "production";
+        server_port.value = "8080";
     }
     console.log(mode);
     //var mode = "test";
