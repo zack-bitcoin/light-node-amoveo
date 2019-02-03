@@ -95,6 +95,8 @@ function otc_function() {
     }
     function start3(db) {
         return messenger(["account", keys.pub()], function(a) {
+            console.log("account is ");
+            console.log(a);//look up amount from account, store in a.
             if (a < 1000000) { //10 milibits
                 status.innerHTML = "status: <font color=\"green\">you don't have enough credits, now puchasing more.</font>";
                 return variable_public_get(["pubkey"], function(server_pubkey) {
@@ -171,7 +173,8 @@ function otc_function() {
             var signedPd = pd.concat(sig);//<<PD/binary, Signature/binary>>.
             db.signedPD = signedPd,
             db.sspk2 = sspk2,
-            var imsg = [-6, db.bet_direction_val, bet_expires, maxprice, keys.pub(), db.their_address_val, period, db.our_amount_val, db.their_amount_val, oid, height, delay, contract_sig, signedPD];
+            var spk_nonce = spk2[8];
+            var imsg = [-6, db.bet_direction_val, bet_expires, maxprice, keys.pub(), db.their_address_val, period, db.our_amount_val, db.their_amount_val, oid, height, delay, contract_sig, signedPD, spk_nonce];
             var emsg = keys.encrypt(imsg, db.their_address_val);
             messenger(["account", keys.pub()], function(account) {
                 console.log("account is ");
@@ -216,3 +219,4 @@ function otc_function() {
 }
 
 var otc_object = otc_function();
+
