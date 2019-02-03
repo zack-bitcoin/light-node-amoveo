@@ -527,6 +527,8 @@ spk currently looks like this.
 	    //console.log("sum bets bet is ");
 	    //console.log(JSON.stringify(bets[i][2]));
 	    x += bets[i][2];
+            console.log(JSON.stringify(bets[i][3]));
+            console.log(JSON.stringify(bets[i][4]));
 	}
         return x;
     }

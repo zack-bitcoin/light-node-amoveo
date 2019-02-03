@@ -1,5 +1,15 @@
 function headers_main() {
-    var mode = "production";
+    const urlParams = new URLSearchParams(window.location.search);
+    var mode = urlParams.get('mode');
+    console.log(mode);
+    if (mode == "test") {
+        mode = "test";
+    } else if (mode == "testnet") {
+        mode = "testnet";
+    } else {
+        mode = "production";
+    }
+    console.log(mode);
     //var mode = "test";
     //var mode = "testnet";
     var forks;
