@@ -152,9 +152,9 @@ function channels_main() {
 	});
     });
     
-    variable_public_get(["pubkey"], function(pubkey) {
-        return refresh_channels_interfaces(pubkey);
-    });
+    //variable_public_get(["pubkey"], function(pubkey) {
+    //    return refresh_channels_interfaces(pubkey);
+    //});
     function channel_warning() {
         channel_warning_div.innerHTML = "channel state needs to be saved!~~~~~~~";
     }
