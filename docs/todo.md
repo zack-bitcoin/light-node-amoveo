@@ -3,7 +3,7 @@ This is part of the handshake for negotiating the new channel.
 
 
 
-
+progress bar when checking if smart contracts can be updated.
 
 
 Maybe we should remove all the explorer stuff from this repository, and leave it with the full node.

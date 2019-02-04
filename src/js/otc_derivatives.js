@@ -1,10 +1,6 @@
-function otc_function() {
+(function otc_function() {
     var div = document.createElement("div");
     document.body.appendChild(div);
-
-    var title = document.createElement("h3");
-    title.innerHTML = "direct derivatives form";
-    div.appendChild(title);
 
     var status = document.createElement("p");
     status.innerHTML = "status: <font color=\"green\">ready</font>";
@@ -171,9 +167,10 @@ function otc_function() {
             var pd = pd_maker(height, maxprice - 1, 9999, OID);
             var sig = keys.sign(pd)[2];
             var signedPd = pd.concat(sig);//<<PD/binary, Signature/binary>>.
-            db.signedPD = signedPd,
-            db.sspk2 = sspk2,
+            db.signedPD = signedPd;
+            db.sspk2 = sspk2;
             var spk_nonce = spk2[8];
+
             var imsg = [-6, db.bet_direction_val, bet_expires, maxprice, keys.pub(), db.their_address_val, period, db.our_amount_val, db.their_amount_val, oid, height, delay, contract_sig, signedPD, spk_nonce];
             var emsg = keys.encrypt(imsg, db.their_address_val);
             messenger(["account", keys.pub()], function(account) {
@@ -215,8 +212,8 @@ function otc_function() {
             //after you save, the message about needing to save changes to "it is now safe to turn off the light node, make sure to keep a copy of the channel state that you have already saved to a file."
         });
     };
-    return {};
-}
+    //return {};
+})();
 
-var otc_object = otc_function();
+//var otc_object = otc_function();
 

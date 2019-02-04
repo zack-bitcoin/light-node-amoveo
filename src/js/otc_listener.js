@@ -15,11 +15,10 @@
             if (x == []) {
                 setTimeout(start1(db), 10000);
             } else {
-                //remember, old messages do not get deleted. So don't think that they are sending you the same trade offer over and over. check the spk_nonce to see if it is still a valid offer.
+                //remember, old messages do not get deleted. So don't think that they are sending you the same trade offer over and over. check the spk.cid to see if the channel already exists.
                 console.log("in start 1");
                 console.log(JSON.stringify(x));
-
-                //The light node downloads a message from Bob about a trade, and displays it for Carol
+                //The light displays the message for Carol
                 //Carol verifies that the information is correct and clicks the "this info is correct" button within 60 minutes of the moment when Bob's offer got sent. If you don't have enough credits to send the encrypted messages for this protocol, then the light node makes a payment to Alice to buy enough credits.
                 //The light node generates the smart contract, signs it, and sends the signature to Bob via Alice.
                 //the light node also creates and signs the tx for making this channel, and sends that to Bob along with everything else.
