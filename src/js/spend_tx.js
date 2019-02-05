@@ -1,3 +1,4 @@
+
 spend_1();
 function spend_1() {
     var div = document.createElement("div");
@@ -74,21 +75,7 @@ function spend_1() {
 	    });
 	}
     }
-    function fee_checker(address, Callback1, Callback2) {
-	variable_public_get(["account", address],
-			    function(result) {
-			       if (result == "empty") {
-				   merkle.request_proof("governance", 14, function(gov_fee) {
-				       var fee = tree_number_to_value(gov_fee[2]) + 50;
-				       Callback1(fee);
-				   });
-			       } else {
-				   merkle.request_proof("governance", 15, function(gov_fee) {
-				       var fee = tree_number_to_value(gov_fee[2]) + 50;
-				       Callback2(fee);
-				   });
-			       }});
-    }
+
     function spend_tokens2(tx) {
         var amount = Math.floor(parseFloat(spend_amount.value, 10) * token_units());
         var amount0 = tx[5];
@@ -129,3 +116,4 @@ function spend_1() {
         spend_amount.value = "";
     }
 }
+

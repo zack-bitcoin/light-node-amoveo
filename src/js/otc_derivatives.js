@@ -6,16 +6,22 @@
     status.innerHTML = "status: <font color=\"green\">ready</font>";
     div.appendChild(status);
     var their_address = text_input("their_address: ", div);
+    their_address.value = "BOzTnfxKrkDkVl88BsLMl1E7gAbKK+83pHCt0ZzNEvyZQPKlL/n8lYLCXgrL4Mmi/6m2bzj+fejX8D52w4U9LkI=";
     div.appendChild(br());
     var oracle = text_input("oracle: ", div);
     div.appendChild(br());
+    oracle.value = "0fbZfpka2gqBaHVf+d2AtBnLZRHD64J+VTyfOW/C/f4=";
     var our_amount = text_input("our bet amount: ", div);
+    our_amount.value = "1";
     div.appendChild(br());
     var their_amount = text_input("their bet amount: ", div);
+    their_amount.value = "1";
     div.appendChild(br());
     var bet_direction = text_input("you win if outcome is: ", div);
+    bet_direction.value = "true";
     div.appendChild(br());
     var oracle_type = text_input("scalar or binary oracle?: ", div);
+    oracle_type.value = "binary";
     div.appendChild(br());
     var bits = text_input("if it is scalar, how many bits does it have?", div);
     div.appendChild(br());
@@ -24,6 +30,7 @@
     startButton = button_maker2("offer to make this trade", start);
     div.appendChild(startButton);
     function start() {
+        console.log("start");
         var db = {};
         db.their_address_val = parse_address(their_address.value);
         db.oracle_val = oracle.value.trim().replace(/\./g,'');
@@ -67,6 +74,7 @@
         });
     }
     function start2(db) {
+        console.log("start2");
         return variable_public_get(["account", keys.pub()], function(my_acc) {
             if (my_acc == "empty") {
                 status.innerHTML = "status: <font color=\"red\">Error: load a private key with sufficient funds.</font>";
@@ -89,32 +97,62 @@
             });
         });
     }
+    function credits_check(pub, minAmount, callback) {
+        F = function() { return buy_credits(Math.floor(minAmount * 1.2), callback); };
+        return messenger(["account", keys.pub()], function(a) {
+            if (a == 0) { //10 milibits
+                //account does not exist
+                return F();
+            } else if (a[1] < minAmount) {
+                //account has insufficient balance
+                return F();
+            }
+            return callback();
+        });
+    }
     function start3(db) {
+        console.log("start3");
+        return credits_check(keys.pub(), 1000000, function(){return start4(db)} );
+    }
+    function unused() {
+
         return messenger(["account", keys.pub()], function(a) {
             console.log("account is ");
-            console.log(a);//look up amount from account, store in a.
-            if (a < 1000000) { //10 milibits
-                status.innerHTML = "status: <font color=\"green\">you don't have enough credits, now puchasing more.</font>";
-                return variable_public_get(["pubkey"], function(server_pubkey) {
-                    return fee_checker(
-                        function(x) {
-                            var s = "fail. the server's account should already exist.";
-                            console.log(s);
-                            return s;
-                        }, function (Fee) {
-		            return variable_public_get(["spend_tx", 1200000, Fee, keys.pub(), server_pubkey], function(tx) {
-                                //this tx purchases more credits.
-                                var stx = keys.sign(tx);
-                                variable_public_get(["txs", [-6, stx]], function() {
-                                    return start4(db);
-                                });
-                            });
-                        });
-                });
+            console.log(a);
+            //["acc", 104450000, 0, 0]
+            if (a == 0) { //10 milibits
+                //account does not exist
+                buy_credits(1200000, function() { return start4(db); });
+            } else if (a[1] < 1000000) {
+                //account has insufficient balance
+                buy_credits(1200000, function() { return start4(db); });
             }
             return start4(db);
         });
     };
+    function buy_credits(Amount, callback) {
+        status.innerHTML = "status: <font color=\"green\">you don't have enough credits, now puchasing more.</font>";
+        return variable_public_get(["pubkey"], function(server_pubkey) {
+            console.log("server pubkey ");
+            console.log(server_pubkey);
+            return fee_checker(
+                keys.pub(),
+                function(x) {
+                    var s = "fail. the server's account should already exist.";
+                    console.log(s);
+                    return s;
+                }, function (Fee) {
+		    return variable_public_get(["spend_tx", 1200000, Fee, keys.pub(), server_pubkey], function(tx) {
+                        //this tx purchases more credits.
+                        var stx = keys.sign(tx);
+                        variable_public_get(["txs", [-6, stx]], function() {
+                            return callback;
+                        });
+                    });
+                });
+        });
+    }
+    
     function random_cid(n) {
         if (n == 0) { return ""; }
         else {
@@ -128,7 +166,7 @@
             return "";
         } else {
             var r = b % 256;
-            var d = math.floor(b / 256);
+            var d = Math.floor(b / 256);
             var l = String.fromCharCode(r);
             var t = make_bytes(bytes - 1, d);
             return t.concat(l);
@@ -138,13 +176,15 @@
             //PD = <<Height:32, Price:16, PortionMatched:16, MarketID/binary>>,
         var a = make_bytes(4, height);
         var b = make_bytes(2, price);
-        var c = make_bytes(2, portion_matched);
+        var c = make_bytes(2, portion);
         var d = atob(oid);
         return a.concat(b).concat(c).concat(d);
     }
     function start4(db) {
         return messenger(["account", keys.pub()], function(a) {
-            if (a < 1000000) { //10 milibits
+            console.log("account is (start4)");
+            console.log(a);
+            if (a[1] < 1000000) { //10 milibits
                 //wait enough confirmations until you have the credits.
                 return setTimeout(function() {return start4(db);}, 20000);
             }
@@ -159,13 +199,13 @@
             var bet_expires = 3000 + db.oracle[10]; // bet expires should be at least 3000 after the oracle can expire.
             var sc = market_contract(db.bet_direction_val, bet_expires, maxprice, keys.pub(), period, amount, oid, height);//height
             var delay = 1000;//a little over a week
-            var cid = atob(random_cid(32));//generate a random 32 byte cid for the new channel.
+            var cid = btoa(random_cid(32));//generate a random 32 byte cid for the new channel.
             var spk = ["spk", keys.pub(), db.their_address_val, [-6], 0, 0, cid, 0, 0, delay];
-            var cd = channels.new_cd(spk, [], [], [], bet_expires, cid);
+            var cd = channels_object.new_cd(spk, [], [], [], bet_expires, cid);
             var spk2 = market_trade(cd, amount, maxprice, sc, oid);
             var sspk2 = keys.sign(spk2);
-            var pd = pd_maker(height, maxprice - 1, 9999, OID);
-            var sig = keys.sign(pd)[2];
+            var pd = pd_maker(height, maxprice - 1, 9999, oid);
+            var sig = keys.sign(pd)[2];//crashes here
             var signedPd = pd.concat(sig);//<<PD/binary, Signature/binary>>.
             db.signedPD = signedPd;
             db.sspk2 = sspk2;
@@ -176,7 +216,8 @@
             messenger(["account", keys.pub()], function(account) {
                 console.log("account is ");
                 console.log(JSON.stringify(account));
-                nonce = 0;//look up nonce from account, add 1 to it.
+                var nonce = account[3] + 1;
+                //nonce = 0;//look up nonce from account, add 1 to it.
                 var r = [53412, keys.pub(), nonce, emsg];
                 var sr = keys.sign(r);
                 return messenger(["send", 0, db.their_address_val, sr], function(x) {
@@ -212,8 +253,6 @@
             //after you save, the message about needing to save changes to "it is now safe to turn off the light node, make sure to keep a copy of the channel state that you have already saved to a file."
         });
     };
-    //return {};
 })();
 
-//var otc_object = otc_function();
 
