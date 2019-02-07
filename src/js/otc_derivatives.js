@@ -205,12 +205,13 @@
             var spk2 = market_trade(cd, amount, maxprice, sc, oid);
             var sspk2 = keys.sign(spk2);
             var pd = pd_maker(height, maxprice - 1, 9999, oid);
-            var sig = keys.sign(pd)[2];//crashes here
-            var signedPd = pd.concat(sig);//<<PD/binary, Signature/binary>>.
-            db.signedPD = signedPd;
+            var sig = keys.raw_sign(pd);
+            //var sig = keys.sign(pd)[2];//crashes here
+            var signedPD = pd.concat(sig);//<<PD/binary, Signature/binary>>.
+            db.signedPD = signedPD;
             db.sspk2 = sspk2;
             var spk_nonce = spk2[8];
-
+            var contract_sig = sspk2[2];
             var imsg = [-6, db.bet_direction_val, bet_expires, maxprice, keys.pub(), db.their_address_val, period, db.our_amount_val, db.their_amount_val, oid, height, delay, contract_sig, signedPD, spk_nonce];
             var emsg = keys.encrypt(imsg, db.their_address_val);
             messenger(["account", keys.pub()], function(account) {
@@ -218,8 +219,12 @@
                 console.log(JSON.stringify(account));
                 var nonce = account[3] + 1;
                 //nonce = 0;//look up nonce from account, add 1 to it.
-                var r = [53412, keys.pub(), nonce, emsg];
+                //var r = [53412, keys.pub(), nonce, emsg];
+                var r = [-7, 53412, keys.pub(),nonce,emsg];
+                console.log(JSON.stringify(r));
                 var sr = keys.sign(r);
+                //console.log("check signature");
+                //console.log(verify1(sr));
                 return messenger(["send", 0, db.their_address_val, sr], function(x) {
                     return start5(db);
                 });

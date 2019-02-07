@@ -47,9 +47,16 @@ function keys_function1() {
         var pubPoint = keys_internal.getPublic("hex");
         return btoa(fromHex(pubPoint));
     }
+    function raw_sign(x) {
+        var h = hash(x);
+        var sig = keys_internal.sign(h);
+        var sig2 = sig.toDER();
+        return btoa(array_to_string(sig2));
+    }
     function sign_tx(tx) {
 	if (tx[0] == "signed") {
 	    console.log(JSON.stringify(tx));
+            //var sig = raw_sign(tx[1]);
 	    var sig = btoa(array_to_string(sign(tx[1], keys_internal)));
 	    var pub = pubkey_64();
 	    if (pub == tx[1][1]) {
@@ -139,6 +146,6 @@ function keys_function1() {
     function decrypt(val) {
 	return encryption_object.get(val, keys_internal);
     }
-    return {make: new_keys, pub: pubkey_64, sign: sign_tx, ec: (function() { return ec; }), encrypt: encrypt, decrypt: decrypt, check_balance: check_balance};
+    return {make: new_keys, pub: pubkey_64, raw_sign: raw_sign, sign: sign_tx, ec: (function() { return ec; }), encrypt: encrypt, decrypt: decrypt, check_balance: check_balance};
 }
 var keys = keys_function1();
