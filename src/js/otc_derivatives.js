@@ -27,7 +27,7 @@
     div.appendChild(br());
     //var expires = text_input("when does the bet expire?", div);
     //div.appendChild(br());
-    startButton = button_maker2("offer to make this trade", start);
+    var startButton = button_maker2("offer to make this trade", start);
     div.appendChild(startButton);
     function start() {
         console.log("start");
@@ -200,6 +200,7 @@
             var sc = market_contract(db.bet_direction_val, bet_expires, maxprice, keys.pub(), period, amount, oid, height);//height
             var delay = 1000;//a little over a week
             var cid = btoa(random_cid(32));//generate a random 32 byte cid for the new channel.
+            db.cid = cid;
             var spk = ["spk", keys.pub(), db.their_address_val, [-6], 0, 0, cid, 0, 0, delay];
             var cd = channels_object.new_cd(spk, [], [], [], bet_expires, cid);
             var spk2 = market_trade(cd, amount, maxprice, sc, oid);
@@ -207,12 +208,12 @@
             var pd = pd_maker(height, maxprice - 1, 9999, oid);
             var sig = keys.raw_sign(pd);
             //var sig = keys.sign(pd)[2];//crashes here
-            var signedPD = pd.concat(sig);//<<PD/binary, Signature/binary>>.
+            var signedPD = btoa(pd.concat(sig));//<<PD/binary, Signature/binary>>.
             db.signedPD = signedPD;
             db.sspk2 = sspk2;
             var spk_nonce = spk2[8];
             var contract_sig = sspk2[2];
-            var imsg = [-6, db.bet_direction_val, bet_expires, maxprice, keys.pub(), db.their_address_val, period, db.our_amount_val, db.their_amount_val, oid, height, delay, contract_sig, signedPD, spk_nonce];
+            var imsg = [-6, db.bet_direction_val, bet_expires, maxprice, keys.pub(), db.their_address_val, period, db.our_amount_val, db.their_amount_val, oid, height, delay, contract_sig, signedPD, spk_nonce, db.oracle_type_val, db.cid];
             var emsg = keys.encrypt(imsg, db.their_address_val);
             messenger(["account", keys.pub()], function(account) {
                 console.log("account is ");
@@ -236,8 +237,8 @@
             //check every 10 seconds if Carol has responded with a signature for the smart contract.
             console.log("start 5 received messages: ");
             console.log(JSON.stringify(a));
-            if (1==2) {
-                return setTimeout(function() {return starts5(db);}, 10000);
+            if (1==1) {
+                return setTimeout(function() {return start5(db);}, 10000);
             }
             //verify that Carol signed the same contract as us.
 
