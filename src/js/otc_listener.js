@@ -13,12 +13,12 @@
     var contract_number = 0;
     var max_contract_number = 0;
     var contracts = [];
-    var next_button = button_maker2("Next", function() {
+    var next_button = button_maker2("Previous", function() {
         contract_number = Math.min(contract_number + 1, max_contract_number - 1);
         display_trade(contract_number);
     });
     div.appendChild(next_button);
-    var previous_button = button_maker2("Previous", function() {
+    var previous_button = button_maker2("Next", function() {
         contract_number = Math.max(contract_number - 1, 0);
         display_trade(contract_number);
     });
@@ -37,6 +37,7 @@
                 console.log(JSON.stringify(x));
                 var z = x.slice(1).map(function(a){ return keys.decrypt(a); });
                 //get rid of contracts that are no longer valid.
+                //git rid of contracts if the cid already has a channel.
                 max_contract_number = z.length;
                 contracts = z;
                 display_trade(contract_number);
@@ -142,21 +143,50 @@
             }
             var period = 10000000;//only one period because there is only one bet.
             var amount = db.amount1 + db.amount2;
-            var sc = market_contract(db.bet_direction, db.bet_expires, db.maxprice, db.acc1, period, amount db.oid, db.height);
+            var sc = market_contract(db.bet_direction, db.expires, db.maxprice, db.acc1, period, amount db.oid, db.height);
             var delay = 1000;//a little over a week
             var spk = ["spk", db.acc1, keys.pub(), [-6], 0,0,db.cid, 0,0,delay];
-            var cd = channels_object.new_cd(spk, [],[],[],db.bet_expires, db.cid);
+            var cd = channels_object.new_cd(spk, [],[],[],db.expires, db.cid);
             var spk2 = market_trade(cd, amount, db.maxprice, sc, db.oid);
             var sspk2 = keys.sign(spk2);
-            //verify that our partner signed an identical sspk2
-            //verify the signature on the price declaration
-            //verify that height, price, and portion of price_declaration are valid
-            //the light node also creates and signs the tx for making this channel, and sends that to Bob along with everything else.
+            var sspk2[3] = sspk2[2];
+            var sspk2[2] = db.contract_sig;
+            var v = verify_both(sspk2);
+            if (!(v == true)) {
+                status.innerHTML = "status: <font color=\"red\">Error: one of the signatures is wrong, maybe the contract wasn't identically calculated on both nodes.</font>";
+                return 0;
+            }
+            var pd = pd_maker(db.height, db.maxprice - 1, 9999, db.oid);
+            var pd2 = signedPD.slice(0, 56);
+            if (!(pd == pd2)) {
+                status.innerHTML = "status: <font color=\"red\">Error: the price declaration was not calculated identically on both nodes.</font>";
+                console.log(JSON.stringify(pd));//we calculate
+                console.log(JSON.stringify(pd2));//they calculate
+                return 0;
+            }
+            var pd_sig = signedPD.slice(56, 184);
+            var v = verify1(pd, pd_sig, keys.ec().keyFromPublic(toHex(atob(db.acc1)), "hex"));
+            if (!(v == true)) {
+                status.innerHTML = "status: <font color=\"red\">Error: the price declaration's signature is invalid.</font>";
+                return 0;
+            }
+            var fee = 152050;
+            var nonce = 0;
+            var channel_tx = ["nc", db.acc1, db.acc2, fee, 0, db.amount1, db.amount2, db.delay, db.cid];
+            var stx = keys:sign(channel_tx);
+            stx[3] = stx[2];
+            stx[2] = [-6];
+            var msg = [-6, stx, sspk2[3]],
+            send_encrypted_message(msg, db.acc1, function() {
+                status.innerHTML = "status: <font color=\"red\">Warning: you need to save your channel state to a file.</font>";
+                return start2(db);
+            });
+        });
+    };
             
     }
 
     function start2(db) {
-        //The light node makes a big warning, telling Bob that he needs to save the signed smart contract to a file.
         //the light node checks every 10 seconds until it sees that the channel has been included on-chain.
         //the lightnode makes a message saying that it is now safe to shut off, and that it is important to keep the file from step (6) until the contract is completed.
     };

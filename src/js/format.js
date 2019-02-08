@@ -214,4 +214,22 @@ function fee_checker(address, Callback1, Callback2) {
 			    }});
 };
 
+function send_encrypted_message(imsg, to, callback) {
+    var emsg = keys.encrypt(imsg, to);
+    messenger(["account", keys.pub()], function(account) {
+        console.log("account is ");
+        console.log(JSON.stringify(account));
+        var nonce = account[3] + 1;
+        //nonce = 0;//look up nonce from account, add 1 to it.
+        //var r = [53412, keys.pub(), nonce, emsg];
+        var r = [-7, 53412, keys.pub(),nonce,emsg];
+        console.log(JSON.stringify(r));
+        var sr = keys.sign(r);
+        //console.log("check signature");
+        //console.log(verify1(sr));
+        return messenger(["send", 0, to, sr], function(x) {
+            return callback();
+        });
+    });
+};
     

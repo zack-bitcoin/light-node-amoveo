@@ -209,27 +209,17 @@
             var sig = keys.raw_sign(pd);
             //var sig = keys.sign(pd)[2];//crashes here
             var signedPD = btoa(pd.concat(sig));//<<PD/binary, Signature/binary>>.
+            //console.log("signed pd is");
+            //console.log(JSON.stringify(signedPD));184
+            //console.log(signedPD.length);
+            //console.log(JSON.stringify(btoa(pd)));56
+            //console.log(pd.length);
             db.signedPD = signedPD;
             db.sspk2 = sspk2;
             var spk_nonce = spk2[8];
             var contract_sig = sspk2[2];
             var imsg = [-6, db.bet_direction_val, bet_expires, maxprice, keys.pub(), db.their_address_val, period, db.our_amount_val, db.their_amount_val, oid, height, delay, contract_sig, signedPD, spk_nonce, db.oracle_type_val, db.cid];
-            var emsg = keys.encrypt(imsg, db.their_address_val);
-            messenger(["account", keys.pub()], function(account) {
-                console.log("account is ");
-                console.log(JSON.stringify(account));
-                var nonce = account[3] + 1;
-                //nonce = 0;//look up nonce from account, add 1 to it.
-                //var r = [53412, keys.pub(), nonce, emsg];
-                var r = [-7, 53412, keys.pub(),nonce,emsg];
-                console.log(JSON.stringify(r));
-                var sr = keys.sign(r);
-                //console.log("check signature");
-                //console.log(verify1(sr));
-                return messenger(["send", 0, db.their_address_val, sr], function(x) {
-                    return start5(db);
-                });
-            });
+            return send_encrypted_message(imsg, db.their_address_val, function() { return start5(db); });
         });
     };
     function start5(db) {
