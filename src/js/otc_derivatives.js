@@ -1,4 +1,6 @@
 (function otc_function() {
+    var delay = 1000;//a little over a week
+            var fee = 152050;
     var div = document.createElement("div");
     document.body.appendChild(div);
 
@@ -157,7 +159,6 @@
             var height = headers_object.top()[1];
             var bet_expires = 3000 + db.oracle[10]; // bet expires should be at least 3000 after the oracle can expire.
             var sc = market_contract(db.bet_direction_val, bet_expires, maxprice, keys.pub(), period, amount, oid, height);//height
-            var delay = 1000;//a little over a week
             var cid = btoa(random_cid(32));//generate a random 32 byte cid for the new channel.
             db.cid = cid;
             var spk = ["spk", keys.pub(), db.their_address_val, [-6], 0, 0, cid, 0, 0, delay];
@@ -188,23 +189,96 @@
             //console.log(JSON.stringify(a));
             var z = a.slice(1).map(function(a){ return keys.decrypt(a); });
             console.log(JSON.stringify(z));
-            //z is like [[SignNewChannelTx, spk_sig], ...] repeating pairs.
-            if (1==1) {
+            //z is like [[-6, SignNewChannelTx, spk_sig], ...] repeating pairs.
+            //we should ignore any new_channel_tx that is for a channel that alredy exists. we should find the spk_sig that is valid for the db.sspk2 we are storing.
+            var x = cid_grab(db.cid, z);
+            if (x=="error") {
                 return setTimeout(function() {return start5(db);}, 10000);
             }
-            //verify that Carol signed the same contract as us.
-
-
-        //The light node makes a big warning, telling Bob that he needs to save the signed smart contract to a file. once he saves, the message disappears.
-            status.innerHTML = "status: <font color=\"green\">trade request was accepted, now making a channel.</font>";
-            //The light node signs a tx to make the channel, send it as an encrypted message to Carol.
-            return start6(db);
+            var their_sig = x[1];
+            var sspk = db.sspk2;
+            sspk[3] = their_sig;
+            var bool = verify_both(sspk);
+            if (!(bool == true)) {
+                console.log("bad signature on spk");
+                status.innerHTML = "status: <font color=\"red\"> bad signature on spk. </font>";
+                return 0;
+            }
+            var stx = x[0];
+            var tx = stx[1];
+            //var channel_tx = ["nc", db.acc1, db.acc2, fee, 0, db.amount1, db.amount2, db.delay, db.cid];
+            if (!(tx[0] == "nc")) {
+                status.innerHTML = "status: <font color=\"red\"> new channel tx incorrectly formatted. </font>";
+                return 0;
+            }
+            if (!(tx.length = 9)) {
+                status.innerHTML = "status: <font color=\"red\"> new channel tx wrong length. </font>";
+                return 0;
+            }
+            if (!(tx[1] == keys.pub())) {
+                status.innerHTML = "status: <font color=\"red\"> new channel tx wrong acc1. </font>";
+                return 0;
+            }
+            if (!(tx[2] == db.their_address_val)) {
+                status.innerHTML = "status: <font color=\"red\"> new channel tx wrong acc2. </font>";
+                return 0;
+            }
+            if (!(tx[3] == fee)) {
+                status.innerHTML = "status: <font color=\"red\"> new channel tx wrong fee. </font>";
+                return 0;
+            }
+            merkle.request_proof("accounts", keys.pub(), function (acc) {
+                var nonce = acc[2]+1;
+            
+                if (!(tx[4] == nonce)) {
+                    status.innerHTML = "status: <font color=\"red\"> new channel tx nonce is wrong. </font>";
+                    return 0;
+                }
+                if (!(tx[5] == db.their_amount_val)) {
+                    console.log(db.their_amount_val);
+                    console.log(tx[5]);
+                    status.innerHTML = "status: <font color=\"red\"> new channel tx amount1 is wrong. </font>";
+                    return 0;
+                }
+                if (!(tx[6] == db.our_amount_val)) {
+                    status.innerHTML = "status: <font color=\"red\"> new channel tx amount2 is wrong. </font>";
+                    return 0;
+                }
+                if (!(tx[7] == delay)) {
+                    status.innerHTML = "status: <font color=\"red\"> new channel tx amount2 is wrong. </font>";
+                    return 0;
+                }
+                if (!(tx[8] == db.cid)) {
+                    status.innerHTML = "status: <font color=\"red\"> new channel tx cid is wrong. </font>";
+                    return 0;
+                }
+                var stx2 = keys.sign(stx);
+                return variable_public_get(["txs", [-6, stx2]], function(x) {
+                    //sign and publish the new channel tx.
+                    console.log(x);
+                    status.innerHTML = "status: <font color=\"green\">trade request was accepted, now making a channel. You need to save the channel data.</font>";
+                    return start6(db);
+                });
+            });
         });
     };
+    function cid_grab(cid, l) {
+        if (JSON.stringify(l) == "[]") { return "error"; }
+        console.log(JSON.stringify(l[0]));
+        console.log(JSON.stringify(l[0][1]));
+        console.log(JSON.stringify(l[0][1][1]));
+        var cid2 = l[0][1][1][8];
+        if (cid2 == cid) { return l[0].slice(1); }
+        return cid_grab(cid, l.slice(1));
+    }
     function start6(db) {
         merkle.request_proof("channels", db.cid, function(c) {
             console.log("channel is ");
             console.log(c);
+            if (c == "empty") {
+                return setTimeout(function(){return start6(db);},
+                                  10000);
+            }
         //The light node checks every 10 seconds until it sees that the new tx has been included in a block.
         //keep checking until the channel is existing on-chain.
             status.innerHTML = "status: <font color=\"green\">The channel has been formed, and the smart contract is active. If you have saved a copy of the signed smart contract, then it is now safe to close the browser.</font>";

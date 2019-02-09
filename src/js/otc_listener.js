@@ -177,20 +177,33 @@
                 return 0;
             }
             var fee = 152050;
-            var nonce = 0;
-            var channel_tx = ["nc", db.acc1, db.acc2, fee, 0, db.amount1, db.amount2, db.delay, db.cid];
-            var stx = keys.sign(channel_tx);
-            stx[3] = stx[2];
-            stx[2] = [-6];
-            var msg = [-6, stx, sspk2[3]];
-            send_encrypted_message(msg, db.acc1, function() {
-                status.innerHTML = "status: <font color=\"red\">Warning: you need to save your channel state to a file.</font>";
-                return start2(db);
+            merkle.request_proof("accounts", db.acc1, function (acc) {
+
+                var nonce = acc[2]+1;
+            
+                var channel_tx = ["nc", db.acc1, db.acc2, fee, nonce, db.amount1, db.amount2, db.delay, db.cid];
+                var stx = keys.sign(channel_tx);
+                stx[3] = stx[2];
+                stx[2] = [-6];
+                var msg = [-6, stx, sspk2[3]];
+                send_encrypted_message(msg, db.acc1, function() {
+                    status.innerHTML = "status: <font color=\"red\">Warning: you need to save your channel state to a file.</font>";
+                    return start2(db);
+                });
             });
         });
     };
     function start2(db) {
+        merkle.request_proof("channels", db.cid, function(c) {
+            console.log("channel is ");
+            console.log(c);
+            if (c == "empty") {
+                return setTimeout(function(){return start2(db);},
+                                  10000);
+            }
+            status.innerHTML = "status: <font color=\"green\">The channel has been formed, and the smart contract is active. If you have saved a copy of the signed smart contract, then it is now safe to close the browser.</font>";
         //the light node checks every 10 seconds until it sees that the channel has been included on-chain.
         //the lightnode makes a message saying that it is now safe to shut off, and that it is important to keep the file from step (6) until the contract is completed.
-    };
+        });
+    }
 })();

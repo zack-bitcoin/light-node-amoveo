@@ -2,6 +2,7 @@ function merkle_proofs_main() {
     function verify_callback(tree, key, callback) {
 	var top_hash = hash(headers_object.serialize(headers_object.top()));
 	variable_public_get(["proof", btoa(tree), key, btoa(array_to_string(top_hash))], function(proof){
+            if (proof[3] == "empty") { return callback("empty"); };
 	    var val = verify_merkle(key, proof);
 	    return callback(val);
 	    
