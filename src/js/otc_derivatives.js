@@ -130,28 +130,6 @@
             return start4(db);
         });
     };
-    function buy_credits(Amount, callback) {
-        status.innerHTML = "status: <font color=\"green\">you don't have enough credits, now puchasing more.</font>";
-        return variable_public_get(["pubkey"], function(server_pubkey) {
-            console.log("server pubkey ");
-            console.log(server_pubkey);
-            return fee_checker(
-                keys.pub(),
-                function(x) {
-                    var s = "fail. the server's account should already exist.";
-                    console.log(s);
-                    return s;
-                }, function (Fee) {
-		    return variable_public_get(["spend_tx", 1200000, Fee, keys.pub(), server_pubkey], function(tx) {
-                        //this tx purchases more credits.
-                        var stx = keys.sign(tx);
-                        variable_public_get(["txs", [-6, stx]], function() {
-                            return callback;
-                        });
-                    });
-                });
-        });
-    }
     
     function random_cid(n) {
         if (n == 0) { return ""; }
@@ -161,25 +139,6 @@
             return rl.concat(random_cid(n-1))}
         //btoa(String.fromCharCode(0,255,10));
     };
-    function make_bytes(bytes, b) {
-        if (bytes == 0) {
-            return "";
-        } else {
-            var r = b % 256;
-            var d = Math.floor(b / 256);
-            var l = String.fromCharCode(r);
-            var t = make_bytes(bytes - 1, d);
-            return t.concat(l);
-        }
-    };
-    function pd_maker(height, price, portion, oid) {
-            //PD = <<Height:32, Price:16, PortionMatched:16, MarketID/binary>>,
-        var a = make_bytes(4, height);
-        var b = make_bytes(2, price);
-        var c = make_bytes(2, portion);
-        var d = atob(oid);
-        return a.concat(b).concat(c).concat(d);
-    }
     function start4(db) {
         return messenger(["account", keys.pub()], function(a) {
             console.log("account is (start4)");

@@ -67,7 +67,7 @@
         db.height = y[10];
         db.delay = y[11];
         db.contract_sig = y[12];
-        db.spd = y[13];
+        db.spd = atob(y[13]);
         db.spk_nonce = y[14];
         db.oracle_type_val = y[15];
         db.oracle_type;
@@ -110,7 +110,7 @@
         });
     };
     function accept_trade2(db){
-        return variable_public_vet(["account", db.acc1], function(their_acc) {
+        return variable_public_get(["account", db.acc1], function(their_acc) {
             if (their_acc == "empty") {
                     status.innerHTML = "status: <font color=\"red\">Error: your partner needs to have veo in their account to make a channel.</font>";
             } else if (their_acc[1] < (db.acc1 + 1000000)) {
@@ -125,9 +125,11 @@
         F = function() { return buy_credits(Math.floor(minAmount * 1.2), callback); };
         return messenger(["account", keys.pub()], function(a) {
             if (a == 0) { //10 milibits
+                status.innerHTML = "status: <font color=\"green\">Buying credits.</font>";
                 //account does not exist
                 return F();
             } else if (a[1] < minAmount) {
+                status.innerHTML = "status: <font color=\"green\">Buying credits.</font>";
                 //account has insufficient balance
                 return F();
             }
@@ -136,36 +138,40 @@
     }
     function accept_trade3(db) {
         return messenger(["account", keys.pub()], function(a) {
-            console.log("account is (start4)");
+            console.log("account is (accept_trade3)");
             console.log(a);
             if (a[1] < 1000000) { //10 milibits
                 return setTimeout(function() {return accept_trade3(db);}, 20000);
             }
             var period = 10000000;//only one period because there is only one bet.
             var amount = db.amount1 + db.amount2;
-            var sc = market_contract(db.bet_direction, db.expires, db.maxprice, db.acc1, period, amount db.oid, db.height);
+            var sc = market_contract(db.direction_val, db.expires, db.maxprice, db.acc1, period, amount, db.oid, db.height);
             var delay = 1000;//a little over a week
             var spk = ["spk", db.acc1, keys.pub(), [-6], 0,0,db.cid, 0,0,delay];
             var cd = channels_object.new_cd(spk, [],[],[],db.expires, db.cid);
             var spk2 = market_trade(cd, amount, db.maxprice, sc, db.oid);
             var sspk2 = keys.sign(spk2);
-            var sspk2[3] = sspk2[2];
-            var sspk2[2] = db.contract_sig;
+            sspk2[3] = sspk2[2];
+            sspk2[2] = db.contract_sig;
             var v = verify_both(sspk2);
             if (!(v == true)) {
                 status.innerHTML = "status: <font color=\"red\">Error: one of the signatures is wrong, maybe the contract wasn't identically calculated on both nodes.</font>";
                 return 0;
             }
             var pd = pd_maker(db.height, db.maxprice - 1, 9999, db.oid);
-            var pd2 = signedPD.slice(0, 56);
+            var pd2 = db.spd.slice(0, pd.length);
             if (!(pd == pd2)) {
                 status.innerHTML = "status: <font color=\"red\">Error: the price declaration was not calculated identically on both nodes.</font>";
                 console.log(JSON.stringify(pd));//we calculate
-                console.log(JSON.stringify(pd2));//they calculate
+                console.log(JSON.stringify(atob(pd2)));//they calculate
                 return 0;
             }
-            var pd_sig = signedPD.slice(56, 184);
-            var v = verify1(pd, pd_sig, keys.ec().keyFromPublic(toHex(atob(db.acc1)), "hex"));
+            var pd_sig = db.spd.slice(pd.length);
+            //var v = verify(pd, pd_sig, keys.ec().keyFromPublic(toHex(atob(db.acc1)), "hex"));
+            console.log(db.acc1);
+            var their_key = keys.ec().keyFromPublic(toHex(atob(db.acc1)), "hex");
+            var v = their_key.verify(hash(pd), bin2rs(pd_sig), "hex");
+            console.log(v);
             if (!(v == true)) {
                 status.innerHTML = "status: <font color=\"red\">Error: the price declaration's signature is invalid.</font>";
                 return 0;
@@ -173,19 +179,16 @@
             var fee = 152050;
             var nonce = 0;
             var channel_tx = ["nc", db.acc1, db.acc2, fee, 0, db.amount1, db.amount2, db.delay, db.cid];
-            var stx = keys:sign(channel_tx);
+            var stx = keys.sign(channel_tx);
             stx[3] = stx[2];
             stx[2] = [-6];
-            var msg = [-6, stx, sspk2[3]],
+            var msg = [-6, stx, sspk2[3]];
             send_encrypted_message(msg, db.acc1, function() {
                 status.innerHTML = "status: <font color=\"red\">Warning: you need to save your channel state to a file.</font>";
                 return start2(db);
             });
         });
     };
-            
-    }
-
     function start2(db) {
         //the light node checks every 10 seconds until it sees that the channel has been included on-chain.
         //the lightnode makes a message saying that it is now safe to shut off, and that it is important to keep the file from step (6) until the contract is completed.
