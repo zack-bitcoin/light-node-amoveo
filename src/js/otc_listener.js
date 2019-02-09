@@ -170,7 +170,7 @@
             //var v = verify(pd, pd_sig, keys.ec().keyFromPublic(toHex(atob(db.acc1)), "hex"));
             console.log(db.acc1);
             var their_key = keys.ec().keyFromPublic(toHex(atob(db.acc1)), "hex");
-            var v = their_key.verify(hash(pd), bin2rs(pd_sig), "hex");
+            var v = their_key.verify(hash(pd), bin2rs(atob(pd_sig)), "hex");
             console.log(v);
             if (!(v == true)) {
                 status.innerHTML = "status: <font color=\"red\">Error: the price declaration's signature is invalid.</font>";

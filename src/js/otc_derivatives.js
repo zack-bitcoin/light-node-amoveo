@@ -185,7 +185,10 @@
         return messenger(["read", 0, keys.pub()], function(a) {
             //check every 10 seconds if Carol has responded with a signature for the smart contract.
             console.log("start 5 received messages: ");
-            console.log(JSON.stringify(a));
+            //console.log(JSON.stringify(a));
+            var z = a.slice(1).map(function(a){ return keys.decrypt(a); });
+            console.log(JSON.stringify(z));
+            //z is like [[SignNewChannelTx, spk_sig], ...] repeating pairs.
             if (1==1) {
                 return setTimeout(function() {return start5(db);}, 10000);
             }
