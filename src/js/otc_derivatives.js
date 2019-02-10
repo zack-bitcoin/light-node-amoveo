@@ -12,7 +12,8 @@
     div.appendChild(br());
     var oracle = text_input("oracle: ", div);
     div.appendChild(br());
-    oracle.value = "0fbZfpka2gqBaHVf+d2AtBnLZRHD64J+VTyfOW/C/f4=";
+    //oracle.value = "0fbZfpka2gqBaHVf+d2AtBnLZRHD64J+VTyfOW/C/f4=";
+    oracle.value = "wqsBDVWpK35TS/VqFYC94QWnNOwClAerYlbtz3AvKtk=";
     var our_amount = text_input("our bet amount: ", div);
     our_amount.value = "1";
     div.appendChild(br());
@@ -145,7 +146,8 @@
         return messenger(["account", keys.pub()], function(a) {
             console.log("account is (start4)");
             console.log(a);
-            if (a[1] < 1000000) { //10 milibits
+
+            if ((a == 0) || (a[1] < 1000000)) { //10 milibits
                 //wait enough confirmations until you have the credits.
                 return setTimeout(function() {return start4(db);}, 20000);
             }

@@ -140,7 +140,7 @@
         return messenger(["account", keys.pub()], function(a) {
             console.log("account is (accept_trade3)");
             console.log(a);
-            if (a[1] < 1000000) { //10 milibits
+            if ((a == 0) || (a[1] < 1000000)) { //10 milibits
                 return setTimeout(function() {return accept_trade3(db);}, 20000);
             }
             var period = 10000000;//only one period because there is only one bet.
