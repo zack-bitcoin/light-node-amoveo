@@ -187,7 +187,17 @@
                 stx[2] = [-6];
                 var msg = [-6, stx, sspk2[3]];
                 send_encrypted_message(msg, db.acc1, function() {
+
+                    var meta = 0;
+                    var ss = channels_object.new_ss([0,0,0,0,4], [-6, ["oracles", db.oid]], meta);
+                    var expiration = 10000000;
+                    var cd = channels_object.new_cd(sspk2[1], sspk2, [ss], [ss], expiration, db.cid);
+                    console.log(JSON.stringify(cd));
+                    channels_object.write(db.acc1, cd);
+
+                    
                     status.innerHTML = "status: <font color=\"red\">Warning: you need to save your channel state to a file.</font>";
+                    channels_object.write(db.acc1, cd);
                     return start2(db);
                 });
             });

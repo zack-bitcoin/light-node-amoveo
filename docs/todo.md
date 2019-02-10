@@ -1,6 +1,5 @@
-working on otc_derivatives.js page, function start4.
-This is part of the handshake for negotiating the new channel.
-
+we need to be able to close the channel after the oracle is settled.
+we need support for scalar markets.
 
 
 progress bar when checking if smart contracts can be updated.jk

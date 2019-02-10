@@ -201,6 +201,7 @@
             var sspk = db.sspk2;
             sspk[3] = their_sig;
             var bool = verify_both(sspk);
+
             if (!(bool == true)) {
                 console.log("bad signature on spk");
                 status.innerHTML = "status: <font color=\"red\"> bad signature on spk. </font>";
@@ -259,6 +260,12 @@
                     //sign and publish the new channel tx.
                     console.log(x);
                     status.innerHTML = "status: <font color=\"green\">trade request was accepted, now making a channel. You need to save the channel data.</font>";
+                    var meta = 0;
+                    var ss = channels_object.new_ss([0,0,0,0,4], [-6, ["oracles", db.oracle_val]], meta);
+                    var expiration = 10000000;
+                    var cd = channels_object.new_cd(sspk[1], sspk, [ss], [ss], expiration, db.cid);
+                    channels_object.write(db.their_address_val, cd);
+                    
                     return start6(db);
                 });
             });

@@ -65,6 +65,7 @@ function channels_main() {
     var channel_interface_div = document.createElement("div");
     var load_button = document.createElement("input");
     load_button.type = "file";
+    load_button.onchange = function() {return load_channels("")};
     var channel_interface_div = document.createElement("div");
     var save_name = document.createElement("INPUT");
     save_name.type = "text";
@@ -76,6 +77,7 @@ function channels_main() {
 
     var refresh_channels_button = button_maker2("refresh channels interfaces. Useful if you swich channel servers", function() {
         variable_public_get(["pubkey"], function(pubkey) {
+            load_button.onchange = function() {return load_channels(pubkey) };
             return refresh_channels_interfaces(pubkey);
         });
     });
@@ -164,7 +166,7 @@ function channels_main() {
         channel_warning_div.innerHTML = "channel state is saved";
     }
     function load_channels(pubkey) {
-	console.log("load channels");
+	console.log("load_channels channels");
         var file = (load_button.files)[0];
         var reader = new FileReader();
         reader.onload = function(e) {
@@ -534,6 +536,7 @@ spk currently looks like this.
     }
     return {new_cd: new_cd,
             read: read,
+            channel_manager: (function() {return channel_manager;}),
             new_ss: new_ss,
             write: write,
 	    ss_to_external: ss_to_external}
