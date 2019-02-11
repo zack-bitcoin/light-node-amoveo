@@ -1,6 +1,6 @@
 (function otc_function() {
     var delay = 1000;//a little over a week
-            var fee = 152050;
+    var fee = 152050;
     var div = document.createElement("div");
     document.body.appendChild(div);
 
@@ -237,13 +237,15 @@
                     status.innerHTML = "status: <font color=\"red\"> new channel tx nonce is wrong. </font>";
                     return 0;
                 }
-                if (!(tx[5] == db.their_amount_val)) {
+                if (!(tx[6] == db.their_amount_val)) {
                     console.log(db.their_amount_val);
-                    console.log(tx[5]);
+                    console.log(tx[6]);
                     status.innerHTML = "status: <font color=\"red\"> new channel tx amount1 is wrong. </font>";
                     return 0;
                 }
-                if (!(tx[6] == db.our_amount_val)) {
+                if (!(tx[5] == db.our_amount_val)) {
+                    console.log(db.our_amount_val);
+                    console.log(tx[5]);
                     status.innerHTML = "status: <font color=\"red\"> new channel tx amount2 is wrong. </font>";
                     return 0;
                 }
