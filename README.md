@@ -25,3 +25,7 @@ This page is for listening to trade offers, and deciding to accept or reject the
 file:///home/username/light_node/src/js/otc_listener.html?mode=test
 This page is for closing the channel once the result of the bet is recorded in the oracle.
 file:///home/username/light_node/src/js/otc_finisher.html?mode=test
+
+here is a server where I have installed the message passing software: 139.59.144.76
+That is the IP you use so you can send and receive trade requests.
+It loads by default when you are using the testnet.
