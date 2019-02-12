@@ -129,7 +129,7 @@
                 //account does not exist
                 return F();
             } else if (a[1] < minAmount) {
-                status.innerHTML = "status: <font color=\"green\">Buying credits.</font>";
+                status.innerHTML = "status: <font color=\"green\">Buying more credits.</font>";
                 //account has insufficient balance
                 return F();
             }

@@ -8,20 +8,19 @@
     status.innerHTML = "status: <font color=\"green\">ready</font>";
     div.appendChild(status);
     var their_address = text_input("their_address: ", div);
-    their_address.value = "BOzTnfxKrkDkVl88BsLMl1E7gAbKK+83pHCt0ZzNEvyZQPKlL/n8lYLCXgrL4Mmi/6m2bzj+fejX8D52w4U9LkI=";
+    //their_address.value = "BOzTnfxKrkDkVl88BsLMl1E7gAbKK+83pHCt0ZzNEvyZQPKlL/n8lYLCXgrL4Mmi/6m2bzj+fejX8D52w4U9LkI=";
     div.appendChild(br());
     var oracle = text_input("oracle: ", div);
     div.appendChild(br());
-    //oracle.value = "0fbZfpka2gqBaHVf+d2AtBnLZRHD64J+VTyfOW/C/f4=";
-    oracle.value = "wqsBDVWpK35TS/VqFYC94QWnNOwClAerYlbtz3AvKtk=";
+    //oracle.value = "P9yyYZ1eFUASwTkrEGYh8hzGdXlwo8of+LtiTZyHyCQ=";
     var our_amount = text_input("our bet amount: ", div);
-    our_amount.value = "1";
+    //our_amount.value = "1";
     div.appendChild(br());
     var their_amount = text_input("their bet amount: ", div);
-    their_amount.value = "1";
+    //their_amount.value = "1";
     div.appendChild(br());
     var bet_direction = text_input("you win if outcome is: ", div);
-    bet_direction.value = "true";
+    //bet_direction.value = "true";
     div.appendChild(br());
     var oracle_type = text_input("scalar or binary oracle?: ", div);
     oracle_type.value = "binary";
@@ -105,8 +104,10 @@
         return messenger(["account", keys.pub()], function(a) {
             if (a == 0) { //10 milibits
                 //account does not exist
+                status.innerHTML = "status: <font color=\"green\">Buying credits.</font>";
                 return F();
             } else if (a[1] < minAmount) {
+                status.innerHTML = "status: <font color=\"green\">Buying credits.</font>";
                 //account has insufficient balance
                 return F();
             }
