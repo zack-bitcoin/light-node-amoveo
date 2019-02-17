@@ -29,3 +29,5 @@ file:///home/username/light_node/src/js/otc_finisher.html?mode=test
 here is a server where I have installed the message passing software: 139.59.144.76
 That is the IP you use so you can send and receive trade requests.
 It loads by default when you are using the testnet.
+
+When using the OTC derivatives tool, often times you need to wait for blocks to be mined, and then sync headers, in order to continue the process. so click the "get more headers" button every once in a while.
