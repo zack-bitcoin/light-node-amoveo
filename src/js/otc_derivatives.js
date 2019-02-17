@@ -1,5 +1,5 @@
 (function otc_function() {
-    var delay = 1000;//a little over a week
+    //var delay = 1000;//a little over a week
     var fee = 152050;
     var div = document.createElement("div");
     document.body.appendChild(div);
@@ -12,7 +12,8 @@
     div.appendChild(br());
     var oracle = text_input("oracle: ", div);
     div.appendChild(br());
-    oracle.value = "Yv1P3aApVXpTLhgOVD84YcpI/fLyZyFTBbNB293u5v0=";
+    //oracle.value = "Yv1P3aApVXpTLhgOVD84YcpI/fLyZyFTBbNB293u5v0=";
+    oracle.value = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABs=";
     //oracle.value = "17zed/N0Ux50SljWJU+ZYZr64F6+6muGDnCRIceCPuc=";
     var our_amount = text_input("our bet amount: ", div);
     our_amount.value = "1";
@@ -23,13 +24,22 @@
     var bet_direction = text_input("you win if outcome is: ", div);
     bet_direction.value = "true";
     div.appendChild(br());
+    var delay = text_input("how long should the delay be to close the channel without your partner's help?", div);
+    delay.value = (1000).toString();
+    div.appendChild(br());
     var oracle_type = text_input("scalar or binary oracle?: ", div);
-    oracle_type.value = "binary";
+    oracle_type.value = "scalar";
     div.appendChild(br());
-    var bits = text_input("if it is scalar, how many bits does it have?", div);
-    div.appendChild(br());
-    //var expires = text_input("when does the bet expire?", div);
+    //var bits = text_input("if it is scalar, how many bits does it have?", div);
+    var bits = document.createElement("p");
+    bits.value = "10";
     //div.appendChild(br());
+    var upper_limit = text_input("if it is scalar, what is the upper limit?", div);
+    upper_limit.value = "1023";
+    div.appendChild(br());
+    var lower_limit = text_input("if it is scalar, what is the upper limit?", div);
+    lower_limit.value = "0";
+    div.appendChild(br());
     var startButton = button_maker2("offer to make this trade", start);
     div.appendChild(startButton);
     function start() {
@@ -43,11 +53,13 @@
         }
         db.our_amount_val = read_veo(our_amount);
         db.their_amount_val = read_veo(their_amount);
-        db.bits_val = parseInt(bits.value, 10);
+        db.delay = parseInt(delay.value, 10);
         //db.expires = parse_int(expires.value, 10);
         if (oracle_type.value.trim() == "scalar") {
             db.oracle_type_val = 1;
-            db.bits_val = parseInt(bits, 10);
+            db.bits_val = 10;
+            db.upper_limit = parseInt(upper_limit.value, 10);
+            db.lower_limit = parseInt(lower_limit.value, 10);
         } else if (oracle_type.value.trim() == "binary") {
             db.oracle_type_val = 0;
         } else {
@@ -146,13 +158,28 @@
             var amount = db.our_amount_val + db.their_amount_val;
             var oid = db.oracle_val;
             var height = headers_object.top()[1];
+            console.log(db.oracle);
+            console.log(db.oracle[10]);
             var bet_expires = 3000 + db.oracle[10]; // bet expires should be at least 3000 after the oracle can expire.
-            var sc = market_contract(db.bet_direction_val, bet_expires, maxprice, keys.pub(), period, amount, oid, height);//height
+            var sc;
+            if (db.oracle_type_val == 1) {//scalar
+                
+                sc = scalar_market_contract(db.bet_direction_val, bet_expires, maxprice, keys.pub(), period, amount, oid, height, db.upper_limit, db.lower_limit, db.bits_val);
+                console.log(sc);
+            } else if (db.oracle_type_val == 0) {//binary
+                sc = market_contract(db.bet_direction_val, bet_expires, maxprice, keys.pub(), period, amount, oid, height);
+            } else {
+                console.log("bad oracle type error");
+                return 0;
+            }
             var cid = btoa(random_cid(32));//generate a random 32 byte cid for the new channel.
             db.cid = cid;
-            var spk = ["spk", keys.pub(), db.their_address_val, [-6], 0, 0, cid, 0, 0, delay];
+            var spk = ["spk", keys.pub(), db.their_address_val, [-6], 0, 0, cid, 0, 0, db.delay];
+            //console.log(JSON.stringify(spk));
             var cd = channels_object.new_cd(spk, [], [], [], bet_expires, cid);
+            //console.log(sc);
             var spk2 = market_trade(cd, amount, maxprice, sc, oid);
+            //console.log(JSON.stringify(spk2));
             var sspk2 = keys.sign(spk2);
             var pd = pd_maker(height, maxprice - 1, 9999, oid);
             var sig = keys.raw_sign(pd);
@@ -167,7 +194,13 @@
             db.sspk2 = sspk2;
             var spk_nonce = spk2[8];
             var contract_sig = sspk2[2];
-            var imsg = [-6, db.bet_direction_val, bet_expires, maxprice, keys.pub(), db.their_address_val, period, db.our_amount_val, db.their_amount_val, oid, height, delay, contract_sig, signedPD, spk_nonce, db.oracle_type_val, db.cid];
+            var imsg;
+            if (db.oracle_type_val == 0) {
+                imsg = [-6, db.bet_direction_val, bet_expires, maxprice, keys.pub(), db.their_address_val, period, db.our_amount_val, db.their_amount_val, oid, height, db.delay, contract_sig, signedPD, spk_nonce, db.oracle_type_val, db.cid];
+            } else {
+                console.log(db.upper_limit);
+                imsg = [-6, db.bet_direction_val, bet_expires, maxprice, keys.pub(), db.their_address_val, period, db.our_amount_val, db.their_amount_val, oid, height, db.delay, contract_sig, signedPD, spk_nonce, db.oracle_type_val, db.cid, db.bits_val, db.upper_limit, db.lower_limit];
+            }
             return send_encrypted_message(imsg, db.their_address_val, function() { return start5(db); });
         });
     };
@@ -236,7 +269,7 @@
                     status.innerHTML = "status: <font color=\"red\"> new channel tx amount2 is wrong. </font>";
                     return 0;
                 }
-                if (!(tx[7] == delay)) {
+                if (!(tx[7] == db.delay)) {
                     status.innerHTML = "status: <font color=\"red\"> new channel tx amount2 is wrong. </font>";
                     return 0;
                 }

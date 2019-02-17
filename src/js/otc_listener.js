@@ -74,6 +74,9 @@
         db.cid = y[16];
         if (db.oracle_type_val == 1) {
             db.oracle_type = "scalar";
+            db.bits = y[17];
+            db.upper_limit = y[18];
+            db.lower_limit = y[19];
         } else if (db.oracle_type_val == 0) {
             db.oracle_type = "binary";
         }
@@ -88,9 +91,14 @@
             "oracle: ").concat(db.oid).concat("<br />").concat(
                 "our bet amount: ").concat(db.amount2).concat("<br />").concat(
                     "their bet amount: ").concat(db.amount1).concat("<br />");
-        var s2 = ("you win if the outcome is: ").concat(db.direction).concat("<br />").concat("scalar or binary?: ").concat(db.oracle_type);
+        var s2 = s1.concat("you win if the outcome is: ").concat(db.direction).concat("<br />").concat("scalar or binary?: ").concat(db.oracle_type).concat("<br />").concat("delay: ").concat((db.delay).toString()).concat("<br />");
+        if (db.oracle_type_val == 1) {//scalar
+            console.log(db.lower_limit);
+            console.log(db.upper_limit);
+            s2 = s2.concat("upper limit: ").concat((db.upper_limit).toString()).concat("<br />").concat("lower limit: ").concat((db.lower_limit).toString()).concat("<br />");
+        }
         var cvdiv = document.createElement("div");
-        cvdiv.innerHTML = s1.concat(s2);
+        cvdiv.innerHTML = s2;
         contract_view.innerHTML = "";
         contract_view.appendChild(cvdiv);
         var accept_button = button_maker2("Accept this trade", function() { return accept_trade(db); } );
@@ -145,9 +153,14 @@
             }
             var period = 10000000;//only one period because there is only one bet.
             var amount = db.amount1 + db.amount2;
-            var sc = market_contract(db.direction_val, db.expires, db.maxprice, db.acc1, period, amount, db.oid, db.height);
-            var delay = 1000;//a little over a week
-            var spk = ["spk", db.acc1, keys.pub(), [-6], 0,0,db.cid, 0,0,delay];
+            var sc;
+            if (db.oracle_type == "scalar") {
+                sc = scalar_market_contract(db.direction_val, db.expires, db.maxprice, db.acc1, period, amount, db.oid, db.height, db.upper_limit, db.lower_limit, db.bits);
+            } else if (db.oracle_type == "binary") {
+                sc = market_contract(db.direction_val, db.expires, db.maxprice, db.acc1, period, amount, db.oid, db.height);
+            }
+            //var delay = 1000;//a little over a week
+            var spk = ["spk", db.acc1, keys.pub(), [-6], 0,0,db.cid, 0,0,db.delay];
             var cd = channels_object.new_cd(spk, [],[],[],db.expires, db.cid);
             var spk2 = market_trade(cd, amount, db.maxprice, sc, db.oid);
             console.log(spk2);

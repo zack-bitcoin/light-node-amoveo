@@ -61,6 +61,11 @@
             //console.log(JSON.stringify(key));
             //["market",1,"wqsBDVWpK35TS/VqFYC94QWnNOwClAerYlbtz3AvKtk=",3000,"BHpLwieFVdD5F/z1mdScC9noIZ39HgnwvK8jHqRSBxjzWBssIR1X9LGr8QxTi8fUQws1Q5CGnmTk5dZwzdrGBi4=",10000000,"wqsBDVWpK35TS/VqFYC94QWnNOwClAerYlbtz3AvKtk="]
             db.oid = key[2];
+            db.type = key[1];
+            if (db.type == 2) {
+                db.lower_limit = key[7];
+                db.upper_limit = key[8];
+            }
             merkle.request_proof("oracles", db.oid, function(Or) {
                 //console.log(JSON.stringify(Or));
                 //["oracle","wqsBDVWpK35TS/VqFYC94QWnNOwClAerYlbtz3AvKtk=",0,"yAKJm0Zl9jpFBkbolYXdqOKe90nndgCHskmkw8DhSiE=",1000,3,0,"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","BIVZhs16gtoQ/uUMujl5aSutpImC4va8MewgCveh6MEuDjoDvtQqYZ5FeYcUhY/QLjpCBrXjqvTtFiN4li0Nhjo=",1001,0,0]
@@ -147,8 +152,31 @@
             return we_send(db);
         });
 
-    }
+    };
+    function get_oracle_binary(cid, many, result) {
+        if (many == 0) { return result; }
+        merkle.request_proof("oracles", db.oid, function(r) {
+            var result = r[2];//3 is bad, 2 is false, 1 is true, 0 is still open
+            if (result == 3) {
+                status.innerHTML = ("status: <font color=\"green\">this oracle resulted in a bad question.</font>");
+                return  0;//return everyone's money back to them, trade is un-done.
+            } else if (result == 0) {
+                status.innerHTML = ("status: <font color=\"green\">this oracle is not yet closed.</font>");
+                return "error";
+            } else if (result == 2) {//0 bit.
+                return get_oracle_binary(cid + 1, many - 1, result * 2);
+            } else if (result == 1) {//1 bit.
+                return get_oracle_binary(cid + 1, many - 1, (result * 2) + 1);
+            }
+        });
+    };
     function winnings_amount(db) {
+        if (db.type == 2) {//scalar
+            var a = db.channel_balance1 + db.channel_balance2;
+            var b = get_oracle_binary(db.cid, 10, 0);
+            var la;
+            return Math.floor(a * b / 1024) - db.channel_balance1;
+        }
         if (db.result == db.direction){//acc1 wins
             console.log("acc1 wins");
             return db.channel_balance2;
