@@ -213,7 +213,7 @@
                     channels_object.write(db.acc1, cd);
 
                     
-                    status.innerHTML = "status: <font color=\"red\">Warning: you need to save your channel state to a file.</font>";
+                    status.innerHTML = "status: <font color=\"red\">Warning: you need to save your channel state to a file. You can leave the browser open longer to find out when this channel will be made, or you can load your channel state into otc_finisher to find out the channel state later.</font>";
                     channels_object.write(db.acc1, cd);
                     return start2(db);
                 });

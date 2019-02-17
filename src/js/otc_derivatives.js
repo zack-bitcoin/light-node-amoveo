@@ -15,9 +15,10 @@
     div.appendChild(br());
     var their_amount = text_input("their bet amount: ", div);
     div.appendChild(br());
-    var bet_direction = text_input("you win if outcome is (true/false): ", div);
+    var bet_direction = text_input("you win if outcome is (true/false/long/short): ", div);
     div.appendChild(br());
-    var delay = text_input("how long should the delay be to close the channel without your partner's help?", div);
+    //var delay = text_input("how long should the delay be to close the channel without your partner's help?", div);
+    var delay = document.createElement("p");
     delay.value = (1000).toString();
     div.appendChild(br());
     var oracle_type = text_input("scalar or binary oracle?: ", div);
@@ -67,9 +68,10 @@
             return 0;
         }
         //var bet_direction_val;
-        if (bet_direction.value.trim() == "true") {
+        var bdvt = bet_direction.value.trim();
+        if ((bdvt == "true") || (bdvt == "long")) {
             db.bet_direction_val = 1;
-        } else if (bet_direction.value.trim() == "false") {
+        } else if ((bdvt == "false") || (bdvt == "short")) {
             db.bet_direction_val = 0;
         } else {
             status.innerHTML = "status: <font color=\"red\">Error:`you win if outcome is` must be 'true' or 'false'</font>";
