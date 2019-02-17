@@ -54,24 +54,28 @@ function keys_function1() {
         return btoa(array_to_string(sig2));
     }
     function sign_tx(tx) {
+        var sig;
+        var stx;
 	if (tx[0] == "signed") {
 	    console.log(JSON.stringify(tx));
             //var sig = raw_sign(tx[1]);
-	    var sig = btoa(array_to_string(sign(tx[1], keys_internal)));
-	    var pub = pubkey_64();
-	    if (pub == tx[1][1]) {
-		tx[2] = sig;
-	    } else if (pub == tx[1][2]) {
-		tx[3] = sig;
-	    } else {
-		console.log(JSON.stringify(tx));
-		throw("sign error");
-	    }
-	    return tx;
+	    sig = btoa(array_to_string(sign(tx[1], keys_internal)));
+	    stx = tx;
+
 	} else {
-            var sig = btoa(array_to_string(sign(tx, keys_internal)));
-            return ["signed", tx, sig, [-6]];
+            sig = btoa(array_to_string(sign(tx, keys_internal)));
+            stx = ["signed", tx, [-6], [-6]];
 	}
+	var pub = pubkey_64();
+	if (pub == tx[1][1]) {
+	    stx[2] = sig;
+	} else if (pub == tx[1][2]) {
+	    stx[3] = sig;
+	} else {
+	    console.log(JSON.stringify(tx));
+	    throw("sign error");
+	}
+        return stx;
     }
     function update_pubkey() {
         pub_div.innerHTML = ("your pubkey ").concat(pubkey_64());

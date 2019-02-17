@@ -98,7 +98,7 @@ function merkle_proofs_main() {
 			//we should learn to deal with proofs of empty data.
                     } else {
 			console.log("the value doesn't match the proof");
-			console.log(x);
+			console.log(JSON.stringify(x));
 			console.log(trie_key);
 			throw("bad");
                     }
@@ -160,8 +160,10 @@ function merkle_proofs_main() {
             var acc2 = string_to_array(atob(v[3]));
             var bal1 = integer_to_array(v[4], 6);
             var bal2 = integer_to_array(v[5], 6);
-            var amount = integer_to_array(128, 1).concat(
-		integer_to_array(v[6], 5));
+            var hb = 140737488355328;
+            var amount = integer_to_array(hb + v[6] , 6);
+            //var amount = integer_to_array(128, 1).concat(
+		//integer_to_array(v[6], 5));
             var nonce = integer_to_array(v[7], 4);
             var last_modified = integer_to_array(v[8], 4);
             var delay = integer_to_array(v[9], 4);

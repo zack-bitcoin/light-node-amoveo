@@ -16,13 +16,17 @@
         //console.log(JSON.stringify(channels_object.channel_manager));
         var db = {};
         db.fee = 152050;
-        var cd = channels_object.read(their_address.value);
-        console.log(JSON.stringify(cd));
-        var spk = cd.me;
-        db.address1 = spk[1];
-        db.address2 = spk[2];
-        db.cid = spk[6];
-        db.amount = spk[7];
+        //var cd = channels_object.read(their_address.value);
+        db.cd = channels_object.read(their_address.value);
+        console.log(JSON.stringify(db.cd));
+        //var spk = cd.me;
+        db.spk = db.cd.me;
+        db.address1 = db.spk[1];
+        db.address2 = db.spk[2];
+        db.cid = db.spk[6];
+        db.amount = db.spk[7];
+        console.log("lookup channel ");
+        console.log(db.cid);
         merkle.request_proof("channels", db.cid, function(c) {
             console.log("channel is ");
             console.log(c);
@@ -30,9 +34,19 @@
                 status.innerHTML = "status: <font color=\"red\">that channel does not exist. Maybe you haven't synced with the network, or maybe it is already closed, or maybe it never existed.</font>";
                 return 0;
             };
+            status.innerHTML = "status: <font color=\"green\"> valid channel being loaded </font>";
+            console.log(JSON.stringify(c));
+            if (!(c[7] == 1)) {
+                //channel is being closed, maybe we need to offer them the ability to do a channel_slash tx. channel-slash
+                var slash_button = button_maker2("click here to attempt to make a channel-slash tx. Do this if your partner is trying to close the channel at the wrong final state.", function() { return slash_func(db); });
+                div.appendChild(slash_button);
+                var timeout_button = button_maker2("click here to attempt to make a channel-timeout tx. Do this if you already did a channel_slash tx, and then waited the delay.", function() { return timeout_func(db); });
+                div.appendChild(timeout_button);
+                //return 0;
+            }
             db.channel_balance1 = c[4];
             db.channel_balance2 = c[5];
-            var bet = spk[3][1];
+            var bet = db.spk[3][1];
             //console.log(JSON.stringify(bet));
             //["bet",code,300000000,["market",1,"wqsBDVWpK35TS/VqFYC94QWnNOwClAerYlbtz3AvKtk=",3000,"BHpLwieFVdD5F/z1mdScC9noIZ39HgnwvK8jHqRSBxjzWBssIR1X9LGr8QxTi8fUQws1Q5CGnmTk5dZwzdrGBi4=",10000000,"wqsBDVWpK35TS/VqFYC94QWnNOwClAerYlbtz3AvKtk="],[-7,1,5000]]
             var key = bet[3];
@@ -66,12 +80,14 @@
             if (ctc == "error") {
                 return we_send0(db);
             }
+            console.log(s1ctc);
             var sctc = keys.sign(s1ctc);
+            console.log(sctc);
             var ctc = sctc[1];
             var b = verify_both(sctc);
             if (!(b == true)) {
                 status.innerHTML = ("status: <font color=\"red\"> CTC tx has a bad signature</font>");
-                return 0;
+                return we_send0(db);
             }
             if (!(db.address1 == ctc[1])) {
                 console.log(db.address1);
@@ -131,7 +147,7 @@
             console.log("acc1 wins");
             return db.channel_balance2;
         } else if (db.result == 3) {//bad question
-            status.innerHTML = ("status: <font color=\"red\">this oracle resulted in a bad question.</font>");
+            status.innerHTML = ("status: <font color=\"green\">this oracle resulted in a bad question.</font>");
             return  0;//return everyone's money back to them, trade is un-done.
         } else {//acc2 wins
             console.log("acc2 wins");
@@ -156,8 +172,11 @@
                 return messenger(["send", 1, their_address.value, sr], function(x) {
                     status.innerHTML = ("status: <font color=\"blue\">We signed the tx to close the channel, now waiting for your partner to come online and sign the tx. Keep a copy of the channel state until the channel is closed.</font>");
                     //give a button to start closing the channel with a channel_solo_close tx, along with a warning about how closing with a solo-close will break privacy and cost a larger fee, and it will probably take longer than just waiting for Bob to sign the tx. The light node tells her to keep a copy of the file from step (6) until the channel is closed.
+                    var solo_button = button_maker2("Avoid clicking this if you don't have to. click here to attempt to make a solo-close tx. Do this if your partner is refusing to work with you to close the channel. This costs more money than the normal way to close a channel, and it will take more time to finish.", function() { return solo_func(db); });
+                    div.appendChild(solo_button); 
                     return wait_till_closed(db);
                 });
+
             });
         });
     };
@@ -173,10 +192,12 @@
                 return setTimeout(function() { return wait_till_closed(db); }, 10000);
             }
         });
-    }
+    };
     function credits_check(pub, minAmount, callback) {
         F = function() { return buy_credits(Math.floor(minAmount * 1.2), callback); };
         return messenger(["account", keys.pub()], function(a) {
+            console.log("account is ");
+            console.log(JSON.stringify(a));
             if (a == 0) { //10 milibits
                 //account does not exist
                 status.innerHTML = "status: <font color=\"green\">Buying credits.</font>";
@@ -187,6 +208,68 @@
                 return F();
             }
             return callback();
+        });
+    }
+    function ss_encode(L) {
+        if (JSON.stringify(L) == "[]") {
+            return [];
+        }
+        // is [["ss",[0,0,0,0,4],[-6,["oracles","uXhkZVtS4rozAJtjt55Q/FXQb1Vd8lg8x/51fyT95Sg="]],0]]
+        //should be
+        //[["ss","AAAAAAAAAAAAAQ==",[-6],0]]]
+        //
+        var c = compile(L[0].code);
+        return [["ss", c, L[0].prove, 0]].concat(ss_encode(L.slice(1)));
+    }
+    function compile(x) {
+        return btoa(compile2(x));
+    };
+    function compile2(L) {
+        if (JSON.stringify(L) == "[]") {
+            return "";
+        }
+        return String.fromCharCode(0).concat(String.fromCharCode(L[0])).concat(compile2(L.slice(1)));
+    }
+    function solo_func(db) {
+        merkle.request_proof("accounts", keys.pub(), function (acc) {
+            var nonce = acc[2] + 1;
+            var ss = [-6].concat(ss_encode(db.cd.ssthem));
+            console.log(JSON.stringify(ss));
+            var fee = 202050;
+            var tx = ["csc", keys.pub(), nonce, fee, keys.sign(db.cd.them), ss];
+            var stx = keys.sign(tx);
+            return variable_public_get(["txs", [-6, stx]], function(x) {
+                console.log(x);
+                status.innerHTML = "status: <font color=\"blue\">We attempted to publish the channel solo close tx.</font>";
+                return 0;
+            });
+        });
+    };
+    function slash_func(db) {
+        merkle.request_proof("accounts", keys.pub(), function (acc) {
+            var nonce = acc[2] + 1;
+            //var ss = db.cd.ssme
+            var ss = [-6].concat(ss_encode(db.cd.ssthem));
+            var fee = 202050;
+            var tx = ["cs", keys.pub(), nonce, fee, keys.sign(db.cd.them), ss];
+            var stx = keys.sign(tx);
+            return variable_public_get(["txs", [-6, stx]], function(x) {
+                console.log(x);
+                status.innerHTML = "status: <font color=\"blue\">We attempted to publish the channel slash tx.</font>";
+                return 0;
+            });
+        });
+    };
+    function timeout_func(db) {
+        merkle.request_proof("accounts", keys.pub(), function (acc) {
+            var nonce = acc[2] + 1;
+            var tx = ["timeout", keys.pub(), nonce, db.fee, db.cid, db.address1, db.address2];
+            var stx = keys.sign(tx);
+            return variable_public_get(["txs", [-6, stx]], function(x) {
+                console.log(x);
+                status.innerHTML = "status: <font color=\"blue\">We attempted to publish the channel timeout tx.</font>";
+                return 0;
+            });
         });
     }
 })();
