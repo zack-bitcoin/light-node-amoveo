@@ -8,20 +8,20 @@
     status.innerHTML = "status: <font color=\"green\">ready</font>";
     div.appendChild(status);
     var their_address = text_input("their_address: ", div);
-    //their_address.value = "BOzTnfxKrkDkVl88BsLMl1E7gAbKK+83pHCt0ZzNEvyZQPKlL/n8lYLCXgrL4Mmi/6m2bzj+fejX8D52w4U9LkI=";
+    their_address.value = "BOzTnfxKrkDkVl88BsLMl1E7gAbKK+83pHCt0ZzNEvyZQPKlL/n8lYLCXgrL4Mmi/6m2bzj+fejX8D52w4U9LkI=";
     div.appendChild(br());
     var oracle = text_input("oracle: ", div);
     div.appendChild(br());
-    //oracle.value = "2pQdsMBf91XcekC7WFZaEospw4+Jc/q0j2b51zuJ2n4=";
-    oracle.value = "17zed/N0Ux50SljWJU+ZYZr64F6+6muGDnCRIceCPuc=";
+    oracle.value = "Yv1P3aApVXpTLhgOVD84YcpI/fLyZyFTBbNB293u5v0=";
+    //oracle.value = "17zed/N0Ux50SljWJU+ZYZr64F6+6muGDnCRIceCPuc=";
     var our_amount = text_input("our bet amount: ", div);
-    //our_amount.value = "1";
+    our_amount.value = "1";
     div.appendChild(br());
     var their_amount = text_input("their bet amount: ", div);
-    //their_amount.value = "1";
+    their_amount.value = "1";
     div.appendChild(br());
     var bet_direction = text_input("you win if outcome is: ", div);
-    //bet_direction.value = "true";
+    bet_direction.value = "true";
     div.appendChild(br());
     var oracle_type = text_input("scalar or binary oracle?: ", div);
     oracle_type.value = "binary";
@@ -119,22 +119,6 @@
         console.log("start3");
         return credits_check(keys.pub(), 1000000, function(){return start4(db)} );
     }
-    function unused() {
-
-        return messenger(["account", keys.pub()], function(a) {
-            console.log("account is ");
-            console.log(a);
-            //["acc", 104450000, 0, 0]
-            if (a == 0) { //10 milibits
-                //account does not exist
-                buy_credits(1200000, function() { return start4(db); });
-            } else if (a[1] < 1000000) {
-                //account has insufficient balance
-                buy_credits(1200000, function() { return start4(db); });
-            }
-            return start4(db);
-        });
-    };
     
     function random_cid(n) {
         if (n == 0) { return ""; }
@@ -151,6 +135,7 @@
 
             if ((a == 0) || (a[1] < 1000000)) { //10 milibits
                 //wait enough confirmations until you have the credits.
+                //return headers_object.on_height_change(function() { return start4(db); });
                 return setTimeout(function() {return start4(db);}, 20000);
             }
             console.log("your account ");
@@ -289,13 +274,11 @@
             console.log("channel is ");
             console.log(c);
             if (c == "empty") {
-                return setTimeout(function(){return start6(db);},
-                                  10000);
+                return headers_object.on_height_change(function() { return start6(db); });
+                //return setTimeout(function(){return start6(db);},
+                 //                 10000);
             }
-        //The light node checks every 10 seconds until it sees that the new tx has been included in a block.
-        //keep checking until the channel is existing on-chain.
             status.innerHTML = "status: <font color=\"green\">The channel has been formed, and the smart contract is active. If you have saved a copy of the signed smart contract, then it is now safe to close the browser.</font>";
-            //after you save, the message about needing to save changes to "it is now safe to turn off the light node, make sure to keep a copy of the channel state that you have already saved to a file."
         });
     };
 })();

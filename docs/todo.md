@@ -8,6 +8,8 @@ delay should be an input, not hard-coded.
 
 we need support for scalar markets.
 
+it would be  nice if we only displayed the timeout button when it was possible to create that tx. or we could grey it out or something.
+
 
 other stuff
 ##########

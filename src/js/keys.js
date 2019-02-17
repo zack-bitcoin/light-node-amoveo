@@ -67,9 +67,9 @@ function keys_function1() {
             stx = ["signed", tx, [-6], [-6]];
 	}
 	var pub = pubkey_64();
-	if (pub == tx[1][1]) {
+	if ((stx[1][0] == -7) || (pub == stx[1][1])) {
 	    stx[2] = sig;
-	} else if (pub == tx[1][2]) {
+	} else if (pub == stx[1][2]) {
 	    stx[3] = sig;
 	} else {
 	    console.log(JSON.stringify(tx));

@@ -150,9 +150,13 @@
             var spk = ["spk", db.acc1, keys.pub(), [-6], 0,0,db.cid, 0,0,delay];
             var cd = channels_object.new_cd(spk, [],[],[],db.expires, db.cid);
             var spk2 = market_trade(cd, amount, db.maxprice, sc, db.oid);
+            console.log(spk2);
+            console.log(db.contract_sig);
             var sspk2 = keys.sign(spk2);
-            sspk2[3] = sspk2[2];
+            console.log(sspk2);
+            //sspk2[3] = sspk2[2];
             sspk2[2] = db.contract_sig;
+            console.log(sspk2);
             var v = verify_both(sspk2);
             if (!(v == true)) {
                 status.innerHTML = "status: <font color=\"red\">Error: one of the signatures is wrong, maybe the contract wasn't identically calculated on both nodes.</font>";
@@ -183,8 +187,8 @@
             
                 var channel_tx = ["nc", db.acc1, db.acc2, fee, nonce, db.amount1, db.amount2, db.delay, db.cid];
                 var stx = keys.sign(channel_tx);
-                stx[3] = stx[2];
-                stx[2] = [-6];
+                //stx[3] = stx[2];
+                //stx[2] = [-6];
                 var msg = [-6, stx, sspk2[3]];
                 send_encrypted_message(msg, db.acc1, function() {
 
@@ -208,8 +212,7 @@
             console.log("channel is ");
             console.log(c);
             if (c == "empty") {
-                return setTimeout(function(){return start2(db);},
-                                  10000);
+                return headers_object.on_height_change(function() { return start2(db); });
             }
             status.innerHTML = "status: <font color=\"green\">The channel has been formed, and the smart contract is active. If you have saved a copy of the signed smart contract, then it is now safe to close the browser.</font>";
         //the light node checks every 10 seconds until it sees that the channel has been included on-chain.

@@ -399,12 +399,23 @@ function headers_main() {
         console.log(hl);
         absorb_headers(hl);
     }
+    function on_height_change(callback) {
+        var h = top_header[1];
+        return on_height_change2(h, callback);
+    }
+    function on_height_change2(h, callback) {
+        var h2 = top_header[1];
+        if (h2 > h) {
+            return callback();
+        }
+        return setTimeout(function() { return on_height_change2(h, callback), 1000});
+    }
     //test();
     function test() {
         console.log(sci2int(2000));//should be 232
         console.log(int2sci(2000));//should be 2804
         console.log(sci2int(int2sci(2000)));// should be 2000
     }
-    return {sci2int: sci2int, serialize: serialize_header, top: (function() { return top_header; }), db: headers_db, read_ewah: read_ewah};
+    return {sci2int: sci2int, serialize: serialize_header, top: (function() { return top_header; }), db: headers_db, read_ewah: read_ewah, on_height_change: on_height_change};
 }
 var headers_object = headers_main();

@@ -38,9 +38,15 @@
             console.log(JSON.stringify(c));
             if (!(c[7] == 1)) {
                 //channel is being closed, maybe we need to offer them the ability to do a channel_slash tx. channel-slash
-                var slash_button = button_maker2("click here to attempt to make a channel-slash tx. Do this if your partner is trying to close the channel at the wrong final state.", function() { return slash_func(db); });
+                var slash_button_div = document.createElement("div");
+                slash_button_div.innerHTML = "click the 'slash' button to attempt to make a channel-slash tx. Do this if your partner is trying to close the channel at the wrong final state.";
+                div.appendChild(slash_button_div);
+                var slash_button = button_maker2("slash", function() { return slash_func(db); });
                 div.appendChild(slash_button);
-                var timeout_button = button_maker2("click here to attempt to make a channel-timeout tx. Do this if you already did a channel_slash tx, and then waited the delay.", function() { return timeout_func(db); });
+
+                var timeout_button_div = document.createElement("div");
+                timeout_button_div.innerHTML = "click the 'timeout' button to attempt to make a channel-timeout tx. Do this if you already did a channel_slash tx, and then waited the delay.";
+                var timeout_button = button_maker2("timeout", function() { return timeout_func(db); });
                 div.appendChild(timeout_button);
                 //return 0;
             }
@@ -189,7 +195,7 @@
                 status.innerHTML = ("status: <font color=\"blue\">The channel is now closed. It is safe to delete your channel state file.</font>");
                 return 0;
             } else {
-                return setTimeout(function() { return wait_till_closed(db); }, 10000);
+                return headers_object.on_height_change(function() { return wait_till_closed(db); });
             }
         });
     };
