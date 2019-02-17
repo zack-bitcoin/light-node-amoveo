@@ -13,22 +13,22 @@
     var oracle = text_input("oracle: ", div);
     div.appendChild(br());
     //oracle.value = "Yv1P3aApVXpTLhgOVD84YcpI/fLyZyFTBbNB293u5v0=";
-    oracle.value = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABs=";
+    //oracle.value = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABs=";
     //oracle.value = "17zed/N0Ux50SljWJU+ZYZr64F6+6muGDnCRIceCPuc=";
     var our_amount = text_input("our bet amount: ", div);
-    our_amount.value = "1";
+    //our_amount.value = "1";
     div.appendChild(br());
     var their_amount = text_input("their bet amount: ", div);
-    their_amount.value = "1";
+    //their_amount.value = "1";
     div.appendChild(br());
-    var bet_direction = text_input("you win if outcome is: ", div);
-    bet_direction.value = "true";
+    var bet_direction = text_input("you win if outcome is (true/false): ", div);
+    //bet_direction.value = "true";
     div.appendChild(br());
     var delay = text_input("how long should the delay be to close the channel without your partner's help?", div);
     delay.value = (1000).toString();
     div.appendChild(br());
     var oracle_type = text_input("scalar or binary oracle?: ", div);
-    oracle_type.value = "scalar";
+    //oracle_type.value = "scalar";
     div.appendChild(br());
     //var bits = text_input("if it is scalar, how many bits does it have?", div);
     var bits = document.createElement("p");
@@ -114,6 +114,7 @@
     }
     function credits_check(pub, minAmount, callback) {
         F = function() { return buy_credits(Math.floor(minAmount * 1.2), callback); };
+        status.innerHTML = "status: <font color=\"green\">Checking if you have enough credits.</font>";
         return messenger(["account", keys.pub()], function(a) {
             if (a == 0) { //10 milibits
                 //account does not exist
