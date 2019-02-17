@@ -118,15 +118,16 @@
                 status.innerHTML = ("status: <font color=\"red\"> CTC tx has a wrong cid</font>");
                 return 0;
             }
-            var winnings = winnings_amount(db);
-            if (!(winnings == ctc[6])) {
-                status.innerHTML = ("status: <font color=\"red\"> CTC tx has a wrong final balances.</font>");
-                return 0;
-            }
-            return variable_public_get(["txs", [-6, sctc]], function(x) {
+            winnings_amount(db, function(db, winnings) {
+                if (!(winnings == ctc[6])) {
+                    status.innerHTML = ("status: <font color=\"red\"> CTC tx has a wrong final balances.</font>");
+                    return 0;
+                }
+                return variable_public_get(["txs", [-6, sctc]], function(x) {
             
-                status.innerHTML = ("status: <font color=\"green\"> CTC tx is being published.</font>");
-                return wait_till_closed(db);
+                    status.innerHTML = ("status: <font color=\"green\"> CTC tx is being published.</font>");
+                    return wait_till_closed(db);
+                });
             });
         });
     };
@@ -153,64 +154,76 @@
         });
 
     };
-    function get_oracle_binary(cid, many, result) {
-        if (many == 0) { return result; }
-        merkle.request_proof("oracles", db.oid, function(r) {
+    function get_oracle_binary(cid, oid, many, result, callback) {
+        if (many == 0) { return callback(result); }
+        merkle.request_proof("oracles", oid, function(r) {
             var result = r[2];//3 is bad, 2 is false, 1 is true, 0 is still open
             if (result == 3) {
                 status.innerHTML = ("status: <font color=\"green\">this oracle resulted in a bad question.</font>");
-                return  0;//return everyone's money back to them, trade is un-done.
+                return  callback(0);//return everyone's money back to them, trade is un-done.
             } else if (result == 0) {
                 status.innerHTML = ("status: <font color=\"green\">this oracle is not yet closed.</font>");
-                return "error";
+                return callback("error");
             } else if (result == 2) {//0 bit.
-                return get_oracle_binary(cid + 1, many - 1, result * 2);
+                return get_oracle_binary(cid + 1, oid, many - 1, result * 2, callback);
             } else if (result == 1) {//1 bit.
-                return get_oracle_binary(cid + 1, many - 1, (result * 2) + 1);
+                return get_oracle_binary(cid + 1, oid, many - 1, (result * 2) + 1, callback);
             }
         });
     };
-    function winnings_amount(db) {
+    function winnings_amount(db, callback) {
+        var x;
         if (db.type == 2) {//scalar
             var a = db.channel_balance1 + db.channel_balance2;
-            var b = get_oracle_binary(db.cid, 10, 0);
-            var la;
-            return Math.floor(a * b / 1024) - db.channel_balance1;
+            return get_oracle_binary(
+                db.cid, db.oid, 10, 0,
+                function(b) {
+                    console.log(a);
+                    console.log(b);//undefined
+                    x = Math.floor(a * b / 1024) - db.channel_balance1;
+                    callback(db, x);
+                });
         }
         if (db.result == db.direction){//acc1 wins
             console.log("acc1 wins");
-            return db.channel_balance2;
+            x = db.channel_balance2;
+            //return callback(db, db.channel_balance2);
         } else if (db.result == 3) {//bad question
             status.innerHTML = ("status: <font color=\"green\">this oracle resulted in a bad question.</font>");
-            return  0;//return everyone's money back to them, trade is un-done.
+            //return 0;//return everyone's money back to them, trade is un-done.
+            x = 0;//return everyone's money back to them, trade is un-done.
         } else {//acc2 wins
             console.log("acc2 wins");
-            return -db.channel_balance1;
+            //return -db.channel_balance1;
+            x = -db.channel_balance1;
         }
+        return callback(db, x);
     }
     function we_send(db) {
         //generate the channel_close_tx and send it to them.
 	merkle.request_proof("accounts", keys.pub(), function(acc) {
             nonce = acc[2]+1;
-            var a2 = winnings_amount(db);
-
-	    var tx = ["ctc", db.address1, db.address2, db.fee, nonce+1, db.cid, a2];
-            var stx = keys.sign(tx);
-            return messenger(["account", keys.pub()], function(account) {
-                console.log(account);
-                var m_nonce = account[3] + 1;
-                var r = [-7, 53411, keys.pub(), m_nonce, stx];
-                //var r = [-7, 53411, keys.pub(), m_nonce, 0];
-                var sr = keys.sign(r);
-                console.log(JSON.stringify(sr));
-                return messenger(["send", 1, their_address.value, sr], function(x) {
-                    status.innerHTML = ("status: <font color=\"blue\">We signed the tx to close the channel, now waiting for your partner to come online and sign the tx. Keep a copy of the channel state until the channel is closed.</font>");
-                    //give a button to start closing the channel with a channel_solo_close tx, along with a warning about how closing with a solo-close will break privacy and cost a larger fee, and it will probably take longer than just waiting for Bob to sign the tx. The light node tells her to keep a copy of the file from step (6) until the channel is closed.
-                    var solo_button = button_maker2("Avoid clicking this if you don't have to. click here to attempt to make a solo-close tx. Do this if your partner is refusing to work with you to close the channel. This costs more money than the normal way to close a channel, and it will take more time to finish.", function() { return solo_func(db); });
-                    div.appendChild(solo_button); 
-                    return wait_till_closed(db);
+            winnings_amount(db, function(db, a2) {
+                //var a2 = winnings_amount(db);
+                console.log("winnings amount result ");
+                console.log(a2);
+	        var tx = ["ctc", db.address1, db.address2, db.fee, nonce+1, db.cid, a2];
+                var stx = keys.sign(tx);
+                return messenger(["account", keys.pub()], function(account) {
+                    console.log(account);
+                    var m_nonce = account[3] + 1;
+                    var r = [-7, 53411, keys.pub(), m_nonce, stx];
+                    //var r = [-7, 53411, keys.pub(), m_nonce, 0];
+                    var sr = keys.sign(r);
+                    console.log(JSON.stringify(sr));
+                    return messenger(["send", 1, their_address.value, sr], function(x) {
+                        status.innerHTML = ("status: <font color=\"blue\">We signed the tx to close the channel, now waiting for your partner to come online and sign the tx. Keep a copy of the channel state until the channel is closed.</font>");
+                        //give a button to start closing the channel with a channel_solo_close tx, along with a warning about how closing with a solo-close will break privacy and cost a larger fee, and it will probably take longer than just waiting for Bob to sign the tx. The light node tells her to keep a copy of the file from step (6) until the channel is closed.
+                        var solo_button = button_maker2("Avoid clicking this if you don't have to. click here to attempt to make a solo-close tx. Do this if your partner is refusing to work with you to close the channel. This costs more money than the normal way to close a channel, and it will take more time to finish.", function() { return solo_func(db); });
+                        div.appendChild(solo_button); 
+                        return wait_till_closed(db);
+                    });
                 });
-
             });
         });
     };
