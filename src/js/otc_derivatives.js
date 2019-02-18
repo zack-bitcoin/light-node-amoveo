@@ -1,9 +1,8 @@
 (function otc_function() {
-    //var delay = 1000;//a little over a week
     var fee = 152050;
     var div = document.createElement("div");
     document.body.appendChild(div);
-
+    
     var status = document.createElement("p");
     status.innerHTML = "status: <font color=\"green\">ready</font>";
     div.appendChild(status);
@@ -16,7 +15,7 @@
     var their_amount = text_input("their bet amount: ", div);
     div.appendChild(br());
     var bet_direction = text_input("you win if outcome is (true/false/long/short): ", div);
-    div.appendChild(br());
+    //div.appendChild(br());
     //var delay = text_input("how long should the delay be to close the channel without your partner's help?", div);
     var delay = document.createElement("p");
     delay.value = (1000).toString();
@@ -26,13 +25,13 @@
     //var bits = text_input("if it is scalar, how many bits does it have?", div);
     var bits = document.createElement("p");
     bits.value = "10";
-    if (false) { //defaults
+    if (true) { //defaults
         their_address.value = "BOzTnfxKrkDkVl88BsLMl1E7gAbKK+83pHCt0ZzNEvyZQPKlL/n8lYLCXgrL4Mmi/6m2bzj+fejX8D52w4U9LkI=";
-        oracle.value = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABs=";
+        oracle.value = "yfTmzAgc+UFVctOnp6QQi++tLQcP930Bk3xh8hjnYjU=";
         our_amount.value = "1";
         their_amount.value = "1";
         bet_direction.value = "true";
-        oracle_type.value = "scalar";
+        oracle_type.value = "binary";
     };
     //div.appendChild(br());
     var upper_limit = text_input("if it is scalar, what is the upper limit?", div);
@@ -87,9 +86,12 @@
                 return 0;
             }
             db.oracle = x;
+            if (db.oracle_type_val == 1) { //scalar
+                return verify_exists(db.oracle_val, 10, function() {return start2(db);});
+            }
             return start2(db);
         });
-    }
+    };
     function start2(db) {
         console.log("start2");
         return variable_public_get(["account", keys.pub()], function(my_acc) {
@@ -114,25 +116,12 @@
             });
         });
     }
-    function credits_check(pub, minAmount, callback) {
-        F = function() { return buy_credits(Math.floor(minAmount * 1.2), callback); };
-        status.innerHTML = "status: <font color=\"green\">Checking if you have enough credits.</font>";
-        return messenger(["account", keys.pub()], function(a) {
-            if (a == 0) { //10 milibits
-                //account does not exist
-                status.innerHTML = "status: <font color=\"green\">Buying credits.</font>";
-                return F();
-            } else if (a[1] < minAmount) {
-                status.innerHTML = "status: <font color=\"green\">Buying credits.</font>";
-                //account has insufficient balance
-                return F();
-            }
-            return callback();
-        });
-    }
     function start3(db) {
         console.log("start3");
-        return credits_check(keys.pub(), 1000000, function(){return start4(db)} );
+        status.innerHTML = "status: <font color=\"green\">checking if you have enough credits, possibly puchasing more.</font>";
+        return messenger_object.min_bal(1000000, function(){
+        status.innerHTML = "status: <font color=\"green\"> You have enough credits to continue.</font>";
+            return start4(db)});
     }
     
     function random_cid(n) {
@@ -147,7 +136,9 @@
         return messenger(["account", keys.pub()], function(a) {
             console.log("account is (start4)");
             console.log(a);
-
+            if (!(isNaN(a[1]))) {
+                messenger_object.display(a[1]);
+            }
             if ((a == 0) || (a[1] < 1000000)) { //10 milibits
                 //wait enough confirmations until you have the credits.
                 //return headers_object.on_height_change(function() { return start4(db); });
@@ -311,8 +302,6 @@
             console.log(c);
             if (c == "empty") {
                 return headers_object.on_height_change(function() { return start6(db); });
-                //return setTimeout(function(){return start6(db);},
-                 //                 10000);
             }
             status.innerHTML = "status: <font color=\"green\">The channel has been formed, and the smart contract is active. If you have saved a copy of the signed smart contract, then it is now safe to close the browser.</font>";
         });

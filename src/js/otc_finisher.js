@@ -7,8 +7,8 @@
     var status = document.createElement("p");
     status.innerHTML = "status: <font color=\"green\">ready</font>";
     div.appendChild(status);
-    var their_address = text_input("their_address: ", div);
-    div.appendChild(br());
+    //var their_address = text_input("their_address: ", div);
+    //div.appendChild(br());
     var start_button = button_maker2("load your keys and channel data, then click this", start1);
     div.appendChild(start_button);
     //we need a tool for solo-closing the channel, for if your partner refuses to help you. (maybe for now asking for help on a forum is good enough?)
@@ -17,7 +17,8 @@
         var db = {};
         db.fee = 152050;
         //var cd = channels_object.read(their_address.value);
-        db.cd = channels_object.read(their_address.value);
+        var their_address_val = Object.keys(channels_object.channel_manager())[0];
+        db.cd = channels_object.read(their_address_val);
         console.log(JSON.stringify(db.cd));
         //var spk = cd.me;
         db.spk = db.cd.me;
@@ -143,7 +144,8 @@
         return find_ctc(cid, txs.slice(1));
     }
     function we_send0(db) {
-        return credits_check(keys.pub(), 1200000, function() {return we_send1(db);});
+        //return credits_check(keys.pub(), 1200000, function() {return we_send1(db);});
+        return messenger_object.min_bal(1200000, function() {return we_send1(db);});
     }
     function we_send1(db) {
         return messenger(["account", keys.pub()], function(a) {
@@ -221,7 +223,7 @@
                     //var r = [-7, 53411, keys.pub(), m_nonce, 0];
                     var sr = keys.sign(r);
                     console.log(JSON.stringify(sr));
-                    return messenger(["send", 1, their_address.value, sr], function(x) {
+                    return messenger(["send", 1, their_address_val, sr], function(x) {
                         status.innerHTML = ("status: <font color=\"blue\">We signed the tx to close the channel, now waiting for your partner to come online and sign the tx. Keep a copy of the channel state until the channel is closed.</font>");
                         //give a button to start closing the channel with a channel_solo_close tx, along with a warning about how closing with a solo-close will break privacy and cost a larger fee, and it will probably take longer than just waiting for Bob to sign the tx. The light node tells her to keep a copy of the file from step (6) until the channel is closed.
                         var solo_button = button_maker2("Avoid clicking this if you don't have to. click here to attempt to make a solo-close tx. Do this if your partner is refusing to work with you to close the channel. This costs more money than the normal way to close a channel, and it will take more time to finish.", function() { return solo_func(db); });
@@ -245,6 +247,7 @@
             }
         });
     };
+/*
     function credits_check(pub, minAmount, callback) {
         F = function() { return buy_credits(Math.floor(minAmount * 1.2), callback); };
         return messenger(["account", keys.pub()], function(a) {
@@ -262,6 +265,7 @@
             return callback();
         });
     }
+*/
     function ss_encode(L) {
         if (JSON.stringify(L) == "[]") {
             return [];

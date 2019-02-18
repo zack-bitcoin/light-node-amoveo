@@ -114,6 +114,9 @@
                 return 0;
             }
             db.oracle = x;
+            if (db.oracle_type_val == 1) { //scalar
+                return verify_exists(db.oid, 10, function() {return start2(db);});
+            }
             return accept_trade2(db);
         });
     };
@@ -126,24 +129,9 @@
                 return 0;
             }
             db.account1 = their_acc;
-        return credits_check(keys.pub(), 1000000, function(){return accept_trade3(db)} );
+            return messenger_object.min_bal(1000000, function(){return accept_trade3(db)});
         });
     };
-    function credits_check(pub, minAmount, callback) {
-        F = function() { return buy_credits(Math.floor(minAmount * 1.2), callback); };
-        return messenger(["account", keys.pub()], function(a) {
-            if (a == 0) { //10 milibits
-                status.innerHTML = "status: <font color=\"green\">Buying credits.</font>";
-                //account does not exist
-                return F();
-            } else if (a[1] < minAmount) {
-                status.innerHTML = "status: <font color=\"green\">Buying more credits.</font>";
-                //account has insufficient balance
-                return F();
-            }
-            return callback();
-        });
-    }
     function accept_trade3(db) {
         return messenger(["account", keys.pub()], function(a) {
             console.log("account is (accept_trade3)");

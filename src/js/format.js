@@ -232,28 +232,34 @@ function send_encrypted_message(imsg, to, callback) {
         });
     });
 };
-function buy_credits(Amount, callback) {
-    status.innerHTML = "status: <font color=\"green\">you don't have enough credits, now puchasing more.</font>";
-    return variable_public_get(["pubkey"], function(server_pubkey) {
-        console.log("server pubkey ");
-        console.log(server_pubkey);
-        return fee_checker(
-            keys.pub(),
-            function(x) {
-                var s = "fail. the server's account should already exist.";
-                console.log(s);
-                return s;
-            }, function (Fee) {
-		return variable_public_get(["spend_tx", 1200000, Fee, keys.pub(), server_pubkey], function(tx) {
-                    //this tx purchases more credits.
-                    var stx = keys.sign(tx);
-                    variable_public_get(["txs", [-6, stx]], function() {
-                        return callback();
-                    });
-                });
-            });
-    });
-}
+    function verify_exists(oid, n, callback) {
+        console.log(oid);
+        if (n == 0) {
+            return callback();
+        }
+        return merkle.request_proof("oracles", oid, function(x) {
+            var result = x[2];
+            if (!(result == 0)) {
+                status.innerHTML = "status: <font color=\"red\">Error: That oracle does not exist.</font>";
+                return 0;
+            };
+            return verify_exists(btoa(next_oid(atob(oid))), n-1, callback);
+        });
+    };
+    function next_oid(oid) {
+        //oid starts in binary format. we want to add 1 to the binary being encoded by oid.
+        var ls = oid[oid.length - 1];
+        var n = ls.charCodeAt(0);
+        if (n == 255) {
+            return next_oid(oid.slice(0, oid.length - 1)).concat(String.fromCharCode(0));
+        }
+        return oid.slice(0, oid.length - 1).concat(String.fromCharCode(n+1));
+    };
+
+
+
+
+
 function pd_maker(height, price, portion, oid) {
     //PD = <<Height:32, Price:16, PortionMatched:16, MarketID/binary>>,
     var a = make_bytes(4, height);
