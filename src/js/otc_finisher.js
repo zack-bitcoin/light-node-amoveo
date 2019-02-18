@@ -178,6 +178,11 @@
             return get_oracle_binary(
                 db.cid, db.oid, 10, 0,
                 function(b) {
+                    var ll = db.lower_limit;
+                    var ul = db.upper_limit;
+                    b = Math.round((b - ll) * 1024 / ul);
+                    b = Math.max(0, b);
+                    b = Math.min(b, 1023);
                     console.log(a);
                     console.log(b);//undefined
                     x = Math.floor(a * b / 1024) - db.channel_balance1;
