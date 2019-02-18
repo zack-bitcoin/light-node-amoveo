@@ -37,7 +37,7 @@
     var upper_limit = text_input("if it is scalar, what is the upper limit?", div);
     upper_limit.value = "1023";
     div.appendChild(br());
-    var lower_limit = text_input("if it is scalar, what is the upper limit?", div);
+    var lower_limit = text_input("if it is scalar, what is the lower limit?", div);
     lower_limit.value = "0";
     div.appendChild(br());
     var startButton = button_maker2("offer to make this trade", start);
