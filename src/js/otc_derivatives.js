@@ -12,36 +12,105 @@
     div.appendChild(br());
     var our_amount = text_input("our bet amount: ", div);
     div.appendChild(br());
-    var their_amount = text_input("their bet amount: ", div);
-    div.appendChild(br());
-    var bet_direction = text_input("you win if outcome is (true/false/long/short): ", div);
+    var buttons_div = document.createElement("div");
+    div.appendChild(buttons_div);
+    var binaryButton = button_maker2("binary", binary_view);
+    buttons_div.appendChild(binaryButton);
+    var scalarButton = button_maker2("scalar", scalar_view);
+    buttons_div.appendChild(scalarButton);
+    var stablecoinButton = button_maker2("stablecoin", stablecoin_view);
+    buttons_div.appendChild(stablecoinButton);
+    var their_amount, bet_direction, delay, oracle_type, bits, upper_limit, lower_limit;
+
+    function scalar_view() {
+        buttons_div.innerHTML = "";
+        their_amount = text_input("their bet amount: ", div);
+        div.appendChild(br());
+        bet_direction = text_input("you win if outcome is (long/short): ", div);
     //div.appendChild(br());
     //var delay = text_input("how long should the delay be to close the channel without your partner's help?", div);
-    var delay = document.createElement("p");
-    delay.value = (1000).toString();
-    div.appendChild(br());
-    var oracle_type = text_input("scalar or binary oracle?: ", div);
-    div.appendChild(br());
+        delay = document.createElement("p");
+        delay.value = (1000).toString();
+        div.appendChild(br());
+        oracle_type = document.createElement("p");
+        oracle_type.value = "scalar";
     //var bits = text_input("if it is scalar, how many bits does it have?", div);
-    var bits = document.createElement("p");
-    bits.value = "10";
-    if (true) { //defaults
-        their_address.value = "BOzTnfxKrkDkVl88BsLMl1E7gAbKK+83pHCt0ZzNEvyZQPKlL/n8lYLCXgrL4Mmi/6m2bzj+fejX8D52w4U9LkI=";
-        oracle.value = "yfTmzAgc+UFVctOnp6QQi++tLQcP930Bk3xh8hjnYjU=";
-        our_amount.value = "1";
-        their_amount.value = "1";
-        bet_direction.value = "true";
+        bits = document.createElement("p");
+        bits.value = "10";
+        if (false) { //defaults
+            their_address.value = "BOzTnfxKrkDkVl88BsLMl1E7gAbKK+83pHCt0ZzNEvyZQPKlL/n8lYLCXgrL4Mmi/6m2bzj+fejX8D52w4U9LkI=";
+            oracle.value = "yfTmzAgc+UFVctOnp6QQi++tLQcP930Bk3xh8hjnYjU=";
+            our_amount.value = "1";
+            their_amount.value = "1";
+            bet_direction.value = "long";
+            oracle_type.value = "scalar";
+        };
+        upper_limit = text_input("if it is scalar, what is the upper limit?", div);
+        upper_limit.value = "1023";
+        div.appendChild(br());
+        lower_limit = text_input("if it is scalar, what is the lower limit?", div);
+        lower_limit.value = "0";
+        div.appendChild(br());
+        var startButton = button_maker2("offer to make this trade", start);
+        div.appendChild(startButton);
+    }
+    function binary_view() {
+        buttons_div.innerHTML = "";
+        their_amount = text_input("their bet amount: ", div);
+        div.appendChild(br());
+        bet_direction = text_input("you win if outcome is (true/false): ", div);
+        delay = document.createElement("p");
+        delay.value = (1000).toString();
+        div.appendChild(br());
+        oracle_type = document.createElement("p");
         oracle_type.value = "binary";
-    };
-    //div.appendChild(br());
-    var upper_limit = text_input("if it is scalar, what is the upper limit?", div);
-    upper_limit.value = "1023";
-    div.appendChild(br());
-    var lower_limit = text_input("if it is scalar, what is the lower limit?", div);
-    lower_limit.value = "0";
-    div.appendChild(br());
-    var startButton = button_maker2("offer to make this trade", start);
-    div.appendChild(startButton);
+        if (false) { //defaults
+            their_address.value = "BOzTnfxKrkDkVl88BsLMl1E7gAbKK+83pHCt0ZzNEvyZQPKlL/n8lYLCXgrL4Mmi/6m2bzj+fejX8D52w4U9LkI=";
+            oracle.value = "4EyiXXGZyQFqeLLu8Ir6cutTlVOxqITFYANp70MlkPI=";
+            our_amount.value = "1";
+            their_amount.value = "1";
+            bet_direction.value = "true";
+            oracle_type.value = "binary";
+        };
+        var startButton = button_maker2("offer to make this trade", start);
+        div.appendChild(startButton);
+    }
+    function stablecoin_view() {
+        buttons_div.innerHTML = "";
+        //var their_amount = text_input("their bet amount: ", div);
+        //div.appendChild(br());
+        var current_value = text_input("current value: ", div);
+        div.appendChild(br());
+        var measured_upper = text_input("upper limit of range being measured by the oracle: ", div);
+        div.appendChild(br());
+        //var lower_margin = text_input("lower margin: ", div); //defined by leverage
+        //div.appendChild(br());
+        var leverage = text_input("leverage: ", div);
+        leverage.value = "1";
+        div.appendChild(br());
+        var bet_direction = document.createElement("p");
+        bet_direction.value = "short";
+        delay = document.createElement("p");
+        delay.value = (1000).toString();
+        div.appendChild(br());
+        oracle_type = document.createElement("p");
+        oracle_type.value = "scalar";
+        bits = document.createElement("p");
+        bits.value = "10";
+        if (false) { //defaults
+        };
+        var startButton = button_maker2("offer to make this trade", function(){
+            upper_limit = document.createElement("p");
+            lower_limit.value = (0).toString();
+            upper_limit = document.createElement("p");
+            upper_limit.value = (0).toString();
+            their_amount = document.createElement("p");
+            their_amount.value = (0).toString();
+            return start();
+        });
+        div.appendChild(startButton);
+        
+    }
     function start() {
         console.log("start");
         var db = {};
