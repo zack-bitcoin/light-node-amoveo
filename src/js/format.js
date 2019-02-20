@@ -232,29 +232,36 @@ function send_encrypted_message(imsg, to, callback) {
         });
     });
 };
-    function verify_exists(oid, n, callback) {
-        console.log(oid);
-        if (n == 0) {
-            return callback();
-        }
-        return merkle.request_proof("oracles", oid, function(x) {
-            var result = x[2];
-            if (!(result == 0)) {
-                status.innerHTML = "status: <font color=\"red\">Error: That oracle does not exist.</font>";
-                return 0;
-            };
-            return verify_exists(btoa(next_oid(atob(oid))), n-1, callback);
-        });
-    };
-    function next_oid(oid) {
-        //oid starts in binary format. we want to add 1 to the binary being encoded by oid.
-        var ls = oid[oid.length - 1];
-        var n = ls.charCodeAt(0);
-        if (n == 255) {
-            return next_oid(oid.slice(0, oid.length - 1)).concat(String.fromCharCode(0));
-        }
-        return oid.slice(0, oid.length - 1).concat(String.fromCharCode(n+1));
-    };
+function verify_exists(oid, n, callback) {
+    console.log(oid);
+    if (n == 0) {
+        return callback();
+    }
+    return merkle.request_proof("oracles", oid, function(x) {
+        var result = x[2];
+        if (!(result == 0)) {
+            status.innerHTML = "status: <font color=\"red\">Error: That oracle does not exist.</font>";
+            return 0;
+        };
+        return verify_exists(btoa(next_oid(atob(oid))), n-1, callback);
+    });
+};
+function random_cid(n) {
+    if (n == 0) { return ""; }
+    else {
+        var rn = Math.floor(Math.random() * 256);
+        var rl = String.fromCharCode(rn);
+        return rl.concat(random_cid(n-1))}
+};
+function next_oid(oid) {
+    //oid starts in binary format. we want to add 1 to the binary being encoded by oid.
+    var ls = oid[oid.length - 1];
+    var n = ls.charCodeAt(0);
+    if (n == 255) {
+        return next_oid(oid.slice(0, oid.length - 1)).concat(String.fromCharCode(0));
+    }
+    return oid.slice(0, oid.length - 1).concat(String.fromCharCode(n+1));
+};
 
 
 

@@ -97,7 +97,7 @@
         oracle_type.value = "scalar";
         bits = document.createElement("p");
         bits.value = "10";
-        if (true) { //defaults
+        if (false) { //defaults
             //their_address.value = "BOzTnfxKrkDkVl88BsLMl1E7gAbKK+83pHCt0ZzNEvyZQPKlL/n8lYLCXgrL4Mmi/6m2bzj+fejX8D52w4U9LkI=";
             their_address.value = "BMJBIx+CHECWjOAxeiDvs0QVR/cXgklc69kIi8dSpuu6/l7OSUQISwapLLu62zE4Md9LxcPoQXCds/Esv72oQsE=";
             //oracle.value ="3TqKqVuwQxg0BiC8NNx//+8ONSdO7xRtfa4NTs9qcT0=";
@@ -213,15 +213,6 @@
         status.innerHTML = "status: <font color=\"green\"> You have enough credits to continue.</font>";
             return start4(db)});
     }
-    
-    function random_cid(n) {
-        if (n == 0) { return ""; }
-        else {
-            var rn = Math.floor(Math.random() * 256);
-            var rl = String.fromCharCode(rn);
-            return rl.concat(random_cid(n-1))}
-        //btoa(String.fromCharCode(0,255,10));
-    };
     function start4(db) {
         return messenger(["account", keys.pub()], function(a) {
             console.log("account is (start4)");
