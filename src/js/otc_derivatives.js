@@ -88,7 +88,7 @@
         var leverage = text_input("leverage: ", div);
         leverage.value = "1";
         div.appendChild(br());
-        var bet_direction = document.createElement("p");
+        bet_direction = document.createElement("p");
         bet_direction.value = "short";
         delay = document.createElement("p");
         delay.value = (1000).toString();
@@ -98,14 +98,27 @@
         bits = document.createElement("p");
         bits.value = "10";
         if (false) { //defaults
+            their_address.value = "BOzTnfxKrkDkVl88BsLMl1E7gAbKK+83pHCt0ZzNEvyZQPKlL/n8lYLCXgrL4Mmi/6m2bzj+fejX8D52w4U9LkI=";
+            oracle.value ="3TqKqVuwQxg0BiC8NNx//+8ONSdO7xRtfa4NTs9qcT0=";
+            our_amount.value = "1";
+            current_value.value = "60";
+            measured_upper.value = "130";
         };
         var startButton = button_maker2("offer to make this trade", function(){
+            var cp = parseInt(current_value.value);
+            var a = parseInt(our_amount.value);
+            var oracle_upper = parseInt(measured_upper.value); 
+            var l = parseFloat(leverage.value);
+            var cp2 = Math.min(1023, Math.max(0, Math.floor(1024 * cp / oracle_upper)));
+            var ll =  Math.min(1023, Math.max(0, Math.floor(cp2*(l-1)/l)));
+            var ul =  Math.min(1023, Math.max(0, Math.floor((2*cp2)-ll)));
+            lower_limit = document.createElement("p");
+            lower_limit.value = (ll).toString();
             upper_limit = document.createElement("p");
-            lower_limit.value = (0).toString();
-            upper_limit = document.createElement("p");
-            upper_limit.value = (0).toString();
+            upper_limit.value = (ul).toString();
             their_amount = document.createElement("p");
-            their_amount.value = (0).toString();
+            var ta = a * (ul - cp2 ) / (cp2 - ll);
+            their_amount.value = (ta).toString();
             return start();
         });
         div.appendChild(startButton);
@@ -140,7 +153,7 @@
         if ((bdvt == "true") || (bdvt == "long")) {
             db.bet_direction_val = 1;
         } else if ((bdvt == "false") || (bdvt == "short")) {
-            db.bet_direction_val = 0;
+            db.bet_direction_val = 2;
         } else {
             status.innerHTML = "status: <font color=\"red\">Error:`you win if outcome is` must be 'true' or 'false'</font>";
             return 0;
@@ -156,6 +169,7 @@
             }
             db.oracle = x;
             if (db.oracle_type_val == 1) { //scalar
+                status.innerHTML = "status: <font color=\"green\">Checking if the oracle exists.</font>";
                 return verify_exists(db.oracle_val, 10, function() {return start2(db);});
             }
             return start2(db);
@@ -177,6 +191,8 @@
                     status.innerHTML = "status: <font color=\"red\">Error: your partner needs to have veo in their account to make a channel.</font>";
                     return 0;
                 } else if (their_acc[1] < (db.their_amount_val + 1000000)) {
+                    console.log(their_acc);
+                    console.log(db.their_amount_val);
                     status.innerHTML = "status: <font color=\"red\">Error: you partner doesn't have enough veo to make a bet that big.</font>";
                     return 0;
                 }
@@ -226,7 +242,7 @@
             var bet_expires = 3000 + db.oracle[10]; // bet expires should be at least 3000 after the oracle can expire.
             var sc;
             if (db.oracle_type_val == 1) {//scalar
-                
+                console.log(JSON.stringify([db.bet_direction_val, bet_expires, maxprice, keys.pub(), period, amount, oid, height, db.upper_limit, db.lower_limit, db.bits_val]));
                 sc = scalar_market_contract(db.bet_direction_val, bet_expires, maxprice, keys.pub(), period, amount, oid, height, db.upper_limit, db.lower_limit, db.bits_val);
                 console.log(sc);
             } else if (db.oracle_type_val == 0) {//binary
