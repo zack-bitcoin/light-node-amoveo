@@ -211,7 +211,6 @@
         console.log("start3");
         status.innerHTML = "status: <font color=\"green\">checking if you have enough credits, possibly puchasing more.</font>";
         return messenger_object.min_bal(1000000, function(){
-        status.innerHTML = "status: <font color=\"green\"> You have enough credits to continue.</font>";
             return start4(db)});
     }
     function start4(db) {
@@ -374,8 +373,10 @@
         console.log(JSON.stringify(l[0]));
         console.log(JSON.stringify(l[0][1]));
         console.log(JSON.stringify(l[0][1][1]));
-        var cid2 = l[0][1][1][8];
-        if (cid2 == cid) { return l[0].slice(1); }
+        if (!(l[0][1][1] == undefined)){
+            var cid2 = l[0][1][1][8];
+            if (cid2 == cid) { return l[0].slice(1); }
+        }
         return cid_grab(cid, l.slice(1));
     }
     function start6(db) {
