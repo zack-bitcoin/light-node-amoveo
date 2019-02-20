@@ -18,7 +18,7 @@
 	var v = oid.value;
 	merkle.request_proof("oracles", v, function(x) {
 	    var result = x[2];
-	    var question = x[3];
+	    var question_hash = x[3];
 	    var starts = x[4];
 	    var type = x[5];
 	    var done_timer = x[9];
@@ -37,11 +37,22 @@
 	    }
 	    oracleOutput.appendChild(a);
 	    oracleOutput.appendChild(br());
+            var gov_div = document.createElement("div");
+            oracleOutput.appendChild(gov_div);
 	    if (governance == 0) {
-		oracleOutput.appendChild(text("this is a question oracle"));
-		oracleOutput.appendChild(br());
-		var asks_txt = "asks: ".concat(btoa(btoa(question)));
-		oracleOutput.appendChild(text(asks_txt));
+		gov_div.appendChild(text("this is a question oracle"));
+		gov_div.appendChild(br());
+		//var asks_txt = "asks: ".concat(btoa(btoa(question_hash)));
+                console.log(v);
+                variable_public_get(["oracle", v], function(x) {
+                    //public_get["oracle, OID]
+                    //we should verify that hash(q) == v;
+                    console.log(x);
+                    var q = atob(x[2]);
+                    var question = q.slice(0, q.length);
+		    var asks_txt = "asks: ".concat(question);
+		    gov_div.appendChild(text(asks_txt));
+                });
 	    } else {
 		oracleOutput.appendChild(text("this is a governance oracle"));
 		oracleOutput.appendChild(br());
@@ -71,15 +82,16 @@
 
 	    console.log("new");
 	    console.log(v);
+            return 0;
 	    merkle.request_proof("orders", orders_hash, function(x) {
 		console.log(x);
-	    });
 	    //variable_public_get(["oracle_bets", v], oracle_bets);
 
 	    //now display the whole thing.
 	    oracleOutput.appendChild(br());
 	    var x2 = text(JSON.stringify(x));
 	    oracleOutput.appendChild(x2);
+	    });
 
 	});
     };

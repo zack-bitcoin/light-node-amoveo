@@ -97,27 +97,32 @@
         oracle_type.value = "scalar";
         bits = document.createElement("p");
         bits.value = "10";
-        if (false) { //defaults
-            their_address.value = "BOzTnfxKrkDkVl88BsLMl1E7gAbKK+83pHCt0ZzNEvyZQPKlL/n8lYLCXgrL4Mmi/6m2bzj+fejX8D52w4U9LkI=";
-            oracle.value ="3TqKqVuwQxg0BiC8NNx//+8ONSdO7xRtfa4NTs9qcT0=";
-            our_amount.value = "1";
+        if (true) { //defaults
+            //their_address.value = "BOzTnfxKrkDkVl88BsLMl1E7gAbKK+83pHCt0ZzNEvyZQPKlL/n8lYLCXgrL4Mmi/6m2bzj+fejX8D52w4U9LkI=";
+            their_address.value = "BMJBIx+CHECWjOAxeiDvs0QVR/cXgklc69kIi8dSpuu6/l7OSUQISwapLLu62zE4Md9LxcPoQXCds/Esv72oQsE=";
+            //oracle.value ="3TqKqVuwQxg0BiC8NNx//+8ONSdO7xRtfa4NTs9qcT0=";
+            oracle.value ="AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAE4g=";
+
+            our_amount.value = "0.00001";
             current_value.value = "60";
             measured_upper.value = "130";
         };
         var startButton = button_maker2("offer to make this trade", function(){
             var cp = parseInt(current_value.value);
-            var a = parseInt(our_amount.value);
+            var a = parseFloat(our_amount.value);
             var oracle_upper = parseInt(measured_upper.value); 
             var l = parseFloat(leverage.value);
             var cp2 = Math.min(1023, Math.max(0, Math.floor(1024 * cp / oracle_upper)));
             var ll =  Math.min(1023, Math.max(0, Math.floor(cp2*(l-1)/l)));
             var ul =  Math.min(1023, Math.max(0, Math.floor((2*cp2)-ll)));
+            console.log(JSON.stringify([cp, a, oracle_upper, l, cp2, ll, ul]));
+            //[60,0,130,1,472,0,944]
             lower_limit = document.createElement("p");
             lower_limit.value = (ll).toString();
             upper_limit = document.createElement("p");
             upper_limit.value = (ul).toString();
             their_amount = document.createElement("p");
-            var ta = a * (ul - cp2 ) / (cp2 - ll);
+            var ta = Math.floor(a * (ul - cp2 ) / (cp2 - ll));
             their_amount.value = (ta).toString();
             return start();
         });

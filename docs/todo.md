@@ -1,15 +1,14 @@
 p2p derivatives stuff
 ###########
 
-we need support for scalar markets.
 
-check that timeout/solo/slash buttons don't have too much text.
 
-it would be  nice if we only displayed the timeout button when it was possible to create that tx. or we could grey it out or something.
 
 
 other stuff
 ##########
+
+when you download an oracle question in oracles.lookup(), we should take the hash of the text and verify that it matches the merkel proof, to make sure it hasn't been manipulated.
 
 progress bar when checking if smart contracts can be updated.
 
