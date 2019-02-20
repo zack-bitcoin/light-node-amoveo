@@ -45,10 +45,10 @@
             bet_direction.value = "long";
             oracle_type.value = "scalar";
         };
-        upper_limit = text_input("if it is scalar, what is the upper limit?", div);
+        upper_limit = text_input("what is the upper limit?", div);
         upper_limit.value = "1023";
         div.appendChild(br());
-        lower_limit = text_input("if it is scalar, what is the lower limit?", div);
+        lower_limit = text_input("what is the lower limit?", div);
         lower_limit.value = "0";
         div.appendChild(br());
         var startButton = button_maker2("offer to make this trade", start);
@@ -97,19 +97,19 @@
         oracle_type.value = "scalar";
         bits = document.createElement("p");
         bits.value = "10";
-        if (false) { //defaults
+        if (true) { //defaults
             //their_address.value = "BOzTnfxKrkDkVl88BsLMl1E7gAbKK+83pHCt0ZzNEvyZQPKlL/n8lYLCXgrL4Mmi/6m2bzj+fejX8D52w4U9LkI=";
             their_address.value = "BMJBIx+CHECWjOAxeiDvs0QVR/cXgklc69kIi8dSpuu6/l7OSUQISwapLLu62zE4Md9LxcPoQXCds/Esv72oQsE=";
             //oracle.value ="3TqKqVuwQxg0BiC8NNx//+8ONSdO7xRtfa4NTs9qcT0=";
             oracle.value ="AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAE4g=";
 
-            our_amount.value = "0.00001";
+            our_amount.value = "0.01";
             current_value.value = "60";
             measured_upper.value = "130";
         };
         var startButton = button_maker2("offer to make this trade", function(){
             var cp = parseInt(current_value.value);
-            var a = parseFloat(our_amount.value);
+            var a = read_veo(our_amount);
             var oracle_upper = parseInt(measured_upper.value); 
             var l = parseFloat(leverage.value);
             var cp2 = Math.min(1023, Math.max(0, Math.floor(1024 * cp / oracle_upper)));
@@ -122,8 +122,9 @@
             upper_limit = document.createElement("p");
             upper_limit.value = (ul).toString();
             their_amount = document.createElement("p");
-            var ta = Math.floor(a * (ul - cp2 ) / (cp2 - ll));
-            their_amount.value = (ta).toString();
+            var ta = (a * (ul - cp2 ) / (cp2 - ll));
+            console.log(JSON.stringify([ta, (ul - cp2), (cp2 - ll)]));
+            their_amount.value = (ta/100000000).toString();
             return start();
         });
         div.appendChild(startButton);
@@ -198,7 +199,7 @@
                 } else if (their_acc[1] < (db.their_amount_val + 1000000)) {
                     console.log(their_acc);
                     console.log(db.their_amount_val);
-                    status.innerHTML = "status: <font color=\"red\">Error: you partner doesn't have enough veo to make a bet that big.</font>";
+                    status.innerHTML = "status: <font color=\"red\">Error: your partner doesn't have enough veo to make a bet that big.</font>";
                     return 0;
                 }
                 db.their_acc = their_acc;
