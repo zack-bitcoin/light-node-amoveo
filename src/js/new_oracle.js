@@ -13,7 +13,11 @@
         });
     };
     function new_scalar_oracle2(start, question, nonce, id, many) {
-        return 0;
+        if (many == 0) { return 0;}
+        var question2 = question.concat(" bit number ").concat((9-many).toString());
+        var tx = ["oracle_new", keys.pub(), nonce, fee, btoa(question2), start, id, 0, 0, 0];
+        
+        return new_scalar_oracle2(start, question, nonce+1, next_oid(id), many - 1);
     };
     function new_question_oracle(start, question) {
         merkle.request_proof("accounts", keys.pub(), function (acc) {
