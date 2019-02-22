@@ -80,10 +80,10 @@
         } else if (db.oracle_type_val == 0) {
             db.oracle_type = "binary";
         }
-        if (db.direction_val = 1) {
-            db.direction = "false";
-        } else if (db.direction_val = 2) {
+        if (db.direction_val = 2) {
             db.direction = "true";
+        } else if (db.direction_val = 1) {
+            db.direction = "false";
         }
         console.log("display trade");
 
@@ -144,6 +144,8 @@
             var amount = db.amount1 + db.amount2;
             var sc;
             if (db.oracle_type == "scalar") {
+                console.log("accept trade 3 direction ");
+                console.log(db.direction_val);
                 sc = scalar_market_contract(db.direction_val, db.expires, db.maxprice, db.acc1, period, amount, db.oid, db.height, db.upper_limit, db.lower_limit, db.bits);
             } else if (db.oracle_type == "binary") {
                 sc = market_contract(db.direction_val, db.expires, db.maxprice, db.acc1, period, amount, db.oid, db.height);
