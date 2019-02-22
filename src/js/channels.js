@@ -83,7 +83,8 @@ function channels_main() {
     });
     document.body.appendChild(channel_title);
     document.body.appendChild(channels_div);
-    append_children(channels_div, [channel_warning_div, load_button, br(), br(), save_name, save_button, br(), refresh_channels_button, br(), br(), channel_interface_div]);
+    //append_children(channels_div, [channel_warning_div, load_button, br(), br(), save_name, save_button, br(), refresh_channels_button, br(), br(), channel_interface_div]);
+    append_children(channels_div, [channel_warning_div, load_button, br(), br(), save_name, save_button, br(), br(), channel_interface_div]);
 
     //main_view();
     
@@ -172,7 +173,7 @@ function channels_main() {
         reader.onload = function(e) {
             channel_manager = JSON.parse(reader.result);
 	    //console.log(JSON.stringify(channel_manager));
-            refresh_channels_interfaces(pubkey);
+            //refresh_channels_interfaces(pubkey);
         }
         reader.readAsText(file);
     }
@@ -536,7 +537,10 @@ spk currently looks like this.
     }
     return {new_cd: new_cd,
             read: read,
+            load_channels: load_channels,
             channel_manager: (function() {return channel_manager;}),
+            load_button: load_button,
+            refresh: refresh_channels_interfaces,
             new_ss: new_ss,
             write: write,
 	    ss_to_external: ss_to_external}
