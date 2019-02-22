@@ -82,7 +82,7 @@
         }
         if (db.direction_val = 1) {
             db.direction = "false";
-        } else if (db.direction_val = 0) {
+        } else if (db.direction_val = 2) {
             db.direction = "true";
         }
         console.log("display trade");
