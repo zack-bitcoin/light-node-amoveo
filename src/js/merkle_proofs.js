@@ -1,6 +1,8 @@
 function merkle_proofs_main() {
     function verify_callback(tree, key, callback) {
 	var top_hash = hash(headers_object.serialize(headers_object.top()));
+        console.log("verify callback key is ");
+        console.log(JSON.stringify(key));
 	variable_public_get(["proof", btoa(tree), key, btoa(array_to_string(top_hash))], function(proof){
             if (proof[3] == "empty") { return callback("empty"); };
 	    var val = verify_merkle(key, proof);
@@ -121,6 +123,8 @@ function merkle_proofs_main() {
 	} else if (t == "oracle") {
             //return hash(integer_to_array(v[1], 32));
             return hash(string_to_array(atob(v[1])));
+        } else if (t == "unmatched") {
+            return hash(string_to_array(atob(v[1])).concat(string_to_array(v[2])));
 	} else {
             //console.log("type is ");
             //console.log(t);
@@ -142,6 +146,18 @@ function merkle_proofs_main() {
                     value).concat(
 			lock);
             return serialized;
+        } else if ( t == "unmatched" ) {
+            var pubkey = string_to_array(atob(v[1]));
+            var oracle = string_to_array(atob(v[2]));
+            var amount = string_to_array(v[3], 6);
+            var pointer = string_to_array(atob(v[4]));
+            var serialized = ([]).concat(
+                pubkey).concat(
+                    oralce).concat(
+                        amount).concat(
+                            pointer);
+            return serialized;
+            
 	} else if ( t == "acc" ) {
             var balance = integer_to_array(v[1], 6);
             var nonce = integer_to_array(v[2], 3);

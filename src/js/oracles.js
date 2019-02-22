@@ -25,6 +25,7 @@
 	    var governance = x[10];
 	    var governance_amount = x[11];
 	    var orders_hash = x[7];
+            console.log(orders_hash);
 	    var a;
 	    if (result == 0) {
 		a = text("this oracle is still open");
@@ -82,15 +83,17 @@
 
 	    console.log("new");
 	    console.log(v);
-            return 0;
-	    merkle.request_proof("orders", orders_hash, function(x) {
+            console.log(orders_hash);
+            //return 0;
+            var key = ["key", orders_hash, v];
+            console.log(JSON.stringify(key));
+	    merkle.request_proof("unmatched", key, function(x) {
 		console.log(x);
-	    //variable_public_get(["oracle_bets", v], oracle_bets);
-
-	    //now display the whole thing.
-	    oracleOutput.appendChild(br());
-	    var x2 = text(JSON.stringify(x));
-	    oracleOutput.appendChild(x2);
+	        //variable_public_get(["oracle_bets", v], oracle_bets);
+	        //now display the whole thing.
+	        //oracleOutput.appendChild(br());
+	        //var x2 = text(JSON.stringify(x));
+	        //oracleOutput.appendChild(x2);
 	    });
 
 	});
