@@ -115,7 +115,7 @@
             }
             db.oracle = x;
             if (db.oracle_type_val == 1) { //scalar
-                return verify_exists(db.oid, 10, function() {return start2(db);});
+                return verify_exists(db.oid, 10, function() {return accept_trade2(db);});
             }
             return accept_trade2(db);
         });
@@ -129,6 +129,7 @@
                 return 0;
             }
             db.account1 = their_acc;
+            status.innerHTML = "status: <font color=\"green\">the trade looks valid. Now checking if you need credits.</font>";
             return messenger_object.min_bal(1000000, function(){return accept_trade3(db)});
         });
     };
