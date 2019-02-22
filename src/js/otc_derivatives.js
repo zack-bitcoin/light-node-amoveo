@@ -82,6 +82,14 @@
         var current_value = text_input("current value: ", div);
         div.appendChild(br());
         var measured_upper = text_input("upper limit of range being measured by the oracle: ", div);
+	//merkle.request_proof("oracles", oracle.value, function(x) {
+	//var question_hash = x[3];
+        variable_public_get(["oracle", oracle.value], function(x) {
+            var question = atob(x[2]);
+            console.log(question);
+            //measured_upper.value = (largest_number(question, 0, 0)).toString();
+            measured_upper.value = oracle_limit_grabber(question);
+        });
         div.appendChild(br());
         //var lower_margin = text_input("lower margin: ", div); //defined by leverage
         //div.appendChild(br());
@@ -97,7 +105,7 @@
         oracle_type.value = "scalar";
         bits = document.createElement("p");
         bits.value = "10";
-        if (true) { //defaults
+        if (false) { //defaults
             //their_address.value = "BOzTnfxKrkDkVl88BsLMl1E7gAbKK+83pHCt0ZzNEvyZQPKlL/n8lYLCXgrL4Mmi/6m2bzj+fejX8D52w4U9LkI=";
             their_address.value = "BMJBIx+CHECWjOAxeiDvs0QVR/cXgklc69kIi8dSpuu6/l7OSUQISwapLLu62zE4Md9LxcPoQXCds/Esv72oQsE=";
             //oracle.value ="3TqKqVuwQxg0BiC8NNx//+8ONSdO7xRtfa4NTs9qcT0=";
@@ -110,7 +118,7 @@
         var startButton = button_maker2("offer to make this trade", function(){
             var cp = parseInt(current_value.value);
             var a = read_veo(our_amount);
-            var oracle_upper = parseInt(measured_upper.value); 
+            var oracle_upper = parseFloat(measured_upper.value); 
             var l = parseFloat(leverage.value);
             var cp2 = Math.min(1023, Math.max(0, Math.floor(1024 * cp / oracle_upper)));
             var ll =  Math.min(1023, Math.max(0, Math.floor(cp2*(l-1)/l)));
@@ -388,6 +396,55 @@
             }
             status.innerHTML = "status: <font color=\"green\">The channel has been formed, and the smart contract is active. If you have saved a copy of the signed smart contract, then it is now safe to close the browser.</font>";
         });
+    };
+    function oracle_limit_grabber(question) {
+        console.log("oracle limit grabber");
+        if (question.length < 4) {
+            return "";
+        }
+        var f = question.slice(0, 4);
+        if (f == "from") {
+            return olg2(question.slice(4));
+        }
+        return oracle_limit_grabber(question.slice(1));
+    }
+    function olg2(question) {
+        console.log("olg2");
+        console.log(question);
+        if (question.length < 2) {
+            return "";
+        }
+        var f = question.slice(0, 2);
+        if (f == "to") {
+            console.log("calling olg3 ");
+            return olg3(question.slice(2), "");
+        }
+        return olg2(question.slice(1));
+    }
+    function olg3(question, n) {
+        console.log(n);
+        if (question.length < 1) { return n; }
+        var l = question[0];
+        if (((l >= "0") && (l <= "9")) || (l == ".")) {
+            var n2 = n.concat(l);
+            return olg3(question.slice(1), n2);
+        } else if (n == "") {
+            return olg3(question.slice(1), n);
+        } else {
+            return n;
+        }
+    }
+    function largest_number(question, acc, m) {
+        var l = question[0];
+        if (question == "") {
+            return Math.max(acc, m);
+        } else if ((l >= "0") && (l <= "9")) {
+            var n = parseInt(l);
+            var acc2 = (acc*10) + n;
+            return largest_number(question.slice(1), acc2, m);
+        } else {
+            return largest_number(question.slice(1), 0, Math.max(acc, m));
+        };
     };
 })();
 
