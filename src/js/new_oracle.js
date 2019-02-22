@@ -29,7 +29,7 @@
             var txs = new_scalar_oracle2(start, question, nonce, id, 10);
 
             return variable_public_get(["txs", [-6].concat(txs)], function(x) {
-                status.innerHTML = "status: <font color=\"green\">successfully attempted to make a scalar oracle</font>";
+                status.innerHTML = "status: <font color=\"green\">successfully attempted to make a scalar oracle with id: ".concat(btoa(id)).concat("</font>");
                 return 0;
             //var tx = ["oracle_new", keys.pub(), nonce, fee, btoa(question), start, id, 0, 0, 0];
             });
@@ -50,7 +50,7 @@
             var stx = keys.sign(tx);
             console.log(JSON.stringify(stx));
             return variable_public_get(["txs", [-6, stx]], function(x) {
-                status.innerHTML = "status: <font color=\"green\">successfully attempted to make a binary oracle</font>";
+                status.innerHTML = "status: <font color=\"green\">successfully attempted to make a binary oracle".concat(btoa(id)).concat("</font>");
                 return 0;
             });
         });
