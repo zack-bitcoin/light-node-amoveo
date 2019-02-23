@@ -82,6 +82,7 @@
     }
     function stablecoin_view() {
         buttons_div.innerHTML = "";
+        status.innerHTML = "status: <font color=\"blue\">warning, stablecoin interface only works if the oracle asks for the price of X in Veo. Does not work if the oracle asks the price of Veo in X.</font>";
         //var their_amount = text_input("their bet amount: ", div);
         //div.appendChild(br());
         var current_value = text_input("current value: ", div);
@@ -116,7 +117,7 @@
         leverage.value = "1";
         div.appendChild(br());
         bet_direction = document.createElement("p");
-        bet_direction.value = "short";
+        bet_direction.value = "long";
         delay = document.createElement("p");
         delay.value = (1000).toString();
         div.appendChild(br());

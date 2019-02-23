@@ -7,6 +7,9 @@
     var fee = 152050;
     var div = document.createElement("div");
     document.body.appendChild(div);
+    var explanation = document.createElement("p");
+    div.append(explanation);
+    explanation.innerHTML = "If you want to make a stablecoin, you need to ask for the price of X in VEO. Asking for the price of VEO in X does not work.";
     var status = document.createElement("p");
     status.innerHTML = "status: <font color=\"green\">ready</font>";
     div.appendChild(status);
