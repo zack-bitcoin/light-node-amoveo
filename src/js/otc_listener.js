@@ -72,6 +72,7 @@
         db.oracle_type_val = y[15];
         db.oracle_type;
         db.cid = y[16];
+        db.payment = y[20];
         if (db.oracle_type_val == 1) {
             db.oracle_type = "scalar";
             db.bits = y[17];
@@ -80,10 +81,10 @@
         } else if (db.oracle_type_val == 0) {
             db.oracle_type = "binary";
         }
-        if (db.direction_val = 2) {
-            db.direction = "true";
-        } else if (db.direction_val = 1) {
+        if (db.direction_val == 1) {
             db.direction = "false";
+        } else if (db.direction_val == 2) {
+            db.direction = "true";
         }
         console.log("display trade");
 
@@ -91,7 +92,7 @@
             "oracle: ").concat(db.oid).concat("<br />").concat(
                 "our bet amount: ").concat(db.amount2).concat("<br />").concat(
                     "their bet amount: ").concat(db.amount1).concat("<br />");
-        var s2 = s1.concat("you win if the outcome is: ").concat(db.direction).concat("<br />").concat("scalar or binary?: ").concat(db.oracle_type).concat("<br />").concat("delay: ").concat((db.delay).toString()).concat("<br />");
+        var s2 = s1.concat("you win if the outcome is: ").concat(db.direction).concat("<br />").concat("scalar or binary?: ").concat(db.oracle_type).concat("<br />").concat("delay: ").concat((db.delay).toString()).concat("<br />").concat("for this contract, you pay: ").concat((-(db.payment)).toString()).concat("<br />");;
         if (db.oracle_type_val == 1) {//scalar
             console.log(db.lower_limit);
             console.log(db.upper_limit);
@@ -189,7 +190,15 @@
 
                 var nonce = acc[2]+1;
             
-                var channel_tx = ["nc", db.acc1, db.acc2, fee, nonce, db.amount1, db.amount2, db.delay, db.cid];
+                var tav2, oav2;
+                if (db.payment > 0) {
+                    oav2 = db.payment;
+                    tav2 = 0;
+                } else {
+                    oav2 = 0;
+                    tav2 = -(db.payment)
+                }
+                var channel_tx = ["nc", db.acc1, db.acc2, fee, nonce, db.amount1 + oav2, db.amount2 + tav2, db.delay, db.cid];
                 var stx = keys.sign(channel_tx);
                 //stx[3] = stx[2];
                 //stx[2] = [-6];

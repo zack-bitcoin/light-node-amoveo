@@ -12,6 +12,8 @@
     div.appendChild(br());
     var our_amount = text_input("our bet amount: ", div);
     div.appendChild(br());
+    var payment_field = text_input("How much you pay for this contract. Make this negative to receive payment: ", div);
+    div.appendChild(br());
     var buttons_div = document.createElement("div");
     div.appendChild(buttons_div);
     var binaryButton = button_maker2("binary", binary_view);
@@ -44,6 +46,8 @@
             their_amount.value = "1";
             bet_direction.value = "long";
             oracle_type.value = "scalar";
+            oracle.value = "xetbziJUPoWEOv7v4AJQY3jpGoY94MSDbYOuMvU6ZxE=";
+            payment_field.value = "0.2";
         };
         upper_limit = text_input("what is the upper limit?", div);
         upper_limit.value = "1023";
@@ -66,11 +70,12 @@
         oracle_type.value = "binary";
         if (false) { //defaults
             their_address.value = "BOzTnfxKrkDkVl88BsLMl1E7gAbKK+83pHCt0ZzNEvyZQPKlL/n8lYLCXgrL4Mmi/6m2bzj+fejX8D52w4U9LkI=";
-            oracle.value = "4EyiXXGZyQFqeLLu8Ir6cutTlVOxqITFYANp70MlkPI=";
+            oracle.value = "xetbziJUPoWEOv7v4AJQY3jpGoY94MSDbYOuMvU6ZxE=";
             our_amount.value = "1";
             their_amount.value = "1";
             bet_direction.value = "true";
             oracle_type.value = "binary";
+            payment_field.value = "0.2";
         };
         var startButton = button_maker2("offer to make this trade", start);
         div.appendChild(startButton);
@@ -84,6 +89,20 @@
         var measured_upper = text_input("upper limit of range being measured by the oracle: ", div);
 	//merkle.request_proof("oracles", oracle.value, function(x) {
 	//var question_hash = x[3];
+
+        if (false) { //defaults
+            their_address.value = "BOzTnfxKrkDkVl88BsLMl1E7gAbKK+83pHCt0ZzNEvyZQPKlL/n8lYLCXgrL4Mmi/6m2bzj+fejX8D52w4U9LkI=";
+            //their_address.value = "BMJBIx+CHECWjOAxeiDvs0QVR/cXgklc69kIi8dSpuu6/l7OSUQISwapLLu62zE4Md9LxcPoQXCds/Esv72oQsE=";
+            //oracle.value ="3TqKqVuwQxg0BiC8NNx//+8ONSdO7xRtfa4NTs9qcT0=";
+            oracle.value ="AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAE4g=";
+            oracle.value = "xetbziJUPoWEOv7v4AJQY3jpGoY94MSDbYOuMvU6ZxE=";
+            payment_field.value = "0.2";
+
+            our_amount.value = "0.01";
+            current_value.value = "60";
+            measured_upper.value = "130";
+        };
+        console.log(oracle.value);
         variable_public_get(["oracle", oracle.value], function(x) {
             var question = atob(x[2]);
             console.log(question);
@@ -105,16 +124,6 @@
         oracle_type.value = "scalar";
         bits = document.createElement("p");
         bits.value = "10";
-        if (false) { //defaults
-            //their_address.value = "BOzTnfxKrkDkVl88BsLMl1E7gAbKK+83pHCt0ZzNEvyZQPKlL/n8lYLCXgrL4Mmi/6m2bzj+fejX8D52w4U9LkI=";
-            their_address.value = "BMJBIx+CHECWjOAxeiDvs0QVR/cXgklc69kIi8dSpuu6/l7OSUQISwapLLu62zE4Md9LxcPoQXCds/Esv72oQsE=";
-            //oracle.value ="3TqKqVuwQxg0BiC8NNx//+8ONSdO7xRtfa4NTs9qcT0=";
-            oracle.value ="AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAE4g=";
-
-            our_amount.value = "0.01";
-            current_value.value = "60";
-            measured_upper.value = "130";
-        };
         var startButton = button_maker2("offer to make this trade", function(){
             var cp = parseInt(current_value.value);
             var a = read_veo(our_amount);
@@ -139,8 +148,20 @@
         
     }
     function start() {
+        return load_from_text_fields(function(db) {
+            return check_account_balances(db, function(db2) {
+                return propose_contract(db2, function(db3) {
+                    return create_channel(db3, function(db4) {
+                        return confirm_channel_is_live(db4);
+                    });
+                });
+            });
+        });
+    }
+    function load_from_text_fields(callback) {
         console.log("start");
         var db = {};
+        db.payment = read_veo(payment_field);
         db.their_address_val = parse_address(their_address.value);
         db.oracle_val = oracle.value.trim().replace(/\./g,'');
         if (!(db.oracle_val.length == 44)) {
@@ -184,12 +205,12 @@
             db.oracle = x;
             if (db.oracle_type_val == 1) { //scalar
                 status.innerHTML = "status: <font color=\"green\">Checking if the oracle exists.</font>";
-                return verify_exists(db.oracle_val, 10, function() {return start2(db);});
+                return verify_exists(db.oracle_val, 10, function() {return callback(db);});
             }
-            return start2(db);
+            return callback(db);
         });
     };
-    function start2(db) {
+    function check_account_balances(db, callback) {
         console.log("start2");
         return variable_public_get(["account", keys.pub()], function(my_acc) {
             if (my_acc == "empty") {
@@ -211,17 +232,17 @@
                     return 0;
                 }
                 db.their_acc = their_acc;
-                return start3(db);
+                return callback(db);
             });
         });
     }
-    function start3(db) {
-        console.log("start3");
+    function propose_contract(db, callback) {
+        console.log("propose contract");
         status.innerHTML = "status: <font color=\"green\">checking if you have enough credits, possibly puchasing more.</font>";
         return messenger_object.min_bal(1000000, function(){
-            return start4(db)});
+            return propose_contract2(db, callback)});
     }
-    function start4(db) {
+    function propose_contract2(db, callback) {
         return messenger(["account", keys.pub()], function(a) {
             console.log("account is (start4)");
             console.log(a);
@@ -230,13 +251,13 @@
             }
             if ((a == 0) || (a[1] < 1000000)) { //10 milibits
                 //wait enough confirmations until you have the credits.
-                //return headers_object.on_height_change(function() { return start4(db); });
-                return setTimeout(function() {return start4(db);}, 20000);
+                //return headers_object.on_height_change(function() { return propose_contract2(db); });
+                return setTimeout(function() {return propose_contract2(db);}, 20000);
             }
             console.log("your account ");
             console.log(a);
             status.innerHTML = "status: <font color=\"blue\">sending trade request. Tell your partner to check their messages from the same server you are using. </font>";
-            var maxprice = Math.floor((10000 * (db.our_amount_val)) / (db.their_amount_val + db.our_amount_val)); //calculation of maxprice is probably wrong.
+            var maxprice = Math.floor((10000 * (db.our_amount_val)) / (db.their_amount_val + db.our_amount_val)); 
             var period = 10000000;//only one period because there is only one bet.
             var amount = db.our_amount_val + db.their_amount_val;
             var oid = db.oracle_val;
@@ -279,15 +300,15 @@
             var contract_sig = sspk2[2];
             var imsg;
             if (db.oracle_type_val == 0) {
-                imsg = [-6, db.bet_direction_val, bet_expires, maxprice, keys.pub(), db.their_address_val, period, db.our_amount_val, db.their_amount_val, oid, height, db.delay, contract_sig, signedPD, spk_nonce, db.oracle_type_val, db.cid];
+                imsg = [-6, db.bet_direction_val, bet_expires, maxprice, keys.pub(), db.their_address_val, period, db.our_amount_val, db.their_amount_val, oid, height, db.delay, contract_sig, signedPD, spk_nonce, db.oracle_type_val, db.cid, 0, 0, 0, db.payment];
             } else {
                 console.log(db.upper_limit);
-                imsg = [-6, db.bet_direction_val, bet_expires, maxprice, keys.pub(), db.their_address_val, period, db.our_amount_val, db.their_amount_val, oid, height, db.delay, contract_sig, signedPD, spk_nonce, db.oracle_type_val, db.cid, db.bits_val, db.upper_limit, db.lower_limit];
+                imsg = [-6, db.bet_direction_val, bet_expires, maxprice, keys.pub(), db.their_address_val, period, db.our_amount_val, db.their_amount_val, oid, height, db.delay, contract_sig, signedPD, spk_nonce, db.oracle_type_val, db.cid, db.bits_val, db.upper_limit, db.lower_limit, db.payment];
             }
-            return send_encrypted_message(imsg, db.their_address_val, function() { return start5(db); });
+            return send_encrypted_message(imsg, db.their_address_val, function() { return callback(db); });
         });
     };
-    function start5(db) {
+    function create_channel(db, callback) {
         return messenger(["read", 0, keys.pub()], function(a) {
             //check every 10 seconds if Carol has responded with a signature for the smart contract.
             console.log("start 5 received messages: ");
@@ -298,7 +319,7 @@
             //we should ignore any new_channel_tx that is for a channel that alredy exists. we should find the spk_sig that is valid for the db.sspk2 we are storing.
             var x = cid_grab(db.cid, z);
             if (x=="error") {
-                return setTimeout(function() {return start5(db);}, 10000);
+                return setTimeout(function() {return create_channel(db, callback);}, 10000);
             }
             var their_sig = x[1];
             var sspk = db.sspk2;
@@ -340,13 +361,21 @@
                     status.innerHTML = "status: <font color=\"red\"> new channel tx nonce is wrong. </font>";
                     return 0;
                 }
-                if (!(tx[6] == db.their_amount_val)) {
+                var tav2, oav2;
+                if (db.payment > 0) {
+                    oav2 = db.payment;
+                    tav2 = 0;
+                } else {
+                    oav2 = 0;
+                    tav2 = -(db.payment)
+                }
+                if (!(tx[6] == (tav2 + db.their_amount_val))) {
                     console.log(db.their_amount_val);
                     console.log(tx[6]);
                     status.innerHTML = "status: <font color=\"red\"> new channel tx amount1 is wrong. </font>";
                     return 0;
                 }
-                if (!(tx[5] == db.our_amount_val)) {
+                if (!(tx[5] == (oav2 + db.our_amount_val))) {
                     console.log(db.our_amount_val);
                     console.log(tx[5]);
                     status.innerHTML = "status: <font color=\"red\"> new channel tx amount2 is wrong. </font>";
@@ -371,7 +400,7 @@
                     var cd = channels_object.new_cd(sspk[1], sspk, [ss], [ss], expiration, db.cid);
                     channels_object.write(db.their_address_val, cd);
                     
-                    return start6(db);
+                    return callback(db);
                 });
             });
         });
@@ -387,12 +416,12 @@
         }
         return cid_grab(cid, l.slice(1));
     }
-    function start6(db) {
+    function confirm_channel_is_live(db) {
         merkle.request_proof("channels", db.cid, function(c) {
             console.log("channel is ");
             console.log(c);
             if (c == "empty") {
-                return headers_object.on_height_change(function() { return start6(db); });
+                return headers_object.on_height_change(function() { return confirm_channel_is_live(db); });
             }
             status.innerHTML = "status: <font color=\"green\">The channel has been formed, and the smart contract is active. If you have saved a copy of the signed smart contract, then it is now safe to close the browser.</font>";
         });
