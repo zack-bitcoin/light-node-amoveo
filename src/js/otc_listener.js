@@ -48,8 +48,6 @@
         console.log(JSON.stringify(contracts));
         y = contracts[n];
         console.log(JSON.stringify(y));
-        //[-6,1,3000,5000,"BHpLwieFVdD5F/z1mdScC9noIZ39HgnwvK8jHqRSBxjzWBssIR1X9LGr8QxTi8fUQws1Q5CGnmTk5dZwzdrGBi4=","BOzTnfxKrkDkVl88BsLMl1E7gAbKK+83pHCt0ZzNEvyZQPKlL/n8lYLCXgrL4Mmi/6m2bzj+fejX8D52w4U9LkI=",10000000,100000000,100000000,"0fbZfpka2gqBaHVf+d2AtBnLZRHD64J+VTyfOW/C/f4=",72,1000,"MEYCIQCgNB4aY7EuvoAyLZTbh2oeHBEkz8pL2N1yPX8qytXP8AIhAKDMsIz0FfxATJw+5dNHdNWMP6r7eWahzyxHfOblBeSo","\u0000\u0000\u0000H\u0013'\u000fÑöÙ~\u001aÚ\nhu_ùÝ´\u0019Ëe\u0011Ãë~U<9oÂýþMEQCIFVBWOXnLdr9NR42l90/lNmApepjOHLc/T30btn5ckIvAiB9ev+44cE9jkz1Pb9lw/DdgALrj6OrB8oq39Lsl0GAuA==",1]
-        //var imsg = [-6, db.bet_direction_val, bet_expires, maxprice, keys.pub(), db.their_address_val, period, db.our_amount_val, db.their_amount_val, oid, height, delay, contract_sig, signedPD, spk_nonce];
         var db = {};
         db.direction_val = y[1];
         db.expires = y[2];
@@ -63,6 +61,7 @@
         db.period = y[6];
         db.amount1 = y[7];
         db.amount2 = y[8];
+        console.log(db.amount2);
         db.oid = y[9];
         db.height = y[10];
         db.delay = y[11];
@@ -82,28 +81,32 @@
             db.oracle_type = "binary";
         }
         if (db.direction_val == 1) {
-            db.direction = "false";
+            db.direction = "false or short";
         } else if (db.direction_val == 2) {
-            db.direction = "true";
+            db.direction = "true or long";
         }
         console.log("display trade");
 
-        var s1 = ("their address: ").concat(db.acc1).concat("<br />").concat(
-            "oracle: ").concat(db.oid).concat("<br />").concat(
-                "our bet amount: ").concat(db.amount2).concat("<br />").concat(
-                    "their bet amount: ").concat(db.amount1).concat("<br />");
-        var s2 = s1.concat("you win if the outcome is: ").concat(db.direction).concat("<br />").concat("scalar or binary?: ").concat(db.oracle_type).concat("<br />").concat("delay: ").concat((db.delay).toString()).concat("<br />").concat("for this contract, you pay: ").concat((-(db.payment)).toString()).concat("<br />");;
-        if (db.oracle_type_val == 1) {//scalar
-            console.log(db.lower_limit);
-            console.log(db.upper_limit);
+        variable_public_get(["oracle", db.oid], function(x) {
+            var question = atob(x[2]);
+            console.log(question);
+            
+            var s1 = ("their address: ").concat(db.acc1).concat("<br />").concat(
+                "oracle: ").concat(db.oid).concat("<br />").concat(
+                    "oracle text: ").concat(question).concat("<br />").concat(
+                        "our bet amount: ").concat(db.amount2 / token_units()).concat("<br />").concat(
+                            "their bet amount: ").concat(db.amount1 / token_units()).concat("<br />");
+            var s2 = s1.concat("you win if the outcome is: ").concat(db.direction).concat("<br />").concat("scalar or binary?: ").concat(db.oracle_type).concat("<br />").concat("delay: ").concat((db.delay).toString()).concat("<br />").concat("for this contract, you pay: ").concat((-(db.payment)).toString()).concat("<br />");;
+            if (db.oracle_type_val == 1) {//scalar
             s2 = s2.concat("upper limit: ").concat((db.upper_limit).toString()).concat("<br />").concat("lower limit: ").concat((db.lower_limit).toString()).concat("<br />");
-        }
-        var cvdiv = document.createElement("div");
-        cvdiv.innerHTML = s2;
-        contract_view.innerHTML = "";
-        contract_view.appendChild(cvdiv);
-        var accept_button = button_maker2("Accept this trade", function() { return accept_trade(db); } );
-        contract_view.appendChild(accept_button);
+            }
+            var cvdiv = document.createElement("div");
+            cvdiv.innerHTML = s2;
+            contract_view.innerHTML = "";
+            contract_view.appendChild(cvdiv);
+            var accept_button = button_maker2("Accept this trade", function() { return accept_trade(db); } );
+            contract_view.appendChild(accept_button);
+        });
     };
     function accept_trade(db) {
         console.log("accepting this trade");
@@ -155,13 +158,8 @@
             var spk = ["spk", db.acc1, keys.pub(), [-6], 0,0,db.cid, 0,0,db.delay];
             var cd = channels_object.new_cd(spk, [],[],[],db.expires, db.cid);
             var spk2 = market_trade(cd, amount, db.maxprice, sc, db.oid);
-            console.log(spk2);
-            console.log(db.contract_sig);
             var sspk2 = keys.sign(spk2);
-            console.log(sspk2);
-            //sspk2[3] = sspk2[2];
             sspk2[2] = db.contract_sig;
-            console.log(sspk2);
             var v = verify_both(sspk2);
             if (!(v == true)) {
                 status.innerHTML = "status: <font color=\"red\">Error: one of the signatures is wrong, maybe the contract wasn't identically calculated on both nodes.</font>";
@@ -177,19 +175,15 @@
             }
             var pd_sig = db.spd.slice(pd.length);
             //var v = verify(pd, pd_sig, keys.ec().keyFromPublic(toHex(atob(db.acc1)), "hex"));
-            console.log(db.acc1);
             var their_key = keys.ec().keyFromPublic(toHex(atob(db.acc1)), "hex");
             var v = their_key.verify(hash(pd), bin2rs(atob(pd_sig)), "hex");
-            console.log(v);
             if (!(v == true)) {
                 status.innerHTML = "status: <font color=\"red\">Error: the price declaration's signature is invalid.</font>";
                 return 0;
             }
             var fee = 152050;
             merkle.request_proof("accounts", db.acc1, function (acc) {
-
                 var nonce = acc[2]+1;
-            
                 var tav2, oav2;
                 if (db.payment > 0) {
                     oav2 = db.payment;
@@ -200,19 +194,14 @@
                 }
                 var channel_tx = ["nc", db.acc1, db.acc2, fee, nonce, db.amount1 + oav2, db.amount2 + tav2, db.delay, db.cid];
                 var stx = keys.sign(channel_tx);
-                //stx[3] = stx[2];
-                //stx[2] = [-6];
                 var msg = [-6, stx, sspk2[3]];
                 send_encrypted_message(msg, db.acc1, function() {
-
                     var meta = 0;
                     var ss = channels_object.new_ss([0,0,0,0,4], [-6, ["oracles", db.oid]], meta);
                     var expiration = 10000000;
                     var cd = channels_object.new_cd(sspk2[1], sspk2, [ss], [ss], expiration, db.cid);
                     console.log(JSON.stringify(cd));
                     channels_object.write(db.acc1, cd);
-
-                    
                     status.innerHTML = "status: <font color=\"red\">Warning: you need to save your channel state to a file. You can leave the browser open longer to find out when this channel will be made, or you can load your channel state into otc_finisher to find out the channel state later.</font>";
                     channels_object.write(db.acc1, cd);
                     return start2(db);
@@ -228,8 +217,6 @@
                 return headers_object.on_height_change(function() { return start2(db); });
             }
             status.innerHTML = "status: <font color=\"green\">The channel has been formed, and the smart contract is active. If you have saved a copy of the signed smart contract, then it is now safe to close the browser.</font>";
-        //the light node checks every 10 seconds until it sees that the channel has been included on-chain.
-        //the lightnode makes a message saying that it is now safe to shut off, and that it is important to keep the file from step (6) until the contract is completed.
         });
     }
 })();

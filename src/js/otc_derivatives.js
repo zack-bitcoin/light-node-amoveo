@@ -95,12 +95,11 @@
             their_address.value = "BOzTnfxKrkDkVl88BsLMl1E7gAbKK+83pHCt0ZzNEvyZQPKlL/n8lYLCXgrL4Mmi/6m2bzj+fejX8D52w4U9LkI=";
             //their_address.value = "BMJBIx+CHECWjOAxeiDvs0QVR/cXgklc69kIi8dSpuu6/l7OSUQISwapLLu62zE4Md9LxcPoQXCds/Esv72oQsE=";
             //oracle.value ="3TqKqVuwQxg0BiC8NNx//+8ONSdO7xRtfa4NTs9qcT0=";
-            oracle.value ="AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAE4g=";
-            oracle.value = "xetbziJUPoWEOv7v4AJQY3jpGoY94MSDbYOuMvU6ZxE=";
+            oracle.value = "5TqSKj9h5bYPKf3LAdVGiscarYfbYXogmcl+n8Rbf50=";
             payment_field.value = "0.2";
 
             our_amount.value = "0.01";
-            current_value.value = "60";
+            current_value.value = "0.02";
             measured_upper.value = "130";
         };
         console.log(oracle.value);
@@ -126,11 +125,12 @@
         bits = document.createElement("p");
         bits.value = "10";
         var startButton = button_maker2("offer to make this trade", function(){
-            var cp = parseInt(current_value.value);
+            var cp = parseFloat(current_value.value);
             var a = read_veo(our_amount);
             var oracle_upper = parseFloat(measured_upper.value); 
             var l = parseFloat(leverage.value);
             var cp2 = Math.min(1023, Math.max(0, Math.floor(1024 * cp / oracle_upper)));
+            console.log(JSON.stringify([cp, a, oracle_upper, cp2]));//[60,1000000,0.04,1023]
             var ll =  Math.min(1023, Math.max(0, Math.floor(cp2*(l-1)/l)));
             var ul =  Math.min(1023, Math.max(0, Math.floor((2*cp2)-ll)));
             console.log(JSON.stringify([cp, a, oracle_upper, l, cp2, ll, ul]));
