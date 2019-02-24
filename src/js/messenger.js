@@ -48,7 +48,7 @@ var messenger_object = (function() {
                     console.log(s);
                     return s;
                 }, function (Fee) {
-		    return variable_public_get(["spend_tx", 1200000, Fee, keys.pub(), server_pubkey], function(tx) {
+		    return variable_public_get(["spend_tx", Amount, Fee, keys.pub(), server_pubkey], function(tx) {
                         //this tx purchases more credits.
                         var stx = keys.sign(tx);
                         variable_public_get(["txs", [-6, stx]], function() {
@@ -59,7 +59,7 @@ var messenger_object = (function() {
         });
     }
     function buy_credits(minAmount, callback) {
-        F = function() { return buy_credits2(Math.floor(minAmount * 1.2), callback); };
+        F = function() { return buy_credits2(Math.floor(minAmount * 5), callback); };
         return messenger(["account", keys.pub()], function(a) {
             if (a == 0) { //10 milibits
                 //account does not exist
