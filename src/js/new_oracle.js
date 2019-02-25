@@ -14,17 +14,22 @@
     status.innerHTML = "status: <font color=\"green\">ready</font>";
     div.appendChild(status);
     var starts = text_input("starts: ", div);
+    glossary.link(div, "oracle_starts");
     div.appendChild(br());
     var question = text_input("question: ", div);
+    glossary.link(div, "oracle_question");
     div.appendChild(br());
     var binary = button_maker2("binary oracle", function(){
         return new_question_oracle(parseInt(starts.value), question.value);
     });
     div.appendChild(binary);
+    glossary.link(div, "binary_oracle");
+    div.appendChild(br());
     var scalar = button_maker2("scalar oracle", function(){
         return new_scalar_oracle(parseInt(starts.value), question.value);
     });
     div.appendChild(scalar);
+    glossary.link(div, "scalar_oracle");
     function new_scalar_oracle(start, question) {
         merkle.request_proof("accounts", keys.pub(), function (acc) {
             var nonce = acc[2]+1;

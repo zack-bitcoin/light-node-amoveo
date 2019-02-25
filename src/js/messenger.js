@@ -23,7 +23,7 @@ var messenger_object = (function() {
         var warning = document.createElement("p");
         warning.innerHTML = "warning: wait at least 2 blocks before attempting to buy more credits.";
         more_div.appendChild(warning);
-        return buy_credits(2000000, function(){return 0;});
+        return buy_credits(1000000, function(){return 0;});
     });
     more_div.appendChild(more_credits_button);
     div.appendChild(br());

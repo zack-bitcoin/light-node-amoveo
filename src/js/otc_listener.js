@@ -96,7 +96,7 @@
                     "oracle text: ").concat(question).concat("<br />").concat(
                         "our bet amount: ").concat(db.amount2 / token_units()).concat("<br />").concat(
                             "their bet amount: ").concat(db.amount1 / token_units()).concat("<br />");
-            var s2 = s1.concat("you win if the outcome is: ").concat(db.direction).concat("<br />").concat("scalar or binary?: ").concat(db.oracle_type).concat("<br />").concat("delay: ").concat((db.delay).toString()).concat("<br />").concat("for this contract, you pay: ").concat((-(db.payment)).toString()).concat("<br />");;
+            var s2 = s1.concat("you win if the outcome is: ").concat(db.direction).concat("<br />").concat("scalar or binary?: ").concat(db.oracle_type).concat("<br />").concat("delay: ").concat((db.delay).toString()).concat("<br />").concat("for this contract, you pay: ").concat((-(db.payment) / token_units()).toString()).concat("<br />");;
             if (db.oracle_type_val == 1) {//scalar
             s2 = s2.concat("upper limit: ").concat((db.upper_limit).toString()).concat("<br />").concat("lower limit: ").concat((db.lower_limit).toString()).concat("<br />");
             }
@@ -134,6 +134,7 @@
             }
             db.account1 = their_acc;
             status.innerHTML = "status: <font color=\"green\">the trade looks valid. Now checking if you need credits.</font>";
+            glossary.link(status, "messenger_credits");
             return messenger_object.min_bal(1000000, function(){return accept_trade3(db)});
         });
     };

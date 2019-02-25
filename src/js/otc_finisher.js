@@ -145,6 +145,8 @@
     }
     function we_send0(db) {
         //return credits_check(keys.pub(), 1200000, function() {return we_send1(db);});
+        status.innerHTML = "status: <font color=\"green\">the trade looks valid. Now checking if you need credits.</font>";
+        glossary.link(status, "messenger_credits");
         return messenger_object.min_bal(1200000, function() {return we_send1(db);});
     }
     function we_send1(db) {

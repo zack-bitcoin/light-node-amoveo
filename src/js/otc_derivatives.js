@@ -2,6 +2,8 @@
     var fee = 152050;
     var div = document.createElement("div");
     document.body.appendChild(div);
+
+    //glossary.messenger(div);
     
     var status = document.createElement("p");
     status.innerHTML = "status: <font color=\"green\">ready</font>";
@@ -9,26 +11,34 @@
     var their_address = text_input("their_address: ", div);
     div.appendChild(br());
     var oracle = text_input("oracle: ", div);
+    glossary.link(div, "oracle_id");
     div.appendChild(br());
     var our_amount = text_input("our bet amount: ", div);
     div.appendChild(br());
     var payment_field = text_input("How much you pay for this contract. Make this negative to receive payment: ", div);
+    glossary.link(div, "derivatives_payment");
     div.appendChild(br());
     var buttons_div = document.createElement("div");
     div.appendChild(buttons_div);
     var binaryButton = button_maker2("binary", binary_view);
     buttons_div.appendChild(binaryButton);
+    glossary.link(buttons_div, "binary_bet");
+    buttons_div.appendChild(br());
     var scalarButton = button_maker2("scalar", scalar_view);
     buttons_div.appendChild(scalarButton);
+    glossary.link(buttons_div, "scalar_bet");
+    buttons_div.appendChild(br());
     var stablecoinButton = button_maker2("stablecoin", stablecoin_view);
     buttons_div.appendChild(stablecoinButton);
+    glossary.link(buttons_div, "stablecoin_bet");
+    buttons_div.appendChild(br());
     var their_amount, bet_direction, delay, oracle_type, bits, upper_limit, lower_limit;
 
     function scalar_view() {
         buttons_div.innerHTML = "";
-        their_amount = text_input("their bet amount: ", div);
+        their_amount = text_input("their bet amount, in veo: ", div);
         div.appendChild(br());
-        bet_direction = text_input("you win if outcome is (long/short): ", div);
+        bet_direction = text_input("you bet in direction (long/short): ", div);
     //div.appendChild(br());
     //var delay = text_input("how long should the delay be to close the channel without your partner's help?", div);
         delay = document.createElement("p");
@@ -86,6 +96,7 @@
         //var their_amount = text_input("their bet amount: ", div);
         //div.appendChild(br());
         var current_value = text_input("current value: ", div);
+        glossary.link(div, "stablecoin_current_value");
         div.appendChild(br());
         var measured_upper = text_input("upper limit of range being measured by the oracle: ", div);
 	//merkle.request_proof("oracles", oracle.value, function(x) {
@@ -113,6 +124,7 @@
         //var lower_margin = text_input("lower margin: ", div); //defined by leverage
         //div.appendChild(br());
         var leverage = text_input("leverage: ", div);
+        glossary.link(div, "stablecoin_leverage");
         leverage.value = "1";
         div.appendChild(br());
         bet_direction = document.createElement("p");
@@ -129,6 +141,10 @@
             var a = read_veo(our_amount);
             var oracle_upper = parseFloat(measured_upper.value); 
             var l = parseFloat(leverage.value);
+            if (l < 1) {
+                status.innerHTML = "status: <font color=\"red\">Error: leverage cannot be less than 1.</font>";
+                return 0;
+            }
             var cp2 = Math.min(1023, Math.max(0, Math.floor(1024 * cp / oracle_upper)));
             console.log(JSON.stringify([cp, a, oracle_upper, cp2]));//[60,1000000,0.04,1023]
             var ll =  Math.min(1023, Math.max(0, Math.floor(cp2*(l-1)/l)));
@@ -240,6 +256,7 @@
     function propose_contract(db, callback) {
         console.log("propose contract");
         status.innerHTML = "status: <font color=\"green\">checking if you have enough credits, possibly puchasing more.</font>";
+        glossary.link(status, "messenger_credits");
         return messenger_object.min_bal(1000000, function(){
             return propose_contract2(db, callback)});
     }
