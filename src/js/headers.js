@@ -34,8 +34,12 @@ function headers_main() {
 	INITIAL_DIFFICULTY = 2500;
 	retarget_frequency = 12;
 	forks = {two: 0, four: retarget_frequency, seven:40};
-        top_header = ["header",10932,"9tbLYW739Zw6/9FGUKpOJvemE+B1gtuHVLfWgdkBxGk=","XRLDP/0XKIvdNHTCj6iq34rmnh8X1Z1n++aqWY2GnOU=","ogV1t76d8+gLhOvJMU/Fx5S0z41KT4PDhPbCYROTXlE=",315668237,2500,0,"AAAAAAAAAAAAOP8UeJxxD4DZQEahh3OQkKcQ2tbHFuU=",249808154332,746]
-        write_header(top_header, 1);
+        top_header = ["header",10000,"PzAka1LatHpj7zhwY098sM9XaE4Vv+stjmUMWB21Md8=","9169gcVs1KQ/Kvcf0bRkeZfsjAjQ56kdlrwr3auML7Y=","JMgF+lUkTB2r37qrGG1B2SiS2h/bjdUO72jItcXdXLY=",304286457,6159,0,"AAAAAAAAAAAAFtXjnSwuMUTSTMmhbVNcvjZY3xZXv08=",230706923204,746];
+        write_header(top_header, 21003884);
+
+
+        //top_header = ["header",10932,"9tbLYW739Zw6/9FGUKpOJvemE+B1gtuHVLfWgdkBxGk=","XRLDP/0XKIvdNHTCj6iq34rmnh8X1Z1n++aqWY2GnOU=","ogV1t76d8+gLhOvJMU/Fx5S0z41KT4PDhPbCYROTXlE=",315668237,2500,0,"AAAAAAAAAAAAOP8UeJxxD4DZQEahh3OQkKcQ2tbHFuU=",249808154332,746]
+        //write_header(top_header, 1);
 	//top_header = ["header",50,"avmTCvhW62I5b1ZKW/k+hN5VkDTRBUfNOML1IbDeBEM=","HtCW+xejEr+hVx9EU/YWqjkToHfB65LznX/7kYY1qYc=","/nky29gffL519fIShxYtlGYrSl/VvYYSw0Qk2F/+Q4k=",283297347,4861,0,"AAAAAAAAAAAAoAC51HYeqD+RjyH1Ew1tdebVT3/BD6g=",1006239072,746];
 	//write_header(top_header, 713104);
     } else {
