@@ -10,7 +10,7 @@ function headers_main() {
         mode = "testnet";
         server_port.value = "8070";
         if (server_ip.value == "") {
-            server_ip.value = "159.65.120.84";
+            server_ip.value = "139.59.144.76";
         }
     } else {
         mode = "production";
