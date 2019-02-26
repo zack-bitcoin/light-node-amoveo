@@ -45,7 +45,7 @@
     };
     function new_scalar_oracle2(start, question, nonce, id, many) {
         if (many == 0) { return 0;}
-        var question2 = question.concat(" bit number ").concat((9-many).toString());
+        var question2 = question.concat(" bit number ").concat((10-many).toString());
         var tx = ["oracle_new", keys.pub(), nonce, fee, btoa(question2), start, btoa(id), 0, 0, 0];
         var stx = keys.sign(tx);
         return ([stx]).concat(new_scalar_oracle2(start, question, nonce+1, next_oid(id), many - 1));
