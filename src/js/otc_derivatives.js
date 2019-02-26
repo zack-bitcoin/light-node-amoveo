@@ -269,8 +269,7 @@
             }
             if ((a == 0) || (a[1] < 1000000)) { //10 milibits
                 //wait enough confirmations until you have the credits.
-                //return headers_object.on_height_change(function() { return propose_contract2(db); });
-                return setTimeout(function() {return propose_contract2(db);}, 20000);
+                return setTimeout(function() {return propose_contract2(db, callback);}, 20000);
             }
             console.log("your account ");
             console.log(a);
