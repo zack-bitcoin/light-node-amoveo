@@ -139,74 +139,67 @@
         });
     };
     function accept_trade3(db) {
-        return messenger(["account", keys.pub()], function(a) {
-            console.log("account is (accept_trade3)");
-            console.log(a);
-            if ((a == 0) || (a[1] < 1000000)) { //10 milibits
-                return setTimeout(function() {return accept_trade3(db);}, 20000);
-            }
-            var period = 10000000;//only one period because there is only one bet.
-            var amount = db.amount1 + db.amount2;
-            var sc;
-            if (db.oracle_type == "scalar") {
-                console.log("accept trade 3 direction ");
-                console.log(db.direction_val);
-                sc = scalar_market_contract(db.direction_val, db.expires, db.maxprice, db.acc1, period, amount, db.oid, db.height, db.upper_limit, db.lower_limit, db.bits);
-            } else if (db.oracle_type == "binary") {
-                sc = market_contract(db.direction_val, db.expires, db.maxprice, db.acc1, period, amount, db.oid, db.height);
-            }
-            //var delay = 1000;//a little over a week
-            var spk = ["spk", db.acc1, keys.pub(), [-6], 0,0,db.cid, 0,0,db.delay];
-            var cd = channels_object.new_cd(spk, [],[],[],db.expires, db.cid);
-            var spk2 = market_trade(cd, amount, db.maxprice, sc, db.oid);
-            var sspk2 = keys.sign(spk2);
-            sspk2[2] = db.contract_sig;
-            var v = verify_both(sspk2);
-            if (!(v == true)) {
-                status.innerHTML = "status: <font color=\"red\">Error: one of the signatures is wrong, maybe the contract wasn't identically calculated on both nodes.</font>";
-                return 0;
-            }
-            var pd = pd_maker(db.height, db.maxprice - 1, 9999, db.oid);
-            var pd2 = db.spd.slice(0, pd.length);
-            if (!(pd == pd2)) {
-                status.innerHTML = "status: <font color=\"red\">Error: the price declaration was not calculated identically on both nodes.</font>";
-                console.log(JSON.stringify(pd));//we calculate
-                console.log(JSON.stringify(atob(pd2)));//they calculate
-                return 0;
-            }
-            var pd_sig = db.spd.slice(pd.length);
-            //var v = verify(pd, pd_sig, keys.ec().keyFromPublic(toHex(atob(db.acc1)), "hex"));
-            var their_key = keys.ec().keyFromPublic(toHex(atob(db.acc1)), "hex");
-            var v = their_key.verify(hash(pd), bin2rs(atob(pd_sig)), "hex");
-            if (!(v == true)) {
-                status.innerHTML = "status: <font color=\"red\">Error: the price declaration's signature is invalid.</font>";
-                return 0;
-            }
+        var period = 10000000;//only one period because there is only one bet.
+        var amount = db.amount1 + db.amount2;
+        var sc;
+        if (db.oracle_type == "scalar") {
+            console.log("accept trade 3 direction ");
+            console.log(db.direction_val);
+            sc = scalar_market_contract(db.direction_val, db.expires, db.maxprice, db.acc1, period, amount, db.oid, db.height, db.upper_limit, db.lower_limit, db.bits);
+        } else if (db.oracle_type == "binary") {
+            sc = market_contract(db.direction_val, db.expires, db.maxprice, db.acc1, period, amount, db.oid, db.height);
+        }
+        //var delay = 1000;//a little over a week
+        var spk = ["spk", db.acc1, keys.pub(), [-6], 0,0,db.cid, 0,0,db.delay];
+        var cd = channels_object.new_cd(spk, [],[],[],db.expires, db.cid);
+        var spk2 = market_trade(cd, amount, db.maxprice, sc, db.oid);
+        var sspk2 = keys.sign(spk2);
+        sspk2[2] = db.contract_sig;
+        var v = verify_both(sspk2);
+        if (!(v == true)) {
+            status.innerHTML = "status: <font color=\"red\">Error: one of the signatures is wrong, maybe the contract wasn't identically calculated on both nodes.</font>";
+            return 0;
+        }
+        var pd = pd_maker(db.height, db.maxprice - 1, 9999, db.oid);
+        var pd2 = db.spd.slice(0, pd.length);
+        if (!(pd == pd2)) {
+            status.innerHTML = "status: <font color=\"red\">Error: the price declaration was not calculated identically on both nodes.</font>";
+            console.log(JSON.stringify(pd));//we calculate
+            console.log(JSON.stringify(atob(pd2)));//they calculate
+            return 0;
+        }
+        var pd_sig = db.spd.slice(pd.length);
+        //var v = verify(pd, pd_sig, keys.ec().keyFromPublic(toHex(atob(db.acc1)), "hex"));
+        var their_key = keys.ec().keyFromPublic(toHex(atob(db.acc1)), "hex");
+        var v = their_key.verify(hash(pd), bin2rs(atob(pd_sig)), "hex");
+        if (!(v == true)) {
+            status.innerHTML = "status: <font color=\"red\">Error: the price declaration's signature is invalid.</font>";
+            return 0;
+        }
             var fee = 152050;
-            merkle.request_proof("accounts", db.acc1, function (acc) {
-                var nonce = acc[2]+1;
-                var tav2, oav2;
-                if (db.payment > 0) {
-                    oav2 = db.payment;
-                    tav2 = 0;
-                } else {
-                    oav2 = 0;
-                    tav2 = -(db.payment)
-                }
-                var channel_tx = ["nc", db.acc1, db.acc2, fee, nonce, db.amount1 + oav2, db.amount2 + tav2, db.delay, db.cid];
-                var stx = keys.sign(channel_tx);
-                var msg = [-6, stx, sspk2[3]];
-                send_encrypted_message(msg, db.acc1, function() {
-                    var meta = 0;
-                    var ss = channels_object.new_ss([0,0,0,0,4], [-6, ["oracles", db.oid]], meta);
-                    var expiration = 10000000;
-                    var cd = channels_object.new_cd(sspk2[1], sspk2, [ss], [ss], expiration, db.cid);
-                    console.log(JSON.stringify(cd));
-                    channels_object.write(db.acc1, cd);
-                    status.innerHTML = "status: <font color=\"red\">Warning: you need to save your channel state to a file. You can leave the browser open longer to find out when this channel will be made, or you can load your channel state into otc_finisher to find out the channel state later.</font>";
-                    channels_object.write(db.acc1, cd);
-                    return start2(db);
-                });
+        merkle.request_proof("accounts", db.acc1, function (acc) {
+            var nonce = acc[2]+1;
+            var tav2, oav2;
+            if (db.payment > 0) {
+                oav2 = db.payment;
+                tav2 = 0;
+            } else {
+                oav2 = 0;
+                tav2 = -(db.payment)
+            }
+            var channel_tx = ["nc", db.acc1, db.acc2, fee, nonce, db.amount1 + oav2, db.amount2 + tav2, db.delay, db.cid];
+            var stx = keys.sign(channel_tx);
+            var msg = [-6, stx, sspk2[3]];
+            send_encrypted_message(msg, db.acc1, function() {
+                var meta = 0;
+                var ss = channels_object.new_ss([0,0,0,0,4], [-6, ["oracles", db.oid]], meta);
+                var expiration = 10000000;
+                var cd = channels_object.new_cd(sspk2[1], sspk2, [ss], [ss], expiration, db.cid);
+                console.log(JSON.stringify(cd));
+                channels_object.write(db.acc1, cd);
+                status.innerHTML = "status: <font color=\"red\">Warning: you need to save your channel state to a file. You can leave the browser open longer to find out when this channel will be made, or you can load your channel state into otc_finisher to find out the channel state later.</font>";
+                channels_object.write(db.acc1, cd);
+                return start2(db);
             });
         });
     };

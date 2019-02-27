@@ -52,12 +52,24 @@ var messenger_object = (function() {
                         //this tx purchases more credits.
                         var stx = keys.sign(tx);
                         variable_public_get(["txs", [-6, stx]], function() {
-                            return callback();
+                            return buy_credits3(Math.floor(Amount - 1), callback);
+                            //return callback();
                         });
                     });
                 });
         });
     }
+    function buy_credits3(a, callback) {
+        return messenger(["account", keys.pub()], function(a) {
+            if ((a == 0) || (a[1] < 1000000)) { //10 milibits
+                return setTimeout(function() {
+                    return buy_credits3(a, callback);
+                }, 20000);
+            }
+            return callback();
+        });
+
+    };
     function buy_credits(minAmount, callback) {
         F = function() { return buy_credits2(Math.floor(minAmount * 5), callback); };
         return messenger(["account", keys.pub()], function(a) {

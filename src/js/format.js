@@ -288,3 +288,49 @@ function make_bytes(bytes, b) {
 };
 
     
+function oracle_limit(oid, callback) {
+    return variable_public_get(["oracle", oid], function(x) {
+        var question = atob(x[2]);
+        console.log(question);
+        //measured_upper.value = (largest_number(question, 0, 0)).toString();
+        return callback(oracle_limit_grabber(question));
+    });
+    function oracle_limit_grabber(question) {
+        console.log("oracle limit grabber");
+        if (question.length < 4) {
+            return "";
+        }
+        var f = question.slice(0, 4);
+        if (f == "from") {
+            return olg2(question.slice(4));
+        }
+        return oracle_limit_grabber(question.slice(1));
+    }
+    function olg2(question) {
+        console.log("olg2");
+        console.log(question);
+        if (question.length < 2) {
+            return "";
+        }
+        var f = question.slice(0, 2);
+        if (f == "to") {
+            console.log("calling olg3 ");
+            return olg3(question.slice(2), "");
+        }
+        return olg2(question.slice(1));
+    }
+    function olg3(question, n) {
+        console.log(n);
+        if (question.length < 1) { return n; }
+        var l = question[0];
+        if (((l >= "0") && (l <= "9")) || (l == ".")) {
+            var n2 = n.concat(l);
+            return olg3(question.slice(1), n2);
+        } else if (n == "") {
+            return olg3(question.slice(1), n);
+        } else {
+            return n;
+        }
+    };
+
+}

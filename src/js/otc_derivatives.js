@@ -16,6 +16,7 @@
     var our_amount = text_input("our bet amount: ", div);
     div.appendChild(br());
     var payment_field = text_input("How much you pay for this contract. Make this negative to receive payment: ", div);
+    payment_field.value = "0";
     glossary.link(div, "derivatives_payment");
     div.appendChild(br());
     var buttons_div = document.createElement("div");
@@ -78,9 +79,9 @@
         div.appendChild(br());
         oracle_type = document.createElement("p");
         oracle_type.value = "binary";
-        if (false) { //defaults
+        if (true) { //defaults
             their_address.value = "BOzTnfxKrkDkVl88BsLMl1E7gAbKK+83pHCt0ZzNEvyZQPKlL/n8lYLCXgrL4Mmi/6m2bzj+fejX8D52w4U9LkI=";
-            oracle.value = "xetbziJUPoWEOv7v4AJQY3jpGoY94MSDbYOuMvU6ZxE=";
+            oracle.value = "AOAJZKjaj+C0aAfI+ppYZ3E1vmvSJYdqyHNHtGy6Fzk=";
             our_amount.value = "1";
             their_amount.value = "1";
             bet_direction.value = "true";
@@ -105,21 +106,15 @@
         if (false) { //defaults
             their_address.value = "BOzTnfxKrkDkVl88BsLMl1E7gAbKK+83pHCt0ZzNEvyZQPKlL/n8lYLCXgrL4Mmi/6m2bzj+fejX8D52w4U9LkI=";
             //their_address.value = "BMJBIx+CHECWjOAxeiDvs0QVR/cXgklc69kIi8dSpuu6/l7OSUQISwapLLu62zE4Md9LxcPoQXCds/Esv72oQsE=";
-            //oracle.value ="3TqKqVuwQxg0BiC8NNx//+8ONSdO7xRtfa4NTs9qcT0=";
-            oracle.value = "5TqSKj9h5bYPKf3LAdVGiscarYfbYXogmcl+n8Rbf50=";
-            payment_field.value = "0.2";
+            oracle.value = "7rTPLUaQQLEyNwDUPqh5HPUPUpCx1K+A5yBbObtvs+U=";
+            payment_field.value = "0";
 
-            our_amount.value = "0.01";
-            current_value.value = "0.02";
-            measured_upper.value = "130";
+            our_amount.value = "0.1";
+            current_value.value = "70";
+            //measured_upper.value = "130";
         };
         console.log(oracle.value);
-        variable_public_get(["oracle", oracle.value], function(x) {
-            var question = atob(x[2]);
-            console.log(question);
-            //measured_upper.value = (largest_number(question, 0, 0)).toString();
-            measured_upper.value = oracle_limit_grabber(question);
-        });
+        oracle_limit(measured_upper, oracle.value);
         div.appendChild(br());
         //var lower_margin = text_input("lower margin: ", div); //defined by leverage
         //div.appendChild(br());
@@ -261,69 +256,56 @@
             return propose_contract2(db, callback)});
     }
     function propose_contract2(db, callback) {
-        return messenger(["account", keys.pub()], function(a) {
-            console.log("account is (start4)");
-            console.log(a);
-            if (!(isNaN(a[1]))) {
-                messenger_object.display(a[1]);
-            }
-            if ((a == 0) || (a[1] < 1000000)) { //10 milibits
-                //wait enough confirmations until you have the credits.
-                return setTimeout(function() {return propose_contract2(db, callback);}, 20000);
-            }
-            console.log("your account ");
-            console.log(a);
-            status.innerHTML = "status: <font color=\"blue\">sending trade request. Tell your partner to check their messages from the same server you are using. </font>";
-            var maxprice = Math.floor((10000 * (db.our_amount_val)) / (db.their_amount_val + db.our_amount_val)); 
-            var period = 10000000;//only one period because there is only one bet.
-            var amount = db.our_amount_val + db.their_amount_val;
-            var oid = db.oracle_val;
-            var height = headers_object.top()[1];
-            console.log(db.oracle);
-            console.log(db.oracle[10]);
-            var bet_expires = 3000 + db.oracle[10]; // bet expires should be at least 3000 after the oracle can expire.
-            var sc;
-            if (db.oracle_type_val == 1) {//scalar
-                console.log(JSON.stringify([db.bet_direction_val, bet_expires, maxprice, keys.pub(), period, amount, oid, height, db.upper_limit, db.lower_limit, db.bits_val]));
-                sc = scalar_market_contract(db.bet_direction_val, bet_expires, maxprice, keys.pub(), period, amount, oid, height, db.upper_limit, db.lower_limit, db.bits_val);
-                console.log(sc);
-            } else if (db.oracle_type_val == 0) {//binary
-                sc = market_contract(db.bet_direction_val, bet_expires, maxprice, keys.pub(), period, amount, oid, height);
-            } else {
-                console.log("bad oracle type error");
-                return 0;
-            }
-            var cid = btoa(random_cid(32));//generate a random 32 byte cid for the new channel.
-            db.cid = cid;
-            var spk = ["spk", keys.pub(), db.their_address_val, [-6], 0, 0, cid, 0, 0, db.delay];
-            //console.log(JSON.stringify(spk));
-            var cd = channels_object.new_cd(spk, [], [], [], bet_expires, cid);
-            //console.log(sc);
-            var spk2 = market_trade(cd, amount, maxprice, sc, oid);
-            //console.log(JSON.stringify(spk2));
-            var sspk2 = keys.sign(spk2);
-            var pd = pd_maker(height, maxprice - 1, 9999, oid);
-            var sig = keys.raw_sign(pd);
-            //var sig = keys.sign(pd)[2];//crashes here
-            var signedPD = btoa(pd.concat(sig));//<<PD/binary, Signature/binary>>.
-            //console.log("signed pd is");
-            //console.log(JSON.stringify(signedPD));184
-            //console.log(signedPD.length);
-            //console.log(JSON.stringify(btoa(pd)));56
-            //console.log(pd.length);
-            db.signedPD = signedPD;
-            db.sspk2 = sspk2;
-            var spk_nonce = spk2[8];
-            var contract_sig = sspk2[2];
-            var imsg;
-            if (db.oracle_type_val == 0) {
-                imsg = [-6, db.bet_direction_val, bet_expires, maxprice, keys.pub(), db.their_address_val, period, db.our_amount_val, db.their_amount_val, oid, height, db.delay, contract_sig, signedPD, spk_nonce, db.oracle_type_val, db.cid, 0, 0, 0, db.payment];
-            } else {
-                console.log(db.upper_limit);
-                imsg = [-6, db.bet_direction_val, bet_expires, maxprice, keys.pub(), db.their_address_val, period, db.our_amount_val, db.their_amount_val, oid, height, db.delay, contract_sig, signedPD, spk_nonce, db.oracle_type_val, db.cid, db.bits_val, db.upper_limit, db.lower_limit, db.payment];
-            }
-            return send_encrypted_message(imsg, db.their_address_val, function() { return callback(db); });
-        });
+        status.innerHTML = "status: <font color=\"blue\">sending trade request. Tell your partner to check their messages from the same server you are using. </font>";
+        var maxprice = Math.floor((10000 * (db.our_amount_val)) / (db.their_amount_val + db.our_amount_val)); 
+        var period = 10000000;//only one period because there is only one bet.
+        var amount = db.our_amount_val + db.their_amount_val;
+        var oid = db.oracle_val;
+        var height = headers_object.top()[1];
+        console.log(db.oracle);
+        console.log(db.oracle[10]);
+        var bet_expires = 3000 + db.oracle[10]; // bet expires should be at least 3000 after the oracle can expire.
+        var sc;
+        if (db.oracle_type_val == 1) {//scalar
+            console.log(JSON.stringify([db.bet_direction_val, bet_expires, maxprice, keys.pub(), period, amount, oid, height, db.upper_limit, db.lower_limit, db.bits_val]));
+            sc = scalar_market_contract(db.bet_direction_val, bet_expires, maxprice, keys.pub(), period, amount, oid, height, db.upper_limit, db.lower_limit, db.bits_val);
+            console.log(sc);
+        } else if (db.oracle_type_val == 0) {//binary
+            sc = market_contract(db.bet_direction_val, bet_expires, maxprice, keys.pub(), period, amount, oid, height);
+        } else {
+            console.log("bad oracle type error");
+            return 0;
+        }
+        var cid = btoa(random_cid(32));//generate a random 32 byte cid for the new channel.
+        db.cid = cid;
+        var spk = ["spk", keys.pub(), db.their_address_val, [-6], 0, 0, cid, 0, 0, db.delay];
+        //console.log(JSON.stringify(spk));
+        var cd = channels_object.new_cd(spk, [], [], [], bet_expires, cid);
+        //console.log(sc);
+        var spk2 = market_trade(cd, amount, maxprice, sc, oid);
+        //console.log(JSON.stringify(spk2));
+        var sspk2 = keys.sign(spk2);
+        var pd = pd_maker(height, maxprice - 1, 9999, oid);
+        var sig = keys.raw_sign(pd);
+        //var sig = keys.sign(pd)[2];//crashes here
+        var signedPD = btoa(pd.concat(sig));//<<PD/binary, Signature/binary>>.
+        //console.log("signed pd is");
+        //console.log(JSON.stringify(signedPD));184
+        //console.log(signedPD.length);
+        //console.log(JSON.stringify(btoa(pd)));56
+        //console.log(pd.length);
+        db.signedPD = signedPD;
+        db.sspk2 = sspk2;
+        var spk_nonce = spk2[8];
+        var contract_sig = sspk2[2];
+        var imsg;
+        if (db.oracle_type_val == 0) {
+            imsg = [-6, db.bet_direction_val, bet_expires, maxprice, keys.pub(), db.their_address_val, period, db.our_amount_val, db.their_amount_val, oid, height, db.delay, contract_sig, signedPD, spk_nonce, db.oracle_type_val, db.cid, 0, 0, 0, db.payment];
+        } else {
+            console.log(db.upper_limit);
+            imsg = [-6, db.bet_direction_val, bet_expires, maxprice, keys.pub(), db.their_address_val, period, db.our_amount_val, db.their_amount_val, oid, height, db.delay, contract_sig, signedPD, spk_nonce, db.oracle_type_val, db.cid, db.bits_val, db.upper_limit, db.lower_limit, db.payment];
+        }
+        return send_encrypted_message(imsg, db.their_address_val, function() { return callback(db); });
     };
     function create_channel(db, callback) {
         return messenger(["read", 0, keys.pub()], function(a) {
@@ -442,55 +424,6 @@
             }
             status.innerHTML = "status: <font color=\"green\">The channel has been formed, and the smart contract is active. If you have saved a copy of the signed smart contract, then it is now safe to close the browser.</font>";
         });
-    };
-    function oracle_limit_grabber(question) {
-        console.log("oracle limit grabber");
-        if (question.length < 4) {
-            return "";
-        }
-        var f = question.slice(0, 4);
-        if (f == "from") {
-            return olg2(question.slice(4));
-        }
-        return oracle_limit_grabber(question.slice(1));
-    }
-    function olg2(question) {
-        console.log("olg2");
-        console.log(question);
-        if (question.length < 2) {
-            return "";
-        }
-        var f = question.slice(0, 2);
-        if (f == "to") {
-            console.log("calling olg3 ");
-            return olg3(question.slice(2), "");
-        }
-        return olg2(question.slice(1));
-    }
-    function olg3(question, n) {
-        console.log(n);
-        if (question.length < 1) { return n; }
-        var l = question[0];
-        if (((l >= "0") && (l <= "9")) || (l == ".")) {
-            var n2 = n.concat(l);
-            return olg3(question.slice(1), n2);
-        } else if (n == "") {
-            return olg3(question.slice(1), n);
-        } else {
-            return n;
-        }
-    }
-    function largest_number(question, acc, m) {
-        var l = question[0];
-        if (question == "") {
-            return Math.max(acc, m);
-        } else if ((l >= "0") && (l <= "9")) {
-            var n = parseInt(l);
-            var acc2 = (acc*10) + n;
-            return largest_number(question.slice(1), acc2, m);
-        } else {
-            return largest_number(question.slice(1), 0, Math.max(acc, m));
-        };
     };
 })();
 

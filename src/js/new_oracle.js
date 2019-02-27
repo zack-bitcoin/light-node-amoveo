@@ -58,7 +58,7 @@
             var stx = keys.sign(tx);
             console.log(JSON.stringify(stx));
             return variable_public_get(["txs", [-6, stx]], function(x) {
-                status.innerHTML = "status: <font color=\"green\">successfully attempted to make a binary oracle".concat(btoa(id)).concat("</font>");
+                status.innerHTML = "status: <font color=\"green\">successfully attempted to make a binary oracle with OID: ".concat(btoa(id)).concat("</font>");
                 return 0;
             });
         });

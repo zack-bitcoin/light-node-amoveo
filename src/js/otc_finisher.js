@@ -1,16 +1,21 @@
 (function otc_finisher() {
+    var early_close_code = 5927;
     var div = document.createElement("div");
     document.body.appendChild(div);
     var title = document.createElement("h3");
-    title.innerHTML = "direct derivatives response form";
+    title.innerHTML = "p2p derivatives contract finisher.";
     div.appendChild(title);
     var status = document.createElement("p");
     status.innerHTML = "status: <font color=\"green\">ready</font>";
     div.appendChild(status);
     //var their_address = text_input("their_address: ", div);
     //div.appendChild(br());
+    var workspace = document.createElement("div");
+    div.appendChild(workspace);
     var start_button = button_maker2("load your keys and channel data, then click this", start1);
-    div.appendChild(start_button);
+    workspace.appendChild(start_button);
+    workspace.appendChild(br());
+    div.appendChild(br());
     //we need a tool for solo-closing the channel, for if your partner refuses to help you. (maybe for now asking for help on a forum is good enough?)
     function start1() {
         //console.log(JSON.stringify(channels_object.channel_manager));
@@ -28,6 +33,7 @@
         db.amount = db.spk[7];
         console.log("lookup channel ");
         console.log(db.cid);
+        workspace.innerHTML = "";
         merkle.request_proof("channels", db.cid, function(c) {
             console.log("channel is ");
             console.log(c);
@@ -74,8 +80,8 @@
                 if //(false){//
                     (db.result == 0) {//oracle still open
                     var done_timer = Or[9];
-                    status.innerHTML = ("status: <font color=\"red\"> The bet is not yet settled. The oracle has not been finalized. you need to wait longer to close this channel. It is expected to be settled a little after block height ").concat((done_timer).toString()).concat("</font>");
-                    return 0;
+                        status.innerHTML = ("status: <font color=\"red\"> The bet is not yet settled. The oracle has not been finalized. you need to wait longer to close this channel. It is expected to be settled a little after block height ").concat((done_timer).toString()).concat("</font>");
+                        return close_early_view(db);;
                     };
                 return start2(db);
             });
@@ -132,6 +138,144 @@
             });
         });
     };
+    function close_early_view(db) {
+        //show an interface for closing the channel early.
+        var result;
+        if (db.type == 1) {
+            //binary: ask true/false
+            db.result = text_input("outcome is true/false/bad: ", workspace);
+            return cev2(db);
+        } else if (db.type == 2) {
+            //scalar: look up oracle_max measurement, ask for the final price.
+            db.result = text_input("final price of the asset: ", workspace);
+            oracle_limit(db.oid, function(x) {
+                db.measured_upper = parseFloat(x);
+                return cev2(db);
+            });
+        }
+    };
+    function cev2(db){
+        var early_button = button_maker2("send a proposal to end the contract early and get your money out.", function() {
+            //generate the signed ctc. send it along with the binary/scalar result used to generate it.
+            status.innerHTML = ("status: <font color=\"green\">Checking if you have enough credits, possibly buying more.</font>");
+            return messenger_object.min_bal(500000, function(){
+                var x = oracle_value(db, db.result.value);
+	        return merkle.request_proof("accounts", db.address1, function(acc) {
+                    nonce = acc[2]+1;
+	            var tx = ["ctc", db.address1, db.address2, db.fee, nonce+1, db.cid, x];
+                    var stx = keys.sign(tx);
+                    var imsg = [-6, early_close_code, db.type, db.result.value, stx];
+                    var their_address_val = Object.keys(channels_object.channel_manager())[0];
+                    return send_encrypted_message(imsg, their_address_val, function() {
+                        status.innerHTML = ("status: <font color=\"blue\">Successfully sent the channel team close tx to your partner. Tell them to visit this page. Do not delete your channel state yet. Click 'get headers' to see if the contract is settled yet.</font>");
+                        return wait_till_closed(db);
+                    });
+                });
+            });
+        });
+        workspace.appendChild(early_button);
+        workspace.appendChild(br());
+        
+        var listen_button = button_maker2("Check if you have been sent a proposal to end this contract.", function() {
+            var listen_db = {};
+            listen_db.max_contract_number = 0;
+            return messenger(["read", 0, keys.pub()], function(x) {
+                var z = x.slice(1).map(function(a){ return keys.decrypt(a); });
+                //remove any contracts from z that are not valid for what we are doing.
+                var z = early_close_proposals(z);
+                console.log(JSON.stringify(z));//[[-6,5927,2,"10",["signed",["ctc","BHpLwieFVdD5F/z1mdScC9noIZ39HgnwvK8jHqRSBxjzWBssIR1X9LGr8QxTi8fUQws1Q5CGnmTk5dZwzdrGBi4=","BOzTnfxKrkDkVl88BsLMl1E7gAbKK+83pHCt0ZzNEvyZQPKlL/n8lYLCXgrL4Mmi/6m2bzj+fejX8D52w4U9LkI=",152050,13,"kffrVRDpfpyzqPdA1hdnIIPy0dVESHFbF+Cylwstem0=",8548111],"MEUCIQDhaPyifuzV7Uc4ah4ev3FRBaW5u3DAH7ALsd8bc9RsEgIgPgbldKqZnAfb7DitZAuRWk3jNQTnk/Fv1on3tAhUb2k=",[-6]]]]
+                listen_db.max_contract_number = z.length;
+                listen_db.contracts = z;
+                listen_db.contract_number = 0;
+                display_close_offer(listen_db.contract_number, listen_db, db);
+            });
+            
+        });
+        workspace.appendChild(listen_button);
+        workspace.appendChild(br());
+        workspace.appendChild(br());
+    };
+    function early_close_proposals(x) {
+        if (x.length < 1) {
+            return [];
+        }
+        var h = x[0];
+        var t = x.slice(1);
+        var t2 = early_close_proposals(t);
+        if (h[1] == early_close_code) {
+            return ([h]).concat(t2);
+        }
+        return t2;
+    };
+    function display_close_offer(contract_number, listen_db, db) {
+        console.log(contract_number);
+        var c = listen_db.contracts[contract_number];
+        console.log(JSON.stringify(listen_db.contracts));//[-6, 5927, 2, "10", Array(4)]
+        if (c == undefined) {
+            status.innerHTML = ("status: <font color=\"red\">your mailbox does not have proposal to close this channel.</font>");
+            return 0;
+        };
+        console.log(c);//[-6, 5927, 2, "10", Array(4)]
+        status.innerHTML = ("status: <font color=\"green\">This proposal is for ending the channel at the final state of: ").concat(c[3]).concat("</font>");
+        var x = oracle_value(db, c[3]);
+        if (!(x == c[4][1][6])) {
+            status.innerHTML = ("status: <font color=\"red\">The final distribution of funds was miscalculated.</font>");
+            console.log(x);
+            console.log(c[4][1][6]);
+            return 0;
+        };
+        if (!(c[4][1][5] == db.cid)) {
+            status.innerHTML = ("status: <font color=\"error\">This tx is for closing the wrong channel.</font>");
+            console.log(db.cid);
+            console.log(c[4]);
+            console.log(c[4][1][5]);
+            return 0;
+        };
+        var accept_button = button_maker2("accept this proposal and close the channel", function() {
+            var stx = keys.sign(c[4]);
+            return variable_public_get(["txs", [-6, stx]], function(x) {
+                console.log(x);
+                status.innerHTML = "status: <font color=\"green\">We attempted to publish the channel solo close tx. Now waiting for the tx to be included in a block.</font>";
+                return wait_till_closed(db);
+            });
+        });
+        workspace.innerHTML = "";
+        workspace.appendChild(accept_button);
+        //make a button for accepting this proposal and closing the channel.
+    };
+    function oracle_value(db, result) {
+        var x;
+        if (db.type == 1) {
+            var br;
+            if (result == "true") {
+                br = 1;
+            } else if (result = "false") {
+                br = 2;
+            } else if (result = "bad") {
+                br = 3;
+            } else {
+                status.innerHTML = ("status: <font color=\"red\">Error: binary oracle result should be 'true', 'false', or 'bad'.</font>");
+                return 0;
+            }
+            if (br == 3) {//tie
+                        x = 0;
+            } else if (br == db.direction) {//acc1 wins
+                        x = db.channel_balance2;
+            } else {//acc2 wins
+                x = -db.channel_balance1;
+                    }
+        } else if (db.type == 2) {
+            var a = db.channel_balance1 + db.channel_balance2;
+            var b = Math.floor(db.measured_upper * 1024 / parseFloat(result));
+            var ll = db.lower_limit;
+            var ul = db.upper_limit;
+            b = Math.round((b - ll) * 1024 / ul);
+            b = Math.max(0, b);
+            b = Math.min(b, 1023);
+            x = Math.floor(a * b / 1024) - db.channel_balance1;
+        };
+        return x;
+    };
     function find_ctc(cid, txs) {
         //[["signed",["ctc","BHpLwieFVdD5F/z1mdScC9noIZ39HgnwvK8jHqRSBxjzWBssIR1X9LGr8QxTi8fUQws1Q5CGnmTk5dZwzdrGBi4=","BOzTnfxKrkDkVl88BsLMl1E7gAbKK+83pHCt0ZzNEvyZQPKlL/n8lYLCXgrL4Mmi/6m2bzj+fejX8D52w4U9LkI=",152050,9,"S9dYt1Xk16RDL8nMtYf3MHHFGg1vya5zz7rsUsU/UiY=",0],"MEYCIQD7d9NEvdp5PcVxbYaipiPvw46La0GQD24COQi7vQ7E8QIhAO7ztOSJgqQyuiOD8VDmx/NKODMlPViW7/kI9CYHsWrT",[-6]]]
         if (JSON.stringify(txs) == "[]") {
@@ -147,17 +291,8 @@
         //return credits_check(keys.pub(), 1200000, function() {return we_send1(db);});
         status.innerHTML = "status: <font color=\"green\">the trade looks valid. Now checking if you need credits.</font>";
         glossary.link(status, "messenger_credits");
-        return messenger_object.min_bal(1200000, function() {return we_send1(db);});
+        return messenger_object.min_bal(500000, function() {return we_send(db);});
     }
-    function we_send1(db) {
-        return messenger(["account", keys.pub()], function(a) {
-            if ((a == 0) || (a[1] < 1000000)) { //10 milibits
-                return setTimeout(function() {return we_send1(db);}, 20000);
-            }
-            return we_send(db);
-        });
-
-    };
     function get_oracle_binary(cid, oid, many, result, callback) {
         if (many == 0) { return callback(result); }
         merkle.request_proof("oracles", oid, function(r) {
@@ -210,7 +345,7 @@
     }
     function we_send(db) {
         //generate the channel_close_tx and send it to them.
-	merkle.request_proof("accounts", keys.pub(), function(acc) {
+	merkle.request_proof("accounts", db.address1, function(acc) {
             nonce = acc[2]+1;
             winnings_amount(db, function(db, a2) {
                 //var a2 = winnings_amount(db);
