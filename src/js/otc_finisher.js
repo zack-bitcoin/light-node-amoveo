@@ -80,7 +80,7 @@
                 if //(false){//
                     (db.result == 0) {//oracle still open
                     var done_timer = Or[9];
-                        status.innerHTML = ("status: <font color=\"red\"> The bet is not yet settled. The oracle has not been finalized. you need to wait longer to close this channel. It is expected to be settled a little after block height ").concat((done_timer).toString()).concat("</font>");
+                        status.innerHTML = ("status: <font color=\"red\"> The bet, on oracle ID: ").concat(db.oid).concat(" , is not yet settled. The oracle has not been finalized. you need to wait longer to close this channel. It is expected to be settled a little after block height ").concat((done_timer).toString()).concat("</font>");
                         return close_early_view(db);;
                     };
                 return start2(db);

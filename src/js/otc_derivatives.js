@@ -13,7 +13,7 @@
     var oracle = text_input("oracle: ", div);
     glossary.link(div, "oracle_id");
     div.appendChild(br());
-    var our_amount = text_input("our bet amount: ", div);
+    var our_amount = text_input("how many veo you put in the contract: ", div);
     div.appendChild(br());
     var payment_field = text_input("How much you pay for this contract. Make this negative to receive payment: ", div);
     payment_field.value = "0";
@@ -36,6 +36,10 @@
     var their_amount, bet_direction, delay, oracle_type, bits, upper_limit, lower_limit;
 
     function scalar_view() {
+        if (oracle.value == "") {
+            status.innerHTML = "status: <font color=\"red\">First choose the Oracle ID for your bet before clicking that.</font>";
+            return 0;
+        }
         buttons_div.innerHTML = "";
         their_amount = text_input("their bet amount, in veo: ", div);
         div.appendChild(br());
@@ -70,6 +74,10 @@
         div.appendChild(startButton);
     }
     function binary_view() {
+        if (oracle.value == "") {
+            status.innerHTML = "status: <font color=\"red\">First choose the Oracle ID for your bet before clicking that.</font>";
+            return 0;
+        }
         buttons_div.innerHTML = "";
         their_amount = text_input("their bet amount: ", div);
         div.appendChild(br());
@@ -79,7 +87,7 @@
         div.appendChild(br());
         oracle_type = document.createElement("p");
         oracle_type.value = "binary";
-        if (true) { //defaults
+        if (false) { //defaults
             their_address.value = "BOzTnfxKrkDkVl88BsLMl1E7gAbKK+83pHCt0ZzNEvyZQPKlL/n8lYLCXgrL4Mmi/6m2bzj+fejX8D52w4U9LkI=";
             oracle.value = "AOAJZKjaj+C0aAfI+ppYZ3E1vmvSJYdqyHNHtGy6Fzk=";
             our_amount.value = "1";
@@ -92,11 +100,15 @@
         div.appendChild(startButton);
     }
     function stablecoin_view() {
+        if (oracle.value == "") {
+            status.innerHTML = "status: <font color=\"red\">First choose the Oracle ID for your bet before clicking that.</font>";
+            return 0;
+        }
         buttons_div.innerHTML = "";
         status.innerHTML = "status: <font color=\"blue\">warning, stablecoin interface only works if the oracle asks for the price of X in Veo. Does not work if the oracle asks the price of Veo in X.</font>";
         //var their_amount = text_input("their bet amount: ", div);
         //div.appendChild(br());
-        var current_value = text_input("current value: ", div);
+        var current_value = text_input("current price: ", div);
         glossary.link(div, "stablecoin_current_value");
         div.appendChild(br());
         var measured_upper = text_input("upper limit of range being measured by the oracle: ", div);
