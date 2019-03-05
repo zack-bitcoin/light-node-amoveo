@@ -114,7 +114,7 @@
         return merkle.request_proof("oracles", db.oid, function(x) {
             var result = x[2];
             if (!(result == 0)) {
-                status.innerHTML = "status: <font color=\"red\">Error: That oracle does not exist.</font>";
+                status.innerHTML = "status: <font color=\"red\">Error: That oracle does not exist. (did you sync headers?) </font>";
                 return 0;
             }
             db.oracle = x;
