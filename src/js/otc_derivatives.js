@@ -240,7 +240,7 @@
             if (my_acc == "empty") {
                 status.innerHTML = "status: <font color=\"red\">Error: load a private key with sufficient funds.</font>";
                 return 0;
-            } else if (my_acc[1] < (db.our_amount_val + 1000000)) {
+            } else if (my_acc[1] < (db.our_amount_val)) {
                 status.innerHTML = "status: <font color=\"red\">Error: you don't have enough funds to make a bet that big.</font>";
                 return 0;
             }
@@ -249,7 +249,7 @@
                 if (their_acc == "empty") {
                     status.innerHTML = "status: <font color=\"red\">Error: your partner needs to have veo in their account to make a channel.</font>";
                     return 0;
-                } else if (their_acc[1] < (db.their_amount_val + 1000000)) {
+                } else if (their_acc[1] < (db.their_amount_val)) {
                     console.log(their_acc);
                     console.log(db.their_amount_val);
                     status.innerHTML = "status: <font color=\"red\">Error: your partner doesn't have enough veo to make a bet that big.</font>";

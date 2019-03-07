@@ -71,7 +71,7 @@ var messenger_object = (function() {
 
     };
     function buy_credits(minAmount, callback) {
-        F = function() { return buy_credits2(Math.floor(minAmount * 5), callback); };
+        F = function() { return buy_credits2(Math.floor(minAmount * 2), callback); };
         return messenger(["account", keys.pub()], function(a) {
             if (a == 0) { //10 milibits
                 //account does not exist
