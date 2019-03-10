@@ -70,8 +70,10 @@
         lower_limit = text_input("what is the lower limit?", div);
         lower_limit.value = "0";
         div.appendChild(br());
-        var startButton = button_maker2("offer to make this trade", start);
+        var startButton = button_maker2("offer to make this trade via encrypted message to one person", start);
         div.appendChild(startButton);
+        var printButton = button_maker2("print an offer that anyone can accept", print_offer);
+        div.appendChild(printButton);
     }
     function binary_view() {
         if (oracle.value == "") {
@@ -87,17 +89,19 @@
         div.appendChild(br());
         oracle_type = document.createElement("p");
         oracle_type.value = "binary";
-        if (false) { //defaults
+        if (true) { //defaults
             their_address.value = "BOzTnfxKrkDkVl88BsLMl1E7gAbKK+83pHCt0ZzNEvyZQPKlL/n8lYLCXgrL4Mmi/6m2bzj+fejX8D52w4U9LkI=";
-            oracle.value = "AOAJZKjaj+C0aAfI+ppYZ3E1vmvSJYdqyHNHtGy6Fzk=";
+            oracle.value = "RVKGLtv+JC5nn2Jk+6yphlLWACqdQOHLnx/VGoQ4nlo=";
             our_amount.value = "1";
             their_amount.value = "1";
             bet_direction.value = "true";
             oracle_type.value = "binary";
             payment_field.value = "0.2";
         };
-        var startButton = button_maker2("offer to make this trade", start);
+        var startButton = button_maker2("offer to make this trade via encrypted message to one person", start);
         div.appendChild(startButton);
+        var printButton = button_maker2("print an offer that anyone can accept", print_offer);
+        div.appendChild(printButton);
     }
     function stablecoin_view() {
         if (oracle.value == "") {
@@ -143,7 +147,7 @@
         oracle_type.value = "scalar";
         bits = document.createElement("p");
         bits.value = "10";
-        var startButton = button_maker2("offer to make this trade", function(){
+        function scalar_view2(callback) {
             var cp = parseFloat(current_value.value);
             var a = read_veo(our_amount);
             var oracle_upper = parseFloat(measured_upper.value); 
@@ -166,10 +170,31 @@
             var ta = (a * (ul - cp2 ) / (cp2 - ll));
             console.log(JSON.stringify([ta, (ul - cp2), (cp2 - ll)]));
             their_amount.value = (ta/100000000).toString();
-            return start();
+            return callback();
+        };
+        var startButton = button_maker2("offer to make this trade via encrypted message to one person", function() {
+            return scalar_view2(start);
         });
         div.appendChild(startButton);
-        
+        var printButton = button_maker2("print an offer that anyone can accept", function(){ return scalar_view2(print_offer)});
+        div.appendChild(printButton);
+    }
+    function print_offer() {
+        return load_from_text_fields(function(db) {
+            return check_account_balances(db, function(db2) {
+                var cp = make_contract_proposal(db2);
+                cp.msg[12] = [-6, 2, keys.sign(cp.ch)[2]];
+                cp.msg[5] = 0;
+                var height = headers_object.top()[1];
+                var nc_offer = ["nc_offer", keys.pub(), height + 100, db.our_amount_val, db.their_amount_val, 1000, db.delay, db.cid, cp.ch[1][1]];
+                var ncs = keys.sign(nc_offer);
+                status.innerHTML = "status: <font color=\"blue\">put this data in a public place: </font> ".concat(JSON.stringify([-6, cp.msg, ncs]));
+                                
+                //make the signed nc_offer 
+//-record(nc_offer, {acc1, nonce, nlocktime, bal1, bal2, miner_commission, %miner commission between 0 and 10 000.
+           //delay, id, contract_hash}).%this is the anyone can spend trade offer.
+            });
+        });
     }
     function start() {
         return load_from_text_fields(function(db) {
@@ -267,8 +292,8 @@
         return messenger_object.min_bal(1000000, function(){
             return propose_contract2(db, callback)});
     }
-    function propose_contract2(db, callback) {
-        status.innerHTML = "status: <font color=\"blue\">sending trade request. Tell your partner to check their messages from the same server you are using. </font>";
+    function make_contract_proposal(db) {
+
         var maxprice = Math.floor((10000 * (db.our_amount_val)) / (db.their_amount_val + db.our_amount_val)); 
         var period = 10000000;//only one period because there is only one bet.
         var amount = db.our_amount_val + db.their_amount_val;
@@ -296,7 +321,7 @@
         //console.log(sc);
         var spk2 = market_trade(cd, amount, maxprice, sc, oid);
         //console.log(JSON.stringify(spk2));
-        var sspk2 = keys.sign(spk2);
+        var sspk2 = keys.sign(spk2); //HERE we should sign the hash of the contract instead.
         var pd = pd_maker(height, maxprice - 1, 9999, oid);
         var sig = keys.raw_sign(pd);
         //var sig = keys.sign(pd)[2];//crashes here
@@ -317,6 +342,13 @@
             console.log(db.upper_limit);
             imsg = [-6, db.bet_direction_val, bet_expires, maxprice, keys.pub(), db.their_address_val, period, db.our_amount_val, db.their_amount_val, oid, height, db.delay, contract_sig, signedPD, spk_nonce, db.oracle_type_val, db.cid, db.bits_val, db.upper_limit, db.lower_limit, db.payment];
         }
+        var contract_hash = [-7, hash(serialize(spk)), keys.pub(), 1];
+        return {msg: imsg, ch: contract_hash};
+    }
+
+    function propose_contract2(db, callback) {
+        status.innerHTML = "status: <font color=\"blue\">sending trade request. Tell your partner to check their messages from the same server you are using. </font>";
+        var imsg = make_contract_proposal(db).msg;
         return send_encrypted_message(imsg, db.their_address_val, function() { return callback(db); });
     };
     function create_channel(db, callback) {

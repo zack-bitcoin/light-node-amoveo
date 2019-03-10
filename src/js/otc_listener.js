@@ -1,9 +1,15 @@
 (function otc_listener() {
     var div = document.createElement("div");
     document.body.appendChild(div);
+    var title2 = document.createElement("h3");
+    title2.innerHTML = "copy/paste response form";
+    div.appendChild(title2);
+    var start_button = button_maker2("load trade offer", cp_start);
+    div.appendChild(start_button);
+    var cp_text = text_input("copy/paste the offer text to here: ", div);
 
     var title = document.createElement("h3");
-    title.innerHTML = "direct derivatives response form";
+    title.innerHTML = "direct derivatives encrypted mail response form";
     div.appendChild(title);
     var start_button = button_maker2("load your keys, then click this", start1);
  div.appendChild(start_button);
@@ -15,18 +21,18 @@
     var contracts = [];
     var next_button = button_maker2("Previous", function() {
         contract_number = Math.min(contract_number + 1, max_contract_number - 1);
-        display_trade(contract_number);
+        original_display_trade(contracts[contract_number]);
     });
     div.appendChild(next_button);
     var previous_button = button_maker2("Next", function() {
         contract_number = Math.max(contract_number - 1, 0);
-        display_trade(contract_number);
+        original_display_trade(contracts[contract_number]);
     });
     div.appendChild(previous_button);
     var contract_view = document.createElement("div");
     div.appendChild(br());
     div.appendChild(contract_view);
-        //contract_view.innerHTML = 0;
+    //contract_view.innerHTML = 0;
     function start1() {
         return messenger(["read", 0, keys.pub()], function(x) {
             if (x == []) {
@@ -40,13 +46,32 @@
                 //git rid of contracts if the cid already has a channel.
                 max_contract_number = z.length;
                 contracts = z;
-                display_trade(contract_number);
+                original_display_trade(contracts[contract_number]);
             }
         });
     }
-    function display_trade(n){
-        console.log(JSON.stringify(contracts));
-        y = contracts[n];
+    function cp_start() {
+        var x = JSON.parse(cp_text.value);
+        var msg = x[1];
+        var signed_nc_offer = x[2];
+        display_trade(msg, function(db){
+            var accept = button_maker2("Accept trade and make channel.", function() {
+                return 0;
+            });
+            contract_view.appendChild(accept);
+        });
+    };
+    function original_display_trade(y) {
+        return display_trade(y, function(db) {
+            var accept_button = button_maker2("Accept this trade", function() { return accept_trade(db); } );
+            contract_view.appendChild(accept_button);
+            
+        })
+    }
+    function display_trade(y, callback){
+        //console.log(JSON.stringify(contracts));
+        //y = contracts[n];
+
         console.log(JSON.stringify(y));
         var db = {};
         db.direction_val = y[1];
@@ -54,10 +79,10 @@
         db.maxprice = y[3];
         db.acc1 = y[4];
         db.acc2 = y[5];
-        if (!(keys.pub() == db.acc2)) {
-            console.log("wrong address");
-            return 0;
-        }
+        //if (!(keys.pub() == db.acc2)) {
+         //   console.log("wrong address");
+          //  return 0;
+       // }
         db.period = y[6];
         db.amount1 = y[7];
         db.amount2 = y[8];
@@ -87,25 +112,30 @@
         }
         console.log("display trade");
 
-        variable_public_get(["oracle", db.oid], function(x) {
-            var question = atob(x[2]);
-            console.log(question);
+        merkle.request_proof("channels", db.cid, function(c) {
+            if (!(c == "empty")) {
+                console.log("that contract was already made.")
+                return(0);
+            };
+            variable_public_get(["oracle", db.oid], function(x) {
+                var question = atob(x[2]);
+                console.log(question);
             
-            var s1 = ("their address: ").concat(db.acc1).concat("<br />").concat(
-                "oracle: ").concat(db.oid).concat("<br />").concat(
-                    "oracle text: ").concat(question).concat("<br />").concat(
-                        "our bet amount: ").concat(db.amount2 / token_units()).concat("<br />").concat(
-                            "their bet amount: ").concat(db.amount1 / token_units()).concat("<br />");
-            var s2 = s1.concat("you win if the outcome is: ").concat(db.direction).concat("<br />").concat("scalar or binary?: ").concat(db.oracle_type).concat("<br />").concat("delay: ").concat((db.delay).toString()).concat("<br />").concat("for this contract, you pay: ").concat((-(db.payment) / token_units()).toString()).concat("<br />");;
-            if (db.oracle_type_val == 1) {//scalar
-            s2 = s2.concat("upper limit: ").concat((db.upper_limit).toString()).concat("<br />").concat("lower limit: ").concat((db.lower_limit).toString()).concat("<br />");
-            }
-            var cvdiv = document.createElement("div");
-            cvdiv.innerHTML = s2;
-            contract_view.innerHTML = "";
-            contract_view.appendChild(cvdiv);
-            var accept_button = button_maker2("Accept this trade", function() { return accept_trade(db); } );
-            contract_view.appendChild(accept_button);
+                var s1 = ("their address: ").concat(db.acc1).concat("<br />").concat(
+                    "oracle: ").concat(db.oid).concat("<br />").concat(
+                        "oracle text: ").concat(question).concat("<br />").concat(
+                            "our bet amount: ").concat(db.amount2 / token_units()).concat("<br />").concat(
+                                "their bet amount: ").concat(db.amount1 / token_units()).concat("<br />");
+                var s2 = s1.concat("you win if the outcome is: ").concat(db.direction).concat("<br />").concat("scalar or binary?: ").concat(db.oracle_type).concat("<br />").concat("delay: ").concat((db.delay).toString()).concat("<br />").concat("for this contract, you pay: ").concat((-(db.payment) / token_units()).toString()).concat("<br />");;
+                if (db.oracle_type_val == 1) {//scalar
+                    s2 = s2.concat("upper limit: ").concat((db.upper_limit).toString()).concat("<br />").concat("lower limit: ").concat((db.lower_limit).toString()).concat("<br />");
+                }
+                var cvdiv = document.createElement("div");
+                cvdiv.innerHTML = s2;
+                contract_view.innerHTML = "";
+                contract_view.appendChild(cvdiv);
+                callback(db);
+            });
         });
     };
     function accept_trade(db) {
@@ -133,7 +163,7 @@
                 return 0;
             }
             db.account1 = their_acc;
-            status.innerHTML = "status: <font color=\"green\">the trade looks valid. Now checking if you need credits.</font>";
+            status.innerHTML = "status: <font color=\"green\">the trade looks valid. Now checking if you need credits, and possibly buying more.</font>";
             glossary.link(status, "messenger_credits");
             return messenger_object.min_bal(1000000, function(){return accept_trade3(db)});
         });
