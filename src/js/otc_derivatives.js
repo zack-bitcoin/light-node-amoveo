@@ -89,7 +89,7 @@
         div.appendChild(br());
         oracle_type = document.createElement("p");
         oracle_type.value = "binary";
-        if (true) { //defaults
+        if (false) { //defaults
             their_address.value = "BOzTnfxKrkDkVl88BsLMl1E7gAbKK+83pHCt0ZzNEvyZQPKlL/n8lYLCXgrL4Mmi/6m2bzj+fejX8D52w4U9LkI=";
             oracle.value = "RVKGLtv+JC5nn2Jk+6yphlLWACqdQOHLnx/VGoQ4nlo=";
             our_amount.value = "1";
