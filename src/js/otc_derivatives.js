@@ -56,7 +56,7 @@
         bits = document.createElement("p");
         bits.value = "10";
         if (false) { //defaults
-            their_address.value = "BOzTnfxKrkDkVl88BsLMl1E7gAbKK+83pHCt0ZzNEvyZQPKlL/n8lYLCXgrL4Mmi/6m2bzj+fejX8D52w4U9LkI=";
+            //their_address.value = "BOzTnfxKrkDkVl88BsLMl1E7gAbKK+83pHCt0ZzNEvyZQPKlL/n8lYLCXgrL4Mmi/6m2bzj+fejX8D52w4U9LkI=";
             oracle.value = "yfTmzAgc+UFVctOnp6QQi++tLQcP930Bk3xh8hjnYjU=";
             our_amount.value = "1";
             their_amount.value = "1";
@@ -90,7 +90,7 @@
         div.appendChild(br());
         oracle_type = document.createElement("p");
         oracle_type.value = "binary";
-        if (true) { //defaults
+        if (false) { //defaults
             //their_address.value = "BOzTnfxKrkDkVl88BsLMl1E7gAbKK+83pHCt0ZzNEvyZQPKlL/n8lYLCXgrL4Mmi/6m2bzj+fejX8D52w4U9LkI=";
             oracle.value = "3qHmn0Lw3nnhztzi95CgU/yomO/CfIPYICtxPQN7PbY=";
             our_amount.value = "1";
@@ -121,7 +121,7 @@
 	//var question_hash = x[3];
 
         if (false) { //defaults
-            their_address.value = "BOzTnfxKrkDkVl88BsLMl1E7gAbKK+83pHCt0ZzNEvyZQPKlL/n8lYLCXgrL4Mmi/6m2bzj+fejX8D52w4U9LkI=";
+            //their_address.value = "BOzTnfxKrkDkVl88BsLMl1E7gAbKK+83pHCt0ZzNEvyZQPKlL/n8lYLCXgrL4Mmi/6m2bzj+fejX8D52w4U9LkI=";
             //their_address.value = "BMJBIx+CHECWjOAxeiDvs0QVR/cXgklc69kIi8dSpuu6/l7OSUQISwapLLu62zE4Md9LxcPoQXCds/Esv72oQsE=";
             oracle.value = "7rTPLUaQQLEyNwDUPqh5HPUPUpCx1K+A5yBbObtvs+U=";
             payment_field.value = "0";
@@ -227,7 +227,8 @@
         console.log("start");
         var db = {};
         db.payment = read_veo(payment_field);
-        db.their_address_val = parse_address(their_address.value);
+        //db.their_address_val = parse_address(their_address.value);
+        db.their_address_val = "";
         db.oracle_val = oracle.value.trim().replace(/\./g,'');
         if (!(db.oracle_val.length == 44)) {
             status.innerHTML = "status: <font color=\"red\">Error: oracle ID is badly formatted or missing</font>";
@@ -289,6 +290,7 @@
             if (db.their_address_val == "") {
                 return callback(db);
             }
+            /*
             return variable_public_get(["account", db.their_address_val], function(their_acc) {
                 if (their_acc == "empty") {
                     status.innerHTML = "status: <font color=\"red\">Error: your partner needs to have veo in their account to make a channel.</font>";
@@ -302,6 +304,7 @@
                 db.their_acc = their_acc;
                 return callback(db);
             });
+            */
         });
     }
     function propose_contract(db, callback) {

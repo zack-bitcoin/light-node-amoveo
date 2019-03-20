@@ -23,12 +23,12 @@
         contract_number = Math.min(contract_number + 1, max_contract_number - 1);
         original_display_trade(contracts[contract_number]);
     });
-    div.appendChild(next_button);
+    //div.appendChild(next_button);
     var previous_button = button_maker2("Next", function() {
         contract_number = Math.max(contract_number - 1, 0);
         original_display_trade(contracts[contract_number]);
     });
-    div.appendChild(previous_button);
+    //div.appendChild(previous_button);
     var contract_view = document.createElement("div");
     div.appendChild(br());
     div.appendChild(contract_view);
