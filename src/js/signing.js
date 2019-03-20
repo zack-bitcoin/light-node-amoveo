@@ -84,7 +84,13 @@ function verify(data, sig0, key) {
     return key.verify(h, sig, "hex");
 }
 function verify1(tx) {
-    return verify(tx[1], tx[2], keys.ec().keyFromPublic(toHex(atob(tx[1][1])), "hex"));
+    var pub;
+    if (tx[1][0] == -7) {
+        pub = tx[1][2];
+    } else {
+        pub = tx[1][1];
+    }
+    return verify(tx[1], tx[2], keys.ec().keyFromPublic(toHex(atob(pub)), "hex"));
 }
 function verify2(tx) {
     return verify(tx[1], tx[3], keys.ec().keyFromPublic(toHex(atob(tx[1][2])), "hex"));

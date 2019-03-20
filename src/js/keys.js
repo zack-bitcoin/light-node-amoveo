@@ -150,6 +150,6 @@ function keys_function1() {
     function decrypt(val) {
 	return encryption_object.get(val, keys_internal);
     }
-    return {make: new_keys, pub: pubkey_64, raw_sign: raw_sign, sign: sign_tx, ec: (function() { return ec; }), encrypt: encrypt, decrypt: decrypt, check_balance: check_balance};
+    return {make: new_keys, pub: pubkey_64, raw_sign: raw_sign, sign: sign_tx, ec: (function() { return ec; }), encrypt: encrypt, decrypt: decrypt, check_balance: check_balance, keys_internal: (function() {return keys_internal;}) };
 }
 var keys = keys_function1();
