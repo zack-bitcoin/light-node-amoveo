@@ -152,7 +152,7 @@
             }
             db.oracle = x;
             if (db.oracle_type_val == 1) { //scalar
-                return verify_exists(db.oid, 10, function() {return accept_trade2(db);});
+                return verify_exists(db.oid, 10, function() {return accept_trade2(db, callback);});
             }
             return accept_trade2(db, callback);
         });
