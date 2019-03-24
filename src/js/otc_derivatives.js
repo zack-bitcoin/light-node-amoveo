@@ -57,7 +57,7 @@
         bits.value = "10";
         if (false) { //defaults
             //their_address.value = "BOzTnfxKrkDkVl88BsLMl1E7gAbKK+83pHCt0ZzNEvyZQPKlL/n8lYLCXgrL4Mmi/6m2bzj+fejX8D52w4U9LkI=";
-            oracle.value = "yfTmzAgc+UFVctOnp6QQi++tLQcP930Bk3xh8hjnYjU=";
+            oracle.value = "A8Z/DvvBMNFU/hEURZkGyzsgX2vI8JFp8gLCWCLuNjs=";
             our_amount.value = "1";
             their_amount.value = "1";
             bet_direction.value = "long";
@@ -72,7 +72,7 @@
         lower_limit.value = "0";
         div.appendChild(br());
         var startButton = button_maker2("offer to make this trade via encrypted message to one person", start);
-        div.appendChild(startButton);
+        //div.appendChild(startButton);
         var printButton = button_maker2("print an offer that anyone can accept", print_offer);
         div.appendChild(printButton);
     }
@@ -123,7 +123,7 @@
         if (false) { //defaults
             //their_address.value = "BOzTnfxKrkDkVl88BsLMl1E7gAbKK+83pHCt0ZzNEvyZQPKlL/n8lYLCXgrL4Mmi/6m2bzj+fejX8D52w4U9LkI=";
             //their_address.value = "BMJBIx+CHECWjOAxeiDvs0QVR/cXgklc69kIi8dSpuu6/l7OSUQISwapLLu62zE4Md9LxcPoQXCds/Esv72oQsE=";
-            oracle.value = "7rTPLUaQQLEyNwDUPqh5HPUPUpCx1K+A5yBbObtvs+U=";
+            oracle.value = "A8Z/DvvBMNFU/hEURZkGyzsgX2vI8JFp8gLCWCLuNjs=";
             payment_field.value = "0";
 
             our_amount.value = "0.1";
@@ -176,7 +176,7 @@
         var startButton = button_maker2("offer to make this trade via encrypted message to one person", function() {
             return scalar_view2(start);
         });
-        div.appendChild(startButton);
+        //div.appendChild(startButton);
         var printButton = button_maker2("print an offer that anyone can accept", function(){ return scalar_view2(print_offer)});
         div.appendChild(printButton);
     }
@@ -337,7 +337,8 @@
         }
         var cid = btoa(random_cid(32));//generate a random 32 byte cid for the new channel.
         db.cid = cid;
-        var spk = ["spk", keys.pub(), db.their_address_val, [-6], 0, 0, cid, 0, 0, db.delay];
+        //var spk = ["spk", keys.pub(), db.their_address_val, [-6], 0, 0, cid, 0, 0, db.delay];
+        var spk = ["spk", keys.pub(), 0, [-6], 0, 0, cid, 0, 0, db.delay];
         //console.log(JSON.stringify(spk));
         var cd = channels_object.new_cd(spk, [], [], [], bet_expires, cid);
         //console.log(sc);
