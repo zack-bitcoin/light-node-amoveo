@@ -12,7 +12,7 @@
     title.innerHTML = "direct derivatives encrypted mail response form";
     div.appendChild(title);
     var start_button = button_maker2("load your keys, then click this", start1);
- div.appendChild(start_button);
+    //div.appendChild(start_button);
     var status = document.createElement("p");
     status.innerHTML = "status: <font color=\"orange\">listening for offers to trade. Send your pubkey to people who want to make trades with you.</font>";
     div.appendChild(status);
@@ -23,12 +23,12 @@
         contract_number = Math.min(contract_number + 1, max_contract_number - 1);
         original_display_trade(contracts[contract_number]);
     });
-    div.appendChild(next_button);
+    //div.appendChild(next_button);
     var previous_button = button_maker2("Next", function() {
         contract_number = Math.max(contract_number - 1, 0);
         original_display_trade(contracts[contract_number]);
     });
-    div.appendChild(previous_button);
+    //div.appendChild(previous_button);
     var contract_view = document.createElement("div");
     div.appendChild(br());
     div.appendChild(contract_view);
@@ -56,62 +56,65 @@
         var signed_nc_offer = x[2];
         display_trade(msg, function(db){
             var accept = button_maker2("Accept trade and make channel.", function() {
-                return 0;
+                return accept_trade(db, function(db2) {
+                    var spk2 = spk_maker(db2, 0);
+                    console.log(JSON.stringify(spk2));
+                    var CH = btoa(array_to_string(hash(serialize(spk2))));
+                    var NCO = signed_nc_offer[1];
+                    var contract_hash2 = NCO[9];
+                    if (!(JSON.stringify(CH) == JSON.stringify(contract_hash2))) {
+                        console.log(JSON.stringify(CH));
+                        console.log(JSON.stringify(contract_hash2));
+                        status.innerHTML = "status: <font color=\"red\">we calculated the contract hash differently.</font> ";
+                        return 0;
+                    }
+                    //var sch = keys.sign([-7, CH, keys.pub(), 1]);
+                    var their_spk_sig = msg[12];
+                    if (!(check_spk_sig(db.acc1, CH, their_spk_sig[2]))) {
+                        console.log("bad smart contract signature");
+                        console.log(their_spk_sig[2]);
+                        return 0;
+                    };
+                    var v = pd_checker(db);
+                    if (!(v == true)) {
+                        status.innerHTML = "status: <font color=\"red\">Error: the price declaration's signature is invalid.</font>";
+                        return 0;
+                    }
+                    var fee = 152050;
+                    var contract_sig = spk_sig(CH);
+                    var tx = ["nc_accept", keys.pub(), signed_nc_offer, fee, contract_sig];
+		    var stx = keys.sign(tx);
+		    variable_public_get(["txs", [-6, stx]], function(x) {
+                        //save channel state
+                        var my_spk_sig = [-7, 2, contract_sig];
+                        var sspk2 = ["signed", spk2, their_spk_sig, my_spk_sig]; 
+                        record_channel_state(sspk2, db, keys.pub());
+                        status.innerHTML = "status: <font color=\"red\">Warning: you need to save your channel state to a file. </font>";
+                    });
+                });
             });
             contract_view.appendChild(accept);
         });
     };
     function original_display_trade(y) {
         return display_trade(y, function(db) {
-            var accept_button = button_maker2("Accept this trade", function() { return accept_trade(db); } );
+            var accept_button = button_maker2("Accept this trade", function() {
+                return accept_trade(db, function(db2) {
+                    status.innerHTML = "status: <font color=\"green\">the trade looks valid. Now checking if you need credits, and possibly buying more.</font>";
+                    glossary.link(status, "messenger_credits");
+                    return messenger_object.min_bal(1000000, function(){
+                        return accept_trade3(db2);
+                    });
+                });
+            });
             contract_view.appendChild(accept_button);
-            
-        })
+        });
     }
     function display_trade(y, callback){
         //console.log(JSON.stringify(contracts));
         //y = contracts[n];
-
+        var db = derivatives_load_db(y);
         console.log(JSON.stringify(y));
-        var db = {};
-        db.direction_val = y[1];
-        db.expires = y[2];
-        db.maxprice = y[3];
-        db.acc1 = y[4];
-        db.acc2 = y[5];
-        //if (!(keys.pub() == db.acc2)) {
-         //   console.log("wrong address");
-          //  return 0;
-       // }
-        db.period = y[6];
-        db.amount1 = y[7];
-        db.amount2 = y[8];
-        console.log(db.amount2);
-        db.oid = y[9];
-        db.height = y[10];
-        db.delay = y[11];
-        db.contract_sig = y[12];
-        db.spd = atob(y[13]);
-        db.spk_nonce = y[14];
-        db.oracle_type_val = y[15];
-        db.oracle_type;
-        db.cid = y[16];
-        db.payment = y[20];
-        if (db.oracle_type_val == 1) {
-            db.oracle_type = "scalar";
-            db.bits = y[17];
-            db.upper_limit = y[18];
-            db.lower_limit = y[19];
-        } else if (db.oracle_type_val == 0) {
-            db.oracle_type = "binary";
-        }
-        if (db.direction_val == 1) {
-            db.direction = "false or short";
-        } else if (db.direction_val == 2) {
-            db.direction = "true or long";
-        }
-        console.log("display trade");
-
         merkle.request_proof("channels", db.cid, function(c) {
             if (!(c == "empty")) {
                 console.log("that contract was already made.")
@@ -138,7 +141,7 @@
             });
         });
     };
-    function accept_trade(db) {
+    function accept_trade(db, callback) {
         console.log("accepting this trade");
         status.innerHTML = "status: <font color=\"green\">checking if this trade is valid.</font>";
         return merkle.request_proof("oracles", db.oid, function(x) {
@@ -151,10 +154,10 @@
             if (db.oracle_type_val == 1) { //scalar
                 return verify_exists(db.oid, 10, function() {return accept_trade2(db);});
             }
-            return accept_trade2(db);
+            return accept_trade2(db, callback);
         });
     };
-    function accept_trade2(db){
+    function accept_trade2(db, callback){
         return variable_public_get(["account", db.acc1], function(their_acc) {
             if (their_acc == "empty") {
                     status.innerHTML = "status: <font color=\"red\">Error: your partner needs to have veo in their account to make a channel.</font>";
@@ -163,50 +166,26 @@
                 return 0;
             }
             db.account1 = their_acc;
-            status.innerHTML = "status: <font color=\"green\">the trade looks valid. Now checking if you need credits, and possibly buying more.</font>";
-            glossary.link(status, "messenger_credits");
-            return messenger_object.min_bal(1000000, function(){return accept_trade3(db)});
+            return callback(db);
         });
     };
     function accept_trade3(db) {
-        var period = 10000000;//only one period because there is only one bet.
-        var amount = db.amount1 + db.amount2;
-        var sc;
-        if (db.oracle_type == "scalar") {
-            console.log("accept trade 3 direction ");
-            console.log(db.direction_val);
-            sc = scalar_market_contract(db.direction_val, db.expires, db.maxprice, db.acc1, period, amount, db.oid, db.height, db.upper_limit, db.lower_limit, db.bits);
-        } else if (db.oracle_type == "binary") {
-            sc = market_contract(db.direction_val, db.expires, db.maxprice, db.acc1, period, amount, db.oid, db.height);
-        }
-        //var delay = 1000;//a little over a week
-        var spk = ["spk", db.acc1, keys.pub(), [-6], 0,0,db.cid, 0,0,db.delay];
-        var cd = channels_object.new_cd(spk, [],[],[],db.expires, db.cid);
-        var spk2 = market_trade(cd, amount, db.maxprice, sc, db.oid);
-        var sspk2 = keys.sign(spk2);
+        var spk2 = spk_maker(db, keys.pub());
+        //var sspk2 = keys.sign(spk2);
+        var sig = spk_sig(spk2);
+        var sspk2 = ["signed", spk2, [-6], [-7, 2, sig]];
         sspk2[2] = db.contract_sig;
         var v = verify_both(sspk2);
         if (!(v == true)) {
             status.innerHTML = "status: <font color=\"red\">Error: one of the signatures is wrong, maybe the contract wasn't identically calculated on both nodes.</font>";
             return 0;
         }
-        var pd = pd_maker(db.height, db.maxprice - 1, 9999, db.oid);
-        var pd2 = db.spd.slice(0, pd.length);
-        if (!(pd == pd2)) {
-            status.innerHTML = "status: <font color=\"red\">Error: the price declaration was not calculated identically on both nodes.</font>";
-            console.log(JSON.stringify(pd));//we calculate
-            console.log(JSON.stringify(atob(pd2)));//they calculate
-            return 0;
-        }
-        var pd_sig = db.spd.slice(pd.length);
-        //var v = verify(pd, pd_sig, keys.ec().keyFromPublic(toHex(atob(db.acc1)), "hex"));
-        var their_key = keys.ec().keyFromPublic(toHex(atob(db.acc1)), "hex");
-        var v = their_key.verify(hash(pd), bin2rs(atob(pd_sig)), "hex");
+        var v = pd_checker(db);
         if (!(v == true)) {
             status.innerHTML = "status: <font color=\"red\">Error: the price declaration's signature is invalid.</font>";
             return 0;
         }
-            var fee = 152050;
+        var fee = 152050;
         merkle.request_proof("accounts", db.acc1, function (acc) {
             var nonce = acc[2]+1;
             var tav2, oav2;
@@ -221,18 +200,26 @@
             var stx = keys.sign(channel_tx);
             var msg = [-6, stx, sspk2[3]];
             send_encrypted_message(msg, db.acc1, function() {
-                var meta = 0;
-                var ss = channels_object.new_ss([0,0,0,0,4], [-6, ["oracles", db.oid]], meta);
-                var expiration = 10000000;
-                var cd = channels_object.new_cd(sspk2[1], sspk2, [ss], [ss], expiration, db.cid);
-                console.log(JSON.stringify(cd));
-                channels_object.write(db.acc1, cd);
+                record_channel_state(sspk2, db, keys.pub());
                 status.innerHTML = "status: <font color=\"red\">Warning: you need to save your channel state to a file. You can leave the browser open longer to find out when this channel will be made, or you can load your channel state into otc_finisher to find out the channel state later.</font>";
-                channels_object.write(db.acc1, cd);
                 return start2(db);
             });
         });
     };
+    function pd_checker(db) {
+        var pd = pd_maker(db.height, db.maxprice - 1, 9999, db.oid);
+        var pd2 = db.spd.slice(0, pd.length);
+        if (!(pd == pd2)) {
+            status.innerHTML = "status: <font color=\"red\">Error: the price declaration was not calculated identically on both nodes.</font>";
+            console.log(JSON.stringify(pd));//we calculate
+            console.log(JSON.stringify(atob(pd2)));//they calculate
+            return 0;
+        }
+        var pd_sig = db.spd.slice(pd.length);
+        //var v = verify(pd, pd_sig, keys.ec().keyFromPublic(toHex(atob(db.acc1)), "hex"));
+        var their_key = keys.ec().keyFromPublic(toHex(atob(db.acc1)), "hex");
+        return their_key.verify(hash(pd), bin2rs(atob(pd_sig)), "hex");
+    }
     function start2(db) {
         merkle.request_proof("channels", db.cid, function(c) {
             console.log("channel is ");

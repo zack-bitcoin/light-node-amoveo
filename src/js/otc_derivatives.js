@@ -8,7 +8,8 @@
     var status = document.createElement("p");
     status.innerHTML = "status: <font color=\"green\">ready</font>";
     div.appendChild(status);
-    var their_address = text_input("their_address: ", div);
+    //var their_address = text_input("their_address: ", div);
+    var their_address = {value: ""};
     div.appendChild(br());
     var oracle = text_input("oracle: ", div);
     glossary.link(div, "oracle_id");
@@ -55,7 +56,7 @@
         bits = document.createElement("p");
         bits.value = "10";
         if (false) { //defaults
-            their_address.value = "BOzTnfxKrkDkVl88BsLMl1E7gAbKK+83pHCt0ZzNEvyZQPKlL/n8lYLCXgrL4Mmi/6m2bzj+fejX8D52w4U9LkI=";
+            //their_address.value = "BOzTnfxKrkDkVl88BsLMl1E7gAbKK+83pHCt0ZzNEvyZQPKlL/n8lYLCXgrL4Mmi/6m2bzj+fejX8D52w4U9LkI=";
             oracle.value = "yfTmzAgc+UFVctOnp6QQi++tLQcP930Bk3xh8hjnYjU=";
             our_amount.value = "1";
             their_amount.value = "1";
@@ -90,8 +91,8 @@
         oracle_type = document.createElement("p");
         oracle_type.value = "binary";
         if (false) { //defaults
-            their_address.value = "BOzTnfxKrkDkVl88BsLMl1E7gAbKK+83pHCt0ZzNEvyZQPKlL/n8lYLCXgrL4Mmi/6m2bzj+fejX8D52w4U9LkI=";
-            oracle.value = "RVKGLtv+JC5nn2Jk+6yphlLWACqdQOHLnx/VGoQ4nlo=";
+            //their_address.value = "BOzTnfxKrkDkVl88BsLMl1E7gAbKK+83pHCt0ZzNEvyZQPKlL/n8lYLCXgrL4Mmi/6m2bzj+fejX8D52w4U9LkI=";
+            oracle.value = "3qHmn0Lw3nnhztzi95CgU/yomO/CfIPYICtxPQN7PbY=";
             our_amount.value = "1";
             their_amount.value = "1";
             bet_direction.value = "true";
@@ -99,7 +100,7 @@
             payment_field.value = "0.2";
         };
         var startButton = button_maker2("offer to make this trade via encrypted message to one person", start);
-        div.appendChild(startButton);
+        //div.appendChild(startButton);
         var printButton = button_maker2("print an offer that anyone can accept", print_offer);
         div.appendChild(printButton);
     }
@@ -120,7 +121,7 @@
 	//var question_hash = x[3];
 
         if (false) { //defaults
-            their_address.value = "BOzTnfxKrkDkVl88BsLMl1E7gAbKK+83pHCt0ZzNEvyZQPKlL/n8lYLCXgrL4Mmi/6m2bzj+fejX8D52w4U9LkI=";
+            //their_address.value = "BOzTnfxKrkDkVl88BsLMl1E7gAbKK+83pHCt0ZzNEvyZQPKlL/n8lYLCXgrL4Mmi/6m2bzj+fejX8D52w4U9LkI=";
             //their_address.value = "BMJBIx+CHECWjOAxeiDvs0QVR/cXgklc69kIi8dSpuu6/l7OSUQISwapLLu62zE4Md9LxcPoQXCds/Esv72oQsE=";
             oracle.value = "7rTPLUaQQLEyNwDUPqh5HPUPUpCx1K+A5yBbObtvs+U=";
             payment_field.value = "0";
@@ -183,21 +184,36 @@
         return load_from_text_fields(function(db) {
             return check_account_balances(db, function(db2) {
                 var cp = make_contract_proposal(db2);
-                cp.msg[12] = [-6, 2, keys.sign(cp.ch)[2]];
+                //var sig1 = keys.keys_internal().sign(cp.ch).toDER();
+                //var sig = btoa(array_to_string(sig1));
+                //var sig = spk_sig(cp.ch);
+                var sig = spk_sig(cp.ch);
+                console.log("sign db.sspk2[1]");
+                console.log(JSON.stringify(db.sspk2[1]));
+                var sig_temp = spk_sig(db.sspk2[1]);
+                if (!(check_spk_sig(keys.pub(), cp.ch, sig))) {
+                    console.log("bad signature");
+                    return 0;
+                }
+                if (!(check_spk_sig(keys.pub(), cp.ch, sig_temp))) {
+                    console.log("bad signature2");
+                    return 0;
+                }
+                cp.msg[12] = [-7, 2, sig];
                 cp.msg[5] = 0;
                 var height = headers_object.top()[1];
-                var nc_offer = ["nc_offer", keys.pub(), height + 100, db.our_amount_val, db.their_amount_val, 1000, db.delay, db.cid, cp.ch[1][1]];
-                var ncs = keys.sign(nc_offer);
-                status.innerHTML = "status: <font color=\"blue\">put this data in a public place: </font> ".concat(JSON.stringify([-6, cp.msg, ncs]));
-                                
-                //make the signed nc_offer 
-//-record(nc_offer, {acc1, nonce, nlocktime, bal1, bal2, miner_commission, %miner commission between 0 and 10 000.
-           //delay, id, contract_hash}).%this is the anyone can spend trade offer.
+                return merkle.request_proof("accounts", keys.pub(), function (acc) {
+                    var nonce = acc[2]+1;
+                    var nc_offer = ["nc_offer", keys.pub(), nonce, height + 100, db.our_amount_val, db.their_amount_val, 1000, db.delay, db.cid, cp.ch];
+                    var ncs = keys.sign(nc_offer);
+                    status.innerHTML = "status: <font color=\"blue\">put this data in a public place: </font> ".concat(JSON.stringify([-6, cp.msg, ncs]));
+                });
             });
         });
     }
     function start() {
         return load_from_text_fields(function(db) {
+            db.their_address_val = 1;
             return check_account_balances(db, function(db2) {
                 return propose_contract(db2, function(db3) {
                     return create_channel(db3, function(db4) {
@@ -211,7 +227,8 @@
         console.log("start");
         var db = {};
         db.payment = read_veo(payment_field);
-        db.their_address_val = parse_address(their_address.value);
+        //db.their_address_val = parse_address(their_address.value);
+        db.their_address_val = "";
         db.oracle_val = oracle.value.trim().replace(/\./g,'');
         if (!(db.oracle_val.length == 44)) {
             status.innerHTML = "status: <font color=\"red\">Error: oracle ID is badly formatted or missing</font>";
@@ -270,6 +287,10 @@
                 return 0;
             }
             db.my_acc = my_acc;
+            if (db.their_address_val == "") {
+                return callback(db);
+            }
+            /*
             return variable_public_get(["account", db.their_address_val], function(their_acc) {
                 if (their_acc == "empty") {
                     status.innerHTML = "status: <font color=\"red\">Error: your partner needs to have veo in their account to make a channel.</font>";
@@ -283,6 +304,7 @@
                 db.their_acc = their_acc;
                 return callback(db);
             });
+            */
         });
     }
     function propose_contract(db, callback) {
@@ -321,7 +343,8 @@
         //console.log(sc);
         var spk2 = market_trade(cd, amount, maxprice, sc, oid);
         //console.log(JSON.stringify(spk2));
-        var sspk2 = keys.sign(spk2); //HERE we should sign the hash of the contract instead.
+        var sig = spk_sig(spk2); 
+        var sspk2 = ["signed", spk2, [-7, 2, sig], [-6]];
         var pd = pd_maker(height, maxprice - 1, 9999, oid);
         var sig = keys.raw_sign(pd);
         //var sig = keys.sign(pd)[2];//crashes here
@@ -342,7 +365,7 @@
             console.log(db.upper_limit);
             imsg = [-6, db.bet_direction_val, bet_expires, maxprice, keys.pub(), db.their_address_val, period, db.our_amount_val, db.their_amount_val, oid, height, db.delay, contract_sig, signedPD, spk_nonce, db.oracle_type_val, db.cid, db.bits_val, db.upper_limit, db.lower_limit, db.payment];
         }
-        var contract_hash = [-7, hash(serialize(spk)), keys.pub(), 1];
+        var contract_hash = btoa(array_to_string(hash(serialize(spk))));
         return {msg: imsg, ch: contract_hash};
     }
 

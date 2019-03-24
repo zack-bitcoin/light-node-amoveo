@@ -12,43 +12,11 @@
     //div.appendChild(br());
     var workspace = document.createElement("div");
     div.appendChild(workspace);
-    
-
-
     var start_button = button_maker2("load your keys and channel data, then click this", start1);
     workspace.appendChild(start_button);
     workspace.appendChild(br());
-
-    var channel_proposal = text_input("if you proposed the channel, then you might not have channel data. Use this interface instead. channel proposal: ", workspace);
-    var proposers_button = button_maker2("load keys and channel proposal, then click this.", proposer_start);
-    workspace.appendChild(proposers_button);
-    workspace.appendChild(br());
     div.appendChild(br());
     //we need a tool for solo-closing the channel, for if your partner refuses to help you. (maybe for now asking for help on a forum is good enough?)
-    function proposer_start() {
-        var x = JSON.parse(channel_proposal.value);
-        var db = derivatives_load_db(x[1]);
-        var spk = spk_maker(db, 0);
-        //var sspk1 = keys.sign(spk);
-        var sig = spk_sig(spk);
-        //console.log(JSON.stringify(sspk1));
-        merkle.request_proof("channels", db.cid, function(c) {
-            var acc2 = c[3];
-            console.log("proposer start");
-            console.log(acc2);
-            return variable_public_get(["channel_sig", db.cid], function(sig2) {
-                var sspk1;
-                if (keys.pub() == acc2) {
-                    sspk1 = ["signed", spk, [-6], [-7, 2, sig]];
-                } else {
-                    sspk1 = ["signed", spk, [-7, 2, sig], [-6]];
-                };
-                sspk1[3] = [-7, 2, sig2];
-                record_channel_state(sspk1, db, acc2);
-                return start1();
-            });
-        });
-    };
     function start1() {
         //console.log(JSON.stringify(channels_object.channel_manager));
         var db = {};
@@ -60,15 +28,7 @@
         //var spk = cd.me;
         db.spk = db.cd.me;
         db.address1 = db.spk[1];
-        if (db.address1 == keys.pub()) {
-            db.address2 = their_address_val;
-        } else {
-            db.address2 = keys.pub();
-        }
-        //if (!(db.spk[2] == 0)) {
-        //} else {
-        //    db.address2 = db.spk[2];
-        //}
+        db.address2 = db.spk[2];
         db.cid = db.spk[6];
         db.amount = db.spk[7];
         console.log("lookup channel ");
@@ -121,7 +81,7 @@
                 if //(false){//
                     (db.result == 0) {//oracle still open
                     var done_timer = Or[9];
-                        status.innerHTML = ("status: <font color=\"red\"> The bet, on oracle ID: ").concat(db.oid).concat(" , is not yet settled. The oracle has not been finalized. It is expected to be settled a little after block height ").concat((done_timer).toString()).concat("</font>");
+                        status.innerHTML = ("status: <font color=\"red\"> The bet, on oracle ID: ").concat(db.oid).concat(" , is not yet settled. The oracle has not been finalized. you need to wait longer to close this channel. It is expected to be settled a little after block height ").concat((done_timer).toString()).concat("</font>");
                         return close_early_view(db);;
                     };
                 console.log("otc finisher");
@@ -130,23 +90,6 @@
         });
     }
     function start2(db) {
-        //oracle has been closed already.
-        var close_offer = text_input("close offer proposal: ", workspace);
-        var listen_button = button_maker2("load the proposal.", function() {
-            display_close_offer2(JSON.parse(close_offer.value), db)
-        });
-        workspace.appendChild(listen_button);
-        workspace.appendChild(br());
-        var talk_button = button_maker2("make a proposal to close the channel.", function() {
-            return we_send(db);
-        });
-        workspace.appendChild(talk_button);
-        workspace.appendChild(br());
-        var solo_button = button_maker2("Avoid clicking this if you don't have to. click here to attempt to make a solo-close tx. Do this if your partner is refusing to work with you to close the channel. This costs more money than the normal way to close a channel, and it will take more time to finish.", function() { return solo_func(db); });
-        workspace.appendChild(solo_button);
-    };
-
-       /* 
         return messenger(["read", 1, db.cid, keys.pub()], function(txs) {
             if ((txs == btoa("error"))||(JSON.stringify(txs) == "[-6]")) {
                 //no one has sent us this kind of message yet.
@@ -189,8 +132,6 @@
                     status.innerHTML = ("status: <font color=\"red\"> CTC tx has a wrong final balances.</font>");
                     return 0;
                 }
-
-
                 return variable_public_get(["txs", [-6, sctc]], function(x) {
             
                     status.innerHTML = ("status: <font color=\"green\"> CTC tx is being published.</font>");
@@ -199,7 +140,6 @@
             });
         });
     };
-       */
     function close_early_view(db) {
         //show an interface for closing the channel early.
         var result;
@@ -219,105 +159,85 @@
     function cev2(db){
         var early_button = button_maker2("send a proposal to end the contract early and get your money out.", function() {
             //generate the signed ctc. send it along with the binary/scalar result used to generate it.
-            var x = oracle_value(db, db.result.value);
-	    return merkle.request_proof("accounts", db.address1, function(acc) {
-                nonce = acc[2]+1;
-	        var tx = ["ctc", db.address1, db.address2, db.fee, nonce+1, db.cid, x];
-                var stx = keys.sign(tx);
-                var imsg = [-6, early_close_code, db.type, db.result.value, stx];
-                var their_address_val = Object.keys(channels_object.channel_manager())[0];
-                //return send_encrypted_message(imsg, their_address_val, function() {
-                status.innerHTML = ("status: <font color=\"blue\">Successfully sent the channel team close tx to your partner. Tell them to visit this page. Do not delete your channel state yet. Click 'get headers' to see if the contract is settled yet. Tell your partner to use this same otc_finisher tool, and give them this data: </font> ".concat(JSON.stringify(imsg)));
-                return wait_till_closed(db);
+            status.innerHTML = ("status: <font color=\"green\">Checking if you have enough credits, possibly buying more.</font>");
+            return messenger_object.min_bal(500000, function(){
+                var x = oracle_value(db, db.result.value);
+	        return merkle.request_proof("accounts", db.address1, function(acc) {
+                    nonce = acc[2]+1;
+	            var tx = ["ctc", db.address1, db.address2, db.fee, nonce+1, db.cid, x];
+                    var stx = keys.sign(tx);
+                    var imsg = [-6, early_close_code, db.type, db.result.value, stx];
+                    var their_address_val = Object.keys(channels_object.channel_manager())[0];
+                    return send_encrypted_message(imsg, their_address_val, function() {
+                        status.innerHTML = ("status: <font color=\"blue\">Successfully sent the channel team close tx to your partner. Tell them to visit this page. Do not delete your channel state yet. Click 'get headers' to see if the contract is settled yet.</font>");
+                        return wait_till_closed(db);
+                    });
+                });
             });
         });
         workspace.appendChild(early_button);
         workspace.appendChild(br());
         
-        var close_offer = text_input("close offer proposal: ", workspace);
-        var listen_button = button_maker2("load the proposal.", function() {
-            display_close_offer2(JSON.parse(close_offer.value), db)
+        var listen_button = button_maker2("Check if you have been sent a proposal to end this contract.", function() {
+            var listen_db = {};
+            listen_db.max_contract_number = 0;
+            return messenger(["read", 0, keys.pub()], function(x) {
+                var z = x.slice(1).map(function(a){ return keys.decrypt(a); });
+                //remove any contracts from z that are not valid for what we are doing.
+                var z = early_close_proposals(z);
+                console.log(JSON.stringify(z));//[[-6,5927,2,"10",["signed",["ctc","BHpLwieFVdD5F/z1mdScC9noIZ39HgnwvK8jHqRSBxjzWBssIR1X9LGr8QxTi8fUQws1Q5CGnmTk5dZwzdrGBi4=","BOzTnfxKrkDkVl88BsLMl1E7gAbKK+83pHCt0ZzNEvyZQPKlL/n8lYLCXgrL4Mmi/6m2bzj+fejX8D52w4U9LkI=",152050,13,"kffrVRDpfpyzqPdA1hdnIIPy0dVESHFbF+Cylwstem0=",8548111],"MEUCIQDhaPyifuzV7Uc4ah4ev3FRBaW5u3DAH7ALsd8bc9RsEgIgPgbldKqZnAfb7DitZAuRWk3jNQTnk/Fv1on3tAhUb2k=",[-6]]]]
+                listen_db.max_contract_number = z.length;
+                listen_db.contracts = z;
+                listen_db.contract_number = 0;
+                display_close_offer(listen_db.contract_number, listen_db, db);
+            });
+            
         });
         workspace.appendChild(listen_button);
         workspace.appendChild(br());
         workspace.appendChild(br());
     };
-    function display_close_offer2(c, db) {
-        console.log(c);
+    function early_close_proposals(x) {
+        if (x.length < 1) {
+            return [];
+        }
+        var h = x[0];
+        var t = x.slice(1);
+        var t2 = early_close_proposals(t);
+        if (h[1] == early_close_code) {
+            return ([h]).concat(t2);
+        }
+        return t2;
+    };
+    function display_close_offer(contract_number, listen_db, db) {
+        console.log(contract_number);
+        var c = listen_db.contracts[contract_number];
+        console.log(JSON.stringify(listen_db.contracts));//[-6, 5927, 2, "10", Array(4)]
         if (c == undefined) {
             status.innerHTML = ("status: <font color=\"red\">your mailbox does not have proposal to close this channel.</font>");
             return 0;
         };
         console.log(c);//[-6, 5927, 2, "10", Array(4)]
-        var tx, sctc;
-        if (c.length == 5) {
-            tx = c[4];
-            //console.log(tx);
-            var sctc = keys.sign(tx);
-            status.innerHTML = ("status: <font color=\"blue\">This proposal is for ending the channel at the final state of: ").concat(c[3]).concat("</font>");
-            var x = oracle_value(db, c[3]);
-            if (!(x == c[4][1][6])) {
-                status.innerHTML = ("status: <font color=\"red\">The final distribution of funds was miscalculated.</font>");
-                console.log(x);
-                console.log(c[4][1][6]);
-                return 0;
-            };
-            if (!(c[4][1][5] == db.cid)) {
-                status.innerHTML = ("status: <font color=\"error\">This tx is for closing the wrong channel.</font>");
-                console.log(db.cid);
-                console.log(c[4]);
-                console.log(c[4][1][5]);
-                return 0;
-            };
-        } else if (c.length == 4) {
-            tx = c;
-            var sctc = keys.sign(tx);
-            var ctc = sctc[1];
-            var b = verify_both(sctc);
-            if (!(b == true)) {
-                status.innerHTML = ("status: <font color=\"red\"> CTC tx has a bad signature</font>");
-                //return we_send0(db);
-                return 0;
-            }
-            //var sctc = keys.sign(s1ctc);
-            console.log(sctc);
-            var ctc = sctc[1];
-            var b = verify_both(sctc);
-            if (!(b == true)) {
-                status.innerHTML = ("status: <font color=\"red\"> CTC tx has a bad signature</font>");
-                //return we_send0(db);
-                return 0;
-            }
-            if (!(db.address1 == ctc[1])) {
-                console.log(db.address1);
-                console.log(ctc[1]);
-                status.innerHTML = ("status: <font color=\"red\"> CTC tx has a wrong address 1</font>");
-                return 0;
-            }
-            if (!(db.address2 == ctc[2])) {
-                status.innerHTML = ("status: <font color=\"red\"> CTC tx has a wrong address 2</font>");
-                return 0;
-            }
-            if (!(db.fee == ctc[3])) {
-                status.innerHTML = ("status: <font color=\"red\"> CTC tx has a wrong fee</font>");
-                return 0;
-            }
-            if (!(db.cid == ctc[5])) {
-                status.innerHTML = ("status: <font color=\"red\"> CTC tx has a wrong cid</font>");
-                return 0;
-            }
-            winnings_amount(db, function(db, winnings) {
-                if (!(winnings == ctc[6])) {
-                    status.innerHTML = ("status: <font color=\"red\"> CTC tx has a wrong final balances.</font>");
-                    return 0;
-                }
-            });
-        }
+        status.innerHTML = ("status: <font color=\"green\">This proposal is for ending the channel at the final state of: ").concat(c[3]).concat("</font>");
+        var x = oracle_value(db, c[3]);
+        if (!(x == c[4][1][6])) {
+            status.innerHTML = ("status: <font color=\"red\">The final distribution of funds was miscalculated.</font>");
+            console.log(x);
+            console.log(c[4][1][6]);
+            return 0;
+        };
+        if (!(c[4][1][5] == db.cid)) {
+            status.innerHTML = ("status: <font color=\"error\">This tx is for closing the wrong channel.</font>");
+            console.log(db.cid);
+            console.log(c[4]);
+            console.log(c[4][1][5]);
+            return 0;
+        };
         var accept_button = button_maker2("accept this proposal and close the channel", function() {
-            //var stx = keys.sign(tx);
-            return variable_public_get(["txs", [-6, sctc]], function(x) {
+            var stx = keys.sign(c[4]);
+            return variable_public_get(["txs", [-6, stx]], function(x) {
                 console.log(x);
-                status.innerHTML = "status: <font color=\"green\">We attempted to close the channel. Now waiting for the tx to be included in a block.</font>";
+                status.innerHTML = "status: <font color=\"green\">We attempted to publish the channel solo close tx. Now waiting for the tx to be included in a block.</font>";
                 return wait_till_closed(db);
             });
         });
@@ -368,6 +288,12 @@
             return txs[0];
         }
         return find_ctc(cid, txs.slice(1));
+    }
+    function we_send0(db) {
+        //return credits_check(keys.pub(), 1200000, function() {return we_send1(db);});
+        status.innerHTML = "status: <font color=\"green\">the trade looks valid. Now checking if you need credits.</font>";
+        glossary.link(status, "messenger_credits");
+        return messenger_object.min_bal(500000, function() {return we_send(db);});
     }
     function get_oracle_binary(cid, oid, many, result, callback) {
         if (many == 0) { return callback(result); }
@@ -429,8 +355,21 @@
                 console.log(a2);
 	        var tx = ["ctc", db.address1, db.address2, db.fee, nonce+1, db.cid, a2];
                 var stx = keys.sign(tx);
-                status.innerHTML = ("status: <font color=\"blue\">send this request to your partner: </font> ".concat(JSON.stringify(stx)));
-                return wait_till_closed(db);
+                return messenger(["account", keys.pub()], function(account) {
+                    console.log(account);
+                    var m_nonce = account[3] + 1;
+                    var r = [-7, 53411, keys.pub(), m_nonce, stx];
+                    //var r = [-7, 53411, keys.pub(), m_nonce, 0];
+                    var sr = keys.sign(r);
+                    console.log(JSON.stringify(sr));
+                    return messenger(["send", 1, their_address_val, sr], function(x) {
+                        status.innerHTML = ("status: <font color=\"blue\">We signed the tx to close the channel, now waiting for your partner to come online and sign the tx. Keep a copy of the channel state until the channel is closed.</font>");
+                        //give a button to start closing the channel with a channel_solo_close tx, along with a warning about how closing with a solo-close will break privacy and cost a larger fee, and it will probably take longer than just waiting for Bob to sign the tx. The light node tells her to keep a copy of the file from step (6) until the channel is closed.
+                        var solo_button = button_maker2("Avoid clicking this if you don't have to. click here to attempt to make a solo-close tx. Do this if your partner is refusing to work with you to close the channel. This costs more money than the normal way to close a channel, and it will take more time to finish.", function() { return solo_func(db); });
+                        div.appendChild(solo_button); 
+                        return wait_till_closed(db);
+                    });
+                });
             });
         });
     };
@@ -492,10 +431,7 @@
             var ss = [-6].concat(ss_encode(db.cd.ssthem));
             console.log(JSON.stringify(ss));
             var fee = 202050;
-            console.log("solo func");
-            console.log(JSON.stringify(db.cd.them));
-            //var tx = ["csc", keys.pub(), nonce, fee, keys.sign(db.cd.them), ss];
-            var tx = ["csc", keys.pub(), nonce, fee, db.cd.them, ss];
+            var tx = ["csc", keys.pub(), nonce, fee, keys.sign(db.cd.them), ss];
             var stx = keys.sign(tx);
             return variable_public_get(["txs", [-6, stx]], function(x) {
                 console.log(x);

@@ -334,3 +334,94 @@ function oracle_limit(oid, callback) {
     };
 
 }
+function check_spk_sig(pub, ch, sig) {
+    console.log("format check spk sig");
+    console.log(JSON.stringify([ch, sig, pub]));
+    var our_key =  keys.ec().keyFromPublic(toHex(atob(pub)), "hex");
+    return verify(ch, sig, our_key);
+}
+function spk_sig(x) {
+    if (x[0] == "spk") {
+        console.log("format spk sig");
+        console.log(JSON.stringify(x));
+        x = btoa(array_to_string(hash(serialize(x))));
+    }
+    var sig1 = sign(x, keys.keys_internal());
+    return btoa(array_to_string(sig1));
+};
+function derivatives_load_db(y) {
+    console.log(JSON.stringify(y));
+    var db = {};
+    db.direction_val = y[1];
+    db.expires = y[2];
+    db.maxprice = y[3];
+    db.acc1 = y[4];
+    db.acc2 = y[5];
+    //if (!(keys.pub() == db.acc2)) {
+    //   console.log("wrong address");
+    //  return 0;
+    // }
+    db.period = y[6];
+    db.amount1 = y[7];
+    db.amount2 = y[8];
+    console.log(db.amount2);
+    db.oid = y[9];
+    db.height = y[10];
+    db.delay = y[11];
+    db.contract_sig = y[12];
+    db.spd = atob(y[13]);
+    db.spk_nonce = y[14];
+    db.oracle_type_val = y[15];
+    db.oracle_type;
+    db.cid = y[16];
+    db.payment = y[20];
+    if (db.oracle_type_val == 1) {
+        db.oracle_type = "scalar";
+        db.bits = y[17];
+        db.upper_limit = y[18];
+        db.lower_limit = y[19];
+    } else if (db.oracle_type_val == 0) {
+        db.oracle_type = "binary";
+        }
+    if (db.direction_val == 1) {
+        db.direction = "false or short";
+    } else if (db.direction_val == 2) {
+        db.direction = "true or long";
+        }
+    console.log("display trade");
+    return db;
+};
+ 
+function spk_maker(db, acc2) {
+    var period = 10000000;//only one period because there is only one bet.
+    var amount = db.amount1 + db.amount2;
+    var sc;
+    if (db.oracle_type == "scalar") {
+        console.log("accept trade 3 direction ");
+        console.log(db.direction_val);
+        sc = scalar_market_contract(db.direction_val, db.expires, db.maxprice, db.acc1, period, amount, db.oid, db.height, db.upper_limit, db.lower_limit, db.bits);
+    } else if (db.oracle_type == "binary") {
+        sc = market_contract(db.direction_val, db.expires, db.maxprice, db.acc1, period, amount, db.oid, db.height);
+    }
+    //var delay = 1000;//a little over a week
+    var spk = ["spk", db.acc1, acc2, [-6], 0,0,db.cid, 0,0,db.delay];
+    var cd = channels_object.new_cd(spk, [],[],[],db.expires, db.cid);
+    return market_trade(cd, amount, db.maxprice, sc, db.oid);
+};
+function record_channel_state(sspk2, db, acc2) {
+    var meta = 0;
+    var ss = channels_object.new_ss([0,0,0,0,4], [-6, ["oracles", db.oid]], meta);
+    var expiration = 10000000;
+    var cd = channels_object.new_cd(sspk2[1], sspk2, [ss], [ss], expiration, db.cid);
+    console.log("record channel state ");
+    console.log(JSON.stringify([db.acc1, db.acc2]));
+    if (db.acc1 == keys.pub()) {
+        channels_object.write(acc2, cd);
+    } else {//if (db.acc2 == keys.pub()) {
+        channels_object.write(db.acc1, cd);
+    }
+};
+
+
+
+
