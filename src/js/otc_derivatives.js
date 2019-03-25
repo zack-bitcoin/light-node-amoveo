@@ -8,9 +8,11 @@
     var status = document.createElement("p");
     status.innerHTML = "status: <font color=\"green\">ready</font>";
     div.appendChild(status);
+    div.appendChild(br());
+    var save_button_div = document.createElement("div");
+    div.appendChild(save_button_div);
     //var their_address = text_input("their_address: ", div);
     var their_address = {value: ""};
-    div.appendChild(br());
     var oracle = text_input("oracle: ", div);
     glossary.link(div, "oracle_id");
     div.appendChild(br());
@@ -207,6 +209,15 @@
                     var nc_offer = ["nc_offer", keys.pub(), nonce, height + 100, db.our_amount_val, db.their_amount_val, 1000, db.delay, db.cid, cp.ch];
                     var ncs = keys.sign(nc_offer);
                     status.innerHTML = "status: <font color=\"blue\">put this data in a public place: </font> ".concat(JSON.stringify([-6, cp.msg, ncs]));
+                    
+                    var channel_offer_name = text_input("channel_offer_name: ", save_button_div);
+                    var today = new Date();
+                    channel_offer_name.value = 'channel_offer'+today.getFullYear()+'-'+(today.getMonth()+1)+'-'+today.getDate()+','+today.getHours()+':'+today.getMinutes();
+                    var saveOfferButton = button_maker2("save the channel offer to a file", function() {
+                        download(JSON.stringify([-6, cp.msg, ncs]), channel_offer_name.value, "text/plain");
+                    });
+                    save_button_div.appendChild(saveOfferButton);
+                    save_button_div.appendChild(br());
                 });
             });
         });
@@ -366,7 +377,10 @@
             console.log(db.upper_limit);
             imsg = [-6, db.bet_direction_val, bet_expires, maxprice, keys.pub(), db.their_address_val, period, db.our_amount_val, db.their_amount_val, oid, height, db.delay, contract_sig, signedPD, spk_nonce, db.oracle_type_val, db.cid, db.bits_val, db.upper_limit, db.lower_limit, db.payment];
         }
-        var contract_hash = btoa(array_to_string(hash(serialize(spk))));
+        //console.log("otc derivatives spk spk2 compare ");
+        //console.log(JSON.stringify(spk));
+        //console.log(JSON.stringify(spk2));
+        var contract_hash = btoa(array_to_string(hash(serialize(spk2))));
         return {msg: imsg, ch: contract_hash};
     }
 
