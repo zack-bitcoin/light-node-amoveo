@@ -7,7 +7,18 @@
     var start_button = button_maker2("load trade offer", cp_start);
     div.appendChild(start_button);
     var cp_text = text_input("copy/paste the offer text to here: ", div);
-
+    div.appendChild(br());
+    var load_button = document.createElement("input");
+    load_button.type = "file";
+    load_button.onchange = function() {
+        var file = (load_button.files)[0];
+        var reader = new FileReader();
+        reader.onload = function(e) {
+            cp_text.value = reader.result;
+        }
+        reader.readAsText(file);
+    };
+    div.appendChild(load_button);
     var title = document.createElement("h3");
     title.innerHTML = "direct derivatives encrypted mail response form";
     div.appendChild(title);
