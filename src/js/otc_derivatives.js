@@ -57,7 +57,7 @@
     //var bits = text_input("if it is scalar, how many bits does it have?", div);
         bits = document.createElement("p");
         bits.value = "10";
-        if (true) { //defaults
+        if (false) { //defaults
             oracle.value = "ZVTeL9pNLdgSQiQoVh/VudzPetXvFBVAV8B7lE+sruk=";
             our_amount.value = "1";
             their_amount.value = "1";
