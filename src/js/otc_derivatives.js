@@ -57,14 +57,12 @@
     //var bits = text_input("if it is scalar, how many bits does it have?", div);
         bits = document.createElement("p");
         bits.value = "10";
-        if (false) { //defaults
-            //their_address.value = "BOzTnfxKrkDkVl88BsLMl1E7gAbKK+83pHCt0ZzNEvyZQPKlL/n8lYLCXgrL4Mmi/6m2bzj+fejX8D52w4U9LkI=";
-            oracle.value = "A8Z/DvvBMNFU/hEURZkGyzsgX2vI8JFp8gLCWCLuNjs=";
+        if (true) { //defaults
+            oracle.value = "ZVTeL9pNLdgSQiQoVh/VudzPetXvFBVAV8B7lE+sruk=";
             our_amount.value = "1";
             their_amount.value = "1";
             bet_direction.value = "long";
             oracle_type.value = "scalar";
-            oracle.value = "xetbziJUPoWEOv7v4AJQY3jpGoY94MSDbYOuMvU6ZxE=";
             payment_field.value = "0.2";
         };
         upper_limit = text_input("what is the upper limit?", div);
@@ -125,7 +123,7 @@
         if (false) { //defaults
             //their_address.value = "BOzTnfxKrkDkVl88BsLMl1E7gAbKK+83pHCt0ZzNEvyZQPKlL/n8lYLCXgrL4Mmi/6m2bzj+fejX8D52w4U9LkI=";
             //their_address.value = "BMJBIx+CHECWjOAxeiDvs0QVR/cXgklc69kIi8dSpuu6/l7OSUQISwapLLu62zE4Md9LxcPoQXCds/Esv72oQsE=";
-            oracle.value = "A8Z/DvvBMNFU/hEURZkGyzsgX2vI8JFp8gLCWCLuNjs=";
+            oracle.value = "Niqpz6ch1G7RjAy8BC9MnqsjypaQjjaNTECnbszYzy0=";
             payment_field.value = "0";
 
             our_amount.value = "0.1";
@@ -374,7 +372,7 @@
         if (db.oracle_type_val == 0) {
             imsg = [-6, db.bet_direction_val, bet_expires, maxprice, keys.pub(), db.their_address_val, period, db.our_amount_val, db.their_amount_val, oid, height, db.delay, contract_sig, signedPD, spk_nonce, db.oracle_type_val, db.cid, 0, 0, 0, db.payment];
         } else {
-            console.log(db.upper_limit);
+            //console.log(db.upper_limit);
             imsg = [-6, db.bet_direction_val, bet_expires, maxprice, keys.pub(), db.their_address_val, period, db.our_amount_val, db.their_amount_val, oid, height, db.delay, contract_sig, signedPD, spk_nonce, db.oracle_type_val, db.cid, db.bits_val, db.upper_limit, db.lower_limit, db.payment];
         }
         //console.log("otc derivatives spk spk2 compare ");

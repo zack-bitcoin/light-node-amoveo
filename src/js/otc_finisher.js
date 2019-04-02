@@ -56,7 +56,7 @@
         //var cd = channels_object.read(their_address.value);
         var their_address_val = Object.keys(channels_object.channel_manager())[0];
         db.cd = channels_object.read(their_address_val);
-        console.log(JSON.stringify(db.cd));
+        //console.log(JSON.stringify(db.cd));
         //var spk = cd.me;
         db.spk = db.cd.me;
         db.address1 = db.spk[1];
@@ -110,8 +110,8 @@
             db.oid = key[2];
             db.type = key[1];
             if (db.type == 2) {
-                db.lower_limit = key[7];
-                db.upper_limit = key[8];
+                db.lower_limit = key[8];
+                db.upper_limit = key[7];
             }
             console.log("otc finisher");
             merkle.request_proof("oracles", db.oid, function(Or) {
@@ -217,7 +217,7 @@
         }
     };
     function cev2(db){
-        var early_button = button_maker2("send a proposal to end the contract early and get your money out.", function() {
+        var early_button = button_maker2("generate a proposal to end the contract early and get your money out.", function() {
             //generate the signed ctc. send it along with the binary/scalar result used to generate it.
             var x = oracle_value(db, db.result.value);
 	    return merkle.request_proof("accounts", db.address1, function(acc) {
@@ -227,7 +227,7 @@
                 var imsg = [-6, early_close_code, db.type, db.result.value, stx];
                 var their_address_val = Object.keys(channels_object.channel_manager())[0];
                 //return send_encrypted_message(imsg, their_address_val, function() {
-                status.innerHTML = ("status: <font color=\"blue\">Successfully sent the channel team close tx to your partner. Tell them to visit this page. Do not delete your channel state yet. Click 'get headers' to see if the contract is settled yet. Tell your partner to use this same otc_finisher tool, and give them this data: </font> ".concat(JSON.stringify(imsg)));
+                status.innerHTML = ("status: <font color=\"blue\">Successful. Tell your partner to visit this page. Do not delete your channel state yet. Click 'get headers' to see if the contract is settled yet. give this data to your partner: </font> ".concat(JSON.stringify(imsg)));
                 return wait_till_closed(db);
             });
         });
@@ -243,12 +243,11 @@
         workspace.appendChild(br());
     };
     function display_close_offer2(c, db) {
-        console.log(c);
         if (c == undefined) {
             status.innerHTML = ("status: <font color=\"red\">your mailbox does not have proposal to close this channel.</font>");
             return 0;
         };
-        console.log(c);//[-6, 5927, 2, "10", Array(4)]
+        //console.log(c);//[-6, 5927, 2, "10", Array(4)]
         var tx, sctc;
         if (c.length == 5) {
             tx = c[4];
@@ -280,7 +279,7 @@
                 return 0;
             }
             //var sctc = keys.sign(s1ctc);
-            console.log(sctc);
+            //console.log(sctc);
             var ctc = sctc[1];
             var b = verify_both(sctc);
             if (!(b == true)) {
@@ -316,7 +315,7 @@
         var accept_button = button_maker2("accept this proposal and close the channel", function() {
             //var stx = keys.sign(tx);
             return variable_public_get(["txs", [-6, sctc]], function(x) {
-                console.log(x);
+                //console.log(x);
                 status.innerHTML = "status: <font color=\"green\">We attempted to close the channel. Now waiting for the tx to be included in a block.</font>";
                 return wait_till_closed(db);
             });
@@ -347,11 +346,11 @@
                 x = -db.channel_balance1;
                     }
         } else if (db.type == 2) {
-            var a = db.channel_balance1 + db.channel_balance2;
-            var b = Math.floor(db.measured_upper * 1024 / parseFloat(result));
-            var ll = db.lower_limit;
-            var ul = db.upper_limit;
-            b = Math.round((b - ll) * 1024 / ul);
+            var a = db.channel_balance1 + db.channel_balance2;//10 veo
+            var b = Math.floor(1024 * parseFloat(result) / db.measured_upper);//1536  //15360
+            var ll = db.lower_limit;//0
+            var ul = db.upper_limit;//1023
+            b = Math.round((b - ll) * 1024 / ul);//1538
             b = Math.max(0, b);
             b = Math.min(b, 1023);
             x = Math.floor(a * b / 1024) - db.channel_balance1;
@@ -398,8 +397,6 @@
                     b = Math.round((b - ll) * 1024 / ul);
                     b = Math.max(0, b);
                     b = Math.min(b, 1023);
-                    console.log(a);
-                    console.log(b);//undefined
                     x = Math.floor(a * b / 1024) - db.channel_balance1;
                     callback(db, x);
                 });
