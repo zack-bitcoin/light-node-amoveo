@@ -100,7 +100,7 @@
                         var my_spk_sig = [-7, 2, contract_sig];
                         var sspk2 = ["signed", spk2, their_spk_sig, my_spk_sig]; 
                         record_channel_state(sspk2, db, keys.pub());
-                        status.innerHTML = "status: <font color=\"red\">Warning: you need to save your channel state to a file. </font>";
+                        status.innerHTML = "status: <font color=\"red\">Warning: you need to save your channel state to a file. The channel has been successfully formed.</font>";
                     });
                 });
             });

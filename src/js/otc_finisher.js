@@ -227,7 +227,8 @@
                 var imsg = [-6, early_close_code, db.type, db.result.value, stx];
                 var their_address_val = Object.keys(channels_object.channel_manager())[0];
                 //return send_encrypted_message(imsg, their_address_val, function() {
-                status.innerHTML = ("status: <font color=\"blue\">Successful. Tell your partner to visit this page. Do not delete your channel state yet. Click 'get headers' to see if the contract is settled yet. give this data to your partner: </font> ".concat(JSON.stringify(imsg)));
+                var balances_string = calc_balances(db, x);
+                status.innerHTML = ("status: <font color=\"blue\">Successfully generated an offer to close the channel.").concat(balances_string).concat(" Tell your partner to visit this page. Do not delete your channel state yet. Click 'get headers' to see if the contract is settled yet. give this data to your partner: </font> ".concat(JSON.stringify(imsg)));
                 return wait_till_closed(db);
             });
         });
@@ -242,6 +243,19 @@
         workspace.appendChild(br());
         workspace.appendChild(br());
     };
+    function calc_balances(db, tx_a) {
+        var bAcc1 = db.channel_balance1 + tx_a;
+        var bAcc2 = db.channel_balance2 - tx_a;
+        var your_balance, their_balance;
+        if (db.address1 == keys.pub()) {
+            your_balance = bAcc1;
+            their_balance = bAcc2;
+        } else {
+            your_balance = bAcc2;
+            their_balance = bAcc1;
+        }
+        return ("you will receive ").concat(s2c(your_balance)).concat(" veo, and they will receive ").concat(s2c(their_balance)).concat(" veo.");
+    }
     function display_close_offer2(c, db) {
         if (c == undefined) {
             status.innerHTML = ("status: <font color=\"red\">your mailbox does not have proposal to close this channel.</font>");
@@ -251,9 +265,15 @@
         var tx, sctc;
         if (c.length == 5) {
             tx = c[4];
-            //console.log(tx);
+            console.log(JSON.stringify(tx));
+            console.log(tx[6]);
+            console.log(db.channel_balance1);
             var sctc = keys.sign(tx);
-            status.innerHTML = ("status: <font color=\"blue\">This proposal is for ending the channel at the final state of: ").concat(c[3]).concat("</font>");
+            var tx_a = tx[1][6];
+            var balances_string = calc_balances(db, tx_a);
+            status.innerHTML = ("status: <font color=\"blue\">This proposal is for ending the channel at the final state of: ").concat(c[3]).concat("; ").concat(balances_string).concat("</font>");
+            //status.innerHTML = ("status: <font color=\"blue\">This proposal is for ending the channel at the final state of: ").concat(c[3]).concat("; you will receive ").concat(s2c(your_balance)).concat(" veo, and they will receive ").concat(s2c(their_balance)).concat(" veo.").concat("</font>");
+            //ctc_amount = tx[6];//to acc1
             var x = oracle_value(db, c[3]);
             if (!(x == c[4][1][6])) {
                 status.innerHTML = ("status: <font color=\"red\">The final distribution of funds was miscalculated.</font>");

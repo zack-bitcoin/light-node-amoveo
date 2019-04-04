@@ -121,9 +121,7 @@
 	//var question_hash = x[3];
 
         if (false) { //defaults
-            //their_address.value = "BOzTnfxKrkDkVl88BsLMl1E7gAbKK+83pHCt0ZzNEvyZQPKlL/n8lYLCXgrL4Mmi/6m2bzj+fejX8D52w4U9LkI=";
-            //their_address.value = "BMJBIx+CHECWjOAxeiDvs0QVR/cXgklc69kIi8dSpuu6/l7OSUQISwapLLu62zE4Md9LxcPoQXCds/Esv72oQsE=";
-            oracle.value = "Niqpz6ch1G7RjAy8BC9MnqsjypaQjjaNTECnbszYzy0=";
+            oracle.value = "Ibh1LXJLOWnoSXCbo3L8KDSVxCv2HD+d4sn/0hqE5Yw=";
             payment_field.value = "0";
 
             our_amount.value = "0.1";
@@ -131,7 +129,9 @@
             //measured_upper.value = "130";
         };
         console.log(oracle.value);
-        oracle_limit(measured_upper, oracle.value);
+        oracle_limit(oracle.value, function(s) {
+            measured_upper.value = s;
+        });
         div.appendChild(br());
         //var lower_margin = text_input("lower margin: ", div); //defined by leverage
         //div.appendChild(br());
