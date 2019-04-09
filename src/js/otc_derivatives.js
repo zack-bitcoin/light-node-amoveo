@@ -120,7 +120,7 @@
 	//merkle.request_proof("oracles", oracle.value, function(x) {
 	//var question_hash = x[3];
 
-        if (true) { //defaults
+        if (false) { //defaults
             oracle.value = "AR9Yrb33n+KispDi5BQ6uLzWrLi9c28O5r6Q2xkouh0=";
             //payment_field.value = "0";
 
