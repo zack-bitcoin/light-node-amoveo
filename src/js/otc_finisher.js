@@ -28,7 +28,7 @@
     function proposer_start() {
         var x = JSON.parse(channel_proposal.value);
         var db = derivatives_load_db(x[1]);
-        var spk = spk_maker(db, 0);
+        var spk = spk_maker(db, 0, db.amount1 + db.amount2);
         //var sspk1 = keys.sign(spk);
         var sig = spk_sig(spk);
         //console.log(JSON.stringify(sspk1));
@@ -37,13 +37,13 @@
             console.log("proposer start");
             console.log(acc2);
             return variable_public_get(["channel_sig", db.cid], function(sig2) {
-                var sspk1;
-                if (keys.pub() == acc2) {
-                    sspk1 = ["signed", spk, [-6], [-7, 2, sig]];
-                } else {
-                    sspk1 = ["signed", spk, [-7, 2, sig], [-6]];
-                };
-                sspk1[3] = [-7, 2, sig2];
+                //var sspk1;
+                //if (keys.pub() == acc2) {
+                //    sspk1 = ["signed", spk, [-6], [-7, 2, sig]];
+                //} else {
+                var sspk1 = ["signed", spk, [-7, 2, sig], [-7, 2, sig2]];
+                //};
+                //sspk1[3] = [-7, 2, sig2];
                 record_channel_state(sspk1, db, acc2);
                 return start1();
             });
@@ -99,6 +99,7 @@
             }
             db.channel_balance1 = c[4];
             db.channel_balance2 = c[5];
+            //db.channel_amount = c[6];
             var bet = db.spk[3][1];
             //console.log(JSON.stringify(bet));
             //["bet",code,300000000,["market",1,"wqsBDVWpK35TS/VqFYC94QWnNOwClAerYlbtz3AvKtk=",3000,"BHpLwieFVdD5F/z1mdScC9noIZ39HgnwvK8jHqRSBxjzWBssIR1X9LGr8QxTi8fUQws1Q5CGnmTk5dZwzdrGBi4=",10000000,"wqsBDVWpK35TS/VqFYC94QWnNOwClAerYlbtz3AvKtk="],[-7,1,5000]]
@@ -129,6 +130,7 @@
             });
         });
     }
+       /* 
     function start2(db) {
         //oracle has been closed already.
         var close_offer = text_input("close offer proposal: ", workspace);
@@ -146,7 +148,6 @@
         workspace.appendChild(solo_button);
     };
 
-       /* 
         return messenger(["read", 1, db.cid, keys.pub()], function(txs) {
             if ((txs == btoa("error"))||(JSON.stringify(txs) == "[-6]")) {
                 //no one has sent us this kind of message yet.
@@ -265,9 +266,9 @@
         var tx, sctc;
         if (c.length == 5) {
             tx = c[4];
-            console.log(JSON.stringify(tx));
-            console.log(tx[6]);
-            console.log(db.channel_balance1);
+            //console.log(JSON.stringify(tx));
+            //console.log(tx[6]);
+            //console.log(db.channel_balance1);
             var sctc = keys.sign(tx);
             var tx_a = tx[1][6];
             var balances_string = calc_balances(db, tx_a);
@@ -325,7 +326,8 @@
                 status.innerHTML = ("status: <font color=\"red\"> CTC tx has a wrong cid</font>");
                 return 0;
             }
-            winnings_amount(db, function(db, winnings) {
+            oracle_result(db, function(db, winnings) {
+                winnings = channel_result(db, winnings);
                 if (!(winnings == ctc[6])) {
                     status.innerHTML = ("status: <font color=\"red\"> CTC tx has a wrong final balances.</font>");
                     return 0;
@@ -345,6 +347,33 @@
         //make a button for accepting this proposal and closing the channel.
     };
     function oracle_value(db, result) {
+        var oracle_result;
+        if (db.type == 1) {
+            var br;
+            if (result == "true") {
+                br = 1;
+            } else if (result = "false") {
+                br = 2;
+            } else if (result = "bad") {
+                br = 3;
+            } else {
+                status.innerHTML = ("status: <font color=\"red\">Error: binary oracle result should be 'true', 'false', or 'bad'.</font>");
+                return 0;
+            }
+            oracle_result = br;
+        } else if (db.type == 2) {
+            console.log(result);
+            console.log(db.measured_upper);
+            oracle_result = Math.floor(1024 * parseFloat(result) / db.measured_upper);
+        }
+        return channel_result(db, oracle_result);
+    }
+    /*
+    function oracle_value_old(db, result) {
+        //result is "true"/"false"/"bad" or a string of a floating point, example "0.0135"
+        //split in two.
+        //first should convert from string to the oracle's result.
+        //second should be the same as the second step of winnings_amount.
         var x;
         if (db.type == 1) {
             var br;
@@ -359,12 +388,12 @@
                 return 0;
             }
             if (br == 3) {//tie
-                        x = 0;
+                x = 0;
             } else if (br == db.direction) {//acc1 wins
-                        x = db.channel_balance2;
+                x = db.channel_balance2;
             } else {//acc2 wins
                 x = -db.channel_balance1;
-                    }
+            }
         } else if (db.type == 2) {
             var a = db.channel_balance1 + db.channel_balance2;//10 veo
             var b = Math.floor(1024 * parseFloat(result) / db.measured_upper);//1536  //15360
@@ -377,6 +406,7 @@
         };
         return x;
     };
+*/
     function find_ctc(cid, txs) {
         //[["signed",["ctc","BHpLwieFVdD5F/z1mdScC9noIZ39HgnwvK8jHqRSBxjzWBssIR1X9LGr8QxTi8fUQws1Q5CGnmTk5dZwzdrGBi4=","BOzTnfxKrkDkVl88BsLMl1E7gAbKK+83pHCt0ZzNEvyZQPKlL/n8lYLCXgrL4Mmi/6m2bzj+fejX8D52w4U9LkI=",152050,9,"S9dYt1Xk16RDL8nMtYf3MHHFGg1vya5zz7rsUsU/UiY=",0],"MEYCIQD7d9NEvdp5PcVxbYaipiPvw46La0GQD24COQi7vQ7E8QIhAO7ztOSJgqQyuiOD8VDmx/NKODMlPViW7/kI9CYHsWrT",[-6]]]
         if (JSON.stringify(txs) == "[]") {
@@ -405,7 +435,50 @@
             }
         });
     };
-    function winnings_amount(db, callback) {
+    function channel_result(db, oracle_result) {
+        var bet = db.spk[3][1];//db.channel_balance1 + db.channel_balance2;//10 veo
+        var a = bet[2];
+        var spk_amount = db.spk[7];
+        if (db.type == 1) {//binary
+            if (oracle_result == 3) {//tie
+                return 0;//undo contract, return everyone's money.
+            } else if (oracle_result == db.direction) {//acc1 wins
+                //should be positive.
+                return spk_amount + a;
+            } else {//acc2 wins
+                //should be negative.
+                return spk_amount;
+            }
+        } else if (db.type == 2) {//scalar
+            //var b = Math.floor(1024 * parseFloat(result) / db.measured_upper);//1536  //15360
+            var ll = db.lower_limit;//0
+            var ul = db.upper_limit;//1023
+            b = Math.round((oracle_result - ll) * 1024 / ul);//1538
+            b = Math.max(0, b);
+            b = Math.min(b, 1023);
+            //return Math.floor(a * b / 1024) - db.channel_balance1;
+            console.log(JSON.stringify([oracle_result, a, ll, ul, b, spk_amount]));//[512,300000000,0,1023,513,-100000000]
+            return Math.floor(a * b / 1024) + spk_amount;
+
+        }
+    }
+    function oracle_result(db, callback) {
+        if (db.type == 2) {//scalar
+            return get_oracle_binary(
+                db.cid, db.oid, 10, 0,
+                function(b) {
+                    return callback(db, b);
+                });
+        } else if (db.type == 1) {
+            return callback(db, db.result);
+        }
+    }
+    /*
+    function oracle_result_old(db, callback) {
+        //winnings_amount
+        //split in two.
+        //firs step should look up the result from the oracle.
+        //second should be the same as the second step of winnings_amount.
         var x;
         if (db.type == 2) {//scalar
             var a = db.channel_balance1 + db.channel_balance2;
@@ -436,6 +509,8 @@
         }
         return callback(db, x);
     }
+*/
+        /*
     function we_send(db) {
         //generate the channel_close_tx and send it to them.
 	merkle.request_proof("accounts", db.address1, function(acc) {
@@ -451,6 +526,7 @@
             });
         });
     };
+*/
     function wait_till_closed(db) {
         //keep looking up the channel until it is closed, then make a message about how now it is safe to delete the channel state.
         merkle.request_proof("channels", db.cid, function(c) {

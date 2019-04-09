@@ -22,7 +22,7 @@
     var title = document.createElement("h3");
     title.innerHTML = "direct derivatives encrypted mail response form";
     div.appendChild(title);
-    var start_button = button_maker2("load your keys, then click this", start1);
+    //var start_button = button_maker2("load your keys, then click this", start1);
     //div.appendChild(start_button);
     var status = document.createElement("p");
     status.innerHTML = "status: <font color=\"orange\">listening for offers to trade. Send your pubkey to people who want to make trades with you.</font>";
@@ -30,7 +30,8 @@
     var contract_number = 0;
     var max_contract_number = 0;
     var contracts = [];
-    var next_button = button_maker2("Previous", function() {
+    /*
+      var next_button = button_maker2("Previous", function() {
         contract_number = Math.min(contract_number + 1, max_contract_number - 1);
         original_display_trade(contracts[contract_number]);
     });
@@ -40,10 +41,12 @@
         original_display_trade(contracts[contract_number]);
     });
     //div.appendChild(previous_button);
+    */
     var contract_view = document.createElement("div");
     div.appendChild(br());
     div.appendChild(contract_view);
     //contract_view.innerHTML = 0;
+    /*
     function start1() {
         return messenger(["read", 0, keys.pub()], function(x) {
             if (x == []) {
@@ -61,6 +64,7 @@
             }
         });
     }
+    */
     function cp_start() {
         var x = JSON.parse(cp_text.value);
         var msg = x[1];
@@ -68,7 +72,7 @@
         display_trade(msg, function(db){
             var accept = button_maker2("Accept trade and make channel.", function() {
                 return accept_trade(db, function(db2) {
-                    var spk2 = spk_maker(db2, 0);
+                    var spk2 = spk_maker(db2, 0, db.amount1 + db.amount2);
                     console.log(JSON.stringify(spk2));
                     var CH = btoa(array_to_string(hash(serialize(spk2))));
                     var NCO = signed_nc_offer[1];
@@ -107,6 +111,7 @@
             contract_view.appendChild(accept);
         });
     };
+    /*
     function original_display_trade(y) {
         return display_trade(y, function(db) {
             var accept_button = button_maker2("Accept this trade", function() {
@@ -121,6 +126,7 @@
             contract_view.appendChild(accept_button);
         });
     }
+    */
     function display_trade(y, callback){
         //console.log(JSON.stringify(contracts));
         //y = contracts[n];
@@ -140,7 +146,7 @@
                         "oracle text: ").concat(question).concat("<br />").concat(
                             "our bet amount: ").concat(db.amount2 / token_units()).concat("<br />").concat(
                                 "their bet amount: ").concat(db.amount1 / token_units()).concat("<br />");
-                var s2 = s1.concat("you win if the outcome is: ").concat(db.direction).concat("<br />").concat("scalar or binary?: ").concat(db.oracle_type).concat("<br />").concat("delay: ").concat((db.delay).toString()).concat("<br />").concat("for this contract, you pay: ").concat((-(db.payment) / token_units()).toString()).concat("<br />");;
+                var s2 = s1.concat("you win if the outcome is: ").concat(db.direction).concat("<br />").concat("scalar or binary?: ").concat(db.oracle_type).concat("<br />").concat("delay: ").concat((db.delay).toString()).concat("<br />");
                 if (db.oracle_type_val == 1) {//scalar
                     s2 = s2.concat("upper limit: ").concat((db.upper_limit).toString()).concat("<br />").concat("lower limit: ").concat((db.lower_limit).toString()).concat("<br />");
                 }
@@ -180,6 +186,7 @@
             return callback(db);
         });
     };
+    /*
     function accept_trade3(db) {
         var spk2 = spk_maker(db, keys.pub());
         //var sspk2 = keys.sign(spk2);
@@ -217,6 +224,7 @@
             });
         });
     };
+    */
     function pd_checker(db) {
         var pd = pd_maker(db.height, db.maxprice - 1, 9999, db.oid);
         var pd2 = db.spd.slice(0, pd.length);

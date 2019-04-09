@@ -83,9 +83,9 @@
 
 	    console.log("new");
 	    console.log(v);
-            console.log(orders_hash);
+            console.log(orders_hash);//is 0, should be 1.
             //return 0;
-            var key = ["key", orders_hash, v];
+            var key = ["key", "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAE=", v];//key, account, oracle
             console.log(JSON.stringify(key));
 	    merkle.request_proof("unmatched", key, function(x) {
 		console.log(x);

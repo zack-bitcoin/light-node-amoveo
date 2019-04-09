@@ -217,13 +217,13 @@ function fee_checker(address, Callback1, Callback2) {
 function send_encrypted_message(imsg, to, callback) {
     var emsg = keys.encrypt(imsg, to);
     messenger(["account", keys.pub()], function(account) {
-        console.log("account is ");
-        console.log(JSON.stringify(account));
+        //console.log("account is ");
+        //console.log(JSON.stringify(account));
         var nonce = account[3] + 1;
         //nonce = 0;//look up nonce from account, add 1 to it.
         //var r = [53412, keys.pub(), nonce, emsg];
         var r = [-7, 53412, keys.pub(),nonce,emsg];
-        console.log(JSON.stringify(r));
+        //console.log(JSON.stringify(r));
         var sr = keys.sign(r);
         //console.log("check signature");
         //console.log(verify1(sr));
@@ -233,7 +233,7 @@ function send_encrypted_message(imsg, to, callback) {
     });
 };
 function verify_exists(oid, n, callback) {
-    console.log(oid);
+    //console.log(oid);
     if (n == 0) {
         return callback();
     }
@@ -291,12 +291,12 @@ function make_bytes(bytes, b) {
 function oracle_limit(oid, callback) {
     return variable_public_get(["oracle", oid], function(x) {
         var question = atob(x[2]);
-        console.log(question);
+        //console.log(question);
         //measured_upper.value = (largest_number(question, 0, 0)).toString();
         return callback(oracle_limit_grabber(question));
     });
     function oracle_limit_grabber(question) {
-        console.log("oracle limit grabber");
+        //console.log("oracle limit grabber");
         if (question.length < 4) {
             return "";
         }
@@ -307,20 +307,20 @@ function oracle_limit(oid, callback) {
         return oracle_limit_grabber(question.slice(1));
     }
     function olg2(question) {
-        console.log("olg2");
-        console.log(question);
+        //console.log("olg2");
+        //console.log(question);
         if (question.length < 2) {
             return "";
         }
         var f = question.slice(0, 2);
         if (f == "to") {
-            console.log("calling olg3 ");
+            //console.log("calling olg3 ");
             return olg3(question.slice(2), "");
         }
         return olg2(question.slice(1));
     }
     function olg3(question, n) {
-        console.log(n);
+        //console.log(n);
         if (question.length < 1) { return n; }
         var l = question[0];
         if (((l >= "0") && (l <= "9")) || (l == ".")) {
@@ -335,22 +335,22 @@ function oracle_limit(oid, callback) {
 
 }
 function check_spk_sig(pub, ch, sig) {
-    console.log("format check spk sig");
-    console.log(JSON.stringify([ch, sig, pub]));
+    //console.log("format check spk sig");
+    //console.log(JSON.stringify([ch, sig, pub]));
     var our_key =  keys.ec().keyFromPublic(toHex(atob(pub)), "hex");
     return verify(ch, sig, our_key);
 }
 function spk_sig(x) {
     if (x[0] == "spk") {
-        console.log("format spk sig");
-        console.log(JSON.stringify(x));
+        //console.log("format spk sig");
+        //console.log(JSON.stringify(x));
         x = btoa(array_to_string(hash(serialize(x))));
     }
     var sig1 = sign(x, keys.keys_internal());
     return btoa(array_to_string(sig1));
 };
 function derivatives_load_db(y) {
-    console.log(JSON.stringify(y));
+    //console.log(JSON.stringify(y));
     var db = {};
     db.direction_val = y[1];
     db.expires = y[2];
@@ -364,7 +364,7 @@ function derivatives_load_db(y) {
     db.period = y[6];
     db.amount1 = y[7];
     db.amount2 = y[8];
-    console.log(db.amount2);
+    //console.log(db.amount2);
     db.oid = y[9];
     db.height = y[10];
     db.delay = y[11];
@@ -388,17 +388,17 @@ function derivatives_load_db(y) {
     } else if (db.direction_val == 2) {
         db.direction = "true or long";
         }
-    console.log("display trade");
+    //console.log("display trade");
     return db;
 };
  
-function spk_maker(db, acc2) {
+function spk_maker(db, acc2, amount) {
+    //console.log("spk maker amount ");
+    //console.log(amount);
     var period = 10000000;//only one period because there is only one bet.
-    var amount = db.amount1 + db.amount2;
+    //var amount = db.amount1 + db.amount2;
     var sc;
     if (db.oracle_type == "scalar") {
-        console.log("accept trade 3 direction ");
-        console.log(db.direction_val);
         sc = scalar_market_contract(db.direction_val, db.expires, db.maxprice, db.acc1, period, amount, db.oid, db.height, db.upper_limit, db.lower_limit, db.bits);
     } else if (db.oracle_type == "binary") {
         sc = market_contract(db.direction_val, db.expires, db.maxprice, db.acc1, period, amount, db.oid, db.height);
@@ -406,6 +406,8 @@ function spk_maker(db, acc2) {
     //var delay = 1000;//a little over a week
     var spk = ["spk", db.acc1, acc2, [-6], 0,0,db.cid, 0,0,db.delay];
     var cd = channels_object.new_cd(spk, [],[],[],db.expires, db.cid);
+    //console.log(JSON.stringify(spk));
+    //console.log(JSON.stringify(sc));
     return market_trade(cd, amount, db.maxprice, sc, db.oid);
 };
 function record_channel_state(sspk2, db, acc2) {
@@ -413,8 +415,8 @@ function record_channel_state(sspk2, db, acc2) {
     var ss = channels_object.new_ss([0,0,0,0,4], [-6, ["oracles", db.oid]], meta);
     var expiration = 10000000;
     var cd = channels_object.new_cd(sspk2[1], sspk2, [ss], [ss], expiration, db.cid);
-    console.log("record channel state ");
-    console.log(JSON.stringify([db.acc1, db.acc2]));
+    //console.log("record channel state ");
+    //console.log(JSON.stringify([db.acc1, db.acc2]));
     if (db.acc1 == keys.pub()) {
         channels_object.write(acc2, cd);
     } else {//if (db.acc2 == keys.pub()) {

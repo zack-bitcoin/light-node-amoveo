@@ -315,6 +315,7 @@ function channels_main() {
 	    // sanity-check, verify 10 == l[4][3];
 	//all scalar markets currently use 10 binary oracles to measure values.
             sc = scalar_market_contract(type_final, expires, price_final, server_pubkey, period, amount_final, oid_final, headers_object.top()[1], lower_limit, upper_limit, 10);
+            sc[2] = Math.floor(sc[2] * ((10000 + price_final) / 10000));
 	}
         var cd = read(server_pubkey);
 	console.log("channels scalar market contract");

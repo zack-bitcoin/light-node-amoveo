@@ -60,7 +60,7 @@ function headers_main() {
     //headers_db[top_hash] = top_header;
     
     var top_diff = 0;//accumulative difficulty of top
-    var button = button_maker2("more headers ", more_headers);
+    var button = button_maker2("sync with network", more_headers);
     document.body.appendChild(button);
     wallet_text = document.createElement("p");
     wallet_text.innerHTML = JSON.stringify([["height", 0], ["total work", 0]]);

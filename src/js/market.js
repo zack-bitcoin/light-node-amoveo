@@ -46,8 +46,8 @@ function scalar_market_contract(direction, expires, maxprice, server_pubkey, per
     console.log(JSON.stringify(contract));
     var contract2 =  btoa(array_to_string(contract));
     var codekey = ["market", 2, oid, expires, server_pubkey, period, oid, lower_limit, upper_limit];
-    var amount2 = Math.floor(amount * ((10000 + maxprice) / 10000));
-    return ["bet", contract2, amount2, codekey, [-7, direction, maxprice]]; //codekey is insttructions on how to re-create the contract, so we can do pattern matching when updating channels.
+    //var amount2 = Math.floor(amount * ((10000 + maxprice) / 10000));
+    return ["bet", contract2, amount, codekey, [-7, direction, maxprice]]; //codekey is insttructions on how to re-create the contract, so we can do pattern matching when updating channels.
 }
 function market_contract(direction, expires, maxprice, server_pubkey, period, amount, oid, bet_height) {
   //var a = string_to_array(atob("AAAAJxAAAAAAAXgA"));
@@ -101,6 +101,7 @@ function market_trade(cd, amount, price, bet, oid) { //oid unused
     var space_limit = 100000;
     var cGran = 10000;
     var a = Math.floor((amount * price) / cGran);
+    console.log(JSON.stringify(bet));
     market_spk[3][0] = bet;
     market_spk[3] = ([-6]).concat(market_spk[3]);//add new bet to front
     market_spk[8] = market_spk[8] + 1; //nonce
