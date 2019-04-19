@@ -375,12 +375,12 @@ function derivatives_load_db(y) {
     db.oracle_type;
     db.cid = y[16];
     db.payment = y[20];
-    if (db.oracle_type_val == 1) {
+    if (db.oracle_type_val == 2) {
         db.oracle_type = "scalar";
         db.bits = y[17];
         db.upper_limit = y[18];
         db.lower_limit = y[19];
-    } else if (db.oracle_type_val == 0) {
+    } else if (db.oracle_type_val == 1) {
         db.oracle_type = "binary";
         }
     if (db.direction_val == 1) {
@@ -391,11 +391,13 @@ function derivatives_load_db(y) {
     //console.log("display trade");
     return db;
 };
- 
-function spk_maker(db, acc2, amount) {
+function default_period() {
+    return 1000000;
+}
+function spk_maker(db, acc2, amount, period) {
     //console.log("spk maker amount ");
     //console.log(amount);
-    var period = 10000000;//only one period because there is only one bet.
+    //var period = 10000000;//only one period because there is only one bet.
     //var amount = db.amount1 + db.amount2;
     var sc;
     if (db.oracle_type == "scalar") {
@@ -410,9 +412,33 @@ function spk_maker(db, acc2, amount) {
     //console.log(JSON.stringify(sc));
     return market_trade(cd, amount, db.maxprice, sc, db.oid);
 };
+function scalar_to_prove(oid, n) {
+    if (n == 0) { return []; }
+    var noid = btoa(next_oid(atob(oid)));
+    var rest = scalar_to_prove(noid, n-1);
+    return [["oracles", oid]].concat(rest);
+};
 function record_channel_state(sspk2, db, acc2) {
     var meta = 0;
-    var ss = channels_object.new_ss([0,0,0,0,4], [-6, ["oracles", db.oid]], meta);
+    if (db.oracle_type_val == 2) {//scalar
+        to_prove = [-6].concat(scalar_to_prove(db.oid, 10));
+    } else if (db.oracle_type_val == 1){//binary
+        to_prove = [-6, ["oracles", db.oid]];
+    }
+    console.log(JSON.stringify(db.spd));
+    //var size = (db.spd).length * 2;
+    var spd_bytes = string_to_array(db.spd);
+    var size = spd_bytes.length;
+    var size_a = Math.floor(size / 256);
+    var size_b = size % 256;
+    var code = [2,0,0,size_a,size_b].concat(spd_bytes).concat([0,0,0,0,1]);
+    console.log(JSON.stringify(code));
+    console.log(db.oracle_type_val);
+        // SS1a = "binary "++ integer_to_list(size(SPD))++ " " ++ PriceDeclare ++ " int 1",
+        // [0] ++ 4-bytes-size ++ spd_bytes ++ [0,0,0,0,1]
+    //var ss = channels_object.new_ss([0,0,0,0,4], to_prove, meta);
+    var ss = channels_object.new_ss(code, to_prove, meta);
+    //var expiration = 0;//so a smart contract could close the channel very quickly.
     var expiration = 10000000;
     var cd = channels_object.new_cd(sspk2[1], sspk2, [ss], [ss], expiration, db.cid);
     //console.log("record channel state ");

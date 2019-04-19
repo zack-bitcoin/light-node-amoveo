@@ -97,7 +97,7 @@ function market_trade(cd, amount, price, bet, oid) { //oid unused
     console.log("market trade spk before ");
     console.log(JSON.stringify(market_spk));
     var cid = market_spk[6];
-    var time_limit = 10000;//actually constants:time_limit div 10
+    var time_limit = 100000;//actually constants:time_limit div 10
     var space_limit = 100000;
     var cGran = 10000;
     var a = Math.floor((amount * price) / cGran);

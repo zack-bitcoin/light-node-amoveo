@@ -28,7 +28,8 @@
     function proposer_start() {
         var x = JSON.parse(channel_proposal.value);
         var db = derivatives_load_db(x[1]);
-        var spk = spk_maker(db, 0, db.amount1 + db.amount2);
+        var period = default_period();
+        var spk = spk_maker(db, 0, db.amount1 + db.amount2, period);
         //var sspk1 = keys.sign(spk);
         var sig = spk_sig(spk);
         //console.log(JSON.stringify(sspk1));
@@ -109,8 +110,11 @@
             //console.log(JSON.stringify(key));
             //["market",1,"wqsBDVWpK35TS/VqFYC94QWnNOwClAerYlbtz3AvKtk=",3000,"BHpLwieFVdD5F/z1mdScC9noIZ39HgnwvK8jHqRSBxjzWBssIR1X9LGr8QxTi8fUQws1Q5CGnmTk5dZwzdrGBi4=",10000000,"wqsBDVWpK35TS/VqFYC94QWnNOwClAerYlbtz3AvKtk="]
             db.oid = key[2];
-            db.type = key[1];
-            if (db.type == 2) {
+            //db.type = key[1];
+            console.log("otc finisher key is ");
+            console.log(JSON.stringify(key));
+            db.oracle_type_val = key[1];
+            if (db.oracle_type_val == 2) {
                 db.lower_limit = key[8];
                 db.upper_limit = key[7];
             }
@@ -130,24 +134,26 @@
             });
         });
     }
-       /* 
     function start2(db) {
         //oracle has been closed already.
-        var close_offer = text_input("close offer proposal: ", workspace);
-        var listen_button = button_maker2("load the proposal.", function() {
-            display_close_offer2(JSON.parse(close_offer.value), db)
-        });
-        workspace.appendChild(listen_button);
-        workspace.appendChild(br());
-        var talk_button = button_maker2("make a proposal to close the channel.", function() {
-            return we_send(db);
-        });
-        workspace.appendChild(talk_button);
-        workspace.appendChild(br());
+        cev2(db);
+        //var close_offer = text_input("close offer proposal: ", workspace);
+        //var listen_button = button_maker2("load the proposal.", function() {
+        //    display_close_offer2(JSON.parse(close_offer.value), db)
+        //});
+        //workspace.appendChild(listen_button);
+        //workspace.appendChild(br());
+        //var talk_button = button_maker2("make a proposal to close the channel.", function() {
+        //    return we_send(db);//HERE
+        //    //instead we should create a ctc offer.
+        //});
+        //workspace.appendChild(talk_button);
+        //workspace.appendChild(br());
         var solo_button = button_maker2("Avoid clicking this if you don't have to. click here to attempt to make a solo-close tx. Do this if your partner is refusing to work with you to close the channel. This costs more money than the normal way to close a channel, and it will take more time to finish.", function() { return solo_func(db); });
         workspace.appendChild(solo_button);
     };
 
+       /* 
         return messenger(["read", 1, db.cid, keys.pub()], function(txs) {
             if ((txs == btoa("error"))||(JSON.stringify(txs) == "[-6]")) {
                 //no one has sent us this kind of message yet.
@@ -204,11 +210,11 @@
     function close_early_view(db) {
         //show an interface for closing the channel early.
         var result;
-        if (db.type == 1) {
+        if (db.oracle_type_val == 1) {
             //binary: ask true/false
             db.result = text_input("outcome is true/false/bad: ", workspace);
             return cev2(db);
-        } else if (db.type == 2) {
+        } else if (db.oracle_type_val == 2) {
             //scalar: look up oracle_max measurement, ask for the final price.
             db.result = text_input("final price of the asset: ", workspace);
             oracle_limit(db.oid, function(x) {
@@ -225,7 +231,7 @@
                 nonce = acc[2]+1;
 	        var tx = ["ctc", db.address1, db.address2, db.fee, nonce+1, db.cid, x];
                 var stx = keys.sign(tx);
-                var imsg = [-6, early_close_code, db.type, db.result.value, stx];
+                var imsg = [-6, early_close_code, db.oracle_type_val, db.result.value, stx];
                 var their_address_val = Object.keys(channels_object.channel_manager())[0];
                 //return send_encrypted_message(imsg, their_address_val, function() {
                 var balances_string = calc_balances(db, x);
@@ -348,7 +354,7 @@
     };
     function oracle_value(db, result) {
         var oracle_result;
-        if (db.type == 1) {
+        if (db.oracle_type_val == 1) {
             var br;
             if (result == "true") {
                 br = 1;
@@ -361,7 +367,7 @@
                 return 0;
             }
             oracle_result = br;
-        } else if (db.type == 2) {
+        } else if (db.oracle_type_val == 2) {
             console.log(result);
             console.log(db.measured_upper);
             oracle_result = Math.floor(1024 * parseFloat(result) / db.measured_upper);
@@ -375,7 +381,7 @@
         //first should convert from string to the oracle's result.
         //second should be the same as the second step of winnings_amount.
         var x;
-        if (db.type == 1) {
+        if (db.oracle_type_val == 1) {
             var br;
             if (result == "true") {
                 br = 1;
@@ -394,7 +400,7 @@
             } else {//acc2 wins
                 x = -db.channel_balance1;
             }
-        } else if (db.type == 2) {
+        } else if (db.oracle_type_val == 2) {
             var a = db.channel_balance1 + db.channel_balance2;//10 veo
             var b = Math.floor(1024 * parseFloat(result) / db.measured_upper);//1536  //15360
             var ll = db.lower_limit;//0
@@ -439,7 +445,7 @@
         var bet = db.spk[3][1];//db.channel_balance1 + db.channel_balance2;//10 veo
         var a = bet[2];
         var spk_amount = db.spk[7];
-        if (db.type == 1) {//binary
+        if (db.oracle_type_val == 1) {//binary
             if (oracle_result == 3) {//tie
                 return 0;//undo contract, return everyone's money.
             } else if (oracle_result == db.direction) {//acc1 wins
@@ -449,7 +455,7 @@
                 //should be negative.
                 return spk_amount;
             }
-        } else if (db.type == 2) {//scalar
+        } else if (db.oracle_type_val == 2) {//scalar
             //var b = Math.floor(1024 * parseFloat(result) / db.measured_upper);//1536  //15360
             var ll = db.lower_limit;//0
             var ul = db.upper_limit;//1023
@@ -463,13 +469,13 @@
         }
     }
     function oracle_result(db, callback) {
-        if (db.type == 2) {//scalar
+        if (db.oracle_type_val == 2) {//scalar
             return get_oracle_binary(
                 db.cid, db.oid, 10, 0,
                 function(b) {
                     return callback(db, b);
                 });
-        } else if (db.type == 1) {
+        } else if (db.oracle_type_val == 1) {
             return callback(db, db.result);
         }
     }
@@ -480,7 +486,7 @@
         //firs step should look up the result from the oracle.
         //second should be the same as the second step of winnings_amount.
         var x;
-        if (db.type == 2) {//scalar
+        if (db.oracle_type_val == 2) {//scalar
             var a = db.channel_balance1 + db.channel_balance2;
             return get_oracle_binary(
                 db.cid, db.oid, 10, 0,
@@ -567,7 +573,15 @@
         //should be
         //[["ss","AAAAAAAAAAAAAQ==",[-6],0]]]
         //
-        var c = compile(L[0].code);
+        //var c = compile(L[0].code);
+
+        //scalar_market:settle_scalar/4
+
+        console.log(JSON.stringify(L));
+        //var c = compile(L[0].code);
+        var c = btoa(array_to_string(L[0].code));
+        //var c = "AAAAAAAAAAAAAQ==";
+        console.log(c);
         return [["ss", c, L[0].prove, 0]].concat(ss_encode(L.slice(1)));
     }
     function compile(x) {
@@ -577,18 +591,49 @@
         if (JSON.stringify(L) == "[]") {
             return "";
         }
-        return String.fromCharCode(0).concat(String.fromCharCode(L[0])).concat(compile2(L.slice(1)));
+        //return String.fromCharCode(0).concat(String.fromCharCode(L[0])).concat(compile2(L.slice(1)));
+        return (String.fromCharCode(L[0])).concat(compile2(L.slice(1)));
+    }
+    /*
+    function scalar_to_prove(oid, n) {
+        if (n == 0) { return []; }
+        var noid = btoa(next_oid(atob(oid)));
+        var rest = scalar_to_prove(noid, n-1);
+        return [["oracles", oid]].concat(rest);
+    };
+    */
+    function ss_maker(db) {
+        /*
+        var oid0 = db.cd.ssthem[0].prove[1][1];
+        var to_prove, code;
+        //to_prove = [-6, ["oracles", oid0], ["oracoes", oid1] ... ]
+        if (db.oracle_type_val == 2) {//scalar
+            to_prove = [-6].concat(scalar_to_prove(oid0, 10));
+            console.log(JSON.stringify(db.spd));
+            // SS1a = "binary "++ integer_to_list(size(SPD))++ " " ++ PriceDeclare ++ " int 1",
+            // [0] ++ 4-bytes-size ++ spd_bytes ++ [0,0,0,0,1]
+        } else if (db.oracle_type_val == 1) {//binary
+            to_prove = [-6, ["oracles", oid0]];
+            code = [0,0,0,0,1];
+        }
+        var ss = [-6].concat(ss_encode([{code: code, prove: to_prove}]));
+        */
+        var ss = [-6].concat(ss_encode(db.cd.ssthem));
+        console.log(JSON.stringify(ss));//[-6,["ss","AAAAAAAAAAAAAQ==",[-6,["oracles","BPW6vQwCxNkaGQtO2t9DBjSfUmVU9OWRvw2WsPXruIE="]],0]]
+        return ss;
     }
     function solo_func(db) {
         merkle.request_proof("accounts", keys.pub(), function (acc) {
+            console.log(JSON.stringify(acc));
             var nonce = acc[2] + 1;
-            var ss = [-6].concat(ss_encode(db.cd.ssthem));
-            console.log(JSON.stringify(ss));
+            //var ss = [-6].concat(ss_encode(db.cd.ssthem));
+            var ss = ss_maker(db);
             var fee = 202050;
             console.log("solo func");
             console.log(JSON.stringify(db.cd.them));
             //var tx = ["csc", keys.pub(), nonce, fee, keys.sign(db.cd.them), ss];
             var tx = ["csc", keys.pub(), nonce, fee, db.cd.them, ss];
+            console.log(JSON.stringify(tx));
             var stx = keys.sign(tx);
             return variable_public_get(["txs", [-6, stx]], function(x) {
                 console.log(x);
@@ -601,7 +646,8 @@
         merkle.request_proof("accounts", keys.pub(), function (acc) {
             var nonce = acc[2] + 1;
             //var ss = db.cd.ssme
-            var ss = [-6].concat(ss_encode(db.cd.ssthem));
+            //var ss = [-6].concat(ss_encode(db.cd.ssthem));
+            var ss = ss_maker(db);
             var fee = 202050;
             var tx = ["cs", keys.pub(), nonce, fee, keys.sign(db.cd.them), ss];
             var stx = keys.sign(tx);

@@ -69,10 +69,12 @@
         var x = JSON.parse(cp_text.value);
         var msg = x[1];
         var signed_nc_offer = x[2];
+        //msg[11] is signedPD
         display_trade(msg, function(db){
             var accept = button_maker2("Accept trade and make channel.", function() {
                 return accept_trade(db, function(db2) {
-                    var spk2 = spk_maker(db2, 0, db.amount1 + db.amount2);
+                    var period = default_period();
+                    var spk2 = spk_maker(db2, 0, db.amount1 + db.amount2, period);
                     console.log(JSON.stringify(spk2));
                     var CH = btoa(array_to_string(hash(serialize(spk2))));
                     var NCO = signed_nc_offer[1];
@@ -147,7 +149,7 @@
                             "our bet amount: ").concat(db.amount2 / token_units()).concat("<br />").concat(
                                 "their bet amount: ").concat(db.amount1 / token_units()).concat("<br />");
                 var s2 = s1.concat("you win if the outcome is: ").concat(db.direction).concat("<br />").concat("scalar or binary?: ").concat(db.oracle_type).concat("<br />").concat("delay: ").concat((db.delay).toString()).concat("<br />");
-                if (db.oracle_type_val == 1) {//scalar
+                if (db.oracle_type_val == 2) {//scalar
                     s2 = s2.concat("upper limit: ").concat((db.upper_limit).toString()).concat("<br />").concat("lower limit: ").concat((db.lower_limit).toString()).concat("<br />");
                 }
                 var cvdiv = document.createElement("div");
@@ -168,7 +170,7 @@
                 return 0;
             }
             db.oracle = x;
-            if (db.oracle_type_val == 1) { //scalar
+            if (db.oracle_type_val == 2) { //scalar
                 return verify_exists(db.oid, 10, function() {return accept_trade2(db, callback);});
             }
             return accept_trade2(db, callback);
@@ -237,7 +239,8 @@
         var pd_sig = db.spd.slice(pd.length);
         //var v = verify(pd, pd_sig, keys.ec().keyFromPublic(toHex(atob(db.acc1)), "hex"));
         var their_key = keys.ec().keyFromPublic(toHex(atob(db.acc1)), "hex");
-        return their_key.verify(hash(pd), bin2rs(atob(pd_sig)), "hex");
+        //return their_key.verify(hash(pd), bin2rs(atob(pd_sig)), "hex");
+        return their_key.verify(hash(serialize(btoa(pd))), bin2rs(pd_sig), "hex");
     }
     function start2(db) {
         merkle.request_proof("channels", db.cid, function(c) {

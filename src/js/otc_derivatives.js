@@ -1,4 +1,6 @@
 (function otc_function() {
+    const urlParams = new URLSearchParams(window.location.search);
+    var mode = urlParams.get('mode');
     var fee = 152050;
     var div = document.createElement("div");
     document.body.appendChild(div);
@@ -120,18 +122,12 @@
 	//merkle.request_proof("oracles", oracle.value, function(x) {
 	//var question_hash = x[3];
 
-        if (false) { //defaults
-            oracle.value = "AR9Yrb33n+KispDi5BQ6uLzWrLi9c28O5r6Q2xkouh0=";
-            //payment_field.value = "0";
-
-            our_amount.value = "1";
-            current_value.value = "70";
-            //measured_upper.value = "130";
-        };
-        //console.log(oracle.value);
-        oracle_limit(oracle.value, function(s) {
-            measured_upper.value = s;
-        });
+        console.log(oracle.value);
+        setTimeout(function(){
+            oracle_limit(oracle.value, function(s) {
+                measured_upper.value = s;
+            })
+        }, 100);
         div.appendChild(br());
         //var lower_margin = text_input("lower margin: ", div); //defined by leverage
         //div.appendChild(br());
@@ -144,6 +140,13 @@
         delay = document.createElement("p");
         delay.value = (1000).toString();
         div.appendChild(br());
+        if (false) { //defaults
+            oracle.value = "0RqvOuZJQ+aGVqLAq/4PwIRJSNEJZlHCvsOYRn4v1cM=";
+            our_amount.value = "1";
+            current_value.value = "100";
+            //measured_upper.value = "130";
+            delay.value = "1";
+        };
         oracle_type = document.createElement("p");
         oracle_type.value = "scalar";
         bits = document.createElement("p");
@@ -243,12 +246,12 @@
         db.delay = parseInt(delay.value, 10);
         //db.expires = parse_int(expires.value, 10);
         if (oracle_type.value.trim() == "scalar") {
-            db.oracle_type_val = 1;
+            db.oracle_type_val = 2;
             db.bits_val = 10;
             db.upper_limit = parseInt(upper_limit.value, 10);
             db.lower_limit = parseInt(lower_limit.value, 10);
         } else if (oracle_type.value.trim() == "binary") {
-            db.oracle_type_val = 0;
+            db.oracle_type_val = 1;
         } else {
             status.innerHTML = "status: <font color=\"red\">Error: oracle_type must be 'scalar' or 'binary'</font>";
             return 0;
@@ -273,7 +276,7 @@
                 return 0;
             }
             db.oracle = x;
-            if (db.oracle_type_val == 1) { //scalar
+            if (db.oracle_type_val == 2) { //scalar
                 status.innerHTML = "status: <font color=\"green\">Checking if the oracle exists.</font>";
                 return verify_exists(db.oracle_val, 10, function() {return callback(db);});
             }
@@ -320,12 +323,18 @@
     }
     */
     function make_contract_proposal(db) {
-        var period = 10000000;//only one period because there is only one bet.
+        var period = default_period();//10000000;//only one period because there is only one bet.
         var maxprice = Math.floor((10000 * (db.our_amount_val)) / (db.their_amount_val + db.our_amount_val));
         var amount = db.our_amount_val + db.their_amount_val;
         var oid = db.oracle_val;
         var height = headers_object.top()[1];
-        var bet_expires = 3000 + db.oracle[10]; // bet expires should be at least 3000 after the oracle can expire.
+        var oracle_wait;
+        if (mode == "production") {
+            oracle_wait = 3000;
+        } else {
+            oracle_wait = 3000;
+        }
+        var bet_expires = oracle_wait + db.oracle[10]; // bet expires should be at least 3000 after the oracle can expire.
         var cid = btoa(random_cid(32));//generate a random 32 byte cid for the new channel.
         db.cid = cid;
         db.expires = bet_expires, 
@@ -335,12 +344,12 @@
         db.height = height;
         db.bits = db.bits_val;
         db.direction_val = db.bet_direction_val;
-        if (db.oracle_type_val == 1) {
+        if (db.oracle_type_val == 2) {
             db.oracle_type = "scalar";
         } else if (db.oracle_type_val == 1) {
             db.oracle_type = "binary";
         }
-        var spk2 = spk_maker(db, 0, amount);
+        var spk2 = spk_maker(db, 0, amount, period);
         /*
         var sc;
         if (db.oracle_type_val == 1) {//scalar
@@ -365,20 +374,24 @@
         var sig = spk_sig(spk2); 
         var sspk2 = ["signed", spk2, [-7, 2, sig], [-6]];
         var pd = pd_maker(height, maxprice - 1, 9999, oid);
-        var sig = keys.raw_sign(pd);
+        //var sig = keys.raw_sign(serialize(pd));//should be about 73 bytes
+        var sig = array_to_string(sign(btoa(pd), keys.keys_internal()));
+        console.log(JSON.stringify(sig));
         //var sig = keys.sign(pd)[2];//crashes here
         var signedPD = btoa(pd.concat(sig));//<<PD/binary, Signature/binary>>.
-        //console.log("signed pd is");
+        console.log("signed pd is");
+        console.log(JSON.stringify(signedPD));//111
         //console.log(JSON.stringify(signedPD));184
-        //console.log(signedPD.length);
-        //console.log(JSON.stringify(btoa(pd)));56
-        //console.log(pd.length);
+        console.log(atob(signedPD).length);//110 //26 less
+        console.log("pd is");
+        console.log(JSON.stringify(btoa(pd)));
+        console.log(pd.length);40
         db.signedPD = signedPD;
         db.sspk2 = sspk2;
         var spk_nonce = spk2[8];
         var contract_sig = sspk2[2];
         var imsg;
-        if (db.oracle_type_val == 0) {
+        if (db.oracle_type_val == 1) {
             imsg = [-6, db.bet_direction_val, bet_expires, maxprice, keys.pub(), db.their_address_val, period, db.our_amount_val, db.their_amount_val, oid, height, db.delay, contract_sig, signedPD, spk_nonce, db.oracle_type_val, db.cid, 0, 0, 0, db.payment];
         } else {
             //console.log(db.upper_limit);
