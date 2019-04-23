@@ -94,14 +94,14 @@
         oracle_type.value = "binary";
         if (false) { //defaults
             //their_address.value = "BOzTnfxKrkDkVl88BsLMl1E7gAbKK+83pHCt0ZzNEvyZQPKlL/n8lYLCXgrL4Mmi/6m2bzj+fejX8D52w4U9LkI=";
-            oracle.value = "3qHmn0Lw3nnhztzi95CgU/yomO/CfIPYICtxPQN7PbY=";
+            oracle.value = "9ggbgZv8MntyINsDN2+oeER9pAV2bD0jWD2N+Y4+DIs=";
             our_amount.value = "1";
             their_amount.value = "1";
             bet_direction.value = "true";
             oracle_type.value = "binary";
             //payment_field.value = "0.2";
         };
-        var startButton = button_maker2("offer to make this trade via encrypted message to one person", start);
+        //var startButton = button_maker2("offer to make this trade via encrypted message to one person", start);
         //div.appendChild(startButton);
         var printButton = button_maker2("print an offer that anyone can accept", print_offer);
         div.appendChild(printButton);
@@ -141,7 +141,7 @@
         delay.value = (1000).toString();
         div.appendChild(br());
         if (false) { //defaults
-            oracle.value = "0RqvOuZJQ+aGVqLAq/4PwIRJSNEJZlHCvsOYRn4v1cM=";
+            oracle.value = "2XKpvThFN4EmuYkrjqo5myuLyrrtcITztT/dFxgYOhQ=";
             our_amount.value = "1";
             current_value.value = "100";
             //measured_upper.value = "130";
@@ -338,16 +338,17 @@
         var cid = btoa(random_cid(32));//generate a random 32 byte cid for the new channel.
         db.cid = cid;
         db.expires = bet_expires, 
-        db.maxprice = maxprice;
         db.acc1 = keys.pub();
         db.oid = oid;
         db.height = height;
         db.bits = db.bits_val;
         db.direction_val = db.bet_direction_val;
+        db.maxprice = maxprice;
         if (db.oracle_type_val == 2) {
             db.oracle_type = "scalar";
         } else if (db.oracle_type_val == 1) {
             db.oracle_type = "binary";
+            //db.maxprice = 1;
         }
         var spk2 = spk_maker(db, 0, amount, period);
         /*
@@ -373,7 +374,8 @@
         //console.log(JSON.stringify(spk2));
         var sig = spk_sig(spk2); 
         var sspk2 = ["signed", spk2, [-7, 2, sig], [-6]];
-        var pd = pd_maker(height, maxprice - 1, 9999, oid);
+        //console.log(db.maxprice - 1);
+        var pd = pd_maker(height, db.maxprice - 1, 9999, oid);
         //var sig = keys.raw_sign(serialize(pd));//should be about 73 bytes
         var sig = array_to_string(sign(btoa(pd), keys.keys_internal()));
         console.log(JSON.stringify(sig));

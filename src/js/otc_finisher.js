@@ -226,6 +226,8 @@
     function cev2(db){
         var early_button = button_maker2("generate a proposal to end the contract early and get your money out.", function() {
             //generate the signed ctc. send it along with the binary/scalar result used to generate it.
+            console.log("cev2 db.result.value is: ");
+            console.log(db.result.value);
             var x = oracle_value(db, db.result.value);
 	    return merkle.request_proof("accounts", db.address1, function(acc) {
                 nonce = acc[2]+1;
@@ -450,7 +452,18 @@
                 return 0;//undo contract, return everyone's money.
             } else if (oracle_result == db.direction) {//acc1 wins
                 //should be positive.
-                return spk_amount + a;
+                console.log("channel result a is ");
+                console.log(a);//3 veo.
+                console.log(spk_amount);
+                //maxprice is the portion of money in the account controlled by acc1 * 10 000.
+                //a = (amount_bet * ((10 000 + maxprice) / 10 000))
+                
+                var maxprice = Math.floor((10000 * (db.channel_balance1)) / (db.channel_balance2 + db.channel_balance1));
+                var amount_bet = Math.floor(a * 10000 / (10000 + maxprice));
+                console.log(JSON.stringify([amount_bet, a, maxprice]));
+                console.log(JSON.stringify(db));
+                //return spk_amount + a;//Math.floor(a / 2);
+                return spk_amount + amount_bet;//Math.floor(a / 2);
             } else {//acc2 wins
                 //should be negative.
                 return spk_amount;

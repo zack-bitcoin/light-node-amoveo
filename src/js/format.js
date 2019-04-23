@@ -382,6 +382,7 @@ function derivatives_load_db(y) {
         db.lower_limit = y[19];
     } else if (db.oracle_type_val == 1) {
         db.oracle_type = "binary";
+        //db.maxprice = 1;
         }
     if (db.direction_val == 1) {
         db.direction = "false or short";
@@ -410,6 +411,9 @@ function spk_maker(db, acc2, amount, period) {
     var cd = channels_object.new_cd(spk, [],[],[],db.expires, db.cid);
     //console.log(JSON.stringify(spk));
     //console.log(JSON.stringify(sc));
+    //console.log("format spk maker before market trade");
+    //console.log(amount);//2 veo
+    //console.log(db.maxprice);//5000 //if this was 0, it would probably fix it.
     return market_trade(cd, amount, db.maxprice, sc, db.oid);
 };
 function scalar_to_prove(oid, n) {
