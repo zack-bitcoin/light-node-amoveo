@@ -93,13 +93,11 @@
         oracle_type = document.createElement("p");
         oracle_type.value = "binary";
         if (false) { //defaults
-            //their_address.value = "BOzTnfxKrkDkVl88BsLMl1E7gAbKK+83pHCt0ZzNEvyZQPKlL/n8lYLCXgrL4Mmi/6m2bzj+fejX8D52w4U9LkI=";
-            oracle.value = "9ggbgZv8MntyINsDN2+oeER9pAV2bD0jWD2N+Y4+DIs=";
+            oracle.value = "27emyQoGfuPYYGEVe7+UsaYOb/5pykvOB+ZqVxeQHYE=";
             our_amount.value = "1";
             their_amount.value = "1";
             bet_direction.value = "true";
             oracle_type.value = "binary";
-            //payment_field.value = "0.2";
         };
         //var startButton = button_maker2("offer to make this trade via encrypted message to one person", start);
         //div.appendChild(startButton);

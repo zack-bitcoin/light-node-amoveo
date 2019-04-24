@@ -226,14 +226,18 @@
     function cev2(db){
         var early_button = button_maker2("generate a proposal to end the contract early and get your money out.", function() {
             //generate the signed ctc. send it along with the binary/scalar result used to generate it.
-            console.log("cev2 db.result.value is: ");
-            console.log(db.result.value);
-            var x = oracle_value(db, db.result.value);
+            var result;
+            if(db.result.value){
+                result = db.result.value;
+            } else {
+                result = db.result;
+            }
+            var x = oracle_value(db, result);
 	    return merkle.request_proof("accounts", db.address1, function(acc) {
                 nonce = acc[2]+1;
 	        var tx = ["ctc", db.address1, db.address2, db.fee, nonce+1, db.cid, x];
                 var stx = keys.sign(tx);
-                var imsg = [-6, early_close_code, db.oracle_type_val, db.result.value, stx];
+                var imsg = [-6, early_close_code, db.oracle_type_val, result, stx];
                 var their_address_val = Object.keys(channels_object.channel_manager())[0];
                 //return send_encrypted_message(imsg, their_address_val, function() {
                 var balances_string = calc_balances(db, x);
@@ -358,11 +362,11 @@
         var oracle_result;
         if (db.oracle_type_val == 1) {
             var br;
-            if (result == "true") {
+            if ((result == "true")||(result == 1)) {
                 br = 1;
-            } else if (result = "false") {
+            } else if ((result = "false")||(result == 2)) {
                 br = 2;
-            } else if (result = "bad") {
+            } else if ((result = "bad")||(result == 3)) {
                 br = 3;
             } else {
                 status.innerHTML = ("status: <font color=\"red\">Error: binary oracle result should be 'true', 'false', or 'bad'.</font>");
