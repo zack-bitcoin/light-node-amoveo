@@ -149,10 +149,21 @@
                             "our bet amount: ").concat(db.amount2 / token_units()).concat("<br />").concat(
                                 "their bet amount: ").concat(db.amount1 / token_units()).concat("<br />");
                 var s2 = s1.concat("you win if the outcome is: ").concat(db.direction).concat("<br />").concat("scalar or binary?: ").concat(db.oracle_type).concat("<br />").concat("delay: ").concat((db.delay).toString()).concat("<br />");
+                var cvdiv = document.createElement("div");
                 if (db.oracle_type_val == 2) {//scalar
                     s2 = s2.concat("upper limit: ").concat((db.upper_limit).toString()).concat("<br />").concat("lower limit: ").concat((db.lower_limit).toString()).concat("<br />");
+                    if ((db.upper_limit == 1023) || (db.lower_limit == 0)){
+                        setTimeout(function(){
+                            oracle_limit(db.oid, function(oracle_upper) {
+                                var ave = db.upper_limit + db.lower_limit;
+                                var ratio = db.amount2 / (db.amount2 + db.amount1);
+                                var price = ave * oracle_upper * ratio / 1023;
+                                s2 = s2.concat("this is unleveraged, so it is a stablecoin. It is trading at a price of ").concat((1/price)).concat(" stablecoin per veo");
+                                cvdiv.innerHTML = s2;
+                            });
+                        }, 100);
+                    }
                 }
-                var cvdiv = document.createElement("div");
                 cvdiv.innerHTML = s2;
                 contract_view.innerHTML = "";
                 contract_view.appendChild(cvdiv);
