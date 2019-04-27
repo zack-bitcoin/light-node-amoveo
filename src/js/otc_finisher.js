@@ -364,9 +364,9 @@
             var br;
             if ((result == "true")||(result == 1)) {
                 br = 1;
-            } else if ((result = "false")||(result == 2)) {
+            } else if ((result == "false")||(result == 2)) {
                 br = 2;
-            } else if ((result = "bad")||(result == 3)) {
+            } else if ((result == "bad")||(result == 3)) {
                 br = 3;
             } else {
                 status.innerHTML = ("status: <font color=\"red\">Error: binary oracle result should be 'true', 'false', or 'bad'.</font>");
