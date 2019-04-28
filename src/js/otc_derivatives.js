@@ -38,7 +38,7 @@
     buttons_div.appendChild(stablecoinButton);
     glossary.link(buttons_div, "stablecoin_bet");
     buttons_div.appendChild(br());
-    var their_amount, bet_direction, delay, oracle_type, bits, upper_limit, lower_limit;
+    var their_amount, bet_direction, delay, oracle_type, bits, upper_limit, lower_limit, bet_expires0;
 
     function scalar_view() {
         if (oracle.value == "") {
@@ -47,6 +47,9 @@
         }
         buttons_div.innerHTML = "";
         their_amount = text_input("their bet amount, in veo: ", div);
+        div.appendChild(br());
+        bet_expires0 = text_input("how many blocks until this bet offer becomes invalid: ", div);
+        bet_expires0.value = (100).toString();
         div.appendChild(br());
         bet_direction = text_input("you bet in direction (long/short): ", div);
     //div.appendChild(br());
@@ -86,6 +89,9 @@
         buttons_div.innerHTML = "";
         their_amount = text_input("their bet amount: ", div);
         div.appendChild(br());
+        bet_expires0 = text_input("how many blocks until this bet offer becomes invalid: ", div);
+        bet_expires0.value = (100).toString();
+        div.appendChild(br());
         bet_direction = text_input("you win if outcome is (true/false): ", div);
         delay = document.createElement("p");
         delay.value = (1000).toString();
@@ -93,7 +99,7 @@
         oracle_type = document.createElement("p");
         oracle_type.value = "binary";
         if (false) { //defaults
-            oracle.value = "27emyQoGfuPYYGEVe7+UsaYOb/5pykvOB+ZqVxeQHYE=";
+            oracle.value = "PQgBrSrsSbw9KwOE/ByDM9uQSo+4dY+6FBwPZSxgViU=";
             our_amount.value = "1";
             their_amount.value = "1";
             bet_direction.value = "true";
@@ -115,6 +121,9 @@
         //div.appendChild(br());
         var current_value = text_input("current price: ", div);
         glossary.link(div, "stablecoin_current_value");
+        div.appendChild(br());
+        bet_expires0 = text_input("how many blocks until this bet offer becomes invalid: ", div);
+        bet_expires0.value = (100).toString();
         div.appendChild(br());
         var measured_upper = text_input("upper limit of range being measured by the oracle: ", div);
 	//merkle.request_proof("oracles", oracle.value, function(x) {
@@ -200,7 +209,8 @@
                 var height = headers_object.top()[1];
                 return merkle.request_proof("accounts", keys.pub(), function (acc) {
                     var nonce = acc[2]+1;
-                    var nc_offer = ["nc_offer", keys.pub(), nonce, height + 100, db.our_amount_val, db.their_amount_val, 1000, db.delay, db.cid, cp.ch];
+                    //var nc_offer = ["nc_offer", keys.pub(), nonce, height + 100, db.our_amount_val, db.their_amount_val, 1000, db.delay, db.cid, cp.ch];
+                    var nc_offer = ["nc_offer", keys.pub(), nonce, height + parseInt(bet_expires0.value), db.our_amount_val, db.their_amount_val, 1000, db.delay, db.cid, cp.ch];
                     var ncs = keys.sign(nc_offer);
                     status.innerHTML = "status: <font color=\"blue\">put this data in a public place: </font> ".concat(JSON.stringify([-6, cp.msg, ncs]));
                     
