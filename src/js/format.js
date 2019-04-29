@@ -385,9 +385,9 @@ function derivatives_load_db(y) {
         //db.maxprice = 1;
         }
     if (db.direction_val == 1) {
-        db.direction = "false or short";
+        db.direction = "false or short or long-veo";
     } else if (db.direction_val == 2) {
-        db.direction = "true or long";
+        db.direction = "true or long or stablecoin";
         }
     //console.log("display trade");
     return db;

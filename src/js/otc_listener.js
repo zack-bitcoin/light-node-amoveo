@@ -152,6 +152,7 @@
                 var cvdiv = document.createElement("div");
                 if (db.oracle_type_val == 2) {//scalar
                     s2 = s2.concat("upper limit: ").concat((db.upper_limit).toString()).concat("<br />").concat("lower limit: ").concat((db.lower_limit).toString()).concat("<br />");
+                    //stablecoin vs long-veo
                     if ((db.upper_limit == 1023) || (db.lower_limit == 0)){
                         setTimeout(function(){
                             oracle_limit(db.oid, function(oracle_upper) {

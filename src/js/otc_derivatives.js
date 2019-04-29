@@ -119,7 +119,7 @@
         status.innerHTML = "status: <font color=\"blue\">warning, stablecoin interface only works if the oracle asks for the price of X in Veo. Does not work if the oracle asks the price of Veo in X.</font>";
         //var their_amount = text_input("their bet amount: ", div);
         //div.appendChild(br());
-        var current_value = text_input("current price: ", div);
+        var current_value = text_input("current price in VEO: ", div);
         glossary.link(div, "stablecoin_current_value");
         div.appendChild(br());
         bet_expires0 = text_input("how many blocks until this bet offer becomes invalid: ", div);
@@ -142,13 +142,15 @@
         glossary.link(div, "stablecoin_leverage");
         leverage.value = "1";
         div.appendChild(br());
-        bet_direction = document.createElement("p");
-        bet_direction.value = "long";
+        //bet_direction = document.createElement("p");
+        //bet_direction.value = "long";
+        bet_direction = text_input("which side of the contract do you want (stablecoin/long-veo): ", div);
+        bet_direction.value = "long-veo";
         delay = document.createElement("p");
         delay.value = (1000).toString();
         div.appendChild(br());
         if (false) { //defaults
-            oracle.value = "2XKpvThFN4EmuYkrjqo5myuLyrrtcITztT/dFxgYOhQ=";
+            oracle.value = "ncHZQHHZFlAOCT2X0Y5dwIUOtcwgdohHSdVPFXMrQ/E=";
             our_amount.value = "1";
             current_value.value = "100";
             //measured_upper.value = "130";
@@ -159,6 +161,11 @@
         bits = document.createElement("p");
         bits.value = "10";
         function scalar_view2(callback) {
+            var db = {};
+            db = decode_direction(db, bet_direction);
+            if (db == 0) {
+                return 0;
+            }
             var cp = parseFloat(current_value.value);
             var a = read_veo(our_amount);
             var oracle_upper = parseFloat(measured_upper.value); 
@@ -176,9 +183,15 @@
             upper_limit = document.createElement("p");
             upper_limit.value = (ul).toString();
             their_amount = document.createElement("p");
-            var ta = (a * (ul - cp2 ) / (cp2 - ll));
+            var ta;
+            if (db.bet_direction_val == 1) {
+                ta = (a * (ul - cp2 ) / (cp2 - ll));
+            } else if (db.bet_direction_val == 2) {
+                ta = (a * (cp2 - ll) / (ul - cp2));
+            }
+            //var ta = (a * (ul - cp2 ) / (cp2 - ll));
             their_amount.value = (ta/100000000).toString();
-            return callback();
+            return callback(db);
         };
         //var startButton = button_maker2("offer to make this trade via encrypted message to one person", function() {
         //    return scalar_view2(start);
@@ -187,8 +200,20 @@
         var printButton = button_maker2("print an offer that anyone can accept", function(){ return scalar_view2(print_offer)});
         div.appendChild(printButton);
     }
-    function print_offer() {
-        return load_from_text_fields(function(db) {
+    function decode_direction(db, bet_direction) {
+        var bdvt = bet_direction.value.trim();
+        if ((bdvt == "true") || (bdvt == "long") || (bdvt == "stablecoin")) {
+            db.bet_direction_val = 1;
+        } else if ((bdvt == "false") || (bdvt == "short") || (bdvt == "long-veo")) {
+            db.bet_direction_val = 2;
+        } else {
+            status.innerHTML = "status: <font color=\"red\">Error: you have to choose whether you want to buy stablecoins or long-veo.</font>";
+            return 0;
+        };
+        return db;
+    }
+    function print_offer(db0) {
+        return load_from_text_fields(db0, function(db) {
             return check_account_balances(db, function(db2) {
                 var cp = make_contract_proposal(db2);
                 //var sig1 = keys.keys_internal().sign(cp.ch).toDER();
@@ -226,8 +251,9 @@
             });
         });
     }
-      function start() {
-        return load_from_text_fields(function(db) {
+    function start() {
+        var db0 = {};
+        return load_from_text_fields(db0, function(db) {
             db.their_address_val = 1;
             return check_account_balances(db, function(db2) {
                 return propose_contract(db2, function(db3) {
@@ -238,8 +264,8 @@
             });
         });
     }
-    function load_from_text_fields(callback) {
-        var db = {};
+    function load_from_text_fields(db, callback) {
+        //var db = {};
         //db.payment = read_veo(payment_field);
         db.payment = 0;
         //db.their_address_val = parse_address(their_address.value);
@@ -265,13 +291,8 @@
             return 0;
         }
         //var bet_direction_val;
-        var bdvt = bet_direction.value.trim();
-        if ((bdvt == "true") || (bdvt == "long")) {
-            db.bet_direction_val = 1;
-        } else if ((bdvt == "false") || (bdvt == "short")) {
-            db.bet_direction_val = 2;
-        } else {
-            status.innerHTML = "status: <font color=\"red\">Error:`you win if outcome is` must be 'true' or 'false'</font>";
+        db = decode_direction(db, bet_direction);
+        if (db == 0) {
             return 0;
         }
     //our private key needs to be loaded.
