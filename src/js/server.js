@@ -10,11 +10,20 @@ var server_ip_info = document.createElement("h8");
 server_ip_info.innerHTML = "channel node IP: ";
 var server_port = document.createElement("INPUT");
 //server_port.value = "8080";// server
-if (document.URL[0] == 'f') {
-    console.log("running stand-alone light node");
-} else {
-    console.log("running light node served from a full node");
-    server_port.value = document.URL.split(":")[2].substring(0, 4);
+var URL_REGEX = /^(https?)?(?:[\:\/]*)([a-z0-9\.-]*)(?:\:([0-9]+))?(\/[^?#]*)?(?:\?([^#]*))?(?:#(.*))?$/i;
+var match = document.URL.match(URL_REGEX);
+console.log(match);
+if (match !== null){
+    var host = match[2];
+    var port = match[3];
+    console.log(port);
+    if (document.URL[0] == 'f') {
+        console.log("running stand-alone light node");
+    } else {
+        console.log("running light node served from a full node");
+        server_port.value = port;
+//    server_port.value = document.URL.split(":")[2].substring(0, 4);
+    };
 };
 server_port.setAttribute("type", "text");
 var server_port_info = document.createElement("h8");
