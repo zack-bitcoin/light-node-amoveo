@@ -429,15 +429,15 @@ function record_channel_state(sspk2, db, acc2) {
     } else if (db.oracle_type_val == 1){//binary
         to_prove = [-6, ["oracles", db.oid]];
     }
-    console.log(JSON.stringify(db.spd));
+    //console.log(JSON.stringify(db.spd));
     //var size = (db.spd).length * 2;
     var spd_bytes = string_to_array(db.spd);
     var size = spd_bytes.length;
     var size_a = Math.floor(size / 256);
     var size_b = size % 256;
     var code = [2,0,0,size_a,size_b].concat(spd_bytes).concat([0,0,0,0,1]);
-    console.log(JSON.stringify(code));
-    console.log(db.oracle_type_val);
+    //console.log(JSON.stringify(code));
+    //console.log(db.oracle_type_val);
         // SS1a = "binary "++ integer_to_list(size(SPD))++ " " ++ PriceDeclare ++ " int 1",
         // [0] ++ 4-bytes-size ++ spd_bytes ++ [0,0,0,0,1]
     //var ss = channels_object.new_ss([0,0,0,0,4], to_prove, meta);

@@ -129,7 +129,7 @@
 	//merkle.request_proof("oracles", oracle.value, function(x) {
 	//var question_hash = x[3];
 
-        console.log(oracle.value);
+        //console.log(oracle.value);
         setTimeout(function(){
             oracle_limit(oracle.value, function(s) {
                 measured_upper.value = s;
@@ -168,15 +168,31 @@
             }
             var cp = parseFloat(current_value.value);
             var a = read_veo(our_amount);
-            var oracle_upper = parseFloat(measured_upper.value); 
+            var oracle_upper = parseFloat(measured_upper.value);
+            //console.log("oracle upper");
+            //console.log(oracle_upper);
             var l = parseFloat(leverage.value);
             if (l < 1) {
                 status.innerHTML = "status: <font color=\"red\">Error: leverage cannot be less than 1.</font>";
                 return 0;
             }
-            var cp2 = Math.min(1023, Math.max(0, Math.floor(1024 * cp / oracle_upper)));
-            var ll =  Math.min(1023, Math.max(0, Math.floor(cp2*(l-1)/l)));
-            var ul =  Math.min(1023, Math.max(0, Math.floor((2*cp2)-ll)));
+            var cp2e = Math.min(1023, Math.max(0, (1023 * cp / oracle_upper)));
+            var cp2 = Math.floor(cp2e);
+            //var cp2 = Math.min(1023, Math.max(0, Math.floor(1024 * cp / oracle_upper)));
+            //console.log("oracle upper");
+            //console.log(oracle_upper);//60
+            //console.log("cp");
+            //console.log(cp);//32
+            //console.log("cp2e");
+            //console.log(cp2e);//546
+            //console.log("cp2");
+            //console.log(cp2);//546
+            var lle =  Math.min(1023, Math.max(0, ((2 * cp2e) - 1023)));
+            var ll =  Math.floor(lle);
+            //var ll =  Math.min(1023, Math.max(0, Math.floor(cp2*(l-1)/l)));
+            var ule =  Math.min(1023, Math.max(0, ((2*cp2e)-lle)));
+            var ul = Math.floor(ule);
+            //var ul =  Math.min(1023, Math.max(0, Math.floor((2*cp2)-lle)));
             //[60,0,130,1,472,0,944]
             lower_limit = document.createElement("p");
             lower_limit.value = (ll).toString();
@@ -185,11 +201,24 @@
             their_amount = document.createElement("p");
             var ta;
             if (db.bet_direction_val == 1) {
-                ta = (a * (ul - cp2 ) / (cp2 - ll));
+                ta = (a * (ule - cp2e) / (cp2e - lle));
             } else if (db.bet_direction_val == 2) {
-                ta = (a * (cp2 - ll) / (ul - cp2));
+                ta = (a * (cp2e - lle) / (ule - cp2e));
             }
-            //var ta = (a * (ul - cp2 ) / (cp2 - ll));
+            /*
+            console.log("lle");
+            console.log(lle);
+            console.log("ule");
+            console.log(ule);
+            console.log("cp2e - lle");
+            console.log(cp2e - lle);
+            console.log("ule - cp2e");
+            console.log(ule - cp2e);
+            console.log("a");
+            console.log(a);
+            console.log("ta");
+            console.log(ta);
+            */
             their_amount.value = (ta/100000000).toString();
             return callback(db);
         };
@@ -407,16 +436,16 @@
         var pd = pd_maker(height, db.maxprice - 1, 9999, oid);
         //var sig = keys.raw_sign(serialize(pd));//should be about 73 bytes
         var sig = array_to_string(sign(btoa(pd), keys.keys_internal()));
-        console.log(JSON.stringify(sig));
+        //console.log(JSON.stringify(sig));
         //var sig = keys.sign(pd)[2];//crashes here
         var signedPD = btoa(pd.concat(sig));//<<PD/binary, Signature/binary>>.
-        console.log("signed pd is");
-        console.log(JSON.stringify(signedPD));//111
+        //console.log("signed pd is");
+        //console.log(JSON.stringify(signedPD));//111
         //console.log(JSON.stringify(signedPD));184
-        console.log(atob(signedPD).length);//110 //26 less
-        console.log("pd is");
-        console.log(JSON.stringify(btoa(pd)));
-        console.log(pd.length);40
+        //console.log(atob(signedPD).length);//110 //26 less
+        //console.log("pd is");
+        //console.log(JSON.stringify(btoa(pd)));
+        //console.log(pd.length);40
         db.signedPD = signedPD;
         db.sspk2 = sspk2;
         var spk_nonce = spk2[8];
