@@ -47,6 +47,47 @@ function keys_function1() {
         var pubPoint = keys_internal.getPublic("hex");
         return btoa(fromHex(pubPoint));
     }
+    function powrem(x, e, p) {
+        if (e == 0n) {
+            return 1n;
+        } else if (e == 1n) {
+            return x;
+        } else if ((e % 2n) == 0n) {
+            return powrem(((x * x) % p),
+                          (e / 2n),
+                          p);
+        } else {
+            return (x * powrem(x, e - 1n, p)) % p;
+        }
+    };
+    function decompress_pub(pub) {
+        //pub = "AhEuaxBNwXiTpEMTZI2gExMGpxCwAapTyFrgWMu5n4cI";
+        var p = 115792089237316195423570985008687907853269984665640564039457584007908834671663n;
+        var b = atob(pub);
+        var a = string_to_array(b);
+        var s = BigInt(a[0] - 2);
+        var x = big_array_to_int(a.slice(1, 33));
+        var y2 = (((((x * x) % p) * x) + 7n) % p);
+        var y = powrem(y2, ((p+1n) / 4n), p);
+        if (!(s == (y % 2n))) {
+            y = ((p - y) % p);
+        }
+        pub = [4].concat(big_integer_to_array(x, 32)).concat(big_integer_to_array(y, 32));
+        return btoa(array_to_string(pub));
+    }
+    function compress_pub(p) {
+        var b = atob(p);
+        var a = string_to_array(b);
+        var x = a.slice(1, 33);
+        var s = a[64];
+        var f;
+        if ((s % 2) == 0) {
+            f = 2;
+        } else {
+            f = 3;
+        }
+        return btoa(array_to_string([f].concat(x)))
+    }
     function raw_sign(x) {
         var h = hash(x);
         var sig = keys_internal.sign(h);
@@ -150,6 +191,6 @@ function keys_function1() {
     function decrypt(val) {
 	return encryption_object.get(val, keys_internal);
     }
-    return {make: new_keys, pub: pubkey_64, raw_sign: raw_sign, sign: sign_tx, ec: (function() { return ec; }), encrypt: encrypt, decrypt: decrypt, check_balance: check_balance, keys_internal: (function() {return keys_internal;}) };
+    return {make: new_keys, pub: pubkey_64, raw_sign: raw_sign, sign: sign_tx, ec: (function() { return ec; }), encrypt: encrypt, decrypt: decrypt, check_balance: check_balance, keys_internal: (function() {return keys_internal;}), compress: compress_pub, decompress: decompress_pub };
 }
 var keys = keys_function1();
