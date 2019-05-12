@@ -160,7 +160,7 @@ function button_maker2(val, fun) {
     button.value = val;
     button.onclick = fun;
     return button;
-}
+};
 function br() {
     return document.createElement("br");
 };

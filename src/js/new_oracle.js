@@ -13,7 +13,7 @@
     var status = document.createElement("p");
     status.innerHTML = "status: <font color=\"green\">ready</font>";
     div.appendChild(status);
-    var starts = text_input("starts: ", div);
+    var starts = text_input("the result that this oracle should have will be knowable by block height: ", div);
     glossary.link(div, "oracle_starts");
     div.appendChild(br());
     var question = text_input("question: ", div);

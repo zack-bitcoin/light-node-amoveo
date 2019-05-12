@@ -119,7 +119,7 @@
         status.innerHTML = "status: <font color=\"blue\">warning, stablecoin interface only works if the oracle asks for the price of X in Veo. Does not work if the oracle asks the price of Veo in X.</font>";
         //var their_amount = text_input("their bet amount: ", div);
         //div.appendChild(br());
-        var current_value = text_input("current price in VEO: ", div);
+        var current_value = text_input("the price to trade at in VEO: ", div);
         glossary.link(div, "stablecoin_current_value");
         div.appendChild(br());
         bet_expires0 = text_input("how many blocks until this bet offer becomes invalid: ", div);
@@ -266,7 +266,7 @@
                     //var nc_offer = ["nc_offer", keys.pub(), nonce, height + 100, db.our_amount_val, db.their_amount_val, 1000, db.delay, db.cid, cp.ch];
                     var nc_offer = ["nc_offer", keys.pub(), nonce, height + parseInt(bet_expires0.value), db.our_amount_val, db.their_amount_val, 1000, db.delay, db.cid, cp.ch];
                     var ncs = keys.sign(nc_offer);
-                    status.innerHTML = "status: <font color=\"blue\">put this data in a public place: </font> ".concat(JSON.stringify([-6, cp.msg, ncs]));
+                    status.innerHTML = "status: <font color=\"blue\">put this data in a public place, for example <a href=\"http://139.59.144.76:8090/main.html\">this website</a> : </font> ".concat(JSON.stringify([-6, cp.msg, ncs]));
                     
                     var channel_offer_name = text_input("channel_offer_name: ", save_button_div);
                     var today = new Date();
