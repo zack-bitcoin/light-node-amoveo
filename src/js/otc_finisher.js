@@ -430,7 +430,7 @@
         }
         return find_ctc(cid, txs.slice(1));
     }
-    function get_oracle_binary(cid, oid, many, result, callback) {
+    function get_oracle_binary(oid, many, result0, callback) {
         if (many == 0) { return callback(result); }
         merkle.request_proof("oracles", oid, function(r) {
             var result = r[2];//3 is bad, 2 is false, 1 is true, 0 is still open
@@ -441,9 +441,9 @@
                 status.innerHTML = ("status: <font color=\"green\">this oracle is not yet closed.</font>");
                 return callback("error");
             } else if (result == 2) {//0 bit.
-                return get_oracle_binary(cid + 1, oid, many - 1, result * 2, callback);
+                return get_oracle_binary(oid, many - 1, result0 * 2, callback);
             } else if (result == 1) {//1 bit.
-                return get_oracle_binary(cid + 1, oid, many - 1, (result * 2) + 1, callback);
+                return get_oracle_binary(oid, many - 1, (result0 * 2) + 1, callback);
             }
         });
     };
@@ -488,7 +488,7 @@
     function oracle_result(db, callback) {
         if (db.oracle_type_val == 2) {//scalar
             return get_oracle_binary(
-                db.cid, db.oid, 10, 0,
+                db.oid, 10, 0,
                 function(b) {
                     return callback(db, b);
                 });

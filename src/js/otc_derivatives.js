@@ -150,7 +150,7 @@
         delay.value = (1000).toString();
         div.appendChild(br());
         if (false) { //defaults
-            oracle.value = "ncHZQHHZFlAOCT2X0Y5dwIUOtcwgdohHSdVPFXMrQ/E=";
+            oracle.value = "EUqii6niq1zxi4txYALbbO/LFoBpndBsWG9O9InbbeQ=";
             our_amount.value = "1";
             current_value.value = "100";
             //measured_upper.value = "130";
