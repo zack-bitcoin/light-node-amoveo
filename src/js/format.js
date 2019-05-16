@@ -356,8 +356,10 @@ function oracle_limit(oid, callback) {
             return n;
         }
     };
+};
 
-}
+
+
 function check_spk_sig(pub, ch, sig) {
     //console.log("format check spk sig");
     //console.log(JSON.stringify([ch, sig, pub]));

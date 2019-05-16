@@ -35,9 +35,16 @@
 		a = text("this oracle closed in state: false");
 	    } else if (result == 3) {
 		a = text("this oracle closed in state: bad-question");
-	    }
+	    } else {
+                console.log("result is ");
+                console.log(a);
+                return(0);
+            }
 	    oracleOutput.appendChild(a);
 	    oracleOutput.appendChild(br());
+            var scalar_price_div = document.createElement("div");
+            oracleOutput.appendChild(scalar_price_div);
+            try_get_scalar_price(v, scalar_price_div);
             var gov_div = document.createElement("div");
             oracleOutput.appendChild(gov_div);
 	    if (governance == 0) {
@@ -84,22 +91,51 @@
 	    console.log("new");
 	    console.log(v);
             console.log(orders_hash);//is 0, should be 1.
+            //if (result == 0) {
+            if (false) {
             //return 0;
-            var key = ["key", "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAE=", v];//key, account, oracle
-            console.log(JSON.stringify(key));
-	    merkle.request_proof("unmatched", key, function(x) {
-		console.log(x);
+                var key = ["key", "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAE=", v];//key, account, oracle
+                console.log(JSON.stringify(key));
+	        merkle.request_proof("unmatched", key, function(x) {
+		    console.log(x);
 	        //variable_public_get(["oracle_bets", v], oracle_bets);
 	        //now display the whole thing.
 	        //oracleOutput.appendChild(br());
 	        //var x2 = text(JSON.stringify(x));
 	        //oracleOutput.appendChild(x2);
-	    });
-
+	        });
+            };
 	});
     };
     function oracle_bets(x) {
 	console.log("inside oracle bets");
 	console.log(JSON.stringify(x));
     }
+    function try_get_scalar_price(oid, div) {
+        return tgsp(oid, div, 10, 0);
+    };
+    function tgsp(oid, div, many, result0) {
+        if (many == 0) {
+            div.innerHTML = "scalar oracle result if closed now: ".concat(result0);
+            return(0);
+        }
+        //console.log(oid);
+        merkle.request_proof("oracles", oid, function(r) {
+            var result = r[2];//3 is bad, 2 is false, 1 is true, 0 is still open
+            if (result == 0) {
+                //the oracle isn't closed yet
+                result = r[5];
+            }
+            if ((result == 3) || (result == 0)) {
+                div.innerHTML = "scalar oracle result if closed now: bad question";
+                return 0;
+            } else if (result == 1) {
+                //console.log("1 bit");
+                return tgsp(btoa(next_oid(atob(oid))), div, many - 1, (result0 * 2) + 1);
+            } else if (result == 2) {
+                //console.log("0 bit");
+                return tgsp(btoa(next_oid(atob(oid))), div, many - 1, (result0 * 2));
+            };
+        });
+    };
 })();

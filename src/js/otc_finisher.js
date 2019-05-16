@@ -441,9 +441,9 @@
                 status.innerHTML = ("status: <font color=\"green\">this oracle is not yet closed.</font>");
                 return callback("error");
             } else if (result == 2) {//0 bit.
-                return get_oracle_binary(oid, many - 1, result0 * 2, callback);
+                return get_oracle_binary(next_oid(oid), many - 1, result0 * 2, callback);
             } else if (result == 1) {//1 bit.
-                return get_oracle_binary(oid, many - 1, (result0 * 2) + 1, callback);
+                return get_oracle_binary(next_oid(oid), many - 1, (result0 * 2) + 1, callback);
             }
         });
     };
