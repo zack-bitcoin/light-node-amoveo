@@ -145,9 +145,10 @@
             
                 var s1 = ("their address: ").concat(db.acc1).concat("<br />").concat(
                     "oracle: ").concat(db.oid).concat("<br />").concat(
-                        "oracle text: ").concat(question).concat("<br />").concat(
-                            "our bet amount: ").concat(db.amount2 / token_units()).concat("<br />").concat(
-                                "their bet amount: ").concat(db.amount1 / token_units()).concat("<br />");
+                        "channel id:").concat(db.cid).concat("<br />").concat(
+                            "oracle text: ").concat(question).concat("<br />").concat(
+                                "our bet amount: ").concat(db.amount2 / token_units()).concat("<br />").concat(
+                                    "their bet amount: ").concat(db.amount1 / token_units()).concat("<br />");
                 var s2 = s1.concat("you win if the outcome is: ").concat(db.direction).concat("<br />").concat("scalar or binary?: ").concat(db.oracle_type).concat("<br />").concat("channel delay: ").concat((db.delay).toString()).concat("<br />");
                 var cvdiv = document.createElement("div");
                 if (db.oracle_type_val == 2) {//scalar
