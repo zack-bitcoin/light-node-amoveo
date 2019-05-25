@@ -225,7 +225,7 @@ function read_veo(X) {
 function fee_checker(address, Callback1, Callback2) {
     variable_public_get(["account", address],
 			function(result) {
-			    if (result == "empty") {
+			    if ((result == 0) || (result == "empty")) {
 				merkle.request_proof("governance", 14, function(gov_fee) {
 				    var fee = tree_number_to_value(gov_fee[2]) + 50;
 				    Callback1(fee);

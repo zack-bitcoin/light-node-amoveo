@@ -4,7 +4,7 @@ function merkle_proofs_main() {
         console.log("verify callback key is ");
         console.log(JSON.stringify(key));
 	variable_public_get(["proof", btoa(tree), key, btoa(array_to_string(top_hash))], function(proof){
-            if (proof[3] == "empty") { return callback("empty"); };
+            if ((proof[3] == "empty")||(proof[3]==0)) { return callback("empty"); };
 	    var val = verify_merkle(key, proof);
 	    return callback(val);
 	    
