@@ -78,7 +78,7 @@
         merkle.request_proof("channels", db.cid, function(c) {
             console.log("channel is ");
             console.log(c);
-            if (c == "empty") {
+            if (c == 0) {
                 status.innerHTML = "status: <font color=\"red\">that channel does not exist. Maybe you haven't synced with the network, or maybe it is already closed, or maybe it never existed.</font>";
                 return 0;
             };
@@ -555,7 +555,7 @@
         merkle.request_proof("channels", db.cid, function(c) {
             console.log("wait till closed");
             //console.log(c);
-            if (c == "empty") {
+            if (c == 0) {
                 status.innerHTML = ("status: <font color=\"blue\">The channel is now closed. It is safe to delete your channel state file.</font>");
                 return 0;
             } else {

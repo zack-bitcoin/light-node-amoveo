@@ -135,7 +135,7 @@
         var db = derivatives_load_db(y);
         console.log(JSON.stringify(y));
         merkle.request_proof("channels", db.cid, function(c) {
-            if (!(c == "empty")) {
+            if (!(c == 0)) {
                 console.log("that contract was already made.")
                 return(0);
             };
@@ -191,7 +191,7 @@
     };
     function accept_trade2(db, callback){
         return variable_public_get(["account", db.acc1], function(their_acc) {
-            if (their_acc == "empty") {
+            if (their_acc == 0) {
                     status.innerHTML = "status: <font color=\"red\">Error: your partner needs to have veo in their account to make a channel.</font>";
             } else if (their_acc[1] < (db.acc1 + 1000000)) {
                 status.innerHTML = "status: <font color=\"red\">Error: you partner doesn't have enough veo to make a bet that big.</font>";
@@ -259,7 +259,7 @@
         merkle.request_proof("channels", db.cid, function(c) {
             console.log("channel is ");
             console.log(c);
-            if (c == "empty") {
+            if (c == 0) {
                 return headers_object.on_height_change(function() { return start2(db); });
             }
             status.innerHTML = "status: <font color=\"green\">The channel has been formed, and the smart contract is active. If you have saved a copy of the signed smart contract, then it is now safe to close the browser.</font>";

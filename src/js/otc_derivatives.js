@@ -343,7 +343,7 @@
     };
     function check_account_balances(db, callback) {
         return variable_public_get(["account", keys.pub()], function(my_acc) {
-            if (my_acc == "empty") {
+            if (my_acc == 0) {
                 status.innerHTML = "status: <font color=\"red\">Error: load a private key with sufficient funds.</font>";
                 return 0;
             } else if (my_acc[1] < (db.our_amount_val)) {
@@ -356,7 +356,7 @@
             }
             /*
             return variable_public_get(["account", db.their_address_val], function(their_acc) {
-                if (their_acc == "empty") {
+                if (their_acc == 0) {
                     status.innerHTML = "status: <font color=\"red\">Error: your partner needs to have veo in their account to make a channel.</font>";
                     return 0;
                 } else if (their_acc[1] < (db.their_amount_val)) {
@@ -581,7 +581,7 @@
         merkle.request_proof("channels", db.cid, function(c) {
             console.log("channel is ");
             console.log(c);
-            if (c == "empty") {
+            if (c == 0) {
                 return headers_object.on_height_change(function() { return confirm_channel_is_live(db); });
             }
             status.innerHTML = "status: <font color=\"green\">The channel has been formed, and the smart contract is active. If you have saved a copy of the signed smart contract, then it is now safe to close the browser.</font>";
