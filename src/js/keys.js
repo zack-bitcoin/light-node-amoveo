@@ -48,28 +48,38 @@ function keys_function1() {
         return btoa(fromHex(pubPoint));
     }
     function powrem(x, e, p) {
-        if (e == 0n) {
-            return 1n;
-        } else if (e == 1n) {
+        //if (e == 0n) {
+        if (e == 0) {
+            //return 1n;
+            return 1;
+        //} else if (e == 1n) {
+        } else if (e == 1) {
             return x;
-        } else if ((e % 2n) == 0n) {
+        //} else if ((e % 2n) == 0n) {
+        } else if ((e % 2) == 0) {
             return powrem(((x * x) % p),
-                          (e / 2n),
+                          //(e / 2n),
+                          (e / 2),
                           p);
         } else {
-            return (x * powrem(x, e - 1n, p)) % p;
+            //return (x * powrem(x, e - 1n, p)) % p;
+            return (x * powrem(x, e - 1, p)) % p;
         }
     };
     function decompress_pub(pub) {
         //pub = "AhEuaxBNwXiTpEMTZI2gExMGpxCwAapTyFrgWMu5n4cI";
-        var p = 115792089237316195423570985008687907853269984665640564039457584007908834671663n;
+        //var p = 115792089237316195423570985008687907853269984665640564039457584007908834671663n;
+        var p = 0;
         var b = atob(pub);
         var a = string_to_array(b);
         var s = BigInt(a[0] - 2);
         var x = big_array_to_int(a.slice(1, 33));
-        var y2 = (((((x * x) % p) * x) + 7n) % p);
-        var y = powrem(y2, ((p+1n) / 4n), p);
-        if (!(s == (y % 2n))) {
+        //var y2 = (((((x * x) % p) * x) + 7n) % p);
+        var y2 = (((((x * x) % p) * x) + 7) % p);
+        //var y = powrem(y2, ((p+1n) / 4n), p);
+        var y = powrem(y2, ((p+1) / 4), p);
+        //if (!(s == (y % 2n))) {
+        if (!(s == (y % 2))) {
             y = ((p - y) % p);
         }
         pub = [4].concat(big_integer_to_array(x, 32)).concat(big_integer_to_array(y, 32));

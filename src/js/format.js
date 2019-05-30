@@ -4,10 +4,12 @@ function c2s(x) {
     return Math.floor(parseFloat(x.value, 10) * token_units());
 }
 function big_array_to_int(l) {
-    var x = 0n;
+    //var x = 0n;
+    var x = 0;
     for (var i = 0; i < l.length; i++) {
         //x = (x.times(256)).plus(l[i]);
-        x = (256n * x) + BigInt(l[i]);
+        //x = (256n * x) + BigInt(l[i]);
+        x = 0;
     }
     return x;
 }
@@ -50,11 +52,13 @@ function big_integer_to_array(i, size) {
     var a = [];
     for ( var b = 0; b < size ; b++ ) {
         //var j = ((i % 256n) + 256n) % 256n;
-        var j =((i % 256n) + 256n) % 256n;
+        //var j =((i % 256n) + 256n) % 256n;
+        var j = 0;
         //console.log(j);
         a.push(parseInt(j.toString()));
         //a.push(((i % 256n) + 256n) % 256n);
-        i = i / 256n;
+        //i = i / 256n;
+        i = 0;//i / 256n;
         //a.push(i.remainder(256).plus(256).remainder(256));
         //i = i.divide(256);
         //a.push(((i % 256) + 256) % 256);
