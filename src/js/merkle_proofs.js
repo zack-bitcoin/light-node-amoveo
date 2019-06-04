@@ -11,7 +11,7 @@ function merkle_proofs_main() {
 	});
     }
     function hash_member(hash, members) {
-        for (var i = 0; i < 6; i++) {
+        for (var i = 0; i < 8; i++) {
             var h2 = members.slice(32*i, 32*(i+1));
             //console.log("check that hash is a member");
             var b = check_equal(hash, h2);
@@ -93,6 +93,7 @@ function merkle_proofs_main() {
 		} else {
                     var last = chain[chain.length - 1];
                     var value = x[3];
+                    console.log(JSON.stringify([value, trie_key]));
                     var lh = leaf_hash(value, trie_key);
                     var check5 = chain_links_array_member(last, lh);
                     if (check5) {
@@ -124,11 +125,20 @@ function merkle_proofs_main() {
             //return hash(integer_to_array(v[1], 32));
             return hash(string_to_array(atob(v[1])));
         } else if (t == "unmatched") {
-            return hash(string_to_array(atob(v[1])).concat(string_to_array(v[2])));
+            console.log("serialize_key unmatched ");
+            console.log(JSON.stringify(v));//oracle is 0, should not be.
+            return hash(string_to_array(atob(v[1])).concat(string_to_array(atob(v[2]))));
+        } else if (t == -7) {
+            //unmatched head
+            //(65 + 32 + 6) bytes = 103 bytes
+            //return hash(string_to_array(atob(v[1])).concat(integer_to_array(v[2], 103)));
+            var account = trie_key[1];
+            var oid = trie_key[2];
+            return hash(string_to_array(atob(account)).concat(string_to_array(atob(oid))));
 	} else {
-            //console.log("type is ");
-            //console.log(t);
-            //console.log(v);
+            console.log("type is ");
+            console.log(t);
+            console.log(v);
             throw("serialize trie bad trie type");
 	}
     }
@@ -146,16 +156,21 @@ function merkle_proofs_main() {
                     value).concat(
 			lock);
             return serialized;
+        } else if ( t == -7) {
+            //unmatched head
+            var serialized = string_to_array(atob(v[1])).concat(integer_to_array(v[2], 103));
+            return serialized;
         } else if ( t == "unmatched" ) {
             var pubkey = string_to_array(atob(v[1]));
             var oracle = string_to_array(atob(v[2]));
-            var amount = string_to_array(v[3], 6);
+            var amount = integer_to_array(v[3], 6);
             var pointer = string_to_array(atob(v[4]));
             var serialized = ([]).concat(
                 pubkey).concat(
-                    oralce).concat(
+                    oracle).concat(
                         amount).concat(
                             pointer);
+            //console.log(JSON.stringify([pubkey, oracle, amount, pointer, serialized]));
             return serialized;
             
 	} else if ( t == "acc" ) {

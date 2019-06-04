@@ -16,7 +16,7 @@
     function lookup() {
 	oracleOutput.innerHTML = "";
 	var v = oid.value;
-	merkle.request_proof("oracles", v, function(x) {
+	return merkle.request_proof("oracles", v, function(x) {
 	    var result = x[2];
 	    var question_hash = x[3];
 	    var starts = x[4];
@@ -92,21 +92,46 @@
 	    console.log(v);
             console.log(orders_hash);//is 0, should be 1.
             //if (result == 0) {
-            if (false) {
-            //return 0;
-                var key = ["key", "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAE=", v];//key, account, oracle
-                console.log(JSON.stringify(key));
-	        merkle.request_proof("unmatched", key, function(x) {
-		    console.log(x);
+            var root = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAE=";
+            return lookup_unmatched_head(root, v, oracleOutput);
+        });
+    };
+    function lookup_unmatched_head(root, oid, div) {
+                //return 0;
+        var key = ["key", root, oid];
+        //var key = ["key", "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAE=", v];//key, account, oracle
+//AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAE=
+                //var orderOutput = document.createElement("div");
+                //oracleOutput.appendChild(orderOutput);
+                //orderOutput.appendChild(text("no orders in this oracle"));
+	return merkle.request_proof("unmatched", key, function(x) {
+	    console.log(x);//[-7, "BHpLwieFVdD5F/z1mdScC9noIZ39HgnwvK8jHqRSBxjzWBssIR1X9LGr8QxTi8fUQws1Q5CGnmTk5dZwzdrGBi4=", 1]
+            return lookup_unmatched_orders(x[1], oid, div, 1);
+
 	        //variable_public_get(["oracle_bets", v], oracle_bets);
 	        //now display the whole thing.
 	        //oracleOutput.appendChild(br());
 	        //var x2 = text(JSON.stringify(x));
 	        //oracleOutput.appendChild(x2);
-	        });
-            };
 	});
     };
+    function lookup_unmatched_orders(pub, oid, div, N) {
+        var key = ["key", pub, oid];
+        var Null = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=";
+	return merkle.request_proof("unmatched", key, function(x) {
+            var amount = x[3];
+            div.appendChild(br());
+            div.appendChild(text("oracle bet number ".concat((N).toString()).concat(" amount: ").concat((s2c(amount)).toString())));
+            div.appendChild(br());
+	    //console.log(x);
+            var pointer = x[4];
+            if (pointer == Null) {
+                return 0;
+            } else {
+                return lookup_unmatched_orders(pointer, oid, div, N+1);
+            }
+        });
+    }
     function oracle_bets(x) {
 	console.log("inside oracle bets");
 	console.log(JSON.stringify(x));
