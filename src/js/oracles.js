@@ -121,7 +121,7 @@
 	return merkle.request_proof("unmatched", key, function(x) {
             var amount = x[3];
             div.appendChild(br());
-            div.appendChild(text("oracle bet number ".concat((N).toString()).concat(" amount: ").concat((s2c(amount)).toString())));
+            div.appendChild(text("oracle bet number ".concat((N).toString()).concat(" with pubkey: ").concat(pub).concat(" amount: ").concat((s2c(amount)).toString())));
             div.appendChild(br());
 	    //console.log(x);
             var pointer = x[4];
