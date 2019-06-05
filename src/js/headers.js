@@ -65,7 +65,7 @@ function headers_main() {
     wallet_text = document.createElement("p");
     wallet_text.innerHTML = JSON.stringify([["height", 0], ["total work", 0]]);
     document.body.appendChild(wallet_text);
-    //more_headers();
+    //more_headers()
     function write_header(header, ewah) {
 	//console.log("write header");
         var acc_difficulty = header[9];
@@ -346,7 +346,7 @@ function headers_main() {
                     prev_ac = prev_header[9];
                     diff = header[6];
                     //var ac = sci2int(diff) / 10000000000;
-                    var ac = sci2int(diff);
+                    var ac = Math.round(sci2int(diff) / 1000);
                     header[9] = prev_ac + ac - 1;
                 }
                 if (!(header_hash in headers_db)) {
