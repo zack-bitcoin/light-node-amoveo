@@ -135,7 +135,8 @@
         var db = derivatives_load_db(y);
         console.log(JSON.stringify(y));
         merkle.request_proof("channels", db.cid, function(c) {
-            if (!(c == 0)) {
+            console.log(c);
+            if (!((c == 0) || (c == "empty"))) {
                 console.log("that contract was already made.")
                 return(0);
             };
