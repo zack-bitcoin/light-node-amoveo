@@ -12,7 +12,7 @@
     if (mode == "test") {
         binary_test_config = "?mode=test&auto_fill=binary&oracle=mc4rc/fQyUAnyNwGCJEfIu1zzQGRR5FuMIUADsspXhA=&our_amount=1&their_amount=1&bet_direction=true";
         stablecoin_test_config = "?mode=test&auto_fill=stablecoin&oracle=mc4rc/fQyUAnyNwGCJEfIu1zzQGRR5FuMIUADsspXhA=&our_amount=1&current_value=0.1&bet_direction=true";
-        scalar_test_config = "?mode=test&auto_fill=scalar&oracle=mc4rc/fQyUAnyNwGCJEfIu1zzQGRR5FuMIUADsspXhA=&our_amount=1&their_amount=1&bet_direction=true";
+        scalar_test_config = "?mode=test&auto_fill=scalar&oracle=mc4rc/fQyUAnyNwGCJEfIu1zzQGRR5FuMIUADsspXhA=&our_amount=1&their_amount=1&bet_direction=true&upper_limit=500&lower_limit=0";
 
         binary_test = document.createElement("div");
         binary_test.innerHTML = "<a href=".concat(binary_test_config).concat(">binary test</a>");
@@ -115,7 +115,7 @@
             upper_limit.value = UL;
             var LL = urlParams.get("lower_limit");
             if (LL == null) { LL = "0"; };
-            upper_limit.value = LL;
+            lower_limit.value = LL;
             oracle_type.value = "scalar";
         };
         var startButton = button_maker2("offer to make this trade via encrypted message to one person", start);
