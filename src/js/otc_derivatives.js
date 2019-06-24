@@ -1,11 +1,29 @@
 (function otc_function() {
     const urlParams = new URLSearchParams(window.location.search);
     var mode = urlParams.get('mode');
+    var test_mode = urlParams.get('auto_fill');
+    console.log(test_mode);
     var fee = 152050;
     var div = document.createElement("div");
     document.body.appendChild(div);
 
     //glossary.messenger(div);
+
+    if (mode == "test") {
+        binary_test_config = "?mode=test&auto_fill=binary&oracle=mc4rc/fQyUAnyNwGCJEfIu1zzQGRR5FuMIUADsspXhA=&our_amount=1&their_amount=1&bet_direction=true";
+        stablecoin_test_config = "?mode=test&auto_fill=stablecoin&oracle=mc4rc/fQyUAnyNwGCJEfIu1zzQGRR5FuMIUADsspXhA=&our_amount=1&current_value=0.1&bet_direction=true";
+        scalar_test_config = "?mode=test&auto_fill=scalar&oracle=mc4rc/fQyUAnyNwGCJEfIu1zzQGRR5FuMIUADsspXhA=&our_amount=1&their_amount=1&bet_direction=true";
+
+        binary_test = document.createElement("div");
+        binary_test.innerHTML = "<a href=".concat(binary_test_config).concat(">binary test</a>");
+        div.appendChild(binary_test);
+        stablecoin_test = document.createElement("div");
+        stablecoin_test.innerHTML = "<a href=".concat(stablecoin_test_config).concat(">stablecoin test</a>");
+        div.appendChild(stablecoin_test);
+        scalar_test = document.createElement("div");
+        scalar_test.innerHTML = "<a href=".concat(scalar_test_config).concat(">scalar test</a>");
+        div.appendChild(scalar_test);
+    }
     
     var status = document.createElement("p");
     status.innerHTML = "status: <font color=\"green\">ready</font>";
@@ -40,6 +58,17 @@
     buttons_div.appendChild(br());
     var their_amount, bet_direction, delay, oracle_type, bits, upper_limit, lower_limit, bet_expires0;
 
+    if (test_mode == "binary") {
+        oracle.value=" ";
+        return binary_view();
+    } else if (test_mode == "stablecoin") {
+        oracle.value=" ";
+        return stablecoin_view();
+    } else if (test_mode == "scalar") {
+        oracle.value=" ";
+        return scalar_view();
+    };
+
     function scalar_view() {
         if (oracle.value == "") {
             status.innerHTML = "status: <font color=\"red\">First choose the Oracle ID for your bet before clicking that.</font>";
@@ -62,13 +91,20 @@
     //var bits = text_input("if it is scalar, how many bits does it have?", div);
         bits = document.createElement("p");
         bits.value = "10";
-        if (false) { //defaults
-            oracle.value = "dyVjQ7510/SvEEcg4kz3nE3vLwu8xIzypSKS2tAoF64=";
-            our_amount.value = "1";
-            their_amount.value = "1";
-            bet_direction.value = "long";
+        if (test_mode == "scalar") { //defaults
+            var OV = urlParams.get("oracle");
+            if (OV == null) { OV = ""; };
+            oracle.value = OV;
+            var OA = urlParams.get("our_amount");
+            if (OA == null) { OA = ""; };
+            our_amount.value = OA;
+            var TA = urlParams.get("their_amount");
+            if (TA == null) { TA = ""; };
+            their_amount.value = TA;
+            var BD = urlParams.get("bet_direction");
+            if (BD == null) { BD = ""; };
+            bet_direction.value = BD;
             oracle_type.value = "scalar";
-            //payment_field.value = "0.2";
         };
         upper_limit = text_input("what is the upper limit?", div);
         upper_limit.value = "1023";
@@ -98,11 +134,19 @@
         div.appendChild(br());
         oracle_type = document.createElement("p");
         oracle_type.value = "binary";
-        if (false) { //defaults
-            oracle.value = "3f3ftvDWSiZ0FAfi0MUehAREZq/FHVnqtzsNb42+pys=";
-            our_amount.value = "1";
-            their_amount.value = "1";
-            bet_direction.value = "true";
+        if (test_mode == "binary") { //defaults
+            var OV = urlParams.get("oracle");
+            if (OV == null) { OV = ""; };
+            oracle.value = OV;
+            var OA = urlParams.get("our_amount");
+            if (OA == null) { OA = ""; };
+            our_amount.value = OA;
+            var TA = urlParams.get("their_amount");
+            if (TA == null) { TA = ""; };
+            their_amount.value = TA;
+            var BD = urlParams.get("bet_direction");
+            if (BD == null) { BD = ""; };
+            bet_direction.value = BD;
             oracle_type.value = "binary";
         };
         //var startButton = button_maker2("offer to make this trade via encrypted message to one person", start);
@@ -142,19 +186,25 @@
         glossary.link(div, "stablecoin_leverage");
         leverage.value = "1";
         div.appendChild(br());
-        //bet_direction = document.createElement("p");
-        //bet_direction.value = "long";
         bet_direction = text_input("which side of the contract do you want (stablecoin/long-veo): ", div);
-        bet_direction.value = "long-veo";
         delay = document.createElement("p");
         delay.value = (1000).toString();
         div.appendChild(br());
-        if (false) { //defaults
-            oracle.value = "EUqii6niq1zxi4txYALbbO/LFoBpndBsWG9O9InbbeQ=";
-            our_amount.value = "1";
-            current_value.value = "100";
+        if (test_mode == "stablecoin") { //defaults
+            var OV = urlParams.get("oracle");
+            if (OV == null) { OV = ""; };
+            oracle.value = OV;
+            var OA = urlParams.get("our_amount");
+            if (OA == null) { OA = ""; };
+            our_amount.value = OA;
+            var CV = urlParams.get("current_value");
+            if (CV == null) { CV = ""; };
+            current_value.value = CV;
+            var BD = urlParams.get("bet_direction");
+            if (BD == null) { BD = ""; };
+            bet_direction.value = BD;
             //measured_upper.value = "130";
-            delay.value = "1";
+            delay.value = "1";//This might be unused.
         };
         oracle_type = document.createElement("p");
         oracle_type.value = "scalar";
@@ -169,8 +219,6 @@
             var cp = parseFloat(current_value.value);
             var a = read_veo(our_amount);
             var oracle_upper = parseFloat(measured_upper.value);
-            //console.log("oracle upper");
-            //console.log(oracle_upper);
             var l = parseFloat(leverage.value);
             if (l < 1) {
                 status.innerHTML = "status: <font color=\"red\">Error: leverage cannot be less than 1.</font>";

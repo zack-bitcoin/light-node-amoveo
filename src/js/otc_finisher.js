@@ -60,6 +60,8 @@
         //console.log(JSON.stringify(db.cd));
         //var spk = cd.me;
         db.spk = db.cd.me;
+        console.log(JSON.stringify(db.spk));
+        console.log(JSON.stringify(db.cd));
         db.address1 = db.spk[1];
         if (db.address1 == keys.pub()) {
             db.address2 = their_address_val;
@@ -78,7 +80,7 @@
         merkle.request_proof("channels", db.cid, function(c) {
             console.log("channel is ");
             console.log(c);
-            if (c == 0) {
+            if ((c == 0) || (c == "empty")) {
                 status.innerHTML = "status: <font color=\"red\">that channel does not exist. Maybe you haven't synced with the network, or maybe it is already closed, or maybe it never existed.</font>";
                 return 0;
             };
@@ -555,7 +557,7 @@
         merkle.request_proof("channels", db.cid, function(c) {
             console.log("wait till closed");
             //console.log(c);
-            if (c == 0) {
+            if ((c == 0) || (c == "empty")) {
                 status.innerHTML = ("status: <font color=\"blue\">The channel is now closed. It is safe to delete your channel state file.</font>");
                 return 0;
             } else {

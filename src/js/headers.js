@@ -346,7 +346,7 @@ function headers_main() {
                     prev_ac = prev_header[9];
                     diff = header[6];
                     //var ac = sci2int(diff) / 10000000000;
-                    var ac = Math.round(sci2int(diff) / 1000);
+                    var ac = sci2int(diff);
                     header[9] = prev_ac + ac - 1;
                 }
                 if (!(header_hash in headers_db)) {
