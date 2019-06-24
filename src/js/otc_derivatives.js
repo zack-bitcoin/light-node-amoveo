@@ -1,8 +1,8 @@
 (function otc_function() {
     const urlParams = new URLSearchParams(window.location.search);
     var mode = urlParams.get('mode');
-    var test_mode = urlParams.get('auto_fill');
-    console.log(test_mode);
+    var auto_fill_mode = urlParams.get('auto_fill');
+    console.log(auto_fill_mode);
     var fee = 152050;
     var div = document.createElement("div");
     document.body.appendChild(div);
@@ -58,13 +58,13 @@
     buttons_div.appendChild(br());
     var their_amount, bet_direction, delay, oracle_type, bits, upper_limit, lower_limit, bet_expires0;
 
-    if (test_mode == "binary") {
+    if (auto_fill_mode == "binary") {
         oracle.value=" ";
         return binary_view();
-    } else if (test_mode == "stablecoin") {
+    } else if (auto_fill_mode == "stablecoin") {
         oracle.value=" ";
         return stablecoin_view();
-    } else if (test_mode == "scalar") {
+    } else if (auto_fill_mode == "scalar") {
         oracle.value=" ";
         return scalar_view();
     };
@@ -91,7 +91,13 @@
     //var bits = text_input("if it is scalar, how many bits does it have?", div);
         bits = document.createElement("p");
         bits.value = "10";
-        if (test_mode == "scalar") { //defaults
+        upper_limit = text_input("what is the upper limit?", div);
+        //upper_limit.value = "1023";
+        div.appendChild(br());
+        lower_limit = text_input("what is the lower limit?", div);
+        //lower_limit.value = "0";
+        div.appendChild(br());
+        if (auto_fill_mode == "scalar") { //defaults
             var OV = urlParams.get("oracle");
             if (OV == null) { OV = ""; };
             oracle.value = OV;
@@ -104,14 +110,14 @@
             var BD = urlParams.get("bet_direction");
             if (BD == null) { BD = ""; };
             bet_direction.value = BD;
+            var UL = urlParams.get("upper_limit");
+            if (UL == null) { UL = "1023"; };
+            upper_limit.value = UL;
+            var LL = urlParams.get("lower_limit");
+            if (LL == null) { LL = "0"; };
+            upper_limit.value = LL;
             oracle_type.value = "scalar";
         };
-        upper_limit = text_input("what is the upper limit?", div);
-        upper_limit.value = "1023";
-        div.appendChild(br());
-        lower_limit = text_input("what is the lower limit?", div);
-        lower_limit.value = "0";
-        div.appendChild(br());
         var startButton = button_maker2("offer to make this trade via encrypted message to one person", start);
         //div.appendChild(startButton);
         var printButton = button_maker2("print an offer that anyone can accept", print_offer);
@@ -134,7 +140,7 @@
         div.appendChild(br());
         oracle_type = document.createElement("p");
         oracle_type.value = "binary";
-        if (test_mode == "binary") { //defaults
+        if (auto_fill_mode == "binary") { //defaults
             var OV = urlParams.get("oracle");
             if (OV == null) { OV = ""; };
             oracle.value = OV;
@@ -190,7 +196,7 @@
         delay = document.createElement("p");
         delay.value = (1000).toString();
         div.appendChild(br());
-        if (test_mode == "stablecoin") { //defaults
+        if (auto_fill_mode == "stablecoin") { //defaults
             var OV = urlParams.get("oracle");
             if (OV == null) { OV = ""; };
             oracle.value = OV;
