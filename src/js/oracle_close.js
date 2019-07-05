@@ -7,7 +7,7 @@
     div.appendChild(status);
     var oid_element = text_input("oid: ", div);
     div.appendChild(br());
-    var button = button_maker2("make bet", function(){
+    var button = button_maker2("close the oracle", function(){
         return make_bet(oid_element.value);
     });
     div.appendChild(button);
