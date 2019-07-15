@@ -75,6 +75,13 @@
                 return accept_trade(db, function(db2) {
                     var period = default_period();
                     var spk2 = spk_maker(db2, 0, db.amount1 + db.amount2, period);
+                    var contract = spk2[3][1];
+                    if (!(JSON.stringify(contract) == JSON.stringify(msg[21]))){
+                        console.log(JSON.stringify(contract));
+                        console.log(JSON.stringify(msg[21]));
+                        status.innerHTML = "status: <font color=\"red\">we calculated the contract code differently.</font> ";
+                        return 0;
+                    }
                     console.log(JSON.stringify(spk2));
                     var CH = btoa(array_to_string(hash(serialize(spk2))));
                     var NCO = signed_nc_offer[1];

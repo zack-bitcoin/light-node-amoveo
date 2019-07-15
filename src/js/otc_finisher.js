@@ -30,6 +30,7 @@
         var db = derivatives_load_db(x[1]);
         var period = default_period();
         var spk = spk_maker(db, 0, db.amount1 + db.amount2, period);
+        spk[3][1] = x[1][21];//load the contract from the saved copy. don't trust ourselves to re-compute it the same way.
         //var sspk1 = keys.sign(spk);
         var sig = spk_sig(spk);
         //console.log(JSON.stringify(sspk1));

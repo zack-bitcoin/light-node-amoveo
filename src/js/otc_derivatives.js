@@ -463,6 +463,7 @@
             //db.maxprice = 1;
         }
         var spk2 = spk_maker(db, 0, amount, period);
+        var contract = spk2[3][1];
         /*
         var sc;
         if (db.oracle_type_val == 1) {//scalar
@@ -506,10 +507,10 @@
         var contract_sig = sspk2[2];
         var imsg;
         if (db.oracle_type_val == 1) {
-            imsg = [-6, db.bet_direction_val, bet_expires, maxprice, keys.pub(), db.their_address_val, period, db.our_amount_val, db.their_amount_val, oid, height, db.delay, contract_sig, signedPD, spk_nonce, db.oracle_type_val, db.cid, 0, 0, 0, db.payment];
+            imsg = [-6, db.bet_direction_val, bet_expires, maxprice, keys.pub(), db.their_address_val, period, db.our_amount_val, db.their_amount_val, oid, height, db.delay, contract_sig, signedPD, spk_nonce, db.oracle_type_val, db.cid, 0, 0, 0, db.payment, contract];
         } else {
             //console.log(db.upper_limit);
-            imsg = [-6, db.bet_direction_val, bet_expires, maxprice, keys.pub(), db.their_address_val, period, db.our_amount_val, db.their_amount_val, oid, height, db.delay, contract_sig, signedPD, spk_nonce, db.oracle_type_val, db.cid, db.bits_val, db.upper_limit, db.lower_limit, db.payment];
+            imsg = [-6, db.bet_direction_val, bet_expires, maxprice, keys.pub(), db.their_address_val, period, db.our_amount_val, db.their_amount_val, oid, height, db.delay, contract_sig, signedPD, spk_nonce, db.oracle_type_val, db.cid, db.bits_val, db.upper_limit, db.lower_limit, db.payment, contract];
         }
         //console.log("otc derivatives spk spk2 compare ");
         //console.log(JSON.stringify(spk));

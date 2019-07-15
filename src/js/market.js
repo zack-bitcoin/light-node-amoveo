@@ -49,8 +49,14 @@ function scalar_market_contract(direction, expires, maxprice, server_pubkey, per
     //var amount2 = Math.floor(amount * ((10000 + maxprice) / 10000));
     return ["bet", contract2, amount, codekey, [-7, direction, maxprice]]; //codekey is insttructions on how to re-create the contract, so we can do pattern matching when updating channels.
 }
+function cint(X) {
+    return integer_to_array(0, 1).concat(integer_to_array(X, 4));
+}
+function cbin(N, X) {
+    return integer_to_array(2, 1).concat(integer_to_array(X, 4)).concat(string_to_array(atob(X)))
+}
 function market_contract(direction, expires, maxprice, server_pubkey, period, amount, oid, bet_height) {
-  //var a = string_to_array(atob("AAAAJxAAAAAAAXgA"));
+    //var a = string_to_array(atob("AAAAJxAAAAAAAXgA"));
     var a;
     var a2 = string_to_array(atob("AAAAAAJ4AA=="));
     var b = string_to_array(atob("AAAAAAN4AA=="));
@@ -91,7 +97,20 @@ function market_contract(direction, expires, maxprice, server_pubkey, period, am
     var amount2 = Math.floor(amount * ((10000 + maxprice) / 10000));
     return ["bet", contract, amount2, codekey, [-7, direction, maxprice]]; //codekey is insttructions on how to re-create the contract, so we can do pattern matching when updating channels.
 }
-
+function market_contract_new(direction, expires, maxprice, server_pubkey, period, amount, oid, bet_height) {
+    var g = (cint(direction)).concat
+    (cint(bet_height)).concat
+    (cint(expires)).concat
+    (cint(maxprice)).concat
+    (cbin(32, oid)).concat
+    (cint(period)).concat
+    (cbin(65, server_pubkey)).concat
+    (string_to_array(atob("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")));
+    var contract =  btoa(array_to_string(g));
+    var codekey = ["market", 1, oid, expires, server_pubkey, period, oid];
+    var amount2 = Math.floor(amount * ((10000 + maxprice) / 10000));
+    return ["bet", contract, amount2, codekey, [-7, direction, maxprice]]; //codekey is insttructions on how to re-create the contract, so we can do pattern matching when updating channels.
+}    
 function market_trade(cd, amount, price, bet, oid) { //oid unused
     var market_spk = cd.me;
     console.log("market trade spk before ");
