@@ -50,6 +50,7 @@ function chalang_main() {
            fun_end: 111,
            recurse: 112,
            call: 113,
+           def: 114,
            set: 120,
            fetch: 121,
            cons: 130,
@@ -248,6 +249,32 @@ function chalang_main() {
 	console.log("d after ops call ");
 	console.log(JSON.stringify(d));
         return {i: i, d: d, g: (s + 10), s: "slow call op", r: (s - 1)};
+    }
+    op_code[ops.def] = function(i, code, d) {
+        var skipped_size = count_till(code, i, ops.fun_end);
+        var definition = code.slice(i+1, i+skipped_size);
+	//console.log("chalang define definition is ");
+	//console.log(definition);
+	//console.log(JSON.stringify(definition));
+        i += skipped_size;
+        //var hash_array = small_hash(definition);
+        var hash_array = hash(definition);
+        var b = btoa(array_to_string(hash_array));
+	console.log("new function hash is ");
+	console.log(b);
+        var call_code = ([ops.binary_op]).concat(integer_to_array(hash_size, 4)).concat(hash_array);
+        var definition2 = replace(ops.recurse, call_code, definition);
+        //var definition2 = replace(ops.recurse, ([ops.binary_op]).concat(integer_to_array(hash_size, 4)).concat(hash_array), definition);
+        d.funs[b] = definition2;
+        d.stack = ([["binary"].concat(definition)]).concat(d.stack);
+        var s = definition2.length + 4;
+        var mf = d.many_funs + 1;
+        if (mf > d.fun_limit) {
+            throw("too many functions error");
+        } else {
+            d.many_funs = mf;
+        }
+        return {i: i, d: d, g: (s + 30), s: "define op", r: (s+s)};
     }
     op_code[ops.define] = function(i, code, d) {
         var skipped_size = count_till(code, i, ops.fun_end);
