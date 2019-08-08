@@ -12,7 +12,7 @@
     div.appendChild(sb_title);
     var explanation = document.createElement("p");
     div.append(explanation);
-    explanation.innerHTML = "If you want to make a stablecoin, you need to ask for the price of X in VEO. Asking for the price of VEO in X does not work.";
+    explanation.innerHTML = "If you want to make a stablecoin, you need to ask for the price of X in VEO. Asking for the price of VEO in X does not work. Scalar oracles cost as much as 10 binary oracles.";
     var status = document.createElement("p");
     status.innerHTML = "status: <font color=\"green\">ready</font>";
     div.appendChild(status);

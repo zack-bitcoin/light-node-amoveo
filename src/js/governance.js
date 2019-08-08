@@ -4,6 +4,9 @@
     var title = document.createElement("h3");
     title.innerHTML = "governance";
     div.appendChild(title);
+    var chart = document.createElement("p");
+    chart.innerHTML = "1: block reward, 2: developer reward, 3: max block size, 4: block period, 5: time gas, 6: space gas, 7: function limit, 8: variable limit, 9: governance change limit, 10: oracle initial liquidity, 11: minimum oracle time, 12: maximum oracle time, 13: maximum question size, 14: create account tx, 15: spend tx, 17: new channel, 18: channel team close, 19: channel solo close, 20: channel timeout, 21: channel slash, 23: oracle new, 24: oracle_bet, 25: oracle close, 26: oracle unmatched, 27: oracle winnings, 28: oracle question liquidity";
+    div.appendChild(chart);
     var oid = document.createElement("INPUT");
     oid.type = "text";
     div.appendChild(oid);
