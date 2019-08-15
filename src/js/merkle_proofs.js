@@ -125,16 +125,13 @@ function merkle_proofs_main() {
             //return hash(integer_to_array(v[1], 32));
             return hash(string_to_array(atob(v[1])));
         } else if (t == "unmatched") {
-            console.log("serialize_key unmatched ");
-            console.log(JSON.stringify(v));//oracle is 0, should not be.
+            //console.log("serialize_key unmatched ");
+            if (v[2] == "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=") {//unmatched header
+                var account = trie_key[1];
+                var oid = trie_key[2];
+                return hash(string_to_array(atob(account)).concat(string_to_array(atob(oid))));
+            }
             return hash(string_to_array(atob(v[1])).concat(string_to_array(atob(v[2]))));
-        } else if (t == -7) {
-            //unmatched head
-            //(65 + 32 + 6) bytes = 103 bytes
-            //return hash(string_to_array(atob(v[1])).concat(integer_to_array(v[2], 103)));
-            var account = trie_key[1];
-            var oid = trie_key[2];
-            return hash(string_to_array(atob(account)).concat(string_to_array(atob(oid))));
 	} else {
             console.log("type is ");
             console.log(t);
@@ -156,11 +153,14 @@ function merkle_proofs_main() {
                     value).concat(
 			lock);
             return serialized;
-        } else if ( t == -7) {
-            //unmatched head
-            var serialized = string_to_array(atob(v[1])).concat(integer_to_array(v[2], 103));
-            return serialized;
         } else if ( t == "unmatched" ) {
+            if (v[2] == "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=") {//unmatched header
+                //32+65+6 = 103
+                var many = array_to_int(string_to_array(atob(v[4])));
+                var serialized = string_to_array(atob(v[1])).concat(integer_to_array(many, 103));
+                return serialized;
+            }
+                
             var pubkey = string_to_array(atob(v[1]));
             var oracle = string_to_array(atob(v[2]));
             var amount = integer_to_array(v[3], 6);
