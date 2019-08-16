@@ -47,11 +47,10 @@ function headers_main() {
 	retarget_frequency = 2000;
 	forks = {two: 9000, four: 26900, seven:28135};
 	//top_header = 0;
-        top_header = ["header",54827,"/FaLv5+7452CI57hPPIJTwCzl/jEfhUCE5Jyc3LlNFA=","QMuYJKSl05Pw5BK3xaTVytIFYVY8NXhvueQSKxdW4Ms=","3SBqlkpy6n52Tfy/4gwmdgJx0yII4eWt8WhEck+Q3oY=",315670953,14238,3,"AAAAAAAAAAAAAAAAAAAAAAAAADaQPAAAAOkIa1AAFaY=",1000282991586057388032,5982];
-        write_header(top_header, 11291369415905063);
-        
-	//top_header = ["header", 38671, "CoyxdfjlUzd/cujJRS1iTksmE5l7C3lsyn+2FY0kxmU=", "+CwT4ZGvYE10i5Tdocj1j+ojSNowEDp+Jq+uw3zdO20=", "MrN5jt9v0X91Kix3HInDP25dNrTXOt+ux3d2yY64QMk=", 212163079, 13698, 3, "AAAAAAAAAAAAhv86dgAAAAAV79tiAAAAAAAWxwAAZjc=", 402432639143042350000, 5982];
-	//write_header(top_header, 2177732187806707);
+        top_header = ["header",75963,"Hlp6dHOmI8MLSKoszxuU840fqrlm/5yuqJR92Idg9oU=","hudw3ucSvaEsFwH+zlxOUZ7KC0MNdnTimhWk6OPfQN8=","KJc9pvOIj7867XK/u7WL71gNQLNMn5pA+dUATaGrxuw=",453614702,13227,3,"AAAAAAAAAAAAp97vT1xPju+8EwiRULi0U/gliqEAAAA=",1656017740603758477312,5982];
+        write_header(top_header, 656722944829204);
+
+
 	//to find the ewah headers_object.read_ewah(hash(headers_object.serialize(headers_object.top())));
     }
     
