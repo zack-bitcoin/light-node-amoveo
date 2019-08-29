@@ -260,6 +260,7 @@ function send_encrypted_message(imsg, to, callback) {
         });
     });
 };
+/*
 function verify_exists(oid, n, callback) {
     //console.log(oid);
     if (n == 0) {
@@ -274,6 +275,7 @@ function verify_exists(oid, n, callback) {
         return verify_exists(btoa(next_oid(atob(oid))), n-1, callback);
     });
 };
+*/
 function random_cid(n) {
     if (n == 0) { return ""; }
     else {
@@ -281,6 +283,8 @@ function random_cid(n) {
         var rl = String.fromCharCode(rn);
         return rl.concat(random_cid(n-1))}
 };
+
+/*
 function next_oid(oid) {
     //oid starts in binary format. we want to add 1 to the binary being encoded by oid.
     var ls = oid[oid.length - 1];
@@ -290,6 +294,7 @@ function next_oid(oid) {
     }
     return oid.slice(0, oid.length - 1).concat(String.fromCharCode(n+1));
 };
+*/
 
 
 
@@ -324,7 +329,7 @@ function oracle_limit(oid, callback) {
         return callback(oracle_limit_grabber(question));
     });
     function oracle_limit_grabber(question) {
-        //console.log("oracle limit grabber");
+        console.log("oracle limit grabber");
         if (question.length < 4) {
             return "";
         }
@@ -410,6 +415,7 @@ function derivatives_load_db(y) {
         db.bits = y[17];
         db.upper_limit = y[18];
         db.lower_limit = y[19];
+        db.knowable = y[22];
     } else if (db.oracle_type_val == 1) {
         db.oracle_type = "binary";
         //db.maxprice = 1;
@@ -432,7 +438,12 @@ function spk_maker(db, acc2, amount, period) {
     //var amount = db.amount1 + db.amount2;
     var sc;
     if (db.oracle_type == "scalar") {
-        sc = scalar_market_contract(db.direction_val, db.expires, db.maxprice, db.acc1, period, amount, db.oid, db.height, db.upper_limit, db.lower_limit, db.bits);
+        console.log("creating contract");
+        console.log(JSON.stringify(db));
+        //var activates = db.oracle[4];
+        var activates = db.knowable;
+        console.log(activates);
+        sc = scalar_market_contract(db.direction_val, db.expires, db.maxprice, db.acc1, period, amount, db.oid, db.height, db.lower_limit, db.upper_limit, db.bits, activates);
     } else if (db.oracle_type == "binary") {
         sc = market_contract(db.direction_val, db.expires, db.maxprice, db.acc1, period, amount, db.oid, db.height);
     }
@@ -446,44 +457,117 @@ function spk_maker(db, acc2, amount, period) {
     //console.log(db.maxprice);//5000 //if this was 0, it would probably fix it.
     return market_trade(cd, amount, db.maxprice, sc, db.oid);
 };
-function scalar_to_prove(oid, n) {
-    if (n == 0) { return []; }
-    var noid = btoa(next_oid(atob(oid)));
-    var rest = scalar_to_prove(noid, n-1);
-    return [["oracles", oid]].concat(rest);
+function scalar_to_prove2(ks) {
+    return (ks).map(function(x) {
+        return(["oracles", x]);
+    });
 };
-function record_channel_state(sspk2, db, acc2) {
+//function scalar_to_prove(oid, start) {
+//    var ks = scalar_keys(oid, start);
+//    console.log(JSON.stringify(ks));
+//    return scalar_to_prove2(ks);
+//};
+    
+    //if (n == 0) { return []; }
+    //var noid = btoa(next_oid(atob(oid)));
+    //var rest = scalar_to_prove(noid, n-1);
+    //return [["oracles", oid]].concat(rest);
+//};
+function rcs_to_prove(otv, oid, callback) {
+    var to_prove;
+    if (otv == 2) {//scalar
+        return(scalar_keys1(oid, function(ks) {
+            console.log(JSON.stringify(ks));
+            to_prove = [-6].concat(scalar_to_prove2(ks));
+            return(callback(to_prove));
+        }));
+    } else if (db.oracle_type_val == 1){//binary
+        to_prove = [-6, ["oracles", oid]];
+        return(callback(to_prove));
+    }
+};
+    
+function record_channel_state(sspk2, db, acc2, callback) {
     var meta = 0;
+    return(rcs_to_prove(
+        db.oracle_type_val,
+        db.oid,
+        function(to_prove) {
+
+/*
     if (db.oracle_type_val == 2) {//scalar
-        to_prove = [-6].concat(scalar_to_prove(db.oid, 10));
+        console.log(JSON.stringify(sspk2));
+        console.log(JSON.stringify(db));
+        var starts = db.oracle[4];
+        to_prove = [-6].concat(scalar_to_prove(db.oid, starts));
     } else if (db.oracle_type_val == 1){//binary
         to_prove = [-6, ["oracles", db.oid]];
     }
+*/
     //console.log(JSON.stringify(db.spd));
     //var size = (db.spd).length * 2;
-    var spd_bytes = string_to_array(db.spd);
-    var size = spd_bytes.length;
-    var size_a = Math.floor(size / 256);
-    var size_b = size % 256;
-    var code = [2,0,0,size_a,size_b].concat(spd_bytes).concat([0,0,0,0,1]);
+            var spd_bytes = string_to_array(db.spd);
+            var size = spd_bytes.length;
+            var size_a = Math.floor(size / 256);
+            var size_b = size % 256;
+            var code = [2,0,0,size_a,size_b].concat(spd_bytes).concat([0,0,0,0,1]);
     //console.log(JSON.stringify(code));
     //console.log(db.oracle_type_val);
         // SS1a = "binary "++ integer_to_list(size(SPD))++ " " ++ PriceDeclare ++ " int 1",
         // [0] ++ 4-bytes-size ++ spd_bytes ++ [0,0,0,0,1]
     //var ss = channels_object.new_ss([0,0,0,0,4], to_prove, meta);
-    var ss = channels_object.new_ss(code, to_prove, meta);
+            var ss = channels_object.new_ss(code, to_prove, meta);
     //var expiration = 0;//so a smart contract could close the channel very quickly.
-    var expiration = 10000000;
-    var cd = channels_object.new_cd(sspk2[1], sspk2, [ss], [ss], expiration, db.cid);
+            var expiration = 10000000;
+            var cd = channels_object.new_cd(sspk2[1], sspk2, [ss], [ss], expiration, db.cid);
     //console.log("record channel state ");
     //console.log(JSON.stringify([db.acc1, db.acc2]));
-    if (db.acc1 == keys.pub()) {
-        channels_object.write(acc2, cd);
-    } else {//if (db.acc2 == keys.pub()) {
-        channels_object.write(db.acc1, cd);
-    }
+            if (db.acc1 == keys.pub()) {
+                channels_object.write(acc2, cd);
+            } else {//if (db.acc2 == keys.pub()) {
+                channels_object.write(db.acc1, cd);
+            };
+            return(callback());
+        }));
 };
 
 
-
+function id_maker(start, gov1, gov2, question) {
+    var x = integer_to_array(start, 4).concat
+    (integer_to_array(gov1, 4)).concat
+    (integer_to_array(gov2, 4)).concat
+    (hash(string_to_array(question)));
+    console.log(question);
+    console.log(JSON.stringify(x));
+    return(btoa(array_to_string(hash(x))));//is array
+};
+function question_maker(id, bit) {
+    if (bit < 1) {return 0;}
+    if (bit > 9) {return 0;}
+    return("scalar ".concat
+           (id).concat
+           (" bit number ").concat
+           ((bit).toString()));
+}
+function scalar_keys2(id, start, I, out) {
+    if (I == 10) {return out;}
+    var QN = question_maker(id, I);
+    console.log("question maker");
+    console.log(JSON.stringify(QN));
+    var id2 = id_maker(start, 0, 0, QN);
+    //console.log(btoa(id2));
+    return scalar_keys2(id, start, I+1, [id2].concat(out));
+};
+function scalar_keys(id, start) {
+    return scalar_keys2(id, start, 1, [id]).reverse();
+};
+function scalar_keys1(id, callback) {
+    merkle.request_proof("oracles", id, function(Oracle) {
+        var starts = Oracle[4];
+        console.log("scalar keys 1 oracle starts is ");
+        console.log(starts);
+        console.log(id);
+        return callback(scalar_keys(id, starts));
+    });
+};
 

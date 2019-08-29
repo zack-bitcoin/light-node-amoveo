@@ -3,6 +3,8 @@ function chalang_main() {
           hash_size = 32;
     const ops =
           {int_op: 0,
+           int1: 3,
+           int2: 4,
            binary_op: 2,
            print: 10,
            finish: 11, //because 'return' is reserved.
@@ -266,7 +268,7 @@ function chalang_main() {
         var definition2 = replace(ops.recurse, call_code, definition);
         //var definition2 = replace(ops.recurse, ([ops.binary_op]).concat(integer_to_array(hash_size, 4)).concat(hash_array), definition);
         d.funs[b] = definition2;
-        d.stack = ([["binary"].concat(definition)]).concat(d.stack);
+        d.stack = ([["binary"].concat(hash_array)]).concat(d.stack);
         var s = definition2.length + 4;
         var mf = d.many_funs + 1;
         if (mf > d.fun_limit) {
@@ -674,14 +676,20 @@ function chalang_main() {
         for (var i = 0; i<code.length; i++) {
             if (code[i] == ops.int_op) {
                 i += 4;
+            } else if (code[i] == ops.int1) {
+                i += 1;
+            } else if (code[i] == ops.int2) {
+                i += 2;
             } else if (code[i] == ops.binary_op) {
                 n = array_to_int(code.slice(i+1, i+5));
                 i += (4 + n);
+            } else if ((code[i] == ops.def) && (x == 0)){
+                x = 1;
             } else if ((code[i] == ops.define) && (x == 0)){
                 x = 1;
             } else if ((code[i] == ops.fun_end) && (x == 1)) {
                 x = 0;
-            } else if ((code[i] == ops.define) || (code[i] == ops.fun_end)) {
+            } else if ((code[i] == ops.define) || (code[i] == ops.fun_end) || (code[i] == ops.def)) {
                 return false;
             }
         }

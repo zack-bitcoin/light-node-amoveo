@@ -48,8 +48,8 @@
                 var sspk1 = ["signed", spk, [-7, 2, sig], [-7, 2, sig2]];
                 //};
                 //sspk1[3] = [-7, 2, sig2];
-                record_channel_state(sspk1, db, acc2);
-                return start1();
+                return(record_channel_state(sspk1, db, acc2, start1));
+                //return start1();
             });
         });
     };
@@ -120,8 +120,8 @@
             console.log(JSON.stringify(key));
             db.oracle_type_val = key[1];
             if (db.oracle_type_val == 2) {
-                db.lower_limit = key[8];
-                db.upper_limit = key[7];
+                db.lower_limit = key[7];
+                db.upper_limit = key[8];
             }
             console.log("otc finisher");
             merkle.request_proof("oracles", db.oid, function(Or) {
@@ -132,6 +132,11 @@
                     (db.result == 0) {//oracle still open
                     var done_timer = Or[9];
                         status.innerHTML = ("status: <font color=\"red\"> The bet, on oracle ID: ").concat(db.oid).concat(" , is not yet settled. The oracle has not been finalized. It is expected to be settled a little after block height ").concat((done_timer).toString()).concat("</font>");
+                        if (db.oracle_type_val == 1) {
+                            db.result = text_input("outcome is true/false/bad: ", workspace);
+                        } else if (db.oracle_type_val == 2) {
+                            db.result = text_input("final price of the asset: ", workspace);
+                        }
                         return close_early_view(db);;
                     };
                 console.log("otc finisher");
@@ -141,7 +146,8 @@
     }
     function start2(db) {
         //oracle has been closed already.
-        cev2(db);
+        //cev2(db);
+        close_early_view(db);
         //var close_offer = text_input("close offer proposal: ", workspace);
         //var listen_button = button_maker2("load the proposal.", function() {
         //    display_close_offer2(JSON.parse(close_offer.value), db)
@@ -214,15 +220,15 @@
        */
     function close_early_view(db) {
         //show an interface for closing the channel early.
-        var result;
         if (db.oracle_type_val == 1) {
             //binary: ask true/false
-            db.result = text_input("outcome is true/false/bad: ", workspace);
+            //db.result = text_input("outcome is true/false/bad: ", workspace);
             return cev2(db);
         } else if (db.oracle_type_val == 2) {
             //scalar: look up oracle_max measurement, ask for the final price.
-            db.result = text_input("final price of the asset: ", workspace);
+            //db.result = text_input("final price of the asset: ", workspace);
             oracle_limit(db.oid, function(x) {
+                console.log("set measured upper");
                 db.measured_upper = parseFloat(x);
                 return cev2(db);
             });
@@ -238,9 +244,12 @@
                 result = db.result;
             }
             var x = oracle_value(db, result);
+            console.log(JSON.stringify([result, x]));
+            //return oracle_value(db, result, function(x) {
 	    return merkle.request_proof("accounts", db.address1, function(acc) {
                 nonce = acc[2]+1;
 	        var tx = ["ctc", db.address1, db.address2, db.fee, nonce+1, db.cid, x];
+                console.log(JSON.stringify(tx));
                 var stx = keys.sign(tx);
                 var imsg = [-6, early_close_code, db.oracle_type_val, result, stx];
                 var their_address_val = Object.keys(channels_object.channel_manager())[0];
@@ -262,6 +271,7 @@
         workspace.appendChild(br());
     };
     function calc_balances(db, tx_a) {
+        console.log(tx_a);
         var bAcc1 = db.channel_balance1 + tx_a;
         var bAcc2 = db.channel_balance2 - tx_a;
         var your_balance, their_balance;
@@ -381,8 +391,18 @@
         } else if (db.oracle_type_val == 2) {
             console.log(result);
             console.log(db.measured_upper);
+            /*if (!(db.measured_upper)) {
+                console.log(db.oid);
+                return(oracle_limit(db.oid, function(mu) {
+                    db.measured_upper = mu;
+                    var oracle_result = Math.floor(1024 * parseFloat(result) / db.measured_upper);
+                    console.log(oracle_result);
+                    return(callback(channel_result(db, oracle_result)));
+                }));
+                */
             oracle_result = Math.floor(1024 * parseFloat(result) / db.measured_upper);
         }
+        console.log(oracle_result);
         return channel_result(db, oracle_result);
     }
     /*
@@ -435,7 +455,25 @@
         }
         return find_ctc(cid, txs.slice(1));
     }
-    function get_oracle_binary(oid, many, result0, callback) {
+    function get_oracle_binary(oids, result, callback) {
+        if (oids.length == 0) { return callback(result); }
+        merkle.request_proof("oracles", oids[0], function(r){
+            var oracle_value = r[2];//3 is bad, 2 is false, 1 is true, 0 is still open
+            if (oracle_value == 3) {
+                status.innerHTML = ("status: <font color=\"green\">this oracle resulted in a bad question.</font>");
+                return  callback(0);//return everyone's money back to them, trade is un-done.
+            } else if (oracle_value == 0) {
+                status.innerHTML = ("status: <font color=\"green\">this oracle is not yet closed.</font>");
+                return callback("error");
+            } else if (oracle_value == 2) {//0 bit.
+                return get_oracle_binary(oids.slice(1), result * 2, callback);
+            } else if (oracle_value == 1) {//1 bit.
+                return get_oracle_binary(oids.slice(1), (result * 2) + 1, callback);
+            }
+        });
+    };
+    /*
+    function old_get_oracle_binary(oid, many, result0, callback) {
         if (many == 0) { return callback(result); }
         merkle.request_proof("oracles", oid, function(r) {
             var result = r[2];//3 is bad, 2 is false, 1 is true, 0 is still open
@@ -452,6 +490,7 @@
             }
         });
     };
+*/
     function channel_result(db, oracle_result) {
         var bet = db.spk[3][1];//db.channel_balance1 + db.channel_balance2;//10 veo
         var a = bet[2];
@@ -486,17 +525,20 @@
             b = Math.min(b, 1023);
             //return Math.floor(a * b / 1024) - db.channel_balance1;
             console.log(JSON.stringify([oracle_result, a, ll, ul, b, spk_amount]));//[512,300000000,0,1023,513,-100000000]
+            //[102,200000000,500,0,0,-100000000]
             return Math.floor(a * b / 1024) + spk_amount;
 
         }
     }
     function oracle_result(db, callback) {
         if (db.oracle_type_val == 2) {//scalar
-            return get_oracle_binary(
-                db.oid, 10, 0,
-                function(b) {
-                    return callback(db, b);
-                });
+            scalar_keys1(db.oid, function(ks) {
+                return get_oracle_binary(
+                    ks, 0,
+                    function(b) {
+                        return callback(db, b);
+                    });
+            });
         } else if (db.oracle_type_val == 1) {
             return callback(db, db.result);
         }

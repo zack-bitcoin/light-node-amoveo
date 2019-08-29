@@ -112,8 +112,9 @@
                         //save channel state
                         var my_spk_sig = [-7, 2, contract_sig];
                         var sspk2 = ["signed", spk2, their_spk_sig, my_spk_sig]; 
-                        record_channel_state(sspk2, db, keys.pub());
+                        record_channel_state(sspk2, db, keys.pub(), function() {
                         status.innerHTML = "status: <font color=\"red\">Warning: you need to save your channel state to a file. The channel has been successfully formed.</font>";
+                        });
                     });
                 });
             });
@@ -191,9 +192,9 @@
                 return 0;
             }
             db.oracle = x;
-            if (db.oracle_type_val == 2) { //scalar
-                return verify_exists(db.oid, 10, function() {return accept_trade2(db, callback);});
-            }
+            //if (db.oracle_type_val == 2) { //scalar
+            //    return verify_exists(db.oid, 10, function() {return accept_trade2(db, callback);});
+            //}
             return accept_trade2(db, callback);
         });
     };

@@ -312,15 +312,16 @@ function channels_main() {
 	} else {
 	    var lower_limit = l[4][1];
 	    var upper_limit = l[4][2];
+	    var startheight = l[4][3];
 	    // sanity-check, verify 10 == l[4][3];
 	//all scalar markets currently use 10 binary oracles to measure values.
-            sc = scalar_market_contract(type_final, expires, price_final, server_pubkey, period, amount_final, oid_final, headers_object.top()[1], lower_limit, upper_limit, 10);
+            sc = scalar_market_contract(type_final, expires, price_final, server_pubkey, period, amount_final, oid_final, headers_object.top()[1], lower_limit, upper_limit, 10, startheight);
             sc[2] = Math.floor(sc[2] * ((10000 + price_final) / 10000));
 	}
         var cd = read(server_pubkey);
 	console.log("channels scalar market contract");
 	console.log(JSON.stringify(sc));
-        var spk = market_trade(cd, amount_final, price_final, sc, server_pubkey, oid_final);
+        var spk = market_trade(cd, amount_final, price_final, sc, server_pubkey, 1);//1 unused.
         var sspk = keys.sign(spk);
 	console.log("spk ");
 	console.log(JSON.stringify(spk));
