@@ -137,9 +137,38 @@
 	console.log(JSON.stringify(x));
     }
     function try_get_scalar_price(oid, div) {
-        return tgsp(oid, div, 10, 0);
+        //very similar to otc_finisher.js get_oracle_binary.
+        scalar_keys1(oid, function(ks) {
+            //var ks = scalar_keys1(oid);
+            return(tgsp(ks, div, 0));
+        });
+        //return tgsp(oid, div, 10, 0);
     };
-    function tgsp(oid, div, many, result0) {
+    function tgsp(ks, div, result) {
+        if (ks.length == 0) {
+            div.innerHTML = "scalar oracle result if closed now: ".concat(result);
+            return(0);
+        }
+        merkle.request_proof("oracles", ks[0], function(r) {
+            var result = r[2];//3 is bad, 2 is false, 1 is true, 0 is still open
+            if (result == 0) {
+                //the oracle isn't closed yet
+                result = r[5];
+            }
+            if ((result == 3) || (result == 0)) {
+                div.innerHTML = "scalar oracle result if closed now: bad question";
+                return 0;
+            } else if (result == 1) {
+                return tgsp(ks.slice(1), div, (result * 2) + 1);
+            } else if (result == 2) {
+                return tgsp(ks.slice(1), div, (result * 2));
+            };
+        });
+    };
+//})();
+            
+//    };
+    function old_tgsp(oid, div, many, result0) {
         if (many == 0) {
             div.innerHTML = "scalar oracle result if closed now: ".concat(result0);
             return(0);

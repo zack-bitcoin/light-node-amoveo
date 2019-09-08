@@ -4,13 +4,15 @@ function spk_main() {
         if (JSON.stringify(facts) == JSON.stringify([])) {
             return callback([ops.empty_list]);
         }
-        return prove_facts2(facts, 1, [ops.empty_list], callback); // [
+        //return prove_facts2(facts, 1, [ops.empty_list], callback); // [
+        return prove_facts2([-6].concat(facts.slice(1).reverse()), 1, [ops.empty_list], callback); // [
     }
     var tree2id = {accounts: 1, channels: 2, existence: 3, burn: 4, oracles: 5, governance: 6};
     function prove_facts2(facts, i, r, callback) {
 	var ops = chalang_object.ops();
         if (i == facts.length) {
             r.concat([ops.reverse]); // converts a , to a ]
+            //r.concat([]); // converts a , to a ]
             return callback(r);
         }
         //console.log("prove facts 2");
@@ -264,8 +266,11 @@ console.log(JSON.stringify([
             console.log(JSON.stringify(newspk2));
             throw("spks they gave us do not match");
         }
-        var ss = ss_to_internal(cd[3]);
-        var ss4 = ss_to_internal(cd[4]);//this one looks weird
+        var ss = ss_to_internal(cd[3]);//ssme
+        var ss4 = ss_to_internal(cd[4]);//ssthem
+        //console.log("spk they simplify sss");
+        //console.log(JSON.stringify(ss));
+        //console.log(JSON.stringify(ss4));
         merkle.request_proof("governance", 14, function(tree_fun_limit) {
             var fun_limit = tree_number_to_value(tree_fun_limit[2]);
             merkle.request_proof("governance", 15, function(tree_var_limit) {

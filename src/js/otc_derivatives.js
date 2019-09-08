@@ -36,6 +36,8 @@
     var oracle = text_input("oracle: ", div);
     glossary.link(div, "oracle_id");
     div.appendChild(br());
+    var knowable_height = text_input("knowable_height: ", div);
+    div.appendChild(br());
     var our_amount = text_input("how many veo you put in the contract: ", div);
     div.appendChild(br());
     //var payment_field = text_input("How much you pay for this contract. Make this negative to receive payment: ", div);
@@ -388,10 +390,12 @@
                 return 0;
             }
             db.oracle = x;
-            if (db.oracle_type_val == 2) { //scalar
-                status.innerHTML = "status: <font color=\"green\">Checking if the oracle exists.</font>";
-                return verify_exists(db.oracle_val, 10, function() {return callback(db);});
-            }
+            db.knowable = x[4];
+            //if (db.oracle_type_val == 2) { //scalar
+                //status.innerHTML = "status: <font color=\"green\">Checking if the oracle exists.</font>";
+                //return verify_exists(db.oracle_val, 10, function() {return callback(db);});
+                
+            //}
             return callback(db);
         });
     };
@@ -510,7 +514,7 @@
             imsg = [-6, db.bet_direction_val, bet_expires, maxprice, keys.pub(), db.their_address_val, period, db.our_amount_val, db.their_amount_val, oid, height, db.delay, contract_sig, signedPD, spk_nonce, db.oracle_type_val, db.cid, 0, 0, 0, db.payment, contract];
         } else {
             //console.log(db.upper_limit);
-            imsg = [-6, db.bet_direction_val, bet_expires, maxprice, keys.pub(), db.their_address_val, period, db.our_amount_val, db.their_amount_val, oid, height, db.delay, contract_sig, signedPD, spk_nonce, db.oracle_type_val, db.cid, db.bits_val, db.upper_limit, db.lower_limit, db.payment, contract];
+            imsg = [-6, db.bet_direction_val, bet_expires, maxprice, keys.pub(), db.their_address_val, period, db.our_amount_val, db.their_amount_val, oid, height, db.delay, contract_sig, signedPD, spk_nonce, db.oracle_type_val, db.cid, db.bits_val, db.upper_limit, db.lower_limit, db.payment, contract, db.knowable];
         }
         //console.log("otc derivatives spk spk2 compare ");
         //console.log(JSON.stringify(spk));

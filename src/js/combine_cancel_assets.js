@@ -12,7 +12,7 @@ function combine_cancel_assets_maker() {
             console.log(ssc);
             console.log("not cancelable because it is an open order");
             return false;
-        } else if ((!(bk.length == 7)) && (!(bk.length == 9))) {
+        } else if ((!(bk.length == 7)) && (!(bk.length == 10))) {
             console.log("bk is wrong length");
             console.log(JSON.stringify(bk));
             throw("match length error");

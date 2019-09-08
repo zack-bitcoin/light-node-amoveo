@@ -53,7 +53,7 @@
     function governance_futarchy_oracle() {
         merkle.request_proof("accounts", keys.pub(), function (acc) {
             var nonce = acc[2]+1;
-            var id = random_cid(32);
+            //var id = random_cid(32);
             var start = parseInt(futarchy_bets_resolve.value);
             var fs = parseInt(futarchy_starts.value);
             var fg = futarchy_goal.value;
@@ -69,39 +69,63 @@
             })
         });
     };
+
     function new_scalar_oracle(start, question, n, callback) {
         merkle.request_proof("accounts", keys.pub(), function (acc) {
+            
+            var id = id_maker(start, 0, 0, question);
             var nonce = acc[2]+n;
-            var id = random_cid(32);
-            var txs = new_scalar_oracle2(start, question, nonce, id, 10);
+            var ks = scalar_keys(id, start).reverse();
+            console.log(question);
+            var txs = new_scalar_oracle2(question, start, ks, nonce, id, 9);
+            console.log(JSON.stringify(txs));
 
             return variable_public_get(["txs", [-6].concat(txs)], function(x) {
-                status.innerHTML = "status: <font color=\"green\">successfully attempted to make a scalar oracle with id: ".concat(btoa(id)).concat("</font>");
+                status.innerHTML = "status: <font color=\"green\">successfully attempted to make a scalar oracle with id: ".concat(id).concat("</font>");
                 return callback();
-            //var tx = ["oracle_new", keys.pub(), nonce, fee, btoa(question), start, id, 0, 0, 0];
             });
         });
     };
-    function new_scalar_oracle2(start, question, nonce, id, many) {
-        if (many == 0) { return 0;}
-        var question2 = question.concat(" bit number ").concat((10-many).toString());
-        var tx = ["oracle_new", keys.pub(), nonce, fee, btoa(question2), start, btoa(id), 0, 0, 0];
+    function new_scalar_oracle2(question, start, ks, nonce, id, many) {
+        if (ks.length == 0) {return [];}
+        //var x2;
+        var s;
+        if (many == 0) {
+            s = question;
+            x2 = id;
+        } else {
+            s = question_maker(id, many);
+            console.log("question maker");
+            console.log(JSON.stringify(s));
+            x2 = id_maker(start, 0, 0, s);
+        }
+        var x = ks[0];
+
+        if (!(x == x2)) {
+            console.log(btoa(x));
+            console.log(btoa(x2));
+            console.log("fail");
+            return 0;
+        }
+
+        var tx = ["oracle_new", keys.pub(), nonce, fee, btoa(s), start, x, 0, 0, 0];
         console.log(tx);
         var stx = keys.sign(tx);
-        return ([stx]).concat(new_scalar_oracle2(start, question, nonce+1, next_oid(id), many - 1));
-    };
+        return ([stx]).concat(new_scalar_oracle2(question, start, ks.slice(1), nonce+1, id, many-1));
+    }
     function new_question_oracle(start, question) {
         merkle.request_proof("accounts", keys.pub(), function (acc) {
             var nonce = acc[2]+1;
-            var id = random_cid(32);
-            var tx = ["oracle_new", keys.pub(), nonce, fee, btoa(question), start, btoa(id), 0, 0, 0];
+            //var id = random_cid(32);
+            var id = id_maker(start, 0, 0, question);
+            var tx = ["oracle_new", keys.pub(), nonce, fee, btoa(question), start, id, 0, 0, 0];
             var stx = keys.sign(tx);
             console.log(JSON.stringify(stx));
             return variable_public_get(["txs", [-6, stx]], function(x) {
-                status.innerHTML = "status: <font color=\"green\">successfully attempted to make a binary oracle with OID: ".concat(btoa(id)).concat("</font>");
+                status.innerHTML = "status: <font color=\"green\">successfully attempted to make a binary oracle with OID: ".concat(id).concat("</font>");
                 return 0;
             });
         });
     };
     //console.log(JSON.stringify(next_oid(r)));
-})();
+    })();
