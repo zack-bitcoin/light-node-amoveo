@@ -34,6 +34,12 @@
     div.appendChild(scalar);
     glossary.link(div, "scalar_oracle");
     div.appendChild(br());
+    var make_id = button_maker2("generate ID", function(){
+        return make_id2(parseInt(starts.value), question.value);
+    });
+    div.appendChild(make_id);
+    glossary.link(div, "oracle_id");
+    div.appendChild(br());
     var amoveo_futarchy_title = document.createElement("h3");
     amoveo_futarchy_title.innerHTML = "amoveo governance futarchy oracle";
     div.appendChild(amoveo_futarchy_title);
@@ -69,7 +75,11 @@
             })
         });
     };
-
+    function make_id2(start, question) {
+        var id = id_maker(start, 0, 0, question);
+        var rest = "start: ".concat((start).toString()).concat("<br />question: ").concat(question);
+        status.innerHTML = "status: <font color=\"green\">successfully generated the id: ".concat(id).concat("<br /> Save the red data, you need it when creating the oracle on-chain:</font><br /><font color=\"red\"> ").concat(rest).concat("</font>");
+    };
     function new_scalar_oracle(start, question, n, callback) {
         merkle.request_proof("accounts", keys.pub(), function (acc) {
             
@@ -107,7 +117,6 @@
             console.log("fail");
             return 0;
         }
-
         var tx = ["oracle_new", keys.pub(), nonce, fee, btoa(s), start, x, 0, 0, 0];
         console.log(tx);
         var stx = keys.sign(tx);
