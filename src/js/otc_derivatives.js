@@ -7,6 +7,25 @@
     var div = document.createElement("div");
     document.body.appendChild(div);
 
+    var title0 = document.createElement("h3");
+    title0.innerHTML = "generate id of oracle that has not been created on-chain yet";
+    div.appendChild(title0);
+
+    var question = text_input("oracle question: ", div);
+    var oracle_starts = text_input("oracle starts: ", div);
+    var generate_id_button = button_maker2("generate id", function() {
+        var oid = id_maker(parseInt(oracle_starts.value), 0,0, question.value);
+        oracle.value = oid;
+        var rest = "start: ".concat((oracle_starts).value).concat("<br />question: ").concat(question.value);
+        status.innerHTML = "status: <font color=\"green\">successfully generated the id: ".concat(oid).concat("<br /> Save the red data, you need it when creating the oracle on-chain:</font><br /><font color=\"red\"> ").concat(rest).concat("</font>");
+    });
+    div.appendChild(generate_id_button);
+
+    var title = document.createElement("h3");
+    title.innerHTML = "derivatives form";
+    div.appendChild(title);
+    
+
     //glossary.messenger(div);
 
     if (mode == "test") {
