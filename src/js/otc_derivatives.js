@@ -386,16 +386,20 @@
         return merkle.request_proof("oracles", db.oracle_val, function(x) {
             var result = x[2];
             if (!(result == 0)) {
-                status.innerHTML = "status: <font color=\"red\">Error: That oracle does not exist.</font>";
-                return 0;
-            }
+                db.knowable = parseInt(knowable_height.value);
+                //id, result, question,  starts, type, orders, order_hash, creator, done_timer, governance, governance_amount
+                db.oracle = ["oracle"];
+                //status.innerHTML = "status: <font color=\"red\">Error: That oracle does not exist.</font>";
+                //return 0;
+            } else {
             db.oracle = x;
             db.knowable = x[4];
             //if (db.oracle_type_val == 2) { //scalar
                 //status.innerHTML = "status: <font color=\"green\">Checking if the oracle exists.</font>";
                 //return verify_exists(db.oracle_val, 10, function() {return callback(db);});
                 
-            //}
+                //}
+            }
             return callback(db);
         });
     };
@@ -450,7 +454,8 @@
         } else {
             oracle_wait = 3000;
         }
-        var bet_expires = oracle_wait + db.oracle[10]; // bet expires should be at least 3000 after the oracle can expire.
+        //var bet_expires = oracle_wait + db.oracle[10]; // bet expires should be at least 3000 after the oracle can expire.
+        var bet_expires = oracle_wait + db.knowable + 2000; // bet expires should be at least 3000 after the oracle can expire.
         var cid = btoa(random_cid(32));//generate a random 32 byte cid for the new channel.
         db.cid = cid;
         db.expires = bet_expires, 

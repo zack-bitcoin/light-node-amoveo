@@ -125,29 +125,36 @@
             }
             console.log("otc finisher");
             merkle.request_proof("oracles", db.oid, function(Or) {
-                //console.log(JSON.stringify(Or));
+                console.log(JSON.stringify(Or));
                 //["oracle","wqsBDVWpK35TS/VqFYC94QWnNOwClAerYlbtz3AvKtk=",0,"yAKJm0Zl9jpFBkbolYXdqOKe90nndgCHskmkw8DhSiE=",1000,3,0,"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","BIVZhs16gtoQ/uUMujl5aSutpImC4va8MewgCveh6MEuDjoDvtQqYZ5FeYcUhY/QLjpCBrXjqvTtFiN4li0Nhjo=",1001,0,0]
-                db.result = Or[2];//3 is bad, 2 is false, 1 is true, 0 is still open
-                if //(false){//
-                    (db.result == 0) {//oracle still open
-                    var done_timer = Or[9];
+                if (Or == "empty") {
+                    console.log("oracle does not yet exist");
+                    status.innerHTML = ("status: <font color=\"red\"> The bet, on oracle ID: ").concat(db.oid).concat(" , this oracle has not been created yet.</font>");
+                    db.result = text_input("result of the oracle: ", workspace);
+                    return close_early_view(db);
+                } else {
+                
+                    db.result = Or[2];//3 is bad, 2 is false, 1 is true, 0 is still open
+                    if (db.result == 0) {//oracle still open
+                        var done_timer = Or[9];
                         status.innerHTML = ("status: <font color=\"red\"> The bet, on oracle ID: ").concat(db.oid).concat(" , is not yet settled. The oracle has not been finalized. It is expected to be settled a little after block height ").concat((done_timer).toString()).concat("</font>");
                         if (db.oracle_type_val == 1) {
                             db.result = text_input("outcome is true/false/bad: ", workspace);
                         } else if (db.oracle_type_val == 2) {
                             db.result = text_input("final price of the asset: ", workspace);
                         }
-                        return close_early_view(db);;
+                        return close_early_view(db);
                     };
-                console.log("otc finisher");
-                return start2(db);
+                    console.log("otc finisher");
+                    close_early_view(db);
+                    return start2(db);
+                }
             });
         });
     }
     function start2(db) {
         //oracle has been closed already.
         //cev2(db);
-        close_early_view(db);
         //var close_offer = text_input("close offer proposal: ", workspace);
         //var listen_button = button_maker2("load the proposal.", function() {
         //    display_close_offer2(JSON.parse(close_offer.value), db)

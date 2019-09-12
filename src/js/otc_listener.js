@@ -149,8 +149,14 @@
                 return(0);
             };
             variable_public_get(["oracle", db.oid], function(x) {
-                var question = atob(x[2]);
-                console.log(question);
+                var question;
+                if (x == 0) {
+                    question = "UNKNOWN: this oracle has not yet been created. You can use this page http://139.59.144.76:8080/new_oracle.html to generate the same ID to verify what this contract is betting on.";
+                    console.log("this oracle does not yet exist.");
+                } else {
+                    question = atob(x[2]);
+                    console.log(question);
+                }
             
                 var s1 = ("their address: ").concat(db.acc1).concat("<br />").concat(
                     "oracle: ").concat(db.oid).concat("<br />").concat(
@@ -186,12 +192,14 @@
         console.log("accepting this trade");
         status.innerHTML = "status: <font color=\"green\">checking if this trade is valid.</font>";
         return merkle.request_proof("oracles", db.oid, function(x) {
+            /*
             var result = x[2];
             if (!(result == 0)) {
                 status.innerHTML = "status: <font color=\"red\">Error: That oracle does not exist. (did you sync headers?) </font>";
                 return 0;
             }
-            db.oracle = x;
+            */
+            //db.oracle = x;
             //if (db.oracle_type_val == 2) { //scalar
             //    return verify_exists(db.oid, 10, function() {return accept_trade2(db, callback);});
             //}

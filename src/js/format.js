@@ -481,7 +481,7 @@ function rcs_to_prove(otv, oid, callback) {
             to_prove = [-6].concat(scalar_to_prove2(ks));
             return(callback(to_prove));
         }));
-    } else if (db.oracle_type_val == 1){//binary
+    } else if (otv == 1){//binary
         to_prove = [-6, ["oracles", oid]];
         return(callback(to_prove));
     }
