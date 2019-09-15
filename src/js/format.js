@@ -533,6 +533,10 @@ function record_channel_state(sspk2, db, acc2, callback) {
 
 
 function id_maker(start, gov1, gov2, question) {
+    if (question.length > 999) {
+        console.log("question is too long");
+        return "question too long";
+    }
     var x = integer_to_array(start, 4).concat
     (integer_to_array(gov1, 4)).concat
     (integer_to_array(gov2, 4)).concat
