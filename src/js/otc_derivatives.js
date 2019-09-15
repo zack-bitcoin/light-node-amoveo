@@ -16,6 +16,7 @@
     var generate_id_button = button_maker2("generate id", function() {
         var oid = id_maker(parseInt(oracle_starts.value), 0,0, question.value);
         oracle.value = oid;
+        knowable_height.value = oracle_starts.value;
         var rest = "start: ".concat((oracle_starts).value).concat("<br />question: ").concat(question.value);
         status.innerHTML = "status: <font color=\"green\">successfully generated the id: ".concat(oid).concat("<br /> Save the red data, you need it when creating the oracle on-chain:</font><br /><font color=\"red\"> ").concat(rest).concat("</font>");
     });
