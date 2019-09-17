@@ -175,6 +175,12 @@
             var BD = urlParams.get("bet_direction");
             if (BD == null) { BD = ""; };
             bet_direction.value = BD;
+            var OH = urlParams.get("oracle_height");
+            if (OH == null) { OH = ""; };
+            knowable_height.value = OH;
+            var DI = urlParams.get("direction");
+            if (DI == null) { DI = ""; };
+            bet_direction.value = DI;
             oracle_type.value = "binary";
         };
         //var startButton = button_maker2("offer to make this trade via encrypted message to one person", start);
