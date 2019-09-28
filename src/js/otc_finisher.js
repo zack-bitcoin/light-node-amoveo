@@ -253,18 +253,21 @@
             var x = oracle_value(db, result);
             console.log(JSON.stringify([result, x]));
             //return oracle_value(db, result, function(x) {
-	    return merkle.request_proof("accounts", db.address1, function(acc) {
-                nonce = acc[2]+1;
-	        var tx = ["ctc", db.address1, db.address2, db.fee, nonce+1, db.cid, x];
-                console.log(JSON.stringify(tx));
-                var stx = keys.sign(tx);
-                var imsg = [-6, early_close_code, db.oracle_type_val, result, stx];
-                var their_address_val = Object.keys(channels_object.channel_manager())[0];
+	    //return merkle.request_proof("accounts", db.address1, function(acc) {
+                //nonce = acc[2]+1;
+            var amount1 = db.channel_balance1 + x;
+            var amount2 = db.channel_balance2 - x;
+            var height = headers_object.top()[1];
+	    var tx = ["ctc2", db.address1, db.address2, db.fee, db.cid, amount1, amount2, height+100, height];
+            console.log(JSON.stringify(tx));
+            var stx = keys.sign(tx);
+            var imsg = [-6, early_close_code, db.oracle_type_val, result, stx];
+            var their_address_val = Object.keys(channels_object.channel_manager())[0];
                 //return send_encrypted_message(imsg, their_address_val, function() {
-                var balances_string = calc_balances(db, x);
-                status.innerHTML = ("status: <font color=\"blue\">Successfully generated an offer to close the channel.").concat(balances_string).concat(" Tell your partner to visit this page. Do not delete your channel state yet. Click 'get headers' to see if the contract is settled yet. give this data to your partner: </font> ".concat(JSON.stringify(imsg)));
-                return wait_till_closed(db);
-            });
+            var balances_string = calc_balances(db, x);
+            status.innerHTML = ("status: <font color=\"blue\">Successfully generated an offer to close the channel.").concat(balances_string).concat(" Tell your partner to visit this page. Do not delete your channel state yet. Click 'get headers' to see if the contract is settled yet. give this data to your partner: </font> ".concat(JSON.stringify(imsg)));
+            return wait_till_closed(db);
+            //});
         });
         workspace.appendChild(early_button);
         workspace.appendChild(br());
@@ -281,6 +284,9 @@
         console.log(tx_a);
         var bAcc1 = db.channel_balance1 + tx_a;
         var bAcc2 = db.channel_balance2 - tx_a;
+        return calc_balances2(db, bAcc1, bAcc2);
+    }
+    function calc_balances2(db, bAcc1, bAcc2) {
         var your_balance, their_balance;
         if (db.address1 == keys.pub()) {
             your_balance = bAcc1;
@@ -291,6 +297,29 @@
         }
         return ("you will receive ").concat(s2c(your_balance)).concat(" veo, and they will receive ").concat(s2c(their_balance)).concat(" veo.");
     }
+    function check_ctc_amount(x, tx, db) {
+        var amount1 = db.channel_balance1 + x;
+        var amount2 = db.channel_balance2 - x;
+        if (!(amount1 == tx[5])) {
+            status.innerHTML = ("status: <font color=\"red\">The final distribution of funds was miscalculated.</font>");
+            console.log(x);
+                console.log(tx[6]);
+                return 1;
+            };
+            if (!(amount2 == tx[6])) {
+                status.innerHTML = ("status: <font color=\"red\">The final distribution of funds was miscalculated.</font>");
+                console.log(x);
+                console.log(tx[6]);
+                return 1;
+            };
+            if (!(tx[4] == db.cid)) {
+                status.innerHTML = ("status: <font color=\"error\">This tx is for closing the wrong channel.</font>");
+                console.log(db.cid);
+                console.log(c[4][1][5]);
+                return 1;
+            };
+        return 0;
+    };
     function display_close_offer2(c, db) {
         if (c == undefined) {
             status.innerHTML = ("status: <font color=\"red\">your mailbox does not have proposal to close this channel.</font>");
@@ -304,25 +333,16 @@
             //console.log(tx[6]);
             //console.log(db.channel_balance1);
             var sctc = keys.sign(tx);
-            var tx_a = tx[1][6];
-            var balances_string = calc_balances(db, tx_a);
+            var tx_a1 = tx[1][5];
+            var tx_a2 = tx[1][6];
+            var balances_string = calc_balances2(db, tx_a1, tx_a2);
             status.innerHTML = ("status: <font color=\"blue\">This proposal is for ending the channel at the final state of: ").concat(c[3]).concat("; ").concat(balances_string).concat("</font>");
             //status.innerHTML = ("status: <font color=\"blue\">This proposal is for ending the channel at the final state of: ").concat(c[3]).concat("; you will receive ").concat(s2c(your_balance)).concat(" veo, and they will receive ").concat(s2c(their_balance)).concat(" veo.").concat("</font>");
             //ctc_amount = tx[6];//to acc1
             var x = oracle_value(db, c[3]);
-            if (!(x == c[4][1][6])) {
-                status.innerHTML = ("status: <font color=\"red\">The final distribution of funds was miscalculated.</font>");
-                console.log(x);
-                console.log(c[4][1][6]);
-                return 0;
-            };
-            if (!(c[4][1][5] == db.cid)) {
-                status.innerHTML = ("status: <font color=\"error\">This tx is for closing the wrong channel.</font>");
-                console.log(db.cid);
-                console.log(c[4]);
-                console.log(c[4][1][5]);
-                return 0;
-            };
+            var cca = check_ctc_amount(x, c[4][1], db);
+            if (cca == 1) { return 0; }
+        //};
         } else if (c.length == 4) {
             tx = c;
             var sctc = keys.sign(tx);
@@ -356,16 +376,14 @@
                 status.innerHTML = ("status: <font color=\"red\"> CTC tx has a wrong fee</font>");
                 return 0;
             }
-            if (!(db.cid == ctc[5])) {
+            if (!(db.cid == ctc[4])) {
                 status.innerHTML = ("status: <font color=\"red\"> CTC tx has a wrong cid</font>");
                 return 0;
             }
             oracle_result(db, function(db, winnings) {
                 winnings = channel_result(db, winnings);
-                if (!(winnings == ctc[6])) {
-                    status.innerHTML = ("status: <font color=\"red\"> CTC tx has a wrong final balances.</font>");
-                    return 0;
-                }
+                var cca = check_ctc_amount(winnings, ctc, db);
+                if (cca == 1) {return 0;}
             });
         }
         var accept_button = button_maker2("accept this proposal and close the channel", function() {
