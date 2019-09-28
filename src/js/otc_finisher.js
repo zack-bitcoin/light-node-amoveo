@@ -131,6 +131,8 @@
                     console.log("oracle does not yet exist");
                     status.innerHTML = ("status: <font color=\"red\"> The bet, on oracle ID: ").concat(db.oid).concat(" , this oracle has not been created yet.</font>");
                     db.result = text_input("result of the oracle: ", workspace);
+                    db.offer_delay_field = text_input("how many blocks till this proposal should expire: ", workspace);
+                    db.offer_delay_field.value = "100";
                     return close_early_view(db);
                 } else {
                 
@@ -258,7 +260,8 @@
             var amount1 = db.channel_balance1 + x;
             var amount2 = db.channel_balance2 - x;
             var height = headers_object.top()[1];
-	    var tx = ["ctc2", db.address1, db.address2, db.fee, db.cid, amount1, amount2, height+100, height];
+            var offer_delay = parseInt(db.offer_delay_field.value);
+	    var tx = ["ctc2", db.address1, db.address2, db.fee, db.cid, amount1, amount2, height+offer_delay, height];
             console.log(JSON.stringify(tx));
             var stx = keys.sign(tx);
             var imsg = [-6, early_close_code, db.oracle_type_val, result, stx];
