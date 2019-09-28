@@ -259,6 +259,14 @@
                 //nonce = acc[2]+1;
             var amount1 = db.channel_balance1 + x;
             var amount2 = db.channel_balance2 - x;
+            if (amount1 < 0) {
+                amount2 = amount2 + amount1;
+                amount1 = 0;
+            }
+            if (amount2 < 0) {
+                amount1 = amount2 + amount1;
+                amount2 = 0;
+            }
             var height = headers_object.top()[1];
             var offer_delay = parseInt(db.offer_delay_field.value);
 	    var tx = ["ctc2", db.address1, db.address2, db.fee, db.cid, amount1, amount2, height+offer_delay, height];
