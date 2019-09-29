@@ -256,17 +256,10 @@
             console.log(JSON.stringify([result, x]));
             //return oracle_value(db, result, function(x) {
 	    //return merkle.request_proof("accounts", db.address1, function(acc) {
-                //nonce = acc[2]+1;
-            var amount1 = db.channel_balance1 + x;
-            var amount2 = db.channel_balance2 - x;
-            if (amount1 < 0) {
-                amount2 = amount2 + amount1;
-                amount1 = 0;
-            }
-            if (amount2 < 0) {
-                amount1 = amount2 + amount1;
-                amount2 = 0;
-            }
+            //nonce = acc[2]+1;
+            var amounts = amounts_calculator(db, x);
+            var amount1 = amounts[0];
+            var amount2 = amounts[1];
             var height = headers_object.top()[1];
             var offer_delay = parseInt(db.offer_delay_field.value);
 	    var tx = ["ctc2", db.address1, db.address2, db.fee, db.cid, amount1, amount2, height+offer_delay, height];
@@ -308,27 +301,49 @@
         }
         return ("you will receive ").concat(s2c(your_balance)).concat(" veo, and they will receive ").concat(s2c(their_balance)).concat(" veo.");
     }
-    function check_ctc_amount(x, tx, db) {
+    function amounts_calculator(db, x) {
         var amount1 = db.channel_balance1 + x;
         var amount2 = db.channel_balance2 - x;
-        if (!(amount1 == tx[5])) {
-            status.innerHTML = ("status: <font color=\"red\">The final distribution of funds was miscalculated.</font>");
-            console.log(x);
+        if (amount1 < 0) {
+            amount2 = amount2 + amount1;
+            amount1 = 0;
+        }
+        if (amount2 < 0) {
+            amount1 = amount2 + amount1;
+            amount2 = 0;
+        }
+        return [amount1, amount2];
+    };
+    function check_ctc_amount(x, tx, db) {
+        var amounts = amounts_calculator(db, x);
+        var amount1 = amounts[0];
+        var amount2 = amounts[1];
+        if (!((amount1 + amount2) == (tx[5] + tx[6]))) {
+            status.innerHTML = ("status: <font color=\"red\">The final distribution of funds doesn't add up to the right amount.</font>");
+            return 1;
+        }
+        if (keys.pub() == db.address1) {
+            if (amount1 > tx[5]) {
+                status.innerHTML = ("status: <font color=\"red\">The final distribution of funds didn't pay you enough.</font>");
+                console.log(amount1);
+                console.log(tx[5]);
+                return 1;
+            };
+        };
+        if (keys.pub() == db.address2) {
+            if (amount2 > tx[6]) {
+                status.innerHTML = ("status: <font color=\"red\">The final distribution of funds didn't pay you enough 2.</font>");
+                console.log(amount2);
                 console.log(tx[6]);
                 return 1;
             };
-            if (!(amount2 == tx[6])) {
-                status.innerHTML = ("status: <font color=\"red\">The final distribution of funds was miscalculated.</font>");
-                console.log(x);
-                console.log(tx[6]);
-                return 1;
-            };
-            if (!(tx[4] == db.cid)) {
-                status.innerHTML = ("status: <font color=\"error\">This tx is for closing the wrong channel.</font>");
-                console.log(db.cid);
-                console.log(c[4][1][5]);
-                return 1;
-            };
+        };
+        if (!(tx[4] == db.cid)) {
+            status.innerHTML = ("status: <font color=\"error\">This tx is for closing the wrong channel.</font>");
+            console.log(db.cid);
+            console.log(c[4][1][5]);
+            return 1;
+        };
         return 0;
     };
     function display_close_offer2(c, db) {
