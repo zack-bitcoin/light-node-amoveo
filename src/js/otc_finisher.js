@@ -133,6 +133,8 @@
                     db.result = text_input("result of the oracle: ", workspace);
                     db.offer_delay_field = text_input("how many blocks till this proposal should expire: ", workspace);
                     db.offer_delay_field.value = "100";
+                    db.offer_delay_payment = text_input("how much should we offer to pay them for settling the contract early: ", workspace);
+                    db.offer_delay_payment.value = "0";
                     return close_early_view(db);
                 } else {
                 
@@ -262,13 +264,21 @@
             var amount2 = amounts[1];
             var height = headers_object.top()[1];
             var offer_delay = parseInt(db.offer_delay_field.value);
-	    var tx = ["ctc2", db.address1, db.address2, db.fee, db.cid, amount1, amount2, height+offer_delay, height];
+            console.log(db.offer_delay_payment.value);
+            console.log(parseFloat(db.offer_delay_payment.value));
+            
+            var offer_delay_payment = Math.round(100000000 * parseFloat(db.offer_delay_payment.value));
+            if (keys.pub() == db.address2) {
+                offer_delay_payment = -offer_delay_payment;
+            }
+            console.log(offer_delay_payment);
+	    var tx = ["ctc2", db.address1, db.address2, db.fee, db.cid, amount1 - offer_delay_payment, amount2 + offer_delay_payment, height+offer_delay, height];
             console.log(JSON.stringify(tx));
             var stx = keys.sign(tx);
             var imsg = [-6, early_close_code, db.oracle_type_val, result, stx];
             var their_address_val = Object.keys(channels_object.channel_manager())[0];
                 //return send_encrypted_message(imsg, their_address_val, function() {
-            var balances_string = calc_balances(db, x);
+            var balances_string = calc_balances2(db, tx[5], tx[6]);
             status.innerHTML = ("status: <font color=\"blue\">Successfully generated an offer to close the channel.").concat(balances_string).concat(" Tell your partner to visit this page. Do not delete your channel state yet. Click 'get headers' to see if the contract is settled yet. give this data to your partner: </font> ".concat(JSON.stringify(imsg)));
             return wait_till_closed(db);
             //});
