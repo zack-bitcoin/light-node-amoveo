@@ -147,6 +147,10 @@
                         } else if (db.oracle_type_val == 2) {
                             db.result = text_input("final price of the asset: ", workspace);
                         }
+                        db.offer_delay_field = text_input("how many blocks till this proposal should expire: ", workspace);
+                        db.offer_delay_field.value = "100";
+                        db.offer_delay_payment = text_input("how much should we offer to pay them for settling the contract early: ", workspace);
+                        db.offer_delay_payment.value = "0";
                         return close_early_view(db);
                     };
                     console.log("otc finisher");
