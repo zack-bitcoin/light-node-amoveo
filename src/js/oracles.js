@@ -150,17 +150,17 @@
             return(0);
         }
         merkle.request_proof("oracles", ks[0], function(r) {
-            var result = r[2];//3 is bad, 2 is false, 1 is true, 0 is still open
-            if (result == 0) {
+            var r2 = r[2];//3 is bad, 2 is false, 1 is true, 0 is still open
+            if (r2 == 0) {
                 //the oracle isn't closed yet
-                result = r[5];
+                r2 = r[5];
             }
-            if ((result == 3) || (result == 0)) {
+            if ((r2 == 3) || (r2 == 0)) {
                 div.innerHTML = "scalar oracle result if closed now: bad question";
                 return 0;
-            } else if (result == 1) {
+            } else if (r2 == 1) {
                 return tgsp(ks.slice(1), div, (result * 2) + 1);
-            } else if (result == 2) {
+            } else if (r2 == 2) {
                 return tgsp(ks.slice(1), div, (result * 2));
             };
         });
