@@ -140,7 +140,7 @@
         //very similar to otc_finisher.js get_oracle_binary.
         scalar_keys1(oid, function(ks) {
             //var ks = scalar_keys1(oid);
-            return(tgsp(ks, div, 0));
+            return(tgsp((ks).reverse(), div, 0));
         });
         //return tgsp(oid, div, 10, 0);
     };
