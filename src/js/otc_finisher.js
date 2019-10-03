@@ -267,9 +267,16 @@
             var amount1 = amounts[0];
             var amount2 = amounts[1];
             var height = headers_object.top()[1];
-            var offer_delay = parseInt(db.offer_delay_field.value);
-            console.log(db.offer_delay_payment.value);
-            console.log(parseFloat(db.offer_delay_payment.value));
+            var odf = db.offer_delay_field;
+            var odfv;
+            if ("undefined" == typeof(odf)) {
+                odfv = "10000";
+            } else {
+                odfv = odfv.value;
+            }
+            var offer_delay = parseInt(odfv);
+            console.log(odfv);
+            //console.log(parseFloat(db.offer_delay_payment.value));
             
             var offer_delay_payment = Math.round(100000000 * parseFloat(db.offer_delay_payment.value));
             if (keys.pub() == db.address2) {
