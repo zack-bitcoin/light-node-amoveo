@@ -40,6 +40,22 @@
     div.appendChild(make_id);
     glossary.link(div, "oracle_id");
     div.appendChild(br());
+    var gov_title = document.createElement("h3");
+    gov_title.innerHTML = "new governance oracle";
+    div.appendChild(gov_title);
+    div.appendChild(br());
+    var chart = document.createElement("p");
+    chart.innerHTML = "Costs 0.33 VEO <br /> 1: block reward, 2: developer reward, 3: max block size, 4: block period, 5: time gas, 6: space gas, 7: function limit, 8: variable limit, 9: governance change limit, 10: oracle initial liquidity, 11: minimum oracle time, 12: maximum oracle time, 13: maximum question size, 14: create account tx, 15: spend tx, 17: new channel, 18: channel team close, 19: channel solo close, 20: channel timeout, 21: channel slash, 23: oracle new, 24: oracle_bet, 25: oracle close, 26: oracle unmatched, 27: oracle winnings, 28: oracle question liquidity";
+    div.appendChild(chart);
+    gov_id = text_input("id of governance variable to change", div);
+    div.appendChild(br());
+    gov_amount = text_input("how far to change the governance variable by in the range [1,50]", div);
+    div.appendChild(br());
+    var gov_button = button_maker2("make governance oracle", gov_maker);
+    div.appendChild(gov_button);
+
+
+    div.appendChild(br());
     var amoveo_futarchy_title = document.createElement("h3");
     amoveo_futarchy_title.innerHTML = "amoveo governance futarchy oracle";
     div.appendChild(amoveo_futarchy_title);
@@ -122,6 +138,31 @@
         var stx = keys.sign(tx);
         return ([stx]).concat(new_scalar_oracle2(question, start, ks.slice(1), nonce+1, id, many-1));
     }
+    function gov_maker() {
+        var giv = parseInt(gov_id.value);
+        if ((giv < 1) || (giv > 28)) {
+            status.innerHTML = "status: <font color=\"red\">invalid gov value</font>";
+            console.log(giv);
+            return 0;
+        }
+        var ga = parseInt(gov_amount.value);
+        if (ga < 1) {
+            status.innerHTML = "status: <font color=\"red\">invalid gov amount</font>";
+            return 0;
+        }
+        var question = "";
+        var start = 0;
+        merkle.request_proof("accounts", keys.pub(), function (acc) {
+            var nonce = acc[2]+1;
+            var id = id_maker(start, giv, ga, question);
+            var tx = ["oracle_new", keys.pub(), nonce, fee, btoa(question), start, id, 0, giv, ga];
+            var stx = keys.sign(tx);
+            return variable_public_get(["txs", [-6, stx]], function(x) {
+                status.innerHTML = "status: <font color=\"green\">successfully attempted to make a binary oracle with OID: ".concat(id).concat("</font>");
+                return 0;
+            });
+        });
+    };
     function new_question_oracle(start, question) {
         merkle.request_proof("accounts", keys.pub(), function (acc) {
             var nonce = acc[2]+1;
