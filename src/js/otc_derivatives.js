@@ -348,7 +348,7 @@
                     //var nc_offer = ["nc_offer", keys.pub(), nonce, height + 100, db.our_amount_val, db.their_amount_val, 1000, db.delay, db.cid, cp.ch];
                     var nc_offer = ["nc_offer", keys.pub(), nonce, height + parseInt(bet_expires0.value), db.our_amount_val, db.their_amount_val, 1000, db.delay, db.cid, cp.ch];
                     var ncs = keys.sign(nc_offer);
-                    status.innerHTML = "status: <font color=\"blue\">put this data in a public place, for example <a href=\"http://139.59.144.76:8090/main.html\">this website</a> : </font> ".concat(JSON.stringify([-6, cp.msg, ncs]));
+                    status.innerHTML = "status: <font color=\"blue\">put this data in a public place, for example <a href=\"http://159.89.87.58:8090/main.html\">this website</a> : </font> ".concat(JSON.stringify([-6, cp.msg, ncs]));
                     
                     var channel_offer_name = text_input("channel_offer_name: ", save_button_div);
                     var today = new Date();

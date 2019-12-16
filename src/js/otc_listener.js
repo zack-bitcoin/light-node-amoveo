@@ -151,7 +151,7 @@
             variable_public_get(["oracle", db.oid], function(x) {
                 var question;
                 if (x == 0) {
-                    question = "UNKNOWN: this oracle has not yet been created. You can use this page http://139.59.144.76:8080/new_oracle.html to generate the same ID to verify what this contract is betting on.";
+                    question = "UNKNOWN: this oracle has not yet been created. You can use this page http://159.89.87.58:8080/new_oracle.html to generate the same ID to verify what this contract is betting on.";
                     console.log("this oracle does not yet exist.");
                 } else {
                     question = atob(x[2]);
