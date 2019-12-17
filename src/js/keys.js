@@ -173,8 +173,23 @@ function keys_function1() {
     function update_balance() {
         var trie_key = pubkey_64();
         var top_hash = hash(headers_object.serialize(headers_object.top()));
-        merkle.request_proof("accounts", trie_key, function(x) {
-            set_balance(x[1] / token_units());
+        variable_public_get(["account", trie_key], function(unconfirmed) {
+            var U = unconfirmed[1] / token_units();
+            
+            merkle.request_proof("accounts", trie_key, function(x) {
+                var C = x[1] / token_units();
+                //set_balance(C);
+                var S = ("your balance ").concat(
+                    (C).toString()).concat(
+                        " VEO");
+                if (!(C == U)) {
+                    S = S.concat(
+                        ", unconfirmed: ").concat(
+                            (U-C).toString()).concat(
+                                " VEO");
+                };
+                bal_div.innerHTML = S;
+            });
         });
     }
     function set_balance(n) {
