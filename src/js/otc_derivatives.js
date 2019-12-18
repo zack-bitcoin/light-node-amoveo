@@ -1,3 +1,7 @@
+
+//var db = {};
+var oracle_text;
+var knowable_height;
 (function otc_function() {
     const urlParams = new URLSearchParams(window.location.search);
     var mode = urlParams.get('mode');
@@ -16,14 +20,17 @@
     var generate_id_button = button_maker2("generate id", function() {
         var oid = id_maker(parseInt(oracle_starts.value), 0,0, question.value);
         oracle.value = oid;
-        knowable_height.value = oracle_starts.value;
+        oracle_text = question.value;
+        //db.knowable = oracle_starts.value;
+        //knowable_height.value = oracle_starts.value;
+        knowable_height = parseInt(oracle_starts.value);
         var rest = "start: ".concat((oracle_starts).value).concat("<br />question: ").concat(question.value);
         status.innerHTML = "status: <font color=\"green\">successfully generated the id: ".concat(oid).concat("<br /> Save the red data, you need it when creating the oracle on-chain:</font><br /><font color=\"red\"> ").concat(rest).concat("</font>");
     });
     div.appendChild(generate_id_button);
 
     var title = document.createElement("h3");
-    title.innerHTML = "derivatives form";
+    title.innerHTML = "make an offer for a smart contract";
     div.appendChild(title);
     
 
@@ -56,8 +63,8 @@
     var oracle = text_input("oracle: ", div);
     glossary.link(div, "oracle_id");
     div.appendChild(br());
-    var knowable_height = text_input("knowable_height: ", div);
-    div.appendChild(br());
+    //var knowable_height = text_input("knowable_height: ", div);
+    //div.appendChild(br());
     var our_amount = text_input("how many veo you put in the contract: ", div);
     div.appendChild(br());
     //var payment_field = text_input("How much you pay for this contract. Make this negative to receive payment: ", div);
@@ -92,6 +99,7 @@
     };
 
     function scalar_view() {
+        var db = {oracle_text: oracle_text};
         if (oracle.value == "") {
             status.innerHTML = "status: <font color=\"red\">First choose the Oracle ID for your bet before clicking that.</font>";
             return 0;
@@ -134,7 +142,8 @@
             bet_direction.value = BD;
             var OH = urlParams.get("oracle_height");
             if (OH == null) { OH = ""; };
-            knowable_height.value = OH;
+            //knowable_height.value = OH;
+            knowable_height = parseInt(OH);
             var UL = urlParams.get("upper_limit");
             if (UL == null) { UL = "1023"; };
             upper_limit.value = UL;
@@ -180,7 +189,8 @@
             bet_direction.value = BD;
             var OH = urlParams.get("oracle_height");
             if (OH == null) { OH = ""; };
-            knowable_height.value = OH;
+            //knowable_height.value = OH;
+            knowable_height = parseInt(OH);
             oracle_type.value = "binary";
         };
         //var startButton = button_maker2("offer to make this trade via encrypted message to one person", start);
@@ -245,7 +255,6 @@
         bits = document.createElement("p");
         bits.value = "10";
         function scalar_view2(callback) {
-            var db = {};
             db = decode_direction(db, bet_direction);
             if (db == 0) {
                 return 0;
@@ -363,9 +372,9 @@
         });
     }
     function start() {
-        var db0 = {};
-        return load_from_text_fields(db0, function(db) {
-            db.their_address_val = 1;
+        var db0 = {oracle_text: oracle_text};
+        return load_from_text_fields(db, function(db1) {
+            db1.their_address_val = 1;
             return check_account_balances(db, function(db2) {
                 return propose_contract(db2, function(db3) {
                     return create_channel(db3, function(db4) {
@@ -376,7 +385,7 @@
         });
     }
     function load_from_text_fields(db, callback) {
-        //var db = {};
+        var db = {};
         //db.payment = read_veo(payment_field);
         db.payment = 0;
         //db.their_address_val = parse_address(their_address.value);
@@ -407,26 +416,12 @@
             return 0;
         }
     //our private key needs to be loaded.
-        //check all values are valid for making the contract.
-        //check that the oracle exists, and if scalar that enough bits exist.
         return merkle.request_proof("oracles", db.oracle_val, function(x) {
-            var result = x[2];
-            if (!(result == 0)) {
-                db.knowable = parseInt(knowable_height.value);
-                //id, result, question,  starts, type, orders, order_hash, creator, done_timer, governance, governance_amount
-                db.oracle = ["oracle"];
-                //status.innerHTML = "status: <font color=\"red\">Error: That oracle does not exist.</font>";
-                //return 0;
-            } else {
-            db.oracle = x;
-            db.knowable = x[4];
-            //if (db.oracle_type_val == 2) { //scalar
-                //status.innerHTML = "status: <font color=\"green\">Checking if the oracle exists.</font>";
-                //return verify_exists(db.oracle_val, 10, function() {return callback(db);});
-                
-                //}
-            }
-            return callback(db);
+            return variable_public_get(["oracle", db.oracle_val], function(oracle_data) {
+                db.knowable = x[4];
+                oracle_text = oracle_data[2];
+                return callback(db);
+            });
         });
     };
     function check_account_balances(db, callback) {
@@ -542,11 +537,14 @@
         var contract_sig = sspk2[2];
         var imsg;
         if (db.oracle_type_val == 1) {
-            imsg = [-6, db.bet_direction_val, bet_expires, maxprice, keys.pub(), db.their_address_val, period, db.our_amount_val, db.their_amount_val, oid, height, db.delay, contract_sig, signedPD, spk_nonce, db.oracle_type_val, db.cid, 0, 0, 0, db.payment, contract];
+            //this is binary
+            imsg = [-6, db.bet_direction_val, bet_expires, maxprice, keys.pub(), db.their_address_val, period, db.our_amount_val, db.their_amount_val, oid, height, db.delay, contract_sig, signedPD, spk_nonce, db.oracle_type_val, db.cid, 0, 0, 0, db.payment, contract, db.knowable, oracle_text];
         } else {
+            //this is scalar
             //console.log(db.upper_limit);
-            imsg = [-6, db.bet_direction_val, bet_expires, maxprice, keys.pub(), db.their_address_val, period, db.our_amount_val, db.their_amount_val, oid, height, db.delay, contract_sig, signedPD, spk_nonce, db.oracle_type_val, db.cid, db.bits_val, db.upper_limit, db.lower_limit, db.payment, contract, db.knowable];
+            imsg = [-6, db.bet_direction_val, bet_expires, maxprice, keys.pub(), db.their_address_val, period, db.our_amount_val, db.their_amount_val, oid, height, db.delay, contract_sig, signedPD, spk_nonce, db.oracle_type_val, db.cid, db.bits_val, db.upper_limit, db.lower_limit, db.payment, contract, db.knowable, oracle_text];
         }
+        //console.log(JSON.stringify(imsg));
         //console.log("otc derivatives spk spk2 compare ");
         //console.log(JSON.stringify(spk));
         //console.log(JSON.stringify(spk2));
