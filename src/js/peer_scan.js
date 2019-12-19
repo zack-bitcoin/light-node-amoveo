@@ -28,6 +28,7 @@
         
     };
     function main() {
+        view.innerHTML = "";
         variable_public_get(["peers", 2], function(p) {
             view_peers(p.slice(1));
         });
