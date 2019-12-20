@@ -4,10 +4,8 @@
     var title2 = document.createElement("h3");
     title2.innerHTML = "copy/paste response form";
     div.appendChild(title2);
-    var start_button = button_maker2("view trade contents", cp_start);
-    div.appendChild(start_button);
-    var cp_text = text_input("copy/paste the offer text to here: ", div);
-    div.appendChild(br());
+
+    
     var load_button = document.createElement("input");
     load_button.type = "file";
     load_button.onchange = function() {
@@ -19,6 +17,17 @@
         reader.readAsText(file);
     };
     div.appendChild(load_button);
+    div.appendChild(br());
+
+    
+    var start_button = button_maker2("View Trade contents <------------------", cp_start);
+    var cp_text = text_input("copy/paste the offer text to here: ", div);
+    div.appendChild(br());
+    div.appendChild(start_button);
+    div.appendChild(br());
+
+
+
     var title = document.createElement("h3");
     title.innerHTML = "smart contract details";
     div.appendChild(title);
