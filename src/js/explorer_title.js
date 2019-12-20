@@ -12,7 +12,7 @@
     document.body.appendChild(reddit);
 
     var wallet = document.createElement("p");
-    wallet.innerHTML = ("<a href=\"/wallet.html\">").concat("Wallet on same server").concat("</a>");
+    wallet.innerHTML = ("<a href=\"home.html\">").concat("Wallet on same server").concat("</a>");
     document.body.appendChild(wallet);
 
     var blockchain_title = document.createElement("h3");
