@@ -90,9 +90,10 @@ function lookup_block2(block) {
     } else {
 	var miner = block[10][1][1];
 	var time0 = block[4];
+        var prev_hash = toHex(atob(block[2]));
 	var time = to_now(time0);
 	//acc, number, hash, txs, power, nonce, total_coins, db_root
-	current_block.innerHTML = "block: ".concat(block[1]).concat(", was mined by: ").concat(miner).concat(" , has timestamp: ").concat(time);
+	current_block.innerHTML = "block: ".concat(block[1]).concat("<br />was mined by: ").concat(miner).concat("<br />has timestamp: ").concat(time).concat("<br />prev hash: ").concat(prev_hash);
 	//current_block.innerHTML = "<br/>created by account number ".concat(block2[1]).concat("<br/>at height: ").concat(block2[2]).concat("<br/>containing transactions: ").concat(txs2html(block2[4], 1, "<br/>"));
 	//console.log(block[1]);
     }
