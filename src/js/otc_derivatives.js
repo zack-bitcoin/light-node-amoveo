@@ -339,16 +339,21 @@ var knowable_height;
                 //var sig1 = keys.keys_internal().sign(cp.ch).toDER();
                 //var sig = btoa(array_to_string(sig1));
                 //var sig = spk_sig(cp.ch);
+                console.log(JSON.stringify(cp.ch));
                 var sig = spk_sig(cp.ch);
+                console.log("sig2");
                 var sig_temp = spk_sig(db.sspk2[1]);
+                console.log("sig3");
                 if (!(check_spk_sig(keys.pub(), cp.ch, sig))) {
                     console.log("bad signature");
                     return 0;
                 }
+                console.log("sig4");
                 if (!(check_spk_sig(keys.pub(), cp.ch, sig_temp))) {
                     console.log("bad signature2");
                     return 0;
                 }
+                console.log("sig5");
                 cp.msg[12] = [-7, 2, sig];
                 cp.msg[5] = 0;
                 var height = headers_object.top()[1];
@@ -418,8 +423,12 @@ var knowable_height;
     //our private key needs to be loaded.
         return merkle.request_proof("oracles", db.oracle_val, function(x) {
             return variable_public_get(["oracle", db.oracle_val], function(oracle_data) {
-                db.knowable = x[4];
-                oracle_text = oracle_data[2];
+                console.log(oracle_data);
+                if(!(oracle_data == 0)){
+                    //db.knowable = x[4];
+                    knowable_height = x[4];
+                    oracle_text = oracle_data[2];
+                };
                 return callback(db);
             });
         });
@@ -476,7 +485,8 @@ var knowable_height;
             oracle_wait = 3000;
         }
         //var bet_expires = oracle_wait + db.oracle[10]; // bet expires should be at least 3000 after the oracle can expire.
-        var bet_expires = oracle_wait + db.knowable + 2000; // bet expires should be at least 3000 after the oracle can expire.
+        //var bet_expires = oracle_wait + db.knowable + 2000; // bet expires should be at least 3000 after the oracle can expire.
+        var bet_expires = oracle_wait + knowable_height + 2000; // bet expires should be at least 3000 after the oracle can expire.
         var cid = btoa(random_cid(32));//generate a random 32 byte cid for the new channel.
         db.cid = cid;
         db.expires = bet_expires, 
@@ -538,11 +548,11 @@ var knowable_height;
         var imsg;
         if (db.oracle_type_val == 1) {
             //this is binary
-            imsg = [-6, db.bet_direction_val, bet_expires, maxprice, keys.pub(), db.their_address_val, period, db.our_amount_val, db.their_amount_val, oid, height, db.delay, contract_sig, signedPD, spk_nonce, db.oracle_type_val, db.cid, 0, 0, 0, db.payment, contract, db.knowable, oracle_text];
+            imsg = [-6, db.bet_direction_val, bet_expires, maxprice, keys.pub(), db.their_address_val, period, db.our_amount_val, db.their_amount_val, oid, height, db.delay, contract_sig, signedPD, spk_nonce, db.oracle_type_val, db.cid, 0, 0, 0, db.payment, contract, knowable_height, btoa(oracle_text)];
         } else {
             //this is scalar
             //console.log(db.upper_limit);
-            imsg = [-6, db.bet_direction_val, bet_expires, maxprice, keys.pub(), db.their_address_val, period, db.our_amount_val, db.their_amount_val, oid, height, db.delay, contract_sig, signedPD, spk_nonce, db.oracle_type_val, db.cid, db.bits_val, db.upper_limit, db.lower_limit, db.payment, contract, db.knowable, oracle_text];
+            imsg = [-6, db.bet_direction_val, bet_expires, maxprice, keys.pub(), db.their_address_val, period, db.our_amount_val, db.their_amount_val, oid, height, db.delay, contract_sig, signedPD, spk_nonce, db.oracle_type_val, db.cid, db.bits_val, db.upper_limit, db.lower_limit, db.payment, contract, knowable_height, btoa(oracle_text)];
         }
         //console.log(JSON.stringify(imsg));
         //console.log("otc derivatives spk spk2 compare ");

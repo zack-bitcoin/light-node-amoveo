@@ -152,9 +152,10 @@
                 var question;
                 if (x == 0) {
                     //question = "UNKNOWN: this oracle has not yet been created. You can use this page http://159.89.87.58:8080/new_oracle.html to generate the same ID to verify what this contract is betting on.";
-                    question = y[23];
+                    question = atob(y[23]);
                     var oracle_start = y[22];
                     var oid0 = y[9];
+                    console.log(JSON.stringify([oracle_start, question]));
                     var oid_check = id_maker(oracle_start,0,0,question);
                     if (!(oid0 == oid_check)){
                         question = "ERROR! OID improperly calculated. Do not accept this channel offer, your money will get trapped!";
