@@ -4,7 +4,7 @@
     var title2 = document.createElement("h3");
     title2.innerHTML = "copy/paste response form";
     div.appendChild(title2);
-    var start_button = button_maker2("load trade offer", cp_start);
+    var start_button = button_maker2("view trade contents", cp_start);
     div.appendChild(start_button);
     var cp_text = text_input("copy/paste the offer text to here: ", div);
     div.appendChild(br());
@@ -20,7 +20,7 @@
     };
     div.appendChild(load_button);
     var title = document.createElement("h3");
-    title.innerHTML = "direct derivatives encrypted mail response form";
+    title.innerHTML = "smart contract details";
     div.appendChild(title);
     //var start_button = button_maker2("load your keys, then click this", start1);
     //div.appendChild(start_button);
