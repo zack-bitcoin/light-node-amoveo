@@ -16,8 +16,8 @@
 
 
     var start_button = button_maker2("load your keys and channel data, then click this", start1);
-    workspace.appendChild(start_button);
-    workspace.appendChild(br());
+    //workspace.appendChild(start_button);
+    //workspace.appendChild(br());
 
     var channel_proposal = text_input("if you proposed the channel, then you might not have channel data. Use this interface instead. channel proposal: ", workspace);
     var proposers_button = button_maker2("load keys and channel proposal, then click this.", proposer_start);
@@ -26,6 +26,8 @@
     div.appendChild(br());
     //we need a tool for solo-closing the channel, for if your partner refuses to help you. (maybe for now asking for help on a forum is good enough?)
     function proposer_start() {
+        status.innerHTML = "status: <font color=\"red\">that channel does not exist. Maybe you haven't synced with the network, or maybe it is already closed, or maybe it never existed.</font>";
+        
         var x = JSON.parse(channel_proposal.value);
         var db = derivatives_load_db(x[1]);
         var period = default_period();
@@ -272,7 +274,7 @@
             if ("undefined" == typeof(odf)) {
                 odfv = "10000";
             } else {
-                odfv = odfv.value;
+                odfv = odf.value;
             }
             var offer_delay = parseInt(odfv);
             console.log(odfv);

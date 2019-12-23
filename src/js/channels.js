@@ -81,8 +81,12 @@ function channels_main() {
             return refresh_channels_interfaces(pubkey);
         });
     });
-    document.body.appendChild(channel_title);
-    document.body.appendChild(channels_div);
+        console.log("channel view check");
+    if(configure["channel_view"]){
+        console.log("channel view check");
+        document.body.appendChild(channel_title);
+        document.body.appendChild(channels_div);
+    };
     //append_children(channels_div, [channel_warning_div, load_button, br(), br(), save_name, save_button, br(), refresh_channels_button, br(), br(), channel_interface_div]);
     append_children(channels_div, [channel_warning_div, load_button, br(), br(), save_name, save_button, br(), br(), channel_interface_div]);
 

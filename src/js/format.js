@@ -575,3 +575,8 @@ function scalar_keys1(id, callback) {
     });
 };
 
+var configure = {};
+
+configure["new_account"] = true;
+configure["watch_only_account"] = true;
+configure["channel_view"] = true;

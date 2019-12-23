@@ -1,8 +1,10 @@
+
+
 (function otc_listener() {
     var div = document.createElement("div");
     document.body.appendChild(div);
     var title2 = document.createElement("h3");
-    title2.innerHTML = "copy/paste response form";
+    title2.innerHTML = "or copy/paste response form";
     div.appendChild(title2);
 
     
@@ -34,7 +36,7 @@
     //var start_button = button_maker2("load your keys, then click this", start1);
     //div.appendChild(start_button);
     var status = document.createElement("p");
-    status.innerHTML = "status: <font color=\"orange\">listening for offers to trade. Send your pubkey to people who want to make trades with you.</font>";
+    status.innerHTML = "status: <font color=\"green\">ready for offers to trade. Send your pubkey to people who want to make trades with you.</font>";
     div.appendChild(status);
     var contract_number = 0;
     var max_contract_number = 0;
@@ -122,7 +124,7 @@
                         var my_spk_sig = [-7, 2, contract_sig];
                         var sspk2 = ["signed", spk2, their_spk_sig, my_spk_sig]; 
                         record_channel_state(sspk2, db, keys.pub(), function() {
-                        status.innerHTML = "status: <font color=\"red\">Warning: you need to save your channel state to a file. The channel has been successfully formed.</font>";
+                        status.innerHTML = "status: <font color=\"green\">The channel has been successfully formed.</font>";
                         });
                     });
                 });
@@ -178,7 +180,7 @@
                 var s1 = ("their address: ").concat(db.acc1).concat("<br />").concat(
                     "oracle: ").concat(db.oid).concat("<br />").concat(
                         "channel id:").concat(db.cid).concat("<br />").concat(
-                            "oracle text: ").concat(question).concat("<br />").concat(
+                            "betting on this: ").concat(question).concat("<br />").concat(
                                 "our bet amount: ").concat(db.amount2 / token_units()).concat("<br />").concat(
                                     "their bet amount: ").concat(db.amount1 / token_units()).concat("<br />");
                 var s2 = s1.concat("you win if the outcome is: ").concat(db.direction).concat("<br />").concat("scalar or binary?: ").concat(db.oracle_type).concat("<br />").concat("channel delay: ").concat((db.delay).toString()).concat("<br />");

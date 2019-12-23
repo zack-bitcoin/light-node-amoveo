@@ -8,24 +8,55 @@ function keys_function1() {
     var save_name = document.createElement("input");
     save_name.type = "text";
     save_name.value = "Amoveo private key";
-    var save_button = button_maker2("Generate new account. Saves the private key to a file.", save_keys);
+    var load_text = document.createTextNode("get key from file");
+    document.body.appendChild(account_title);
+    document.body.appendChild(div);
+    div.appendChild(load_text);
     var file_selector = document.createElement("input");
     file_selector.type = "file";
     file_selector.onchange = load_keys;
-    var load_text = document.createTextNode("get key from file");
-    var watch_only_instructions = document.createTextNode("put your pubkey here to make a watch-only wallet that is unable to spend money.");
-    var watch_only_pubkey = document.createElement("input");
-    watch_only_pubkey.type = "text";
-    var watch_only_button = button_maker2("load pubkey", watch_only_func); 
+    div.appendChild(file_selector);
+    //div.appendChild(br());
+    if(configure["new_account"]){
+        var save_button = button_maker2("Generate new account. Saves the private key to a file.", save_keys);
+        //div.appendChild(br());
+    }
+    if(configure["watch_only_account"]){
+        var watch_only_instructions = document.createTextNode("put your pubkey here to make a watch-only wallet that is unable to spend money.");
+        var watch_only_pubkey = document.createElement("input");
+        watch_only_pubkey.type = "text";
+        var watch_only_button = button_maker2("load pubkey", watch_only_func); 
+    }
     var pub_div = document.createElement("div");
-    var new_pubkey_button = button_maker2("generate new keys", new_keys_check);
+    div.appendChild(br());
+    div.appendChild(pub_div);
+    if(configure["new_account"]){
+        var new_pubkey_button = button_maker2("generate new keys", new_keys_check);
+        div.appendChild(br());
+        div.appendChild(save_name);
+        //div.appendChild(br());
+        div.appendChild(save_button);
+        div.appendChild(br());
+    }
+    if(configure["watch_only_account"]){
+        div.appendChild(watch_only_instructions);
+        div.appendChild(watch_only_pubkey);
+        div.appendChild(watch_only_button);
+        div.appendChild(br());
+    };
     var new_pubkey_div = document.createElement("div");
+    if(configure["new_account"]){
+        div.appendChild(new_pubkey_button);
+        div.appendChild(new_pubkey_div);
+        div.appendChild(br());
+
+    };
     var balance_button = button_maker2("check balance ", update_balance);
     var bal_div = document.createElement("div");
-    document.body.appendChild(account_title);
-    document.body.appendChild(div);
 
-    append_children(div, [load_text, file_selector, br(), pub_div, br(), save_name, save_button, br(), watch_only_instructions, watch_only_pubkey, watch_only_button, br(), new_pubkey_button, new_pubkey_div, br(), bal_div, balance_button]);
+    div.appendChild(bal_div);
+    div.appendChild(balance_button);
+    //append_children(div, [bal_div, balance_button]);
 
     //update_pubkey();
     function input_maker(val) {
