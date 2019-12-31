@@ -11,13 +11,25 @@ var knowable_height;
     var div = document.createElement("div");
     document.body.appendChild(div);
 
-    var title0 = document.createElement("h3");
-    title0.innerHTML = "generate id of oracle that has not been created on-chain yet";
-    div.appendChild(title0);
+    //var title0 = document.createElement("h3");
+    //title0.innerHTML = "generate id of oracle that has not been created on-chain yet";
+    //div.appendChild(title0);
+    var title = document.createElement("h3");
+    title.innerHTML = "make an offer for a smart contract";
+    div.appendChild(title);
+
+    var status = document.createElement("p");
+    status.innerHTML = "status: <font color=\"green\">ready</font>";
+    div.appendChild(status);
+    div.appendChild(br());
+    
 
     var question = text_input("oracle question: ", div);
+    div.appendChild(br());
     var oracle_starts = text_input("oracle starts: ", div);
-    var generate_id_button = button_maker2("generate id", function() {
+    var generate_id_button = button_maker2("generate id", generate_id_function);
+
+    function generate_id_function() {
         var oid = id_maker(parseInt(oracle_starts.value), 0,0, question.value);
         oracle.value = oid;
         oracle_text = question.value;
@@ -26,12 +38,9 @@ var knowable_height;
         knowable_height = parseInt(oracle_starts.value);
         var rest = "start: ".concat((oracle_starts).value).concat("<br />question: ").concat(question.value);
         status.innerHTML = "status: <font color=\"green\">successfully generated the id: ".concat(oid).concat("<br /> Save the red data, you need it when creating the oracle on-chain:</font><br /><font color=\"red\"> ").concat(rest).concat("</font>");
-    });
-    div.appendChild(generate_id_button);
+    };
+    //div.appendChild(generate_id_button);
 
-    var title = document.createElement("h3");
-    title.innerHTML = "make an offer for a smart contract";
-    div.appendChild(title);
     
 
     //glossary.messenger(div);
@@ -52,17 +61,17 @@ var knowable_height;
         div.appendChild(scalar_test);
     }
     
-    var status = document.createElement("p");
-    status.innerHTML = "status: <font color=\"green\">ready</font>";
-    div.appendChild(status);
-    div.appendChild(br());
     var save_button_div = document.createElement("div");
     div.appendChild(save_button_div);
     //var their_address = text_input("their_address: ", div);
     var their_address = {value: ""};
-    var oracle = text_input("oracle: ", div);
-    glossary.link(div, "oracle_id");
-    div.appendChild(br());
+    //var oracle = text_input("oracle: ", div);
+    //glossary.link(div, "oracle_id");
+    //div.appendChild(br());
+    var oracle = document.createElement("INPUT");
+    oracle.type = "text";
+
+
     //var knowable_height = text_input("knowable_height: ", div);
     //div.appendChild(br());
     var our_amount = text_input("how many veo you put in the contract: ", div);
@@ -99,6 +108,7 @@ var knowable_height;
     };
 
     function scalar_view() {
+        generate_id_function();
         var db = {oracle_text: oracle_text};
         if (oracle.value == "") {
             status.innerHTML = "status: <font color=\"red\">First choose the Oracle ID for your bet before clicking that.</font>";
@@ -158,6 +168,7 @@ var knowable_height;
         div.appendChild(printButton);
     }
     function binary_view() {
+        generate_id_function();
         if (oracle.value == "") {
             status.innerHTML = "status: <font color=\"red\">First choose the Oracle ID for your bet before clicking that.</font>";
             return 0;
@@ -199,6 +210,7 @@ var knowable_height;
         div.appendChild(printButton);
     }
     function stablecoin_view() {
+        generate_id_function();
         if (oracle.value == "") {
             status.innerHTML = "status: <font color=\"red\">First choose the Oracle ID for your bet before clicking that.</font>";
             return 0;
