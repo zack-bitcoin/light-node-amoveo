@@ -81,7 +81,6 @@ function channels_main() {
             return refresh_channels_interfaces(pubkey);
         });
     });
-        console.log("channel view check");
     if(configure["channel_view"]){
         console.log("channel view check");
         document.body.appendChild(channel_title);
@@ -393,7 +392,8 @@ function channels_main() {
             var current_height = headers_object.top()[1];
             var lifespan = expiration - current_height;
             var spk_amount = Math.floor((tv * (delay + lifespan) * (amount + bal2) ) / 100000000);
-            var spk = ["spk", acc1, acc2, [-6], 0, 0, cid, spk_amount, 0, delay];
+            cid = encode_cid(cid, acc1);
+            var spk = ["spk", acc1, acc2, [-6], 0, 0, cid, spk_amount, 0, delay];//TODO, this cid should be salted.
             var stx = keys.sign(tx);
             var sspk = keys.sign(spk);
             variable_public_get(["new_channel", stx, sspk, expiration], function(x) { return channels3(x, expiration, pubkey, spk, tx) });
@@ -421,7 +421,8 @@ function channels_main() {
 	      JSON.stringify(s2spk[1]))) {
 	    throw("the server illegally manipulated the spk");
 	}
-        var cid = tx[9];
+        //var cid = tx[9];
+        var cid = spk[6];
         var acc2 = tx[2];
         //console.log("double signed tx ");
         //console.log(JSON.stringify(sstx));

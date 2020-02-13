@@ -372,7 +372,8 @@ var knowable_height;
                 return merkle.request_proof("accounts", keys.pub(), function (acc) {
                     var nonce = acc[2]+1;
                     //var nc_offer = ["nc_offer", keys.pub(), nonce, height + 100, db.our_amount_val, db.their_amount_val, 1000, db.delay, db.cid, cp.ch];
-                    var nc_offer = ["nc_offer", keys.pub(), nonce, height + parseInt(bet_expires0.value), db.our_amount_val, db.their_amount_val, 1000, db.delay, db.cid, cp.ch];
+                    //var cid_copy = JSON.parse(JSON.stringify(db.cid));
+                    var nc_offer = ["nc_offer", keys.pub(), nonce, height + parseInt(bet_expires0.value), db.our_amount_val, db.their_amount_val, 1000, db.delay, db.cid_for_tx, cp.ch];
                     var ncs = keys.sign(nc_offer);
                     status.innerHTML = "status: <font color=\"blue\">put this data in a public place, for example <a href=\"http://159.89.87.58:8090/main.html\">this website</a> : </font> ".concat(JSON.stringify([-6, cp.msg, ncs]));
                     
@@ -500,7 +501,8 @@ var knowable_height;
         //var bet_expires = oracle_wait + db.knowable + 2000; // bet expires should be at least 3000 after the oracle can expire.
         var bet_expires = oracle_wait + knowable_height + 2000; // bet expires should be at least 3000 after the oracle can expire.
         var cid = btoa(random_cid(32));//generate a random 32 byte cid for the new channel.
-        db.cid = cid;
+        db.cid_for_tx = cid;
+        db.cid = encode_cid(cid, keys.pub());
         db.expires = bet_expires, 
         db.acc1 = keys.pub();
         db.oid = oid;
@@ -558,6 +560,9 @@ var knowable_height;
         var spk_nonce = spk2[8];
         var contract_sig = sspk2[2];
         var imsg;
+        //var encoded_cid = hash((db.cid).concat(keys.pub()));
+        //var encoded_cid = hash(string_to_array(atob(db.cid)).concat(string_to_array(atob(keys.pub()))));
+        encoded_cid = encode_cid(db.cid, keys.pub());
         if (db.oracle_type_val == 1) {
             //this is binary
             imsg = [-6, db.bet_direction_val, bet_expires, maxprice, keys.pub(), db.their_address_val, period, db.our_amount_val, db.their_amount_val, oid, height, db.delay, contract_sig, signedPD, spk_nonce, db.oracle_type_val, db.cid, 0, 0, 0, db.payment, contract, knowable_height, btoa(oracle_text)];

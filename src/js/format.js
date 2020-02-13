@@ -384,6 +384,16 @@ function spk_sig(x) {
     var sig1 = sign(x, keys.keys_internal());
     return btoa(array_to_string(sig1));
 };
+function encode_cid(cid, pub) {
+    var top_header = headers_object.top();
+    var blockheight = top_header[1];
+    var f29 = 104600;
+    if (blockheight > f29){//fork 29
+        return(btoa(array_to_string(hash(string_to_array(atob(cid)).concat(string_to_array(atob(pub)))))));
+    }else{
+        return(cid);
+    };
+};
 function derivatives_load_db(y) {
     //console.log(JSON.stringify(y));
     var db = {};
@@ -493,38 +503,17 @@ function record_channel_state(sspk2, db, acc2, callback) {
         db.oracle_type_val,
         db.oid,
         function(to_prove) {
-
-/*
-    if (db.oracle_type_val == 2) {//scalar
-        console.log(JSON.stringify(sspk2));
-        console.log(JSON.stringify(db));
-        var starts = db.oracle[4];
-        to_prove = [-6].concat(scalar_to_prove(db.oid, starts));
-    } else if (db.oracle_type_val == 1){//binary
-        to_prove = [-6, ["oracles", db.oid]];
-    }
-*/
-    //console.log(JSON.stringify(db.spd));
-    //var size = (db.spd).length * 2;
             var spd_bytes = string_to_array(db.spd);
             var size = spd_bytes.length;
             var size_a = Math.floor(size / 256);
             var size_b = size % 256;
             var code = [2,0,0,size_a,size_b].concat(spd_bytes).concat([0,0,0,0,1]);
-    //console.log(JSON.stringify(code));
-    //console.log(db.oracle_type_val);
-        // SS1a = "binary "++ integer_to_list(size(SPD))++ " " ++ PriceDeclare ++ " int 1",
-        // [0] ++ 4-bytes-size ++ spd_bytes ++ [0,0,0,0,1]
-    //var ss = channels_object.new_ss([0,0,0,0,4], to_prove, meta);
             var ss = channels_object.new_ss(code, to_prove, meta);
-    //var expiration = 0;//so a smart contract could close the channel very quickly.
             var expiration = 10000000;
             var cd = channels_object.new_cd(sspk2[1], sspk2, [ss], [ss], expiration, db.cid);
-    //console.log("record channel state ");
-    //console.log(JSON.stringify([db.acc1, db.acc2]));
             if (db.acc1 == keys.pub()) {
                 channels_object.write(acc2, cd);
-            } else {//if (db.acc2 == keys.pub()) {
+            } else {
                 channels_object.write(db.acc1, cd);
             };
             return(callback());
