@@ -31,7 +31,7 @@ function keys_function1() {
     div.appendChild(br());
     div.appendChild(pub_div);
     if(configure["new_account"]){
-        var new_pubkey_button = button_maker2("generate new keys", new_keys_check);
+        var new_pubkey_button = button_maker2("generate keys from passphrase", new_keys_check);
         div.appendChild(br());
         div.appendChild(save_name);
         //div.appendChild(br());
