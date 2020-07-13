@@ -10,39 +10,42 @@ var rpc = (function() {
             port = get_port();
         }
         var u = url(port, ip);
-        return talk(cmd, u, callback);
+        return talk(cmd, u, callback, 10000);//use up to 10 seconds for this request
     }
-    function talk(cmd, u, callback) {
+    function talk(cmd, u, callback, n) {
         var xmlhttp=new XMLHttpRequest();
         xmlhttp.open("POST",u,true);
         xmlhttp.send(JSON.stringify(cmd));
-        return listen(xmlhttp, cmd, u, callback, 100);
+        return listen(xmlhttp, cmd, u, callback, n);
     };
+    var verbose = false;
     function listen(x, cmd, u, callback, n) {
         if (n < 1) { return "failed to connect"; }
         else if (x.status == 400) {
-            //the data we sent to the server got mixed up along the way, so it looks invalid to the server.
-            //So lets re-send the command.
+            if(verbose){ console.log("data sent to server got mixed up and looks invalid. attempting to re-send");}
             setTimeout(function() {
-                return talk(cmd, u, callback);
-            }, 200); }
+                return talk(cmd, u, callback, n - 100);
+            }, 100); }
         else if (x.status == 0) {
-            //this means that the server got our message, and it is still processing a response for us. So lets wait a bit, and then check if it is ready.
+            if(verbose){ console.log("the server got our message and is processing a response. lets wait a bit for the response");}
             setTimeout(function() {
-                return listen(x, cmd, u, callback, n - 1);
-            }, 150);
+                return listen(x, cmd, u, callback, n - 20);
+            }, 20);
         }
-        //else if (xml_check(x)) {
+        else if (x.readyState == 3) {
+            if(verbose){ console.log("currently receiving a response, wait a bit for the rest of the data to arrive"); };
+            setTimeout(function() {return listen(x, cmd, u, callback, n-10);}, 10);
+        }
         else if ((x.readyState === 4) && (x.status === 200)) {
-            //this means that the server got our message, and it sent a response. The response is ready to read, so lets read it.
-            //p = JSON.parse(xml_out(x));
+            if(verbose){ console.log("received a response from the server.");}
             p = JSON.parse(x.responseText);
             return callback(p[1]);
         }
         else {
-            //console.log(x.readyState);
-            //console.log(x.status);
-            setTimeout(function() {return listen(x, cmd, u, callback, n);}, 10);}
+            console.log(x.readyState);
+            console.log(x.status);
+            if(verbose){console.log("unhandled state. wait a bit and hopefully it ends.");}
+            setTimeout(function() {return listen(x, cmd, u, callback, n-50);}, 50);}
     };
     return {post: main};
 })();
