@@ -28,7 +28,7 @@ function c2s(x) {
 }
 
 function oracle_limit(oid, callback) {
-    return variable_public_get(["oracle", oid], function(x) {
+    return rpc.post(["oracle", oid], function(x) {
         console.log(atob(x[1][4]));
         var question = atob(x[1][4]);
         //console.log(question);
