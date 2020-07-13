@@ -1,3 +1,6 @@
+
+var globalVerif;
+
 function merkle_proofs_main() {
     function verify_callback(tree, key, callback) {
 	var top_hash = hash(headers_object.serialize(headers_object.top()));
@@ -103,7 +106,9 @@ function merkle_proofs_main() {
 			console.log("the value doesn't match the proof");
 			console.log(JSON.stringify(x));
 			console.log(trie_key);
-			throw("bad");
+                        globalVerif = 0;
+                        console.log("globalVerif inside verify_merkle2: "+ globalVerif );
+			//throw("bad");
                     }
 		}
             }

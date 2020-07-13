@@ -359,7 +359,7 @@ if (firstTimeBool != 1){
          //need to find CID
         var CID = JSON.parse(tempvar)[n][1][16];
 
-        merkle.request_proof2("channels", CID, function(c) {
+        merkle.request_proof("channels", CID, function(c) {
             console.log("channel is ");
             console.log(c);
                        console.log("globalVerif inside request_proof2: "+ globalVerif );
