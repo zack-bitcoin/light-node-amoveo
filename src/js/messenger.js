@@ -28,7 +28,7 @@ var messenger_object = (function() {
     more_div.appendChild(more_credits_button);
     div.appendChild(br());
     function check_credits() {
-        return messenger(["account", keys.pub()], function(a) {
+        return rpc.messenger(["account", keys.pub()], function(a) {
             if (a==0) {
                 display_credits(0);
             } else {
@@ -60,7 +60,7 @@ var messenger_object = (function() {
         });
     }
     function buy_credits3(a, callback) {
-        return messenger(["account", keys.pub()], function(a) {
+        return rpc.messenger(["account", keys.pub()], function(a) {
             if ((a == 0) || (a[1] < 1000000)) { //10 milibits
                 return setTimeout(function() {
                     return buy_credits3(a, callback);
@@ -72,7 +72,7 @@ var messenger_object = (function() {
     };
     function buy_credits(minAmount, callback) {
         F = function() { return buy_credits2(Math.floor(minAmount * 2), callback); };
-        return messenger(["account", keys.pub()], function(a) {
+        return rpc.messenger(["account", keys.pub()], function(a) {
             if (a == 0) { //10 milibits
                 //account does not exist
                 display_credits(0);

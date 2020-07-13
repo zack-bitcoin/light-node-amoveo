@@ -203,60 +203,6 @@ var ZYX = (function otc_finisher2() {
         workspace.appendChild(solo_button);
     };
 
-       /* 
-        return messenger(["read", 1, db.cid, keys.pub()], function(txs) {
-            if ((txs == btoa("error"))||(JSON.stringify(txs) == "[-6]")) {
-                //no one has sent us this kind of message yet.
-                //not yet received final state
-                return we_send0(db);
-            }
-            var s1ctc = find_ctc(db.cid, txs.slice(1));
-            if (ctc == "error") {
-                return we_send0(db);
-            }
-            console.log(s1ctc);
-            var sctc = keys.sign(s1ctc);
-            console.log(sctc);
-            var ctc = sctc[1];
-            var b = verify_both(sctc);
-            if (!(b == true)) {
-                status.innerHTML = ("status: <font color=\"red\"> CTC tx has a bad signature</font>");
-                return we_send0(db);
-            }
-            if (!(db.address1 == ctc[1])) {
-                console.log(db.address1);
-                console.log(ctc[1]);
-                status.innerHTML = ("status: <font color=\"red\"> CTC tx has a wrong address 1</font>");
-                return 0;
-            }
-            if (!(db.address2 == ctc[2])) {
-                status.innerHTML = ("status: <font color=\"red\"> CTC tx has a wrong address 2</font>");
-                return 0;
-            }
-            if (!(db.fee == ctc[3])) {
-                status.innerHTML = ("status: <font color=\"red\"> CTC tx has a wrong fee</font>");
-                return 0;
-            }
-            if (!(db.cid == ctc[5])) {
-                status.innerHTML = ("status: <font color=\"red\"> CTC tx has a wrong cid</font>");
-                return 0;
-            }
-            winnings_amount(db, function(db, winnings) {
-                if (!(winnings == ctc[6])) {
-                    status.innerHTML = ("status: <font color=\"red\"> CTC tx has a wrong final balances.</font>");
-                    return 0;
-                }
-
-
-                return rpc.post(["txs", [-6, sctc]], function(x) {
-            
-                    status.innerHTML = ("status: <font color=\"green\"> CTC tx is being published.</font>");
-                    return wait_till_closed(db);
-                });
-            });
-        });
-    };
-       */
     function close_early_view(db) {
         //show an interface for closing the channel early.
         if (db.oracle_type_val == 1) {
@@ -780,25 +726,6 @@ var ZYX = (function otc_finisher2() {
         //    }
         });
     };
-/*
-    function credits_check(pub, minAmount, callback) {
-        F = function() { return buy_credits(Math.floor(minAmount * 1.2), callback); };
-        return messenger(["account", keys.pub()], function(a) {
-            console.log("account is ");
-            console.log(JSON.stringify(a));
-            if (a == 0) { //10 milibits
-                //account does not exist
-                status.innerHTML = "status: <font color=\"green\">Buying credits.</font>";
-                return F();
-            } else if (a[1] < minAmount) {
-                status.innerHTML = "status: <font color=\"green\">Buying credits.</font>";
-                //account has insufficient balance
-                return F();
-            }
-            return callback();
-        });
-    }
-*/
     function ss_encode(L) {
         if (JSON.stringify(L) == "[]") {
             return [];

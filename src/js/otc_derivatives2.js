@@ -176,7 +176,7 @@ function showSportEventFields(){
 
     
 
-    //glossary.messenger(div);
+    //glossary.rpc.messenger(div);
 
     if (mode == "test") {
         binary_test_config = "?mode=test&auto_fill=binary&oracle=mc4rc/fQyUAnyNwGCJEfIu1zzQGRR5FuMIUADsspXhA=&our_amount=1&their_amount=1&bet_direction=true";
@@ -873,110 +873,6 @@ function showSportEventFields(){
         var contract_hash = btoa(array_to_string(hash(serialize(spk2))));
         return {msg: imsg, ch: contract_hash};
     }
-    /*
-    function propose_contract2(db, callback) {
-        status.innerHTML = "status: <font color=\"blue\">sending trade request. Tell your partner to check their messages from the same server you are using. </font>";
-        var imsg = make_contract_proposal(db).msg;
-        return send_encrypted_message(imsg, db.their_address_val, function() { return callback(db); });
-    };
-    function create_channel(db, callback) {
-        return messenger(["read", 0, keys.pub()], function(a) {
-            //check every 10 seconds if Carol has responded with a signature for the smart contract.
-            console.log("start 5 received messages: ");
-            //console.log(JSON.stringify(a));
-            var z = a.slice(1).map(function(a){ return keys.decrypt(a); });
-            console.log(JSON.stringify(z));
-            //z is like [[-6, SignNewChannelTx, spk_sig], ...] repeating pairs.
-            //we should ignore any new_channel_tx that is for a channel that alredy exists. we should find the spk_sig that is valid for the db.sspk2 we are storing.
-            var x = cid_grab(db.cid, z);
-            if (x=="error") {
-                return setTimeout(function() {return create_channel(db, callback);}, 10000);
-            }
-            var their_sig = x[1];
-            var sspk = db.sspk2;
-            sspk[3] = their_sig;
-            var bool = verify_both(sspk);
-
-            if (!(bool == true)) {
-                console.log("bad signature on spk");
-                status.innerHTML = "status: <font color=\"red\"> bad signature on spk. </font>";
-                return 0;
-            }
-            var stx = x[0];
-            var tx = stx[1];
-            //var channel_tx = ["nc", db.acc1, db.acc2, fee, 0, db.amount1, db.amount2, db.delay, db.cid];
-            if (!(tx[0] == "nc")) {
-                status.innerHTML = "status: <font color=\"red\"> new channel tx incorrectly formatted. </font>";
-                return 0;
-            }
-            if (!(tx.length = 9)) {
-                status.innerHTML = "status: <font color=\"red\"> new channel tx wrong length. </font>";
-                return 0;
-            }
-            if (!(tx[1] == keys.pub())) {
-                status.innerHTML = "status: <font color=\"red\"> new channel tx wrong acc1. </font>";
-                return 0;
-            }
-            if (!(tx[2] == db.their_address_val)) {
-                status.innerHTML = "status: <font color=\"red\"> new channel tx wrong acc2. </font>";
-                return 0;
-            }
-            if (!(tx[3] == fee)) {
-                status.innerHTML = "status: <font color=\"red\"> new channel tx wrong fee. </font>";
-                return 0;
-            }
-            merkle.request_proof("accounts", keys.pub(), function (acc) {
-                var nonce = acc[2]+1;
-            
-                if (!(tx[4] == nonce)) {
-                    status.innerHTML = "status: <font color=\"red\"> new channel tx nonce is wrong. </font>";
-                    return 0;
-                }
-                var tav2, oav2;
-                if (db.payment > 0) {
-                    oav2 = db.payment;
-                    tav2 = 0;
-                } else {
-                    oav2 = 0;
-                    tav2 = -(db.payment)
-                }
-                if (!(tx[6] == (tav2 + db.their_amount_val))) {
-                    console.log(db.their_amount_val);
-                    console.log(tx[6]);
-                    status.innerHTML = "status: <font color=\"red\"> new channel tx amount1 is wrong. </font>";
-                    return 0;
-                }
-                if (!(tx[5] == (oav2 + db.our_amount_val))) {
-                    console.log(db.our_amount_val);
-                    console.log(tx[5]);
-                    status.innerHTML = "status: <font color=\"red\"> new channel tx amount2 is wrong. </font>";
-                    return 0;
-                }
-                if (!(tx[7] == db.delay)) {
-                    status.innerHTML = "status: <font color=\"red\"> new channel tx amount2 is wrong. </font>";
-                    return 0;
-                }
-                if (!(tx[8] == db.cid)) {
-                    status.innerHTML = "status: <font color=\"red\"> new channel tx cid is wrong. </font>";
-                    return 0;
-                }
-                var stx2 = keys.sign(stx);
-                return rpc.post(["txs", [-6, stx2]], function(x) {
-                    //sign and publish the new channel tx.
-                    console.log(x);
-                    status.innerHTML = "status: <font color=\"green\">trade request was accepted, now making a channel. You need to save the channel data.</font>";
-                    var meta = 0;
-                    var ss = channels_object.new_ss([0,0,0,0,4], [-6, ["oracles", db.oracle_val]], meta);
-                    var expiration = 10000000;
-                    var cd = channels_object.new_cd(sspk[1], sspk, [ss], [ss], expiration, db.cid);
-                    channels_object.write(db.their_address_val, cd);
-                    
-                    return callback(db);
-                });
-            });
-        });
-    };
-    */
     function cid_grab(cid, l) {
         if (JSON.stringify(l) == "[]") { return "error"; }
         //console.log(JSON.stringify(l[0]));
@@ -986,18 +882,6 @@ function showSportEventFields(){
         }
         return cid_grab(cid, l.slice(1));
     };
-    /*
-    function confirm_channel_is_live(db) {
-        merkle.request_proof("channels", db.cid, function(c) {
-            console.log("channel is ");
-            console.log(c);
-            if (c == 0) {
-                return headers_object.on_height_change(function() { return confirm_channel_is_live(db); });
-            }
-            status.innerHTML = "status: <font color=\"green\">The channel has been formed, and the smart contract is active. If you have saved a copy of the signed smart contract, then it is now safe to close the browser.</font>";
-        });
-    };
-*/
 
 return {print_offer: print_offer, above: above, below: below, div: div, binary_view: binary_view};
 

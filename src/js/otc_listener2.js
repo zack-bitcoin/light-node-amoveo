@@ -63,25 +63,6 @@ var CBA = (function otc_listener() {
   //  div.appendChild(br());
     div.appendChild(contract_view);
     //contract_view.innerHTML = 0;
-    /*
-    function start1() {
-        return messenger(["read", 0, keys.pub()], function(x) {
-            if (x == []) {
-                setTimeout(start1(), 10000);
-            } else {
-                //remember, old messages do not get deleted. So don't think that they are sending you the same trade offer over and over. check the spk.cid to see if the channel already exists.
-                console.log("in start 1");
-                console.log(JSON.stringify(x));
-                var z = x.slice(1).map(function(a){ return keys.decrypt(a); });
-                //get rid of contracts that are no longer valid.
-                //git rid of contracts if the cid already has a channel.
-                max_contract_number = z.length;
-                contracts = z;
-                original_display_trade(contracts[contract_number]);
-            }
-        });
-    }
-    */
     function cp_start() {
         
         //globalChannelOffer = cp_text.value;
@@ -154,22 +135,6 @@ var CBA = (function otc_listener() {
            // contract_view.appendChild(accept);
         });
     };
-    /*
-    function original_display_trade(y) {
-        return display_trade(y, function(db) {
-            var accept_button = button_maker2("Accept this trade", function() {
-                return accept_trade(db, function(db2) {
-                    status.innerHTML = "status: <font color=\"green\">the trade looks valid. Now checking if you need credits, and possibly buying more.</font>";
-                    glossary.link(status, "messenger_credits");
-                    return messenger_object.min_bal(1000000, function(){
-                        return accept_trade3(db2);
-                    });
-                });
-            });
-            contract_view.appendChild(accept_button);
-        });
-    }
-    */
     function display_trade(y, callback){
         //console.log(JSON.stringify(contracts));
         //y = contracts[n];

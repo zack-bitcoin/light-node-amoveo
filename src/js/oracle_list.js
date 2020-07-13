@@ -735,12 +735,12 @@ function showPositions(){
         internalNonce = 0;
 
 
-                            var p2p_url = url(8090, "159.89.87.58");
+                            //var p2p_url = url(8090, "159.89.87.58");
                             var p2p_msg2 = ["read", 2, keys.pub()];
-                            rpc.default_explorer(p2p_msg2, p2p_url, function(X){
-                            console.log("sent message to p2p server.");
-                            console.log(JSON.stringify(X))
-                    //        var positionCTC = X;
+                            rpc.default_explorer(p2p_msg2, function(X){
+                                console.log("sent message to p2p server.");
+                                console.log(JSON.stringify(X))
+                                //        var positionCTC = X;
 
 //push it to an array                    
 

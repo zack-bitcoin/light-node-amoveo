@@ -2,6 +2,10 @@ var rpc = (function() {
     function url(port, ip) {
         return "http://".concat(ip).concat(":").
             concat(port.toString()).concat("/"); }
+    function messenger(cmd, callback){
+        var u = url(8088, get_ip());
+        return talk(cmd, u, callback, 10000);
+    };
     function default_explorer(cmd, callback) {
         var u = "http://159.89.87.58:8090/";
         return talk(cmd, u, callback, 10000);
@@ -52,5 +56,6 @@ var rpc = (function() {
             setTimeout(function() {return listen(x, cmd, u, callback, n-50);}, 50);}
     };
     return {post: main,
-            default_explorer: default_explorer};
+            default_explorer: default_explorer,
+            messenger: messenger};
 })();

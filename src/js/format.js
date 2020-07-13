@@ -244,7 +244,7 @@ function fee_checker(address, Callback1, Callback2) {
 
 function send_encrypted_message(imsg, to, callback) {
     var emsg = keys.encrypt(imsg, to);
-    messenger(["account", keys.pub()], function(account) {
+    rpc.messenger(["account", keys.pub()], function(account) {
         //console.log("account is ");
         //console.log(JSON.stringify(account));
         var nonce = account[3] + 1;
@@ -255,7 +255,7 @@ function send_encrypted_message(imsg, to, callback) {
         var sr = keys.sign(r);
         //console.log("check signature");
         //console.log(verify1(sr));
-        return messenger(["send", 0, to, sr], function(x) {
+        return rpc.messenger(["send", 0, to, sr], function(x) {
             return callback();
         });
     });
