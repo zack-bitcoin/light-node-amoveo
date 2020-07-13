@@ -25,9 +25,11 @@ function miner_main() {
         button.onclick = start_mining;
     }
     function miner_get(cmd, callback) {
-        var u = url(get_port() + 5, get_ip());
-        var v = getter(cmd, u);
-        var_get(v, callback, cmd);
+        request(cmd, url(get_port() + 5, get_ip())
+                callback);
+        //var u = url(get_port() + 5, get_ip());
+        //var v = getter(cmd, u);
+        //var_get(v, callback, cmd);
     }
     function increment_nonce(N) {
         for (var i = 0; i < N.length; i++) {

@@ -13,17 +13,20 @@
         var port = p[0][1][2];
         var height = p[0][2][1];
         
-        var x = getter(["version", 3], url(8080, list_to_string(ip.slice(1))));
-        var_get(x, function(r){
-            var m = "";
-            console.log(JSON.stringify(r))
-            m += "<p>ip: ".concat(JSON.stringify(ip.slice(1))).concat("height: ").concat(JSON.stringify(height)).concat(", port: ").concat(JSON.stringify(port));
-            if(r) {
-                m += (", fork number: ").concat(JSON.stringify(r));
-            };
-            m += "</p>";
-            view.innerHTML += m;
-        });
+        //var x = getter(["version", 3], url(8080, list_to_string(ip.slice(1))));
+        //var_get(x, function(r){
+        
+        request(["version", 3], url(8080, list_to_string(ip.slice(1))), function(r)
+                {
+                    var m = "";
+                    console.log(JSON.stringify(r))
+                    m += "<p>ip: ".concat(JSON.stringify(ip.slice(1))).concat("height: ").concat(JSON.stringify(height)).concat(", port: ").concat(JSON.stringify(port));
+                    if(r) {
+                        m += (", fork number: ").concat(JSON.stringify(r));
+                    };
+                    m += "</p>";
+                    view.innerHTML += m;
+                });
         view_peers(p.slice(1));
         
     };
