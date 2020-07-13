@@ -38,7 +38,7 @@
             var txs = [stx];
             console.log(JSON.stringify(tx));
             console.log(JSON.stringify(stx));
-            return variable_public_get(["txs", [-6].concat(txs)], function(x) {
+            return rpc.post(["txs", [-6].concat(txs)], function(x) {
                 status.innerHTML = "status: <font color=\"green\">successfully attempted to make a oracle_bet tx.</font>";
                 return 0;
             });

@@ -57,25 +57,6 @@
     div.appendChild(br());
     div.appendChild(contract_view);
     //contract_view.innerHTML = 0;
-    /*
-    function start1() {
-        return messenger(["read", 0, keys.pub()], function(x) {
-            if (x == []) {
-                setTimeout(start1(), 10000);
-            } else {
-                //remember, old messages do not get deleted. So don't think that they are sending you the same trade offer over and over. check the spk.cid to see if the channel already exists.
-                console.log("in start 1");
-                console.log(JSON.stringify(x));
-                var z = x.slice(1).map(function(a){ return keys.decrypt(a); });
-                //get rid of contracts that are no longer valid.
-                //git rid of contracts if the cid already has a channel.
-                max_contract_number = z.length;
-                contracts = z;
-                original_display_trade(contracts[contract_number]);
-            }
-        });
-    }
-    */
     function cp_start() {
         var x = JSON.parse(cp_text.value);
         var msg = x[1];
@@ -119,7 +100,7 @@
                     var contract_sig = spk_sig(CH);
                     var tx = ["nc_accept", keys.pub(), signed_nc_offer, fee, contract_sig];
 		    var stx = keys.sign(tx);
-		    variable_public_get(["txs", [-6, stx]], function(x) {
+		    rpc.post(["txs", [-6, stx]], function(x) {
                         //save channel state
                         var my_spk_sig = [-7, 2, contract_sig];
                         var sspk2 = ["signed", spk2, their_spk_sig, my_spk_sig]; 
@@ -132,22 +113,6 @@
             contract_view.appendChild(accept);
         });
     };
-    /*
-    function original_display_trade(y) {
-        return display_trade(y, function(db) {
-            var accept_button = button_maker2("Accept this trade", function() {
-                return accept_trade(db, function(db2) {
-                    status.innerHTML = "status: <font color=\"green\">the trade looks valid. Now checking if you need credits, and possibly buying more.</font>";
-                    glossary.link(status, "messenger_credits");
-                    return messenger_object.min_bal(1000000, function(){
-                        return accept_trade3(db2);
-                    });
-                });
-            });
-            contract_view.appendChild(accept_button);
-        });
-    }
-    */
     function display_trade(y, callback){
         //console.log(JSON.stringify(contracts));
         //y = contracts[n];
@@ -159,7 +124,7 @@
                 console.log("that contract was already made.")
                 return(0);
             };
-            variable_public_get(["oracle", db.oid], function(x) {
+            rpc.post(["oracle", db.oid], function(x) {
                 var question;
                 if (x == 0) {
                     //question = "UNKNOWN: this oracle has not yet been created. You can use this page http://159.89.87.58:8080/new_oracle.html to generate the same ID to verify what this contract is betting on.";
@@ -226,7 +191,7 @@
         });
     };
     function accept_trade2(db, callback){
-        return variable_public_get(["account", db.acc1], function(their_acc) {
+        return rpc.post(["account", db.acc1], function(their_acc) {
             if (their_acc == 0) {
                     status.innerHTML = "status: <font color=\"red\">Error: your partner needs to have veo in their account to make a channel.</font>";
             } else if (their_acc[1] < (db.acc1 + 1000000)) {
@@ -237,45 +202,6 @@
             return callback(db);
         });
     };
-    /*
-    function accept_trade3(db) {
-        var spk2 = spk_maker(db, keys.pub());
-        //var sspk2 = keys.sign(spk2);
-        var sig = spk_sig(spk2);
-        var sspk2 = ["signed", spk2, [-6], [-7, 2, sig]];
-        sspk2[2] = db.contract_sig;
-        var v = verify_both(sspk2);
-        if (!(v == true)) {
-            status.innerHTML = "status: <font color=\"red\">Error: one of the signatures is wrong, maybe the contract wasn't identically calculated on both nodes.</font>";
-            return 0;
-        }
-        var v = pd_checker(db);
-        if (!(v == true)) {
-            status.innerHTML = "status: <font color=\"red\">Error: the price declaration's signature is invalid.</font>";
-            return 0;
-        }
-        var fee = 152050;
-        merkle.request_proof("accounts", db.acc1, function (acc) {
-            var nonce = acc[2]+1;
-            var tav2, oav2;
-            if (db.payment > 0) {
-                oav2 = db.payment;
-                tav2 = 0;
-            } else {
-                oav2 = 0;
-                tav2 = -(db.payment)
-            }
-            var channel_tx = ["nc", db.acc1, db.acc2, fee, nonce, db.amount1 + oav2, db.amount2 + tav2, db.delay, db.cid];
-            var stx = keys.sign(channel_tx);
-            var msg = [-6, stx, sspk2[3]];
-            send_encrypted_message(msg, db.acc1, function() {
-                record_channel_state(sspk2, db, keys.pub());
-                status.innerHTML = "status: <font color=\"red\">Warning: you need to save your channel state to a file. You can leave the browser open longer to find out when this channel will be made, or you can load your channel state into otc_finisher to find out the channel state later.</font>";
-                return start2(db);
-            });
-        });
-    };
-    */
     function pd_checker(db) {
         var pd = pd_maker(db.height, db.maxprice - 1, 9999, db.oid);
         var pd2 = db.spd.slice(0, pd.length);

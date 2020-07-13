@@ -21,7 +21,7 @@
             var stx = keys.sign(tx);
             var stx2 = keys.sign(tx2);
             var txs = [stx, stx2];
-            return variable_public_get(["txs", [-6].concat(txs)], function(x) {
+            return rpc.post(["txs", [-6].concat(txs)], function(x) {
                 status.innerHTML = "status: <font color=\"green\">successfully attempted to make a oracle_close tx.</font>";
                 return 0;
             });

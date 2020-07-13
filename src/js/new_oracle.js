@@ -106,7 +106,7 @@
             var txs = new_scalar_oracle2(question, start, ks, nonce, id, 9);
             console.log(JSON.stringify(txs));
 
-            return variable_public_get(["txs", [-6].concat(txs)], function(x) {
+            return rpc.post(["txs", [-6].concat(txs)], function(x) {
                 status.innerHTML = "status: <font color=\"green\">successfully attempted to make a scalar oracle with id: ".concat(id).concat("</font>");
                 return callback();
             });
@@ -157,7 +157,7 @@
             var id = id_maker(start, giv, ga, question);
             var tx = ["oracle_new", keys.pub(), nonce, fee, btoa(question), start, id, 0, giv, ga];
             var stx = keys.sign(tx);
-            return variable_public_get(["txs", [-6, stx]], function(x) {
+            return rpc.post(["txs", [-6, stx]], function(x) {
                 status.innerHTML = "status: <font color=\"green\">successfully attempted to make a binary oracle with OID: ".concat(id).concat("</font>");
                 return 0;
             });
@@ -171,7 +171,7 @@
             var tx = ["oracle_new", keys.pub(), nonce, fee, btoa(question), start, id, 0, 0, 0];
             var stx = keys.sign(tx);
             console.log(JSON.stringify(stx));
-            return variable_public_get(["txs", [-6, stx]], function(x) {
+            return rpc.post(["txs", [-6, stx]], function(x) {
                 status.innerHTML = "status: <font color=\"green\">successfully attempted to make a binary oracle with OID: ".concat(id).concat("</font>");
                 return 0;
             });

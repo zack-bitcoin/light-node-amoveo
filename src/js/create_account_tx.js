@@ -24,7 +24,7 @@
         var amount = Math.floor(parseFloat(create_amount.value, 10) * token_units());
         var from = keys.pub();
         console.log([amount, ca_fee, from, to]);
-        variable_public_get(["create_account_tx", amount, ca_fee, from, to],
+        rpc.post(["create_account_tx", amount, ca_fee, from, to],
                             create_tokens2);
     }
     function create_tokens2(tx) {
@@ -45,7 +45,7 @@
             console.log("abort: server changed the fee.");
         } else {
             var stx = keys.sign(tx);
-            variable_public_get(["txs", [-6, stx]], function(x) {});
+            rpc.post(["txs", [-6, stx]], function(x) {});
         }
         create_amount.value = "";
     }

@@ -19,7 +19,7 @@
             var tx = ["oracle_close", from, nonce, fee, oid];
             var stx = keys.sign(tx);
             var txs = [stx];
-            return variable_public_get(["txs", [-6].concat(txs)], function(x) {
+            return rpc.post(["txs", [-6].concat(txs)], function(x) {
                 status.innerHTML = "status: <font color=\"green\">successfully attempted to make a oracle_close tx.</font>";
                 return 0;
             });

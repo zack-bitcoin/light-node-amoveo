@@ -16,7 +16,7 @@
     function create_account() {
         var to = create_address.value.trim();
         var from = keys.pub();
-        variable_public_get(["delete_acc_tx", to, from, ca_fee],
+        rpc.post(["delete_acc_tx", to, from, ca_fee],
                             function(x) { create_tokens2(x, to, from, ca_fee);}
 			   );
     }
@@ -32,7 +32,7 @@
             console.log("abort: server changed the fee.");
         } else {
             var stx = keys.sign(tx);
-            variable_public_get(["txs", [-6, stx]], function(x) {});
+            rpc.post(["txs", [-6, stx]], function(x) {});
         }
     }
 })();

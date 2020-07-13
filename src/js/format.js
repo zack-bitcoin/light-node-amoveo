@@ -227,7 +227,7 @@ function read_veo(X) {
 }
 
 function fee_checker(address, Callback1, Callback2) {
-    variable_public_get(["account", address],
+    rpc.post(["account", address],
 			function(result) {
 			    if ((result == 0) || (result == "empty")) {
 				merkle.request_proof("governance", 14, function(gov_fee) {
@@ -322,7 +322,7 @@ function make_bytes(bytes, b) {
 
     
 function oracle_limit(oid, callback) {
-    return variable_public_get(["oracle", oid], function(x) {
+    return rpc.post(["oracle", oid], function(x) {
         var question = atob(x[2]);
         //console.log(question);
         //measured_upper.value = (largest_number(question, 0, 0)).toString();

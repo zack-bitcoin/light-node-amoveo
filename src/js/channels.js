@@ -76,7 +76,7 @@ function channels_main() {
     var save_button = button_maker2("save channel data to file", save_channel_data);
 
     var refresh_channels_button = button_maker2("refresh channels interfaces. Useful if you swich channel servers", function() {
-        variable_public_get(["pubkey"], function(pubkey) {
+        rpc.post(["pubkey"], function(pubkey) {
             load_button.onchange = function() {return load_channels(pubkey) };
             return refresh_channels_interfaces(pubkey);
         });
@@ -149,7 +149,7 @@ function channels_main() {
     var lightning_to_info = document.createElement("h8");
     lightning_to_info.innerHTML = "to pubkey: ";
     var channel_sync_button = button_maker2("trusted channel sync", function(){
-        variable_public_get(["pubkey"], function(pubkey) {
+        rpc.post(["pubkey"], function(pubkey) {
             spk_object.pull_channel_state(function() {
 		refresh_channels_interfaces(pubkey, function() {
 		    refresh_balance(pubkey);
@@ -158,7 +158,7 @@ function channels_main() {
 	});
     });
     
-    //variable_public_get(["pubkey"], function(pubkey) {
+    //rpc.post(["pubkey"], function(pubkey) {
     //    return refresh_channels_interfaces(pubkey);
     //});
     function channel_warning() {
@@ -182,7 +182,7 @@ function channels_main() {
     }
     function refresh_channels_interfaces(pubkey, callback) {
         console.log("refresh channels interfaces");
-        variable_public_get(["time_value"], function(x) {
+        rpc.post(["time_value"], function(x) {
             tv = x;
             refresh_channels_interfaces2(pubkey, callback);
         });
@@ -265,14 +265,14 @@ function channels_main() {
 	var tx = ["ctc", acc1, acc2, fee, nonce+1, cid, amount - cfee];
 	var stx = keys.sign(tx);
 	//console.log(JSON.stringify([bal1, bal2, tv, expires, height, amount]));
-	variable_public_get(["channel_close", cid, mypub, [-6].concat(ss), stx], function(tx) {
+	rpc.post(["channel_close", cid, mypub, [-6].concat(ss), stx], function(tx) {
 	    remove(server_pubkey);
 	    refresh_channels_interfaces2(server_pubkey);
 	});
     }
     function make_bet() {
         var oid_final = oid.value;
-        variable_public_get(["market_data", oid_final], make_bet2);
+        rpc.post(["market_data", oid_final], make_bet2);
     }
     function make_bet2(l) {
         var price_final = Math.floor(100 * parseFloat(price.value, 10));
@@ -331,7 +331,7 @@ function channels_main() {
 	console.log("serialized spk ");
 	console.log(JSON.stringify(serialize(spk)));
         var msg = ["trade", keys.pub(), price_final, type_final, amount_final, oid_final, sspk, fee];
-        return variable_public_get(msg, function(x) {
+        return rpc.post(msg, function(x) {
             make_bet3(x, sspk, server_pubkey, oid_final);
         });
     }
@@ -370,7 +370,7 @@ function channels_main() {
         var acc1 = keys.pub();
         var acc2 = pubkey;
         //let the server choose an unused cid for us.
-        variable_public_get(["new_channel_tx", acc1, pubkey, amount, bal2,delay, fee], function(x) { make_channel_func2(x, amount, bal2, acc1, acc2, delay, expiration, pubkey); } );
+        rpc.post(["new_channel_tx", acc1, pubkey, amount, bal2,delay, fee], function(x) { make_channel_func2(x, amount, bal2, acc1, acc2, delay, expiration, pubkey); } );
     }
     function make_channel_func2(tx, amount, bal2, acc1, acc2, delay, expiration, pubkey) {
         //ask a server to make the tx for us, then check that all our data matches.
@@ -396,7 +396,7 @@ function channels_main() {
             var spk = ["spk", acc1, acc2, [-6], 0, 0, cid, spk_amount, 0, delay];//TODO, this cid should be salted.
             var stx = keys.sign(tx);
             var sspk = keys.sign(spk);
-            variable_public_get(["new_channel", stx, sspk, expiration], function(x) { return channels3(x, expiration, pubkey, spk, tx) });
+            rpc.post(["new_channel", stx, sspk, expiration], function(x) { return channels3(x, expiration, pubkey, spk, tx) });
         }
     }
     function channels3(x, expiration, pubkey, spk, tx_original) {
@@ -426,7 +426,7 @@ function channels_main() {
         var acc2 = tx[2];
         //console.log("double signed tx ");
         //console.log(JSON.stringify(sstx));
-        //variable_public_get(["txs", [-6, sstx]], function(x) {});
+        //rpc.post(["txs", [-6, sstx]], function(x) {});
         var spk = s2spk[1];
         var cd = new_cd(spk, s2spk, [], [], expiration, cid);
         write(acc2, cd);
@@ -479,7 +479,7 @@ function channels_main() {
     }
     function lightning_spend(serverid) {
 	var header_height = headers_object.top()[1];
-	variable_public_get(["height"], function(server_height) {
+	rpc.post(["height"], function(server_height) {
 	    if (!(header_height == server_height)) {
 		console.log("need to sync headers before you can make channel payments");
 		throw("lightning spend error");
@@ -503,7 +503,7 @@ function channels_main() {
             console.log(JSON.stringify(msg));
 	    console.log("lightning encrypted msg is ");
             console.log(JSON.stringify(emsg));
-            variable_public_get(msg, function(sspk2) {
+            rpc.post(msg, function(sspk2) {
 		spk1 = sspk[1];
 		spk2 = sspk2[1];
 		var bool = verify_both(sspk2);

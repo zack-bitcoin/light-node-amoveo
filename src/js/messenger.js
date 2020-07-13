@@ -38,7 +38,7 @@ var messenger_object = (function() {
     }
     function buy_credits2(Amount, callback) {
         //status.innerHTML = "status: <font color=\"green\">you don't have enough credits, now puchasing more.</font>";
-        return variable_public_get(["pubkey"], function(server_pubkey) {
+        return rpc.post(["pubkey"], function(server_pubkey) {
             console.log("server pubkey ");
             console.log(server_pubkey);
             return fee_checker(
@@ -48,10 +48,10 @@ var messenger_object = (function() {
                     console.log(s);
                     return s;
                 }, function (Fee) {
-		    return variable_public_get(["spend_tx", Amount, Fee, keys.pub(), server_pubkey], function(tx) {
+		    return rpc.post(["spend_tx", Amount, Fee, keys.pub(), server_pubkey], function(tx) {
                         //this tx purchases more credits.
                         var stx = keys.sign(tx);
-                        variable_public_get(["txs", [-6, stx]], function() {
+                        rpc.post(["txs", [-6, stx]], function() {
                             return buy_credits3(Math.floor(Amount - 1), callback);
                             //return callback();
                         });

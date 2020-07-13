@@ -377,7 +377,7 @@ console.log(JSON.stringify([
                 var cid = new_spk[6];
                 var ret = false;
                 merkle.request_proof("channels", cid, function(channel) {
-                    //variable_public_get(["proof", btoa("channels"), cid, btoa(array_to_string(top_hash))], function(proof) {
+                    //rpc.post(["proof", btoa("channels"), cid, btoa(array_to_string(top_hash))], function(proof) {
                     //var channel = merkle.verify(cid, proof);
                     var acc1 = channel[2]
                     var acc2 = channel[3]
@@ -492,8 +492,8 @@ console.log(JSON.stringify([
     }
     function pull_channel_state(callback) {
         //get their pubkey
-        variable_public_get(["pubkey"], function(server_pubkey) {
-            variable_public_get(["spk", keys.pub()], function(spk_return) {
+        rpc.post(["pubkey"], function(server_pubkey) {
+            rpc.post(["spk", keys.pub()], function(spk_return) {
                 var cd = spk_return[1];
                 var them_spk = spk_return[2];
 		//we need to verify that they signed them_spk.
@@ -524,7 +524,7 @@ console.log(JSON.stringify([
                 channel_feeder_they_simplify(server_pubkey, them_spk, cd, function(ret) {
                     if (!(ret == false)) {
                         var msg2 = ["channel_sync", keys.pub(), ret];
-			setTimeout(function(){ variable_public_get(msg2, function(foo) {}); },
+			setTimeout(function(){ rpc.post(msg2, function(foo) {}); },
 				   0);
 			setTimeout(function(){
                             api_decrypt_msgs(cd[5]);
@@ -532,8 +532,8 @@ console.log(JSON.stringify([
 				var cd2 = channels_object.read(server_pubkey);
 				var ret2 = keys.sign(cd2.me);
 				var msg3 = ["channel_sync", keys.pub(), ret2];
-				setTimeout(function(){ variable_public_get(msg3, function(foo) {}); }, 2000);
-				//variable_public_get(msg3, function(foo) {});
+				setTimeout(function(){ rpc.post(msg3, function(foo) {}); }, 2000);
+				//rpc.post(msg3, function(foo) {});
 				
 				return callback();
 			    });
@@ -552,7 +552,7 @@ console.log(JSON.stringify([
 	    secrets = secrets_junk.secrets;
 	    // spk = secrets_junk.spk;
 	    teach_secrets(secrets, 0, function(){
-		variable_public_get(["spk", keys.pub()], function(spk_data) {
+		rpc.post(["spk", keys.pub()], function(spk_data) {
 		    console.log("should sart with -6");
 		    console.log(JSON.stringify(spk_data));
 		    var them_spk = spk_data[2];
@@ -606,7 +606,7 @@ console.log(JSON.stringify([
 	console.log(JSON.stringify(secrets[i]));//incorrectly storing -6 in prove.
         var msg = ["learn_secret", keys.pub(), channels_object.ss_to_external(secrets[i][1]), secrets[i][2]];
 	console.log(JSON.stringify(msg));
-	variable_public_get(msg, function() {
+	rpc.post(msg, function() {
 	    return teach_secrets(secrets, i+1, callback);
 	});
     }
@@ -616,7 +616,7 @@ console.log(JSON.stringify([
 	    console.log(JSON.stringify(secrets[i]));
             var msg = ["learn_secret", keys.pub(), channels_object.ss_to_external(secrets[i][1]), secrets[i][2]];
 	    console.log(JSON.stringify(msg));
-	    variable_public_get(msg, function() { return; });
+	    rpc.post(msg, function() { return; });
         }
         return "ok";
     }

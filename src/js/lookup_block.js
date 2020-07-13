@@ -14,9 +14,9 @@ function lookup_block1() {
     lookup_block_button.appendChild(lookup_block_button_text);
     lookup_block_button.onclick = function() {
 	var num = parseInt(lookup_block_height.value, 10);
-	//variable_public_get(["height"], function(x) {height_f(x)});
+	//rpc.post(["height"], function(x) {height_f(x)});
 	//Lets maybe check to see if height is too height?
-	variable_public_get(["block", num], function(x) {lookup_block2(x)});
+	rpc.post(["block", num], function(x) {lookup_block2(x)});
     };
     document.body.appendChild(lookup_block_button);
     var current_block = document.createElement("div");

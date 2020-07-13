@@ -150,7 +150,7 @@ function combine_cancel_assets_maker() {
         var canceled = combine_cancel_common(oldCD);
         var sspk = canceled.sspk;
         var ss = canceled.ss;
-        variable_public_get(["combine_cancel_assets", keys.pub(), canceled.sspk], function(sspk2) {
+        rpc.post(["combine_cancel_assets", keys.pub(), canceled.sspk], function(sspk2) {
             //verify that sspk2 is signed by them.
             if (JSON.stringify(sspk2[1]) == JSON.stringify(sspk[1])) {
                 oldCD.them = sspk2;

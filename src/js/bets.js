@@ -14,7 +14,7 @@ function bets_main() {
 	bets_div.appendChild(oadiv);
     }
     function main() {
-        variable_public_get(["pubkey"], outstanding_bets3);
+        rpc.post(["pubkey"], outstanding_bets3);
     }
     function outstanding_bets3(server_pubkey) {
         var x = channels_object.read(server_pubkey);
@@ -85,7 +85,7 @@ function bets_main() {
 	    spk2[8] += 1000000;
             var sspk2 = keys.sign(spk2);
             var msg = ["cancel_trade", keys.pub(), n, sspk2];
-            variable_public_get(msg, function(x) {
+            rpc.post(msg, function(x) {
                 return cancel_trade2(x, sspk2, server_pubkey, n-2);
             });
         } else {

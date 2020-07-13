@@ -1,7 +1,7 @@
 function headers_main() {
     const urlParams = new URLSearchParams(window.location.search);
     var mode = urlParams.get('mode');
-    console.log(mode);
+    //console.log(mode);
     if (mode == "test") {
         mode = "test";
         server_port.value = "3010";
@@ -62,7 +62,10 @@ function headers_main() {
     //headers_db[top_hash] = top_header;
     
     var top_diff = 0;//accumulative difficulty of top
-    var button = button_maker2("sync with network", more_headers);
+    var button = button_maker2("sync with network", function() {
+        wallet_text.innerHTML = "getting headers";
+        return more_headers();
+    });
     document.body.appendChild(button);
     wallet_text = document.createElement("p");
     wallet_text.innerHTML = JSON.stringify([["height", 0], ["total work", 0]]);
@@ -368,7 +371,7 @@ function headers_main() {
         } else {
             n = top_header[1];
         }
-        variable_public_get(["headers", headers_batch + 1, n], absorb_headers);
+        rpc.post(["headers", headers_batch + 1, n], absorb_headers);
     }
     function serialize_header(x) {
         var height = x[1]; //4 bytes
@@ -406,7 +409,7 @@ function headers_main() {
         console.log(JSON.stringify(hash(f)));
     }
     function header_test() {
-        variable_public_get(["headers", 10, 0], header_test2);
+        rpc.post(["headers", 10, 0], header_test2);
     }
     function header_test2(hl) {
         console.log(hl);

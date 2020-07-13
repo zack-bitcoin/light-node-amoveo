@@ -12,7 +12,7 @@ var server_port = document.createElement("INPUT");
 //server_port.value = "8080";// server
 var URL_REGEX = /^(https?)?(?:[\:\/]*)([a-z0-9\.-]*)(?:\:([0-9]+))?(\/[^?#]*)?(?:\?([^#]*))?(?:#(.*))?$/i;
 var match = document.URL.match(URL_REGEX);
-console.log(match);
+//console.log(match);
 if (match !== null){
     var host = match[2];
     var port = match[3];

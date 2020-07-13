@@ -25,8 +25,8 @@ function miner_main() {
         button.onclick = start_mining;
     }
     function miner_get(cmd, callback) {
-        request(cmd, url(get_port() + 5, get_ip())
-                callback);
+        rpc.other(cmd, callback,
+                  get_ip(), get_port() + 5);
         //var u = url(get_port() + 5, get_ip());
         //var v = getter(cmd, u);
         //var_get(v, callback, cmd);

@@ -132,7 +132,7 @@
                     status.innerHTML = ("status: <font color=\"red\"> CTC tx has a wrong final balances.</font>");
                     return 0;
                 }
-                return variable_public_get(["txs", [-6, sctc]], function(x) {
+                return rpc.post(["txs", [-6, sctc]], function(x) {
             
                     status.innerHTML = ("status: <font color=\"green\"> CTC tx is being published.</font>");
                     return wait_till_closed(db);
@@ -235,7 +235,7 @@
         };
         var accept_button = button_maker2("accept this proposal and close the channel", function() {
             var stx = keys.sign(c[4]);
-            return variable_public_get(["txs", [-6, stx]], function(x) {
+            return rpc.post(["txs", [-6, stx]], function(x) {
                 console.log(x);
                 status.innerHTML = "status: <font color=\"green\">We attempted to publish the channel solo close tx. Now waiting for the tx to be included in a block.</font>";
                 return wait_till_closed(db);
@@ -433,7 +433,7 @@
             var fee = 202050;
             var tx = ["csc", keys.pub(), nonce, fee, keys.sign(db.cd.them), ss];
             var stx = keys.sign(tx);
-            return variable_public_get(["txs", [-6, stx]], function(x) {
+            return rpc.post(["txs", [-6, stx]], function(x) {
                 console.log(x);
                 status.innerHTML = "status: <font color=\"blue\">We attempted to publish the channel solo close tx.</font>";
                 return 0;
@@ -448,7 +448,7 @@
             var fee = 202050;
             var tx = ["cs", keys.pub(), nonce, fee, keys.sign(db.cd.them), ss];
             var stx = keys.sign(tx);
-            return variable_public_get(["txs", [-6, stx]], function(x) {
+            return rpc.post(["txs", [-6, stx]], function(x) {
                 console.log(x);
                 status.innerHTML = "status: <font color=\"blue\">We attempted to publish the channel slash tx.</font>";
                 return 0;
@@ -460,7 +460,7 @@
             var nonce = acc[2] + 1;
             var tx = ["timeout", keys.pub(), nonce, db.fee, db.cid, db.address1, db.address2];
             var stx = keys.sign(tx);
-            return variable_public_get(["txs", [-6, stx]], function(x) {
+            return rpc.post(["txs", [-6, stx]], function(x) {
                 console.log(x);
                 status.innerHTML = "status: <font color=\"blue\">We attempted to publish the channel timeout tx.</font>";
                 return 0;

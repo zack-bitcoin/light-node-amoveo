@@ -8,7 +8,7 @@
     height_button.onclick = height_helper;
     document.body.appendChild(height_button);
     function height_helper() {
-	variable_public_get(["height"], height_f);
+	rpc.post(["height"], height_f);
     }
     function height_f(x) {
 	height.innerHTML = "";
@@ -19,7 +19,7 @@
 	p1.innerHTML = "current height: ".concat(b);
 	height.appendChild(p1);
 	height.appendChild(document.createElement("br"));
-	variable_public_get(["f", 1], function(d) {
+	rpc.post(["f", 1], function(d) {
 	    var hpb = Math.round(d[1]/1000);
 	    var hpb2 = document.createElement("h");
 	    hpb2.innerHTML = "terahashes per block: ".concat((hpb).toString());

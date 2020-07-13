@@ -204,7 +204,7 @@ function keys_function1() {
     function update_balance() {
         var trie_key = pubkey_64();
         var top_hash = hash(headers_object.serialize(headers_object.top()));
-        variable_public_get(["account", trie_key], function(unconfirmed) {
+        rpc.post(["account", trie_key], function(unconfirmed) {
             var U = unconfirmed[1] / token_units();
             
             merkle.request_proof("accounts", trie_key, function(x) {

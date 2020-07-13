@@ -40,7 +40,7 @@
 	var t = JSON.parse(tx_push.value);
 	//console.log(t);
 	//var t2 = keys.sign(t);
-	variable_public_get(["txs", [-6, t]], function(x) {});
+	rpc.post(["txs", [-6, t]], function(x) {});
 	tx_push.value = "";
     }
 })();

@@ -68,10 +68,10 @@ function spend_1() {
             var from = keys.pub();
 	    fee_checker(to, function (Fee) {
 		fee = Fee;
-		variable_public_get(["create_account_tx", amount, Fee, from, to], spend_tokens2);
+		rpc.post(["create_account_tx", amount, Fee, from, to], spend_tokens2);
 	    }, function (Fee) {
 		fee = Fee;
-		variable_public_get(["spend_tx", amount, Fee, from, to], spend_tokens2);
+		rpc.post(["spend_tx", amount, Fee, from, to], spend_tokens2);
 	    });
 	}
     }
@@ -104,7 +104,7 @@ function spend_1() {
 		console.log("pubkey is ");
 		console.log(to);
 		console.log(keys.pub());
-		variable_public_get(["txs", [-6, stx]], function(x) {
+		rpc.post(["txs", [-6, stx]], function(x) {
 		    console.log(x);
 		    var msg = ((amount/token_units()).toString()).concat(" VEO successfully sent. txid =  ").concat(x).concat(" full tx: ").concat(JSON.stringify(stx));
 		    error_msg.innerHTML = msg;

@@ -52,7 +52,7 @@
 		gov_div.appendChild(br());
 		//var asks_txt = "asks: ".concat(btoa(btoa(question_hash)));
                 console.log(v);
-                variable_public_get(["oracle", v], function(x) {
+                rpc.post(["oracle", v], function(x) {
                     //public_get["oracle, OID]
                     //we should verify that hash(q) == v;
                     console.log(x);
@@ -108,7 +108,7 @@
 	    console.log(x);//[-7, "BHpLwieFVdD5F/z1mdScC9noIZ39HgnwvK8jHqRSBxjzWBssIR1X9LGr8QxTi8fUQws1Q5CGnmTk5dZwzdrGBi4=", 1]
             return lookup_unmatched_orders(x[1], oid, div, 1);
 
-	        //variable_public_get(["oracle_bets", v], oracle_bets);
+	        //rpc.post(["oracle_bets", v], oracle_bets);
 	        //now display the whole thing.
 	        //oracleOutput.appendChild(br());
 	        //var x2 = text(JSON.stringify(x));

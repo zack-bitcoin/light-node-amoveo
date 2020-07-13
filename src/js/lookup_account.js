@@ -25,7 +25,7 @@ function lookup_account1() {
     function lookup_account_helper() {
         var x = lookup_account_address.value.trim();
 	console.log("lookup account");
-        variable_public_get(["account", x], lookup_account_helper2);
+        rpc.post(["account", x], lookup_account_helper2);
     }
     function lookup_account_helper2(x) {
         lookup_account.innerHTML = "balance: ".concat(x[1] / token_units()).concat(" VEO");

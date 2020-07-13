@@ -36,7 +36,7 @@
 	lookup_oracle_button.onclick = lookup_helper;
 	div.appendChild(lookup_oracle_button);
 	function lookup_helper() {
-            variable_public_get(["list_oracles"], lookup_helper2);
+            rpc.post(["list_oracles"], lookup_helper2);
 	}
     }
     function lookup_helper2(x) {
@@ -76,7 +76,7 @@
     function lookup_oracle_helper(x) {
 	console.log("lookup oracle x is ");
 	console.log(x);
-	variable_public_get(["oracle", x], function(y) { return lookup_oracle_helper2(y, x)});
+	rpc.post(["oracle", x], function(y) { return lookup_oracle_helper2(y, x)});
     }
     function lookup_oracle_helper2(l, oid) {
 	price.innerHTML = "";

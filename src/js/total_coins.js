@@ -7,4 +7,4 @@ function total_coins_f(x) {
     b = (x).toString();
     h.innerHTML = "current total coins: ".concat(b);
 }
-variable_public_get(["total_coins"], function(x) {total_coins_f(x)});
+rpc.post(["total_coins"], function(x) {total_coins_f(x)});
