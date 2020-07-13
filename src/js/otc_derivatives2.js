@@ -619,9 +619,10 @@ function showSportEventFields(){
                     }
                  //   status.innerHTML = "status: <font color=\"blue\">put this data in a public place, for example <a href=\"http://159.89.87.58:8090/main.html\">this website</a> : </font> ".concat(JSON.stringify([-6, cp.msg, ncs]));
                     
-                            var p2p_url = url(8090, "159.89.87.58");
-                            var p2p_msg = ["add", [-6, cp.msg, ncs]];
-                            getter(p2p_msg, p2p_url, function(X){
+                    //var p2p_url = url(8090, "159.89.87.58");
+                    var p2p_msg = ["add", [-6, cp.msg, ncs]];
+                    rpc.default_explorer(p2p_msg, function(X){
+                        //getter(p2p_msg, p2p_url, function(X){
                                 console.log("sent message to p2p server.");
                                 console.log(JSON.stringify(X))
                             });
