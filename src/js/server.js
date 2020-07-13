@@ -31,6 +31,7 @@ if (match !== null){
 server_port.setAttribute("type", "text");
 var server_port_info = document.createElement("h8");
 server_port_info.innerHTML = "port: ";
+/*
 document.body.appendChild(server_ip_info);
 document.body.appendChild(server_ip);
 document.body.appendChild(server_port_info);
@@ -38,6 +39,7 @@ document.body.appendChild(server_port);
 
 document.body.appendChild(document.createElement("br"));
 document.body.appendChild(document.createElement("br"));
+*/
 
 function get_port() {
     return parseInt(server_port.value, 10);
