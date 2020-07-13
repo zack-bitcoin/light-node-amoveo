@@ -62,6 +62,7 @@ function headers_main() {
     //headers_db[top_hash] = top_header;
     
     var top_diff = 0;//accumulative difficulty of top
+    /*
     var button = button_maker2("sync with network", function() {
         wallet_text.innerHTML = "getting headers";
         return more_headers();
@@ -70,6 +71,9 @@ function headers_main() {
     wallet_text = document.createElement("p");
     wallet_text.innerHTML = JSON.stringify([["height", 0], ["total work", 0]]);
     document.body.appendChild(wallet_text);
+    */
+    var wallet_text = document.createElement("div");
+    wallet_text.innerHTML = "Downloading blockchain data";
     //more_headers()
     function write_header(header, ewah) {
 	//console.log("write header");
@@ -78,7 +82,8 @@ function headers_main() {
             top_diff = acc_difficulty;
             top_header = header;
 	    //console.log("wallet text update");
-            wallet_text.innerHTML = JSON.stringify([["height", header[1]], ["total work", (Math.floor(header[9]/100000000))]]);
+            //wallet_text.innerHTML = JSON.stringify([["height", header[1]], ["total work", (Math.floor(header[9]/100000000))]]);
+            wallet_text.innerHTML = "Current height: " + header[1];
         }
         h = hash(serialize_header(header));
         headers_db[h] = [header, ewah];
@@ -363,6 +368,9 @@ function headers_main() {
                 console.log(JSON.stringify(h[i])); }
         }
         if (get_more) { more_headers(); }
+        else {
+            keys.update_balance();
+        }
     }
     function more_headers() {
         var n;
@@ -432,6 +440,8 @@ function headers_main() {
         console.log(int2sci(2000));//should be 2804
         console.log(sci2int(int2sci(2000)));// should be 2000
     }
-    return {sci2int: sci2int, serialize: serialize_header, top: (function() { return top_header; }), db: headers_db, read_ewah: read_ewah, on_height_change: on_height_change};
+    return {more_headers: more_headers, sci2int: sci2int, serialize: serialize_header, top: (function() { return top_header; }), db: headers_db, read_ewah: read_ewah, on_height_change: on_height_change};
 }
 var headers_object = headers_main();
+
+headers_object.more_headers();

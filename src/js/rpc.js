@@ -2,6 +2,10 @@ var rpc = (function() {
     function url(port, ip) {
         return "http://".concat(ip).concat(":").
             concat(port.toString()).concat("/"); }
+    function default_explorer(cmd, callback) {
+        var u = "http://159.89.87.58:8090/";
+        return talk(cmd, u, callback, 10000);
+    };
     function main(cmd, callback, ip, port) {
         if (ip == undefined){
             ip = get_ip();
@@ -33,7 +37,7 @@ var rpc = (function() {
             }, 20);
         }
         else if (x.readyState == 3) {
-            if(verbose){ console.log("currently receiving a response, wait a bit for the rest of the data to arrive"); };
+            if(verbose){ console.log("currently receiving a response. lets wait a bit for the rest of the data to arrive"); };
             setTimeout(function() {return listen(x, cmd, u, callback, n-10);}, 10);
         }
         else if ((x.readyState === 4) && (x.status === 200)) {
@@ -47,5 +51,6 @@ var rpc = (function() {
             if(verbose){console.log("unhandled state. wait a bit and hopefully it ends.");}
             setTimeout(function() {return listen(x, cmd, u, callback, n-50);}, 50);}
     };
-    return {post: main};
+    return {post: main,
+            default_explorer: default_explorer};
 })();

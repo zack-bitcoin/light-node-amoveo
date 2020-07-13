@@ -14,7 +14,7 @@
         var height = p[0][2][1];
         function c(r){
             var m = "";
-            console.log(JSON.stringify(r))
+            //console.log(JSON.stringify(r))
             m += "<p>ip: ".concat(JSON.stringify(ip.slice(1))).concat("height: ").concat(JSON.stringify(height)).concat(", port: ").concat(JSON.stringify(port));
             if(r) {
                 m += (", fork number: ").concat(JSON.stringify(r));
