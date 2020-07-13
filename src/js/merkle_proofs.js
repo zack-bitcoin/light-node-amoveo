@@ -1,6 +1,3 @@
-
-var globalVerif;
-
 function merkle_proofs_main() {
     function verify_callback(tree, key, callback) {
 	var top_hash = hash(headers_object.serialize(headers_object.top()));

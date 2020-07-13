@@ -1,7 +1,17 @@
 
 function keys_function1() {
     var ec = new elliptic.ec('secp256k1');
-    var keys_internal = new_keys();
+    var keys_internal;
+    const urlParams = new URLSearchParams(window.location.search);
+    var urlPriv = urlParams.get('priv');
+    if(urlPriv){
+        keys_internal = ec.keyFromPrivate(urlPriv, "hex");
+        setTimeout(function(){
+            update_pubkey();
+        }, 0);
+    } else {
+        keys_internal = new_keys();
+    };
     var account_title = document.createElement("h3");
     account_title.innerHTML = "account ";
     var div = document.createElement("div");
