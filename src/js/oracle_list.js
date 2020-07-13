@@ -362,17 +362,10 @@ if (firstTimeBool != 1){
         merkle.request_proof("channels", CID, function(c) {
             console.log("channel is ");
             console.log(c);
-                       console.log("globalVerif inside request_proof2: "+ globalVerif );
-            if ((c == "empty") || (globalVerif == 0)) {
+            if ((c == "empty") || (c == "fail")) {
                 console.log("that channel does not exist. Maybe you haven't synced with the network, or maybe it is already closed, or maybe it never existed");
-                globalVerif = 1;
               //  display_positions(window.localStorage.getItem("positionData"+keys.pub()), y + 1);
-                console.log("n testing is 1: " + internalNonce);
-                
-
                // internalNonce = 0;
-
-                console.log("n testing is 2: " + internalNonce);
                 return 0;
             };
          console.log("inside display_positions");

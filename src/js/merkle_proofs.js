@@ -106,8 +106,7 @@ function merkle_proofs_main() {
 			console.log("the value doesn't match the proof");
 			console.log(JSON.stringify(x));
 			console.log(trie_key);
-                        globalVerif = 0;
-                        console.log("globalVerif inside verify_merkle2: "+ globalVerif );
+                        return("fail");
 			//throw("bad");
                     }
 		}
