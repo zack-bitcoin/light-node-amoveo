@@ -22,7 +22,7 @@
             m += "</p>";
             view.innerHTML += m;
         };
-        rpc.other(["version", 3], c, list_to_string(ip.slice(1)), 8080);
+        rpc.post(["version", 3], c, list_to_string(ip.slice(1)), 8080);
         view_peers(p.slice(1));
     };
     function main() {
