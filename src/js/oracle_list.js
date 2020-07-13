@@ -412,7 +412,8 @@ if (tempvar2 != "[[-6]]"){
                 }
                 i=Number(i)+Number(1);
 
-} while (i < ( Number(JSON.parse(tempvar2).length) + Number(2)) );
+                //} while (i < ( Number(JSON.parse(tempvar2).length) + Number(2)) );
+            } while (i < ( Number(JSON.parse(tempvar2)[0].length)) );
 
 //}
 }
