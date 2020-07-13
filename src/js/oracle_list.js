@@ -62,10 +62,10 @@ var abcd = (function() {
     title.innerHTML = "Events";
     div.appendChild(title);
 
-    var optionPresetButton1 = button_maker2("Coin Put Options", function() { return PresetFilter("option put Strike Maturity Midnight GMT")});
-    var optionPresetButton2 = button_maker2("Coin Call Options", function() { return PresetFilter("option call Strike Maturity Midnight GMT")});
+    var optionPresetButton1 = button_maker2("Crypto Options", function() { return PresetFilter("price is more than Midnight")});
+    var optionPresetButton2 = button_maker2("Competition", function() { return PresetFilter("will defeat in the game starting on (local time)")});
     
-    var nbaPresetButton = button_maker2("NBA", function() { return PresetFilter("nba")});
+   // var nbaPresetButton = button_maker2("NBA", function() { return PresetFilter("nba")});
 
 
 
@@ -91,8 +91,8 @@ var abcd = (function() {
     div2.appendChild(optionPresetButton1);
     div2.appendChild(text(" "));
         div2.appendChild(optionPresetButton2);
-    div2.appendChild(text(" "));
-    div2.appendChild(nbaPresetButton);
+  //  div2.appendChild(text(" "));
+  //  div2.appendChild(nbaPresetButton);
 
     div2.appendChild(br());
     div2.appendChild(br());
