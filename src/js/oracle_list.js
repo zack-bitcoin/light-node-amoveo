@@ -189,6 +189,12 @@ if (firstTimeBool != 1){
           //       console.log("splitting text0 " + oracle_text.split(";")[3].substring(21, oracle_text.split(";")[3].length));
          //        console.log("splitting text1" + (oracle_text.split(";")[3].substring(21, 0) == " Z (in MM/DD/YYYY) = " ));
                       //      console.log("splitting text " + (oracle_text.split(";")[1].substring(5, oracle_text.split(";")[1].length) ));
+                        console.log("oracletextis " + oracle_text);    
+            if (oracle_text.search(";") < 0 ){
+
+                        t2 = text(atob(Oracle[1][4]));
+                          t3 = atob(Oracle[1][4]);  
+                      }else{
                         if ((oracle_text.split(";")[3].substring(21, 0) == " Z (in MM/DD/YYYY) = " ) && (oracle_text.split(";")[2].substring(5, 0) == " Y = ") && (oracle_text.split(";")[1].substring(5, 0) == " X = ") && (oracle_text.split(";")[oracle_text.split(";").length - 1] == " return (price of Y is more than X as of Z as reported by W)") && (oracle_text.split(";")[0] == "W = https://www.coinmarketcap.com historical data daily close price") && (oracle_text.split(";")[4] == " return (price of Y is more than X as of Z as reported by W)")) {
                                 console.log("splitting")
                       //        var coinName = oracle_text.split(";")[2].substring(6,3) ;
@@ -241,7 +247,7 @@ if (firstTimeBool != 1){
 
                                                         }
                         
-
+}
                     
 
                     console.log("this is t");
@@ -256,6 +262,7 @@ if (firstTimeBool != 1){
                     if (filterText === undefined){
 
                     oracles.appendChild(t2);
+                    oracles.appendChild(text(" "));
                     oracles.appendChild(button);
                     oracles.appendChild(br());
 
