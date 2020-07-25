@@ -243,7 +243,7 @@ console.log(JSON.stringify([
 		ess[i][3] = [-6];
 		//throw("ss to internal broken");
 	    }
-            ss = ss.concat([channels_object.new_ss(string_to_array(atob(ess[i][1])), ess[i][2], ess[i][3])]);
+            ss = ss.concat([new_ss(string_to_array(atob(ess[i][1])), ess[i][2], ess[i][3])]);
 	}
 	console.log("ss to internal ss is ");
 	console.log(JSON.stringify(ss));
@@ -282,7 +282,7 @@ console.log(JSON.stringify([
                     console.log(JSON.stringify([b2, {"spk": newspk, "ss": ss}]));
                     if ( JSON.stringify(b2) == JSON.stringify({"spk": newspk, "ss": ss})) {
                         var ret = keys.sign(newspk);
-                        var newcd = channels_object.new_cd(newspk, themspk, ss, ss, expiration, cid);
+                        var newcd = new_cd(newspk, themspk, ss, ss, expiration, cid);
                         channels_object.write(from, newcd);
 			ss4_text = document.createElement("h8");
 			ss4_text.innerHTML = JSON.stringify(ss4);
@@ -294,7 +294,7 @@ console.log(JSON.stringify([
                             if ( b3 ) {
                                 //If they give free stuff, then accept.
                                 ret = keys.sign(newspk);
-                                var newcd = channels_object.new_cd(newspk, themspk, ss, ss, expiration, cid);
+                                var newcd = new_cd(newspk, themspk, ss, ss, expiration, cid);
                                 channels_object.write(from, newcd);
                                 return callback(ret);
                             } else {
@@ -314,7 +314,7 @@ console.log(JSON.stringify([
 					console.log(JSON.stringify(spk2));//still has the bet
 					console.log("spks do not match");
                                     } else {
-					var data = channels_object.new_cd(spk, themspk, ss5, ss5, expiration, cid);
+					var data = new_cd(spk, themspk, ss5, ss5, expiration, cid);
 					channels_object.write(from, data);
 					return callback(ret);
                                     }
@@ -508,7 +508,7 @@ console.log(JSON.stringify([
 		    var ss = ss_to_internal(cd[4]);
 		    var expiration = cd[7];
 		    var cid = spk[6];
-		    var NewCD = channels_object.new_cd(spk, them_spk, ss, ss, expiration, cid);
+		    var NewCD = new_cd(spk, them_spk, ss, ss, expiration, cid);
 		    channels_object.write(server_pubkey, NewCD);
 		    return callback();
                 }

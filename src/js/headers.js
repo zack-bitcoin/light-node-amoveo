@@ -28,12 +28,12 @@ function headers_main() {
     if (mode == "test") {
 	INITIAL_DIFFICULTY = 2500;
 	retarget_frequency = 12;
-	forks = {two: 0, four: retarget_frequency, seven:40};
+	forks = {two: 0, four: retarget_frequency, seven:40, twenty_nine:0};
 	top_header = 0;
     } else if (mode == "testnet") {
 	INITIAL_DIFFICULTY = 2500;
 	retarget_frequency = 12;
-	forks = {two: 0, four: retarget_frequency, seven:40};
+	forks = {two: 0, four: retarget_frequency, seven:40, twenty_nine:0};
         top_header = ["header",10000,"PzAka1LatHpj7zhwY098sM9XaE4Vv+stjmUMWB21Md8=","9169gcVs1KQ/Kvcf0bRkeZfsjAjQ56kdlrwr3auML7Y=","JMgF+lUkTB2r37qrGG1B2SiS2h/bjdUO72jItcXdXLY=",304286457,6159,0,"AAAAAAAAAAAAFtXjnSwuMUTSTMmhbVNcvjZY3xZXv08=",230706923204,746];
         write_header(top_header, 21003884);
 
@@ -45,7 +45,7 @@ function headers_main() {
     } else {
 	INITIAL_DIFFICULTY = 8844;
 	retarget_frequency = 2000;
-	forks = {two: 9000, four: 26900, seven:28135};
+	forks = {two: 9000, four: 26900, seven:28135, twenty_nine:104600};
 	//top_header = 0;
         //top_header = ["header",75963,"Hlp6dHOmI8MLSKoszxuU840fqrlm/5yuqJR92Idg9oU=","hudw3ucSvaEsFwH+zlxOUZ7KC0MNdnTimhWk6OPfQN8=","KJc9pvOIj7867XK/u7WL71gNQLNMn5pA+dUATaGrxuw=",453614702,13227,3,"AAAAAAAAAAAAp97vT1xPju+8EwiRULi0U/gliqEAAAA=",1656017740603758477312,5982];
         top_header = ["header", 115963, "eMIChQ5lvwYTBsmuU+PSGfJ+yk7JHmUiDmJ05PWlUiY=", "rGvO+mDwjUMXhuM2SVZjhEoEBg8mhYcooUAHWgHG/TY=", "87WiCyA+8TwizOcBK1A543qwcjJ/REG8A449miIMDio=", 709357581, 13175, 3, "AAAAAAAAAAAAE+LxcAx88O3ofi2qtCeQshzdqA0AAAA=", 2.3261311366047874e+21, 5982];
@@ -74,15 +74,14 @@ function headers_main() {
     */
     var wallet_text = document.createElement("div");
     wallet_text.innerHTML = "Downloading blockchain data";
+    document.body.appendChild(wallet_text);
     //more_headers()
     function write_header(header, ewah) {
-	//console.log("write header");
+	console.log("write header");
         var acc_difficulty = header[9];
-        if (acc_difficulty > top_diff) {
+        if ((acc_difficulty > top_diff) || ((mode == "test")&&((top_header == 0) || (header[1] > top_header[1])))) {
             top_diff = acc_difficulty;
             top_header = header;
-	    //console.log("wallet text update");
-            //wallet_text.innerHTML = JSON.stringify([["height", header[1]], ["total work", (Math.floor(header[9]/100000000))]]);
             wallet_text.innerHTML = "Current height: " + header[1];
         }
         h = hash(serialize_header(header));
@@ -382,6 +381,7 @@ function headers_main() {
         rpc.post(["headers", headers_batch + 1, n], absorb_headers);
     }
     function serialize_header(x) {
+        console.log(x);
         var height = x[1]; //4 bytes
         var prev_hash = atob(x[2]); //bin
         var trees_hash = atob(x[3]); //bin
@@ -440,7 +440,7 @@ function headers_main() {
         console.log(int2sci(2000));//should be 2804
         console.log(sci2int(int2sci(2000)));// should be 2000
     }
-    return {more_headers: more_headers, sci2int: sci2int, serialize: serialize_header, top: (function() { return top_header; }), db: headers_db, read_ewah: read_ewah, on_height_change: on_height_change};
+    return {more_headers: more_headers, sci2int: sci2int, serialize: serialize_header, top: (function() { return top_header; }), db: headers_db, read_ewah: read_ewah, on_height_change: on_height_change, forks: forks};
 }
 var headers_object = headers_main();
 

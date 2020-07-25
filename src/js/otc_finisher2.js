@@ -71,13 +71,10 @@ var ZYX = (function otc_finisher2() {
             });
         });
     };
-    function start1() {
-        //console.log(JSON.stringify(channels_object.channel_manager));
+    function start1(cd, their_address_val) {
         var db = {};
         db.fee = 152050;
-        //var cd = channels_object.read(their_address.value);
-        var their_address_val = Object.keys(channels_object.channel_manager())[0];
-        db.cd = channels_object.read(their_address_val);
+        db.cd = cd;
         //console.log(JSON.stringify(db.cd));
         //var spk = cd.me;
         db.spk = db.cd.me;
@@ -303,8 +300,6 @@ var ZYX = (function otc_finisher2() {
             console.log(JSON.stringify(tx));
             var stx = keys.sign(tx);
             var imsg = [-6, early_close_code, db.oracle_type_val, result, stx];
-            var their_address_val = Object.keys(channels_object.channel_manager())[0];
-                //return send_encrypted_message(imsg, their_address_val, function() {
             var balances_string = calc_balances2(db, tx[5], tx[6]);
             status.innerHTML = ("status: <font color=\"blue\">Successfully generated an offer to close the channel.").concat(balances_string).concat(" Tell your partner to visit this page. Do not delete your channel state yet. Click 'get headers' to see if the contract is settled yet. give this data to your partner: </font> ".concat(JSON.stringify(imsg)));
             
