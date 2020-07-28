@@ -77,7 +77,6 @@ function headers_main() {
     document.body.appendChild(wallet_text);
     //more_headers()
     function write_header(header, ewah) {
-	console.log("write header");
         var acc_difficulty = header[9];
         if ((acc_difficulty > top_diff) || ((mode == "test")&&((top_header == 0) || (header[1] > top_header[1])))) {
             top_diff = acc_difficulty;
@@ -381,7 +380,6 @@ function headers_main() {
         rpc.post(["headers", headers_batch + 1, n], absorb_headers);
     }
     function serialize_header(x) {
-        console.log(x);
         var height = x[1]; //4 bytes
         var prev_hash = atob(x[2]); //bin
         var trees_hash = atob(x[3]); //bin

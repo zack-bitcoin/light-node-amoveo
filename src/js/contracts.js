@@ -30,19 +30,47 @@ else drop
   int 0 int 1000 
 then 
 */
+    function all_defined(C){
+        var l =
+            ["oracle_start_height",
+             "oracle_text",
+             "subs1",
+             "subs2",
+             "from",
+             "nonce",
+             "end_limit",
+             "amount1",
+             "amount2",
+             "fee1",
+             "fee2"];
+        for(var i = 0; i < l.length; i++){
+            if(!(C[l[i]])){
+                console.log("error in all_defined. This is not defined: ");
+                console.log(l[i]);
+                return(false);
+            };
+        };
+        return(true);
+    };
 
     function pack_oracle_binary_bet_offer(C) {
+        if(!(all_defined(C))){
+            return(0);
+        };
         if(!(C.source_id)){
-            C.source_id = btoa(array_to_string([0,0,0,0]));
+            C.source_id = btoa(array_to_string([0,0,0,0,0,0,0,0]));
             C.source_type = 0;
         };
+        if(!(C.start_limit)){
+            C.start_limit = Math.max(0, headers_object.top()[1] - 5);
+        }
         var code = static_binary_derivative;
         var contract_hash = contract_hash_maker(C.oracle_start_height, C.oracle_text);
         var many_types = C.subs1.length;
-        var new_id = hash(contract_hash.concat(
+        var new_id = btoa(array_to_string(hash(string_to_array(atob(contract_hash)).concat(
             integer_to_array(many_types, 4)).concat(
                 string_to_array(atob(C.source_id))).concat(
-                    integer_to_array(C.source_type, 4)));
+                    integer_to_array(C.source_type, 4)))));
         //calculate new_id from C.many_types and contract_hash
         var serialized_offer = 
             ["pair_buy_offer", C.from, C.nonce,
@@ -69,15 +97,17 @@ then
         };
         var offer = SO[1];
         var R = {};
-        R.oracle_text = Offer0[1];
+        R.oracle_text = atob(Offer0[1]);
         R.oracle_start_height = Offer0[2];
         R.from = offer[1];
         R.nonce = offer[2];
         R.start_limit = offer[3];
         R.source_type = offer[4];
-        R.contract_hash = offer[5];
-        var contract_hash = contract_hash_maker(C.oracle_start_height, C.oracle_text);
+        R.contract_hash = offer[7];
+        var contract_hash = contract_hash_maker(R.oracle_start_height, R.oracle_text);
         if(!(R.contract_hash == contract_hash)){
+            console.log(R.contract_hash);
+            console.log(contract_hash);
             console.log("bad contract hash");
             return(0);
         }
@@ -100,23 +130,29 @@ then
     };
     
     function contract_hash_maker(start_height, oracle_text) {
+        console.log("contract hash maker");
+        console.log([start_height, oracle_text]);
         var oracle_id = id_maker(start_height, 0, 0, oracle_text);
         var serialized_oracle_id = string_to_array(atob(oracle_id))
         var full_code = array_to_string(([2,0,0,0,32]).concat(serialized_oracle_id)).concat(static_binary_derivative);
-        return(hash(string_to_array(full_code)));
+        return(btoa(array_to_string(hash(string_to_array(full_code)))));
     }
     function test(){
         var full = btoa(array_to_string([255,255,255,255]));
         var empty = btoa(array_to_string([0,0,0,0]));
         rpc.post(["account", keys.pub()], function(my_acc){
             var Nonce = my_acc[2] + 1;
+            if(!(Nonce)){
+                console.log("You don't have an account");
+                return(0);
+            };
             var C = {
                 from: keys.pub(),
                 nonce: Nonce,
                 start_limit: 0,
                 end_limit:100,
                 oracle_start_height:10,
-                oracle_text: btoa(""),
+                oracle_text: btoa("1=1"),
                 amount1: 10000000,
                 amount2: 10000000,
                 fee1: 200000,
@@ -125,7 +161,9 @@ then
                 subs2: [empty, full],
             };
             var X = pack_oracle_binary_bet_offer(C);
-            console.log(JSON.stringify(X));
+            var Y = unpack_oracle_binary_bet_offer(X);
+            //console.log(JSON.stringify(X));
+            console.log(JSON.stringify(Y));
         })};
-    return({test: test, pack_binary: pack_oracle_bet_offer, unpack_binary: unpack_oracle_binary_bet_offer})
+    return({test: test, pack_binary: pack_oracle_binary_bet_offer, unpack_binary: unpack_oracle_binary_bet_offer})
 })();
