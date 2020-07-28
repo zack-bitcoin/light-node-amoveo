@@ -58,7 +58,7 @@ then
             return(0);
         };
         if(!(C.source_id)){
-            C.source_id = btoa(array_to_string([0,0,0,0,0,0,0,0]));
+            C.source_id = btoa(integer_to_array(0, 32));
             C.source_type = 0;
         };
         if(!(C.start_limit)){
