@@ -143,7 +143,7 @@ then
         rpc.post(["account", keys.pub()], function(my_acc){
             var Nonce = my_acc[2] + 1;
             if(!(Nonce)){
-                console.log("You don't have an account");
+                console.log("You don't have an account with money");
                 return(0);
             };
             var C = {

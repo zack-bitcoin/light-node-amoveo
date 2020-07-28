@@ -2,11 +2,87 @@
 (function(){
 
     var div = document.getElementById("binary_derivatives");
+    var display = document.createElement("div");
+    div.appendChild(display);
+
+    var offer_message = document.createElement("p");
+    div.appendChild(br());
+    div.appendChild(offer_message);
+    div.appendChild(br());
+    
     function test(){
         var p = document.createElement("div");
         p.innerHTML = "hello";
         div.appendChild(p);
     };
-    
 
+    var full = btoa(array_to_string([255,255,255,255]));
+    var empty = btoa(array_to_string([0,0,0,0]));
+            //TODO Amount1, Amount2, TimeLimit, Direction, OracleStartHeight, OracleText
+
+    var amount1 = text_input("how much you bet: ", div);
+    div.appendChild(br());
+    var amount2 = text_input("how much they bet: ", div);
+    div.appendChild(br());
+    var timelimit = text_input("how long until this offer is invalid? in blocks: ", div);
+    timelimit.value = "2";
+    div.appendChild(br());
+    var oracle_start_height = text_input("when it becomes possible to report on the outcome of the oracle question. a block height: ", div);
+    div.appendChild(br());
+    var oracle_text = text_input("the question we ask the oracle", div);
+    div.appendChild(br());
+    var direction = text_input("you win if the outcome is", div);
+    direction.value = "true";
+    div.appendChild(br());
+
+    var make_offer_button = button_maker2("make offer", make_offer);
+    div.appendChild(make_offer_button);
+    function make_offer(){
+        rpc.post(["account", keys.pub()], function(my_acc){
+            if(my_acc == 0) {
+                offer_message.innerHTML = "you don't have an account loaded";
+                return(0);
+            };
+            var now = headers_object.top()[1];
+            if(!(TimeLimit)){
+                //how long until your trade offer is not valid, in blocks
+                var TimeLimit = 2;
+            };
+            var Amount1 = parseInt(amount1.value);
+            var Amount2 = parseInt(amount2.value);
+            var TimeLimit = parseInt(timelimit.value);
+            var OracleStartHeight = parseInt(oracle_start_height.value);
+            var OracleText = oracle_text.value;
+            var Direction;
+            if(direction.value == "true"){
+                Direction = 1;
+            }else if(direction.value == "false"){
+                Direction = 2;
+            }
+            var C = {
+                oracle_start_height: OracleStartHeight,
+                oracle_text: OracleText,
+                from: keys.pub(),
+                nonce: my_acc[2] + 1,
+                start_limit: now - 1,
+                end_limit: now + TimeLimit,
+                source_id: btoa(array_to_string(integer_to_array(0, 32))),
+                source_type: 0,
+                amount1: Amount1,
+                amount2: Amount2,
+                fee1: 200000,
+                fee2: 200000
+            };
+            if(Direction == 1){
+                C.subs1 = [full, empty];
+                C.subs2 = [empty, full];
+            }else if(Direction == 2){
+                C.subs1 = [empty, full];
+                C.subs2 = [full, empty];
+            };
+            var Packed = contracts.pack_binary(C);
+            offer_message.innerHTML = JSON.stringify(Packed);
+        });
+
+    };
 })();
