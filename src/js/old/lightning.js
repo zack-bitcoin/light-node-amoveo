@@ -12,7 +12,7 @@ function lightning_main() {
         var s = Array.prototype.slice.call(elliptic.rand(32));
         var sh = hash(s);
         var ss_code = ([2, 0,0,0,32]).concat(s);
-        var ss = channels_object.new_ss(ss_code, [], []);
+        var ss = new_ss(ss_code, [], []);
         var code = [20,90,0,0,0,0,0,58,
                     70,
                       0,0,0,0,100,0,0,0,0,1,0,0,0,0,0,11,

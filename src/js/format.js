@@ -3,6 +3,15 @@ function s2c(x) { return x / token_units(); }
 function c2s(x) {
     return Math.floor(parseFloat(x.value, 10) * token_units());
 }
+function new_ss(code, prove, meta) {
+    if (meta == undefined) {
+        meta = 0;
+    }
+    return {"code": code, "prove": prove, "meta": meta};
+}
+function new_cd(me, them, ssme, ssthem, expiration, cid) {
+    return {"me": me, "them": them, "ssme": ssme, "ssthem": ssthem, "cid":cid, "expiration": expiration};
+}
 function big_array_to_int(l) {
     //var x = 0n;
     var x = 0;
@@ -387,7 +396,8 @@ function spk_sig(x) {
 function encode_cid(cid, pub) {
     var top_header = headers_object.top();
     var blockheight = top_header[1];
-    var f29 = 104600;
+    //var f29 = 104600;
+    var f29 = headers_object.forks.twenty_nine;
     if (blockheight > f29){//fork 29
         return(btoa(array_to_string(hash(string_to_array(atob(cid)).concat(string_to_array(atob(pub)))))));
     }else{
@@ -459,7 +469,7 @@ function spk_maker(db, acc2, amount, period) {
     }
     //var delay = 1000;//a little over a week
     var spk = ["spk", db.acc1, acc2, [-6], 0,0,db.cid, 0,0,db.delay];
-    var cd = channels_object.new_cd(spk, [],[],[],db.expires, db.cid);
+    var cd = new_cd(spk, [],[],[],db.expires, db.cid);
     //console.log(JSON.stringify(spk));
     //console.log(JSON.stringify(sc));
     //console.log("format spk maker before market trade");
@@ -508,15 +518,18 @@ function record_channel_state(sspk2, db, acc2, callback) {
             var size_a = Math.floor(size / 256);
             var size_b = size % 256;
             var code = [2,0,0,size_a,size_b].concat(spd_bytes).concat([0,0,0,0,1]);
-            var ss = channels_object.new_ss(code, to_prove, meta);
+            var ss = new_ss(code, to_prove, meta);
             var expiration = 10000000;
-            var cd = channels_object.new_cd(sspk2[1], sspk2, [ss], [ss], expiration, db.cid);
+            var cd = new_cd(sspk2[1], sspk2, [ss], [ss], expiration, db.cid);
+            var nacc;
             if (db.acc1 == keys.pub()) {
-                channels_object.write(acc2, cd);
+                nacc = acc2;
+                //channels_object.write(acc2, cd);
             } else {
-                channels_object.write(db.acc1, cd);
+                nacc = db.acc1;
+                //channels_object.write(db.acc1, cd);
             };
-            return(callback());
+            return(callback(cd, nacc));
         }));
 };
 

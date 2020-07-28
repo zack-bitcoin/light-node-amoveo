@@ -46,16 +46,17 @@ function channels_main() {
     function remove(key) {
 	delete channel_manager[key];
     }
-    function new_cd(me, them, ssme, ssthem, expiration, cid) {
+/*    function new_cd(me, them, ssme, ssthem, expiration, cid) {
         return {"me": me, "them": them, "ssme": ssme, "ssthem": ssthem, "cid":cid, "expiration": expiration};
     }
-    function new_ss(code, prove, meta) {
+*
+/*    function new_ss(code, prove, meta) {
         if (meta == undefined) {
             meta = 0;
         }
         return {"code": code, "prove": prove, "meta": meta};
     }
-
+*/
     //View
     var channel_title = document.createElement("h3");
     channel_title.innerHTML = "channel ";
@@ -542,14 +543,14 @@ spk currently looks like this.
 	}
         return x;
     }
-    return {new_cd: new_cd,
-            read: read,
+    return {//new_cd: new_cd,//
+            read: read,//
             load_channels: load_channels,
-            channel_manager: (function() {return channel_manager;}),
+            channel_manager: (function() {return channel_manager;}),//
             load_button: load_button,
             refresh: refresh_channels_interfaces,
-            new_ss: new_ss,
-            write: write,
+//            new_ss: new_ss,//
+            write: write,//
 	    ss_to_external: ss_to_external}
 }
 var channels_object = channels_main();

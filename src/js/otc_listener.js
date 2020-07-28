@@ -104,9 +104,9 @@
                         //save channel state
                         var my_spk_sig = [-7, 2, contract_sig];
                         var sspk2 = ["signed", spk2, their_spk_sig, my_spk_sig]; 
-                        record_channel_state(sspk2, db, keys.pub(), function() {
+                        //record_channel_state(sspk2, db, keys.pub(), function() {
                         status.innerHTML = "status: <font color=\"green\">The channel has been successfully formed.</font>";
-                        });
+                        //});
                     });
                 });
             });
