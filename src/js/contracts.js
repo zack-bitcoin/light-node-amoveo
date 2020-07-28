@@ -102,7 +102,9 @@ then
         R.from = offer[1];
         R.nonce = offer[2];
         R.start_limit = offer[3];
-        R.source_type = offer[4];
+        R.end_limit = offer[4];
+        R.source_id = offer[5];
+        R.source_type = offer[6];
         R.contract_hash = offer[7];
         var contract_hash = contract_hash_maker(R.oracle_start_height, R.oracle_text);
         if(!(R.contract_hash == contract_hash)){
@@ -111,13 +113,13 @@ then
             console.log("bad contract hash");
             return(0);
         }
-        R.new_id = offer[6];
-        R.amount1 = offer[7];
-        R.fee1 = offer[8];
-        R.amount2 = offer[9];
-        R.fee2 = offer[10];
-        R.subs1 = offer[11];
-        R.subs2 = offer[12];
+        R.new_id = offer[8];
+        R.amount1 = offer[9];
+        R.fee1 = offer[10];
+        R.amount2 = offer[11];
+        R.fee2 = offer[12];
+        R.subs1 = offer[13];
+        R.subs2 = offer[14];
         return(R);
     };
     
@@ -163,6 +165,7 @@ then
             var X = pack_oracle_binary_bet_offer(C);
             var Y = unpack_oracle_binary_bet_offer(X);
             //console.log(JSON.stringify(X));
+            console.log(JSON.stringify(C));
             console.log(JSON.stringify(Y));
         })};
     return({test: test, pack_binary: pack_oracle_binary_bet_offer, unpack_binary: unpack_oracle_binary_bet_offer})

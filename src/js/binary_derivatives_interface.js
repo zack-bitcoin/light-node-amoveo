@@ -2,12 +2,10 @@
 (function(){
 
     var div = document.getElementById("binary_derivatives");
-    var display = document.createElement("div");
-    div.appendChild(display);
 
-    var offer_message = document.createElement("p");
+    var display = document.createElement("p");
     div.appendChild(br());
-    div.appendChild(offer_message);
+    div.appendChild(display);
     div.appendChild(br());
     
     function test(){
@@ -40,7 +38,7 @@
     function make_offer(){
         rpc.post(["account", keys.pub()], function(my_acc){
             if(my_acc == 0) {
-                offer_message.innerHTML = "you don't have an account loaded";
+                display.innerHTML = "you don't have an account loaded";
                 return(0);
             };
             var now = headers_object.top()[1];
@@ -81,7 +79,7 @@
                 C.subs2 = [full, empty];
             };
             var Packed = contracts.pack_binary(C);
-            offer_message.innerHTML = JSON.stringify(Packed);
+            display.innerHTML = JSON.stringify(Packed);
         });
 
     };
