@@ -168,5 +168,5 @@ then
             console.log(JSON.stringify(C));
             console.log(JSON.stringify(Y));
         })};
-    return({test: test, pack_binary: pack_oracle_binary_bet_offer, unpack_binary: unpack_oracle_binary_bet_offer})
+    return({test: test, pack_binary: pack_oracle_binary_bet_offer, unpack_binary: unpack_oracle_binary_bet_offer, make_tx: make_tx})
 })();
