@@ -18,10 +18,10 @@
     var empty = btoa(array_to_string([0,0,0,0]));
 
     var amount1 = text_input("how much you bet: ", div);
-    amount1.value = "100";
+    amount1.value = "1";
     div.appendChild(br());
     var amount2 = text_input("how much they bet: ", div);
-    amount2.value = "100";
+    amount2.value = "1";
     div.appendChild(br());
     var timelimit = text_input("how long until this offer is invalid? in blocks: ", div);
     timelimit.value = "2";
@@ -72,11 +72,11 @@
                 fee2: 200000
             };
             if(Direction == 1){
-                C.subs1 = [full, empty];
-                C.subs2 = [empty, full];
+                C.subs1 = [-6, full, empty];
+                C.subs2 = [-6, empty, full];
             }else if(Direction == 2){
-                C.subs1 = [empty, full];
-                C.subs2 = [full, empty];
+                C.subs1 = [-6,empty, full];
+                C.subs2 = [-6, full, empty];
             };
             var Packed = contracts.pack_binary(C);
             display.innerHTML = JSON.stringify(Packed);

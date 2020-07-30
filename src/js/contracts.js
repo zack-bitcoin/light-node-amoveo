@@ -66,11 +66,18 @@ then
         }
         var code = static_binary_derivative;
         var contract_hash = contract_hash_maker(C.oracle_start_height, C.oracle_text);
-        var many_types = C.subs1.length;
-        var new_id = btoa(array_to_string(hash(string_to_array(atob(contract_hash)).concat(
-            integer_to_array(many_types, 4)).concat(
-                string_to_array(atob(C.source_id))).concat(
-                    integer_to_array(C.source_type, 4)))));
+        var many_types = C.subs1.length - 1;
+        var to_hash = 
+            string_to_array(atob(contract_hash))
+            .concat(string_to_array(atob(C.source_id)))
+            .concat(integer_to_array(many_types, 2))
+            .concat(integer_to_array(C.source_type, 2));
+        var new_id = btoa(array_to_string(hash(
+            string_to_array(atob(contract_hash))
+                .concat(string_to_array(atob(C.source_id)))
+                .concat(integer_to_array(many_types, 2))
+                .concat(integer_to_array(C.source_type, 2))
+        )));
         //calculate new_id from C.many_types and contract_hash
         var serialized_offer = 
             ["pair_buy_offer", C.from, C.nonce,
@@ -81,10 +88,8 @@ then
              C.amount2, C.fee2,
              C.subs1, C.subs2
             ];
-        console.log("serialized offer ");
-        console.log(serialized_offer);
         var signed_so = keys.sign(serialized_offer);
-        return([signed_so, btoa(C.oracle_text), C.oracle_start_height, [1]]);//the 1 is the type. this is a binary derivative, so it is type 1. scalar is 2.
+        return([signed_so, btoa(C.oracle_text), C.oracle_start_height, [-6, 1]]);//the 1 is the type. this is a binary derivative, so it is type 1. scalar is 2.
     };
 
 
@@ -135,7 +140,7 @@ then
         console.log("contract hash maker");
         console.log([start_height, oracle_text]);
         var oracle_id = id_maker(start_height, 0, 0, oracle_text);
-        var serialized_oracle_id = string_to_array(atob(oracle_id))
+        var serialized_oracle_id = string_to_array(atob(oracle_id));
         var full_code = array_to_string(([2,0,0,0,32]).concat(serialized_oracle_id)).concat(static_binary_derivative);
         return(btoa(array_to_string(hash(string_to_array(full_code)))));
     }

@@ -58,7 +58,11 @@
             var stx = keys.sign(tx);
 	    rpc.post(["txs", [-6, stx]],
                      function(x) {
-                         display.innerHTML = "accepted trade offer and published tx";
+                         if(x == "ZXJyb3I="){
+                             display.innerHTML = "server rejected the tx";
+                         }else{
+                             display.innerHTML = "accepted trade offer and published tx. the tx id is ".concat(x);
+                         }
                      });
         };
     };
@@ -66,13 +70,12 @@
         var X = "";
         var substring;
         var maximum = 4294967295;
-        console.log(V);
-        for(var i = 0; i < V.length; i ++){
+        for(var i = 1; i < V.length; i ++){
             substring = "<p>you get "
                 .concat(Math.round(array_to_int(string_to_array(atob(V[i])))
                                    * A / maximum))
                 .concat(" of subcurrency type ")
-                .concat(i+1)
+                .concat(i)
                 .concat("</p>");
             X = X.concat(substring);
         };
