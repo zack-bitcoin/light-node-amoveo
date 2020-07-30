@@ -75,7 +75,7 @@ var binary_interface_offer = (function(){
                 C.subs1 = [-6,empty, full];
                 C.subs2 = [-6, full, empty];
             };
-            var Packed = contracts.pack_binary(C);
+            var Packed = pair_buy.pack_binary(C);
             display.innerHTML = JSON.stringify(Packed);
         });
 

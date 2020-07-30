@@ -10,3 +10,9 @@ binary_interface_offer.oracle_start_height("10");
 binary_interface_offer.oracle_text("1=1");
 binary_interface_offer.direction("true");
 subcurrency_combiner.contract_id("smNS5nh9+rYThL095bt6oQIi6jQYbL2FZtleyxxroyM=");
+
+swap_offer.timelimit("2");
+swap_offer.amount1("10");
+swap_offer.amount2("10");
+swap_offer.cid1("smNS5nh9+rYThL095bt6oQIi6jQYbL2FZtleyxxroyM=");
+swap_offer.type1("1");

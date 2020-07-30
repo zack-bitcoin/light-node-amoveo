@@ -17,7 +17,7 @@
 
     function load_offer(){
         var X = JSON.parse(offer.value);
-        var Y = contracts.unpack_binary(X);
+        var Y = pair_buy.unpack_binary(X);
         console.log(Y.oracle_text);
         var now = headers_object.top()[1];
         var OID = id_maker(Y.oracle_start_height, 0, 0, Y.oracle_text);
@@ -52,7 +52,7 @@
         accept_button.onclick = function(){
             console.log(JSON.stringify(X[0]));
             var signed_offer = X[0];
-            var tx = contracts.make_tx(signed_offer);
+            var tx = pair_buy.make_tx(signed_offer);
             var stx = keys.sign(tx);
 	    rpc.post(["txs", [-6, stx]],
                      function(x) {
