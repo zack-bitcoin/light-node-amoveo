@@ -206,7 +206,7 @@ function keys_function1() {
     }
     function check_balance(Callback) {
         var trie_key = pubkey_64();
-        var top_hash = hash(headers_object.serialize(headers_object.top()));
+        //var top_hash = hash(headers_object.serialize(headers_object.top()));
         merkle.request_proof("accounts", trie_key, function(x) {
 	    Callback(x[1]);
         });
@@ -219,7 +219,7 @@ function keys_function1() {
                        20);
             return(0);
         }
-        var top_hash = hash(headers_object.serialize(headers_object.top()));
+        //var top_hash = hash(headers_object.serialize(headers_object.top()));
         rpc.post(["account", trie_key], function(unconfirmed) {
             var U = unconfirmed[1] / token_units();
             

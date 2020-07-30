@@ -38,6 +38,8 @@
             .concat(Y.oracle_start_height)
             .concat("</p><p>oracle id: ")
             .concat(OID)
+            .concat("</p><p>contract id: ")
+            .concat(Y.new_id)
             .concat("</p><p>amount they pay: ")
             .concat(Y.amount1)
             .concat("</p><p>fee they pay: ")

@@ -1,8 +1,6 @@
 function merkle_proofs_main() {
     function verify_callback(tree, key, callback) {
 	var top_hash = hash(headers_object.serialize(headers_object.top()));
-        console.log("verify callback key is ");
-        console.log(JSON.stringify(key));
 	rpc.post(["proof", btoa(tree), key, btoa(array_to_string(top_hash))], function(proof){
             if ((proof[3] == "empty")||(proof[3]==0)) { return callback("empty"); };
 	    var val = verify_merkle(key, proof);
@@ -11,7 +9,7 @@ function merkle_proofs_main() {
 	});
     }
     function hash_member(hash, members) {
-        for (var i = 0; i < 8; i++) {
+        for (var i = 0; i < members.length; i++) {
             var h2 = members.slice(32*i, 32*(i+1));
             //console.log("check that hash is a member");
             var b = check_equal(hash, h2);
@@ -63,8 +61,6 @@ function merkle_proofs_main() {
         var serialized =
             serialize_key(v, trie_key).concat(
                 serialize_tree_element(v, trie_key));
-	//console.log("hashed leaf");
-	//console.log(JSON.stringify(serialized));
         return hash(serialized);
     }
     function verify_merkle(trie_key, x) {
@@ -93,16 +89,16 @@ function merkle_proofs_main() {
 		} else {
                     var last = chain[chain.length - 1];
                     var value = x[3];
-                    console.log(JSON.stringify([value, trie_key]));
                     var lh = leaf_hash(value, trie_key);
                     var check5 = chain_links_array_member(last, lh);
                     if (check5) {
 			return value;
 			//we should learn to deal with proofs of empty data.
                     } else {
-			console.log("the value doesn't match the proof");
 			console.log(JSON.stringify(x));
 			console.log(trie_key);
+                        console.log(value);
+			console.log("the value doesn't match the proof");
                         return("fail");
 			//throw("bad");
                     }
@@ -119,6 +115,15 @@ function merkle_proofs_main() {
             //console.log(v);
             var pubkey = string_to_array(atob(v[3]));
             return hash(pubkey);
+	} else if ( t == "sub_acc" ) {
+            //pub, cid, type:256
+            return(hash(
+                string_to_array(atob(v[3]))
+                    .concat(string_to_array(atob(v[4])))
+                    .concat(integer_to_array(v[5], 32))));
+	} else if ( t == "contract" ) {
+            //code, source, many_types, source_types
+            return(hash(string_to_array(atob(contracts.id_maker(v[1], v[2], v[8], v[9])))));
 	} else if ( t == "channel" ) {
             //return hash(integer_to_array(v[1], 32));
             return hash(string_to_array(atob(v[1])));
@@ -185,6 +190,43 @@ function merkle_proofs_main() {
 			pubkey).concat(
                             bets);
             return serialized;
+	} else if ( t == "sub_acc" ) {
+            var balance = integer_to_array(v[1], 6);
+            var nonce = integer_to_array(v[2], 3);
+            var pubkey = string_to_array(atob(v[3]));
+            var cid = string_to_array(atob(v[4]));
+            var type = integer_to_array(v[5], 4);
+            var serialized = ([])
+                .concat(balance)
+                .concat(nonce)
+                .concat(type)
+                .concat(pubkey)
+                .concat(cid);
+            return serialized;
+	} else if ( t == "contract" ) {
+            var code = string_to_array(atob(v[1]));
+            var result = string_to_array(atob(v[7]));
+            var source = string_to_array(atob(v[8]));
+            var sink = string_to_array(atob(v[10]));
+            var sourcetype = integer_to_array(v[9], 4);
+            var volume = integer_to_array(v[11], 6);
+            var many = integer_to_array(v[2], 2);
+            var nonce = integer_to_array(v[3], 4);
+            var last_modified = integer_to_array(v[4], 4);
+            var delay = integer_to_array(v[5], 4);
+            var closed = integer_to_array(v[6], 1);
+            return ([])
+                .concat(code)
+                .concat(result)
+                .concat(source)
+                .concat(sink)
+                .concat(sourcetype)
+                .concat(many)
+                .concat(nonce)
+                .concat(last_modified)
+                .concat(delay)
+                .concat(closed)
+                .concat(volume);
 	} else if ( t == "channel" ) {
             //var cid = integer_to_array(v[1], 32);
             var cid = string_to_array(atob(v[1]));
@@ -200,17 +242,17 @@ function merkle_proofs_main() {
             var last_modified = integer_to_array(v[8], 4);
             var delay = integer_to_array(v[9], 4);
             var closed = integer_to_array(v[11], 1);
-            var serialized = ([]).concat(
-		cid).concat(
-                    bal1).concat(
-			bal2).concat(
-                            amount).concat(
-				nonce).concat(
-                                    last_modified).concat(
-					delay).concat(
-                                            closed).concat(
-						acc1).concat(
-                                                    acc2);
+            var serialized = ([])
+                .concat(cid)
+                .concat(bal1)
+                .concat(bal2)
+                .concat(amount)
+                .concat(nonce)
+                .concat(last_modified)
+                .concat(delay)
+                .concat(closed)
+                .concat(acc1)
+                .concat(acc2);
             return serialized;
 	} else if (t == "oracle") {
             //var id = integer_to_array(v[1], 32);
