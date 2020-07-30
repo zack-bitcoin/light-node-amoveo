@@ -1,4 +1,4 @@
-var subcurrency = (function(){
+var subcurrency_spender = (function(){
 
     var div = document.getElementById("subcurrency_spender");
     var display = document.createElement("p");
