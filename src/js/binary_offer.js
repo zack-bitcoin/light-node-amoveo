@@ -1,6 +1,6 @@
 
 
-var contracts = (function(){
+var binary_offer = (function(){
 //binary derivative contract based on a single oracle. 
     var static_binary_derivative = atob("AAAAAAF4gxSDFhSDFhSDFAAAAAAghwAAAAABeTpGRw1IFBQAAAAAAYcWFAIAAAADAAAAFoYAAAAAAzpGhACAAAAAFoIAf////xaCiAAAABOIAAAAAAFHFAAAAAABOkaEAP////8WggAAAAAAFoKIRxQAAAAAAjpGhAAAAAAAFoIA/////xaCiEcUFIQAgAAAABaCAH////8WgohISAAAAAAAAAAAA+hI");
 /*
@@ -72,7 +72,7 @@ then
             .concat(string_to_array(atob(C.source_id)))
             .concat(integer_to_array(many_types, 2))
             .concat(integer_to_array(C.source_type, 2));
-        var new_id = id_maker(contract_hash, many_types, C.source_id, C.source_type);
+        var new_id = contract_id_maker(contract_hash, many_types, C.source_id, C.source_type);
         //calculate new_id from C.many_types and contract_hash
         var serialized_offer = 
             ["pair_buy_offer", C.from, C.nonce,
@@ -86,10 +86,11 @@ then
         var signed_so = keys.sign(serialized_offer);
         return([signed_so, btoa(C.oracle_text), C.oracle_start_height, [-6, 1]]);//the 1 is the type. this is a binary derivative, so it is type 1. scalar is 2.
     };
-    function id_maker(
+    function contract_id_maker(
         contract_hash, many_types,
         source_id, source_type)
     {
+        console.log(source_id);
         return(btoa(array_to_string(hash(
             string_to_array(atob(contract_hash))
                 .concat(string_to_array(atob(source_id)))
@@ -144,7 +145,7 @@ then
     };
     
     function contract_hash_maker(start_height, oracle_text) {
-        var oracle_id = id_maker(start_height, 0, 0, oracle_text);
+        var oracle_id = id_maker(start_height, 0, 0, oracle_text);//from format
         var serialized_oracle_id = string_to_array(atob(oracle_id));
         var full_code = array_to_string(([2,0,0,0,32]).concat(serialized_oracle_id)).concat(static_binary_derivative);
         return(btoa(array_to_string(hash(string_to_array(full_code)))));
@@ -178,5 +179,5 @@ then
             console.log(JSON.stringify(C));
             console.log(JSON.stringify(Y));
         })};
-    return({test: test, pack_binary: pack_oracle_binary_bet_offer, unpack_binary: unpack_oracle_binary_bet_offer, make_tx: make_tx, id_maker: id_maker})
+    return({test: test, pack_binary: pack_oracle_binary_bet_offer, unpack_binary: unpack_oracle_binary_bet_offer, make_tx: make_tx, id_maker: contract_id_maker})
 })();

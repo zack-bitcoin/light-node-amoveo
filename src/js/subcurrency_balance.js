@@ -2,12 +2,10 @@ var subcurrency_balance = (function(){
 
     var div = document.getElementById("subcurrency_balance");
     var display = document.createElement("p");
-    div.appendChild(br());
     div.appendChild(display);
-    div.appendChild(br());
 
     var contract_id = text_input("contract_id: ", div);
-    contract_id.value = "smNS5nh9+rYThL095bt6oQIi6jQYbL2FZtleyxxroyM=";
+//    contract_id.value = "smNS5nh9+rYThL095bt6oQIi6jQYbL2FZtleyxxroyM=";
     div.appendChild(contract_id);
     div.appendChild(br());
     var button = button_maker2("update balance", balance);
@@ -36,13 +34,15 @@ var subcurrency_balance = (function(){
             if(x[0] == "sub_acc"){
                 amount = x[1];
             };
-            s = s
+            s = ("")
                 .concat("<br> type ")
                 .concat(type)
                 .concat(" balance: ")
-                .concat(amount);
+                .concat(amount)
+                .concat(s);
             balance2(type-1, cid, contract, s);
         });
     };
-    return({value: contract_id.value});
+    return({value: function(x) { contract_id.value = x}
+           });
 })();

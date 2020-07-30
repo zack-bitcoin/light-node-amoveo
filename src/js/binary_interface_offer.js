@@ -1,12 +1,10 @@
 
-(function(){
+var binary_interface_offer = (function(){
 
     var div = document.getElementById("binary_derivatives");
 
     var display = document.createElement("p");
-    div.appendChild(br());
     div.appendChild(display);
-    div.appendChild(br());
     
     function test(){
         var p = document.createElement("div");
@@ -18,22 +16,21 @@
     var empty = btoa(array_to_string([0,0,0,0]));
 
     var amount1 = text_input("how much you bet: ", div);
-    amount1.value = "1";
-    div.appendChild(br());
+//    amount1.value = "1";
     var amount2 = text_input("how much they bet: ", div);
-    amount2.value = "1";
+    //amount2.value = "1";
     div.appendChild(br());
     var timelimit = text_input("how long until this offer is invalid? in blocks: ", div);
-    timelimit.value = "2";
+    //timelimit.value = "2";
     div.appendChild(br());
     var oracle_start_height = text_input("when it becomes possible to report on the outcome of the oracle question. a block height: ", div);
-    oracle_start_height.value = "10";
+    //oracle_start_height.value = "10";
     div.appendChild(br());
     var oracle_text = text_input("the question we ask the oracle", div);
-    oracle_text.value = "1=1";
+    //oracle_text.value = "1=1";
     div.appendChild(br());
     var direction = text_input("you win if the outcome is", div);
-    direction.value = "true";
+    //direction.value = "true";
     div.appendChild(br());
 
     var make_offer_button = button_maker2("make offer", make_offer);
@@ -83,4 +80,12 @@
         });
 
     };
+    return({
+        amount1: function(x){ amount1.value = x},
+        amount2: function(x){ amount2.value = x},
+        timelimit: function(x){ timelimit.value = x},
+        oracle_start_height: function(x){ oracle_start_height.value = x},
+        oracle_text: function(x){ oracle_text.value = x},
+        direction: function(x){ direction.value = x},
+    });
 })();

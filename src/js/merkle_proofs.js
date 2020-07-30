@@ -117,13 +117,10 @@ function merkle_proofs_main() {
             return hash(pubkey);
 	} else if ( t == "sub_acc" ) {
             //pub, cid, type:256
-            return(hash(
-                string_to_array(atob(v[3]))
-                    .concat(string_to_array(atob(v[4])))
-                    .concat(integer_to_array(v[5], 32))));
+            return(sub_accounts.key(v[3], v[4], v[5]));
 	} else if ( t == "contract" ) {
             //code, source, many_types, source_types
-            return(hash(string_to_array(atob(contracts.id_maker(v[1], v[2], v[8], v[9])))));
+            return(hash(string_to_array(atob(binary_offer.id_maker(v[1], v[2], v[8], v[9])))));
 	} else if ( t == "channel" ) {
             //return hash(integer_to_array(v[1], 32));
             return hash(string_to_array(atob(v[1])));
