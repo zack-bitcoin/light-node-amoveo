@@ -32,11 +32,11 @@ var swaps = (function(){
             return(0);
         }
         if(!(C.cid1)){
-            C.cid1 = btoa(integer_to_array(0, 32));
+            C.cid1 = btoa(array_to_string(integer_to_array(0, 32)));
             C.type1 = 0;
         };
         if(!(C.cid2)){
-            C.cid2 = btoa(integer_to_array(0, 32));
+            C.cid2 = btoa(array_to_string(integer_to_array(0, 32)));
             C.type2 = 0;
         };
         if(!(C.start_limit)){
@@ -80,10 +80,11 @@ var swaps = (function(){
     };
     function make_tx(SO) {
         var offer = SO[1];
-        var fee1 = offer[10];
+        var fee1 = offer[11];
         var fee2 = offer[12];
         var fee = fee1 + fee2;
-        return(["swap_tx", From, SO, fee]);
+        console.log([fee1, fee2, fee]);
+        return(["swap_tx", keys.pub(), SO, fee]);
     };
     function test(){
         var C = {
