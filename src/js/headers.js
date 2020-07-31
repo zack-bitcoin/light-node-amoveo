@@ -28,7 +28,8 @@ function headers_main() {
     if (mode == "test") {
 	INITIAL_DIFFICULTY = 2500;
 	retarget_frequency = 12;
-	forks = {two: 0, four: retarget_frequency, seven:40, twenty_nine:0};
+	forks = {two: 0, four: retarget_frequency,
+                 seven:40, twenty_nine:0};
 	top_header = 0;
     } else if (mode == "testnet") {
 	INITIAL_DIFFICULTY = 2500;
@@ -114,7 +115,8 @@ function headers_main() {
         if ( header == undefined ) {
             //console.log(headers_db);
             //console.log(hash);
-            //console.log("received an orphan header");
+            console.log(header);
+            console.log("received an orphan header");
             return "unknown parent";
         } else {
             var Diff = header[6];
@@ -291,7 +293,7 @@ function headers_main() {
                 return [I > diff, EWAH];
             } else {
                 console.log("bad diff");
-                console.log(diff);
+                console.log(diff);//from server
                 console.log(diff0);
                 return [false, 0];
             }

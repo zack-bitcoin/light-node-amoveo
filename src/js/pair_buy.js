@@ -3,6 +3,10 @@
 var pair_buy = (function(){
 //binary derivative contract based on a single oracle. 
     var static_binary_derivative = atob("AAAAAAF4gxSDFhSDFhSDFAAAAAAghwAAAAABeTpGRw1IFBQAAAAAAYcWFAIAAAADAAAAFoYAAAAAAzpGhACAAAAAFoIAf////xaCiAAAABOIAAAAAAFHFAAAAAABOkaEAP////8WggAAAAAAFoKIRxQAAAAAAjpGhAAAAAAAFoIA/////xaCiEcUFIQAgAAAABaCAH////8WgohISAAAAAAAAAAAA+hI");
+
+//    static_binary_derivative = array_to_string(
+//        [1,255,255,255,255,3,0,132,130,130,3,0,3,100]);
+    //int 0, max, nil, cons, cons, 0, 100
 /*
 OID ! 
 macro [ nil ; 
@@ -64,15 +68,16 @@ then
         if(!(C.start_limit)){
             C.start_limit = Math.max(0, headers_object.top()[1] - 5);
         }
-        var code = static_binary_derivative;
+        //var code = static_binary_derivative;
         var contract_hash = contract_hash_maker(C.oracle_start_height, C.oracle_text);
-        var many_types = C.subs1.length - 1;
-        var to_hash = 
+        var many_types = 2;
+/*        var to_hash = 
             string_to_array(atob(contract_hash))
             .concat(string_to_array(atob(C.source_id)))
             .concat(integer_to_array(many_types, 2))
             .concat(integer_to_array(C.source_type, 2));
-        var new_id = contract_id_maker(contract_hash, many_types, C.source_id, C.source_type);
+*/
+        var new_id = contract_id_maker(contract_hash, many_types);
         //calculate new_id from C.many_types and contract_hash
         var serialized_offer = 
             ["pair_buy_offer", C.from, C.nonce,
@@ -86,10 +91,18 @@ then
         var signed_so = keys.sign(serialized_offer);
         return([signed_so, btoa(C.oracle_text), C.oracle_start_height, [-6, 1]]);//the 1 is the type. this is a binary derivative, so it is type 1. scalar is 2.
     };
+    function id_maker2(oracle_id, many_types) {
+        var ch = contract_hash_maker2(oracle_id);
+        return(contract_id_maker(ch, many_types));
+    };
     function contract_id_maker(
         contract_hash, many_types,
         source_id, source_type)
     {
+        if(!(source_id)){
+            source_id = btoa(array_to_string(integer_to_array(0, 32)));
+            source_type = 0;
+        };
         console.log(source_id);
         return(btoa(array_to_string(hash(
             string_to_array(atob(contract_hash))
@@ -144,11 +157,28 @@ then
         return(["pair_buy_tx", keys.pub(), SO, fee]);
     };
     
-    function contract_hash_maker(start_height, oracle_text) {
+    function contract_maker(start_height, oracle_text) {
         var oracle_id = id_maker(start_height, 0, 0, oracle_text);//from format
+        return(contract_maker2(oracle_id));
+    }
+    function contract_maker2(oracle_id) {
         var serialized_oracle_id = string_to_array(atob(oracle_id));
         var full_code = array_to_string(([2,0,0,0,32]).concat(serialized_oracle_id)).concat(static_binary_derivative);
-        return(btoa(array_to_string(hash(string_to_array(full_code)))));
+        return(btoa(full_code));
+        
+    };
+    function contract_hash_maker(start_height, oracle_text) {
+        //var oracle_id = id_maker(start_height, 0, 0, oracle_text);//from format
+        //return(contract_hash_maker2(oracle_id));
+        var c = contract_maker(start_height, oracle_text);
+        return(btoa(array_to_string(hash(string_to_array(atob(c))))));
+    }
+    function contract_hash_maker2(oracle_id){
+        var c = contract_maker2(oracle_id);
+        return(btoa(array_to_string(hash(string_to_array(atob(c))))));
+        //var serialized_oracle_id = string_to_array(atob(oracle_id));
+        //var full_code = array_to_string(([2,0,0,0,32]).concat(serialized_oracle_id)).concat(static_binary_derivative);
+        //return(btoa(array_to_string(hash(string_to_array(full_code)))));
     }
     function test(){
         var full = btoa(array_to_string([255,255,255,255]));
@@ -179,5 +209,5 @@ then
             console.log(JSON.stringify(C));
             console.log(JSON.stringify(Y));
         })};
-    return({test: test, pack_binary: pack_oracle_binary_bet_offer, unpack_binary: unpack_oracle_binary_bet_offer, make_tx: make_tx, id_maker: contract_id_maker})
+    return({test: test, pack_binary: pack_oracle_binary_bet_offer, unpack_binary: unpack_oracle_binary_bet_offer, make_tx: make_tx, id_maker: contract_id_maker, id_maker2: id_maker2, contract2: contract_maker2})
 })();

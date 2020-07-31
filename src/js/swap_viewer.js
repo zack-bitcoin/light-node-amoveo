@@ -1,6 +1,6 @@
 var swap_viewer = (function(){
 
-    var div = document.getElementById("swap_offer");
+    var div = document.getElementById("swap_viewer");
     var display = document.createElement("p");
     div.appendChild(display);
     

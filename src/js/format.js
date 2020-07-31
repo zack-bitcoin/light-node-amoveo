@@ -577,6 +577,17 @@ function scalar_keys1(id, callback) {
     });
 };
 
+function post_txs(txs, callback) {
+    rpc.post(["txs", [-6].concat(txs)],
+             function(x) {
+                 if(x == "ZXJyb3I="){
+                     callback("server rejected the tx");
+                 }else{
+                     callback("accepted trade offer and published tx. the tx id is ".concat(x));
+                 }
+             });
+};
+
 var configure = {};
 
 configure["new_account"] = true;
