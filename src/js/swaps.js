@@ -45,10 +45,11 @@ var swaps = (function(){
                 C.start_limit = 0;
             };
         };
+        var salt = btoa(random_cid(32));
         var serialized_offer =
             ["swap_offer", C.acc1,
-             C.nonce, C.start_limit,
-             C.end_limit, C.amount1,
+             C.start_limit,
+             C.end_limit, salt, C.amount1,
              C.cid1, C.type1, C.amount2,
              C.cid2, C.type2, C.fee1,
              C.fee2
@@ -65,9 +66,10 @@ var swaps = (function(){
         var offer = SO[1];
         var R = {};
         R.acc1 = offer[1];
-        R.nonce = offer[2];
-        R.start_limit = offer[3];
-        R.end_limit = offer[4];
+//        R.nonce = offer[2];
+        R.start_limit = offer[2];
+        R.end_limit = offer[3];
+        R.salt = offer[4];
         R.amount1 = offer[5];
         R.cid1 = offer[6];
         R.type1 = offer[7];
@@ -89,7 +91,7 @@ var swaps = (function(){
     function test(){
         var C = {
             acc1: keys.pub(),
-            nonce: 0,
+//            nonce: 0,
             start_limit: 0,
             end_limit: 10,
             amount1: 1000,

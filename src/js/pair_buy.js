@@ -79,11 +79,13 @@ then
 */
         var new_id = contract_id_maker(contract_hash, many_types);
         //calculate new_id from C.many_types and contract_hash
+        var salt = random_cid(32);
         var serialized_offer = 
-            ["pair_buy_offer", C.from, C.nonce,
+            ["pair_buy_offer", C.from,
              C.start_limit, C.end_limit,
              C.source_id, C.source_type,
              contract_hash, new_id,
+             btoa(salt),
              C.amount1, C.fee1,
              C.amount2, C.fee2,
              C.subs1, C.subs2
@@ -126,12 +128,12 @@ then
         R.oracle_text = atob(Offer0[1]);
         R.oracle_start_height = Offer0[2];
         R.from = offer[1];
-        R.nonce = offer[2];
-        R.start_limit = offer[3];
-        R.end_limit = offer[4];
-        R.source_id = offer[5];
-        R.source_type = offer[6];
-        R.contract_hash = offer[7];
+//        R.nonce = offer[2];
+        R.start_limit = offer[2];
+        R.end_limit = offer[3];
+        R.source_id = offer[4];
+        R.source_type = offer[5];
+        R.contract_hash = offer[6];
         var contract_hash = contract_hash_maker(R.oracle_start_height, R.oracle_text);
         if(!(R.contract_hash == contract_hash)){
             console.log(R.contract_hash);
@@ -139,7 +141,8 @@ then
             console.log("bad contract hash");
             return(0);
         }
-        R.new_id = offer[8];
+        R.new_id = offer[7];
+        R.salt = offer[8];
         R.amount1 = offer[9];
         R.fee1 = offer[10];
         R.amount2 = offer[11];
