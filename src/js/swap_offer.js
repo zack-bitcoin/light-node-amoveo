@@ -25,7 +25,7 @@ var swap_offer = (function(){
     function doit(){
         rpc.post(["account", keys.pub()], function(my_acc){
             var offer = {};
-            offer.nonce = my_acc[1] + 1;
+            offer.nonce = my_acc[2] + 1;
             var now = headers_object.top()[1];
             offer.start_limit = now - 1;
             var TimeLimit = parseInt(timelimit.value);
@@ -51,6 +51,6 @@ var swap_offer = (function(){
         cid1: function(x){cid1.value = x},
         cid2: function(x){cid2.value = x},
         type1: function(x){type1.value = x},
-        type2: function(x){type1.value = x}
+        type2: function(x){type2.value = x}
     });
 })();
