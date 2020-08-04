@@ -19,7 +19,7 @@ var subcurrency_combiner = (function(){
                 var fee = 152050;
                 var many_types = contract[2];
                 amount_calc(many_types, 10000000000000000, contract_id.value, function(amount){
-                    if(amount < 1) {
+                    if(amount > -1) {
                         display.innerHTML = "You don't have a complete set of shares for this market. you cannot withdraw to source currency."
                         return(0);
                     }
@@ -46,7 +46,7 @@ var subcurrency_combiner = (function(){
     };
     function amount_calc(N, amount, cid, callback) {
         if(N == 0){
-            return(callback(amount));
+            return(callback(-amount));
         };
         var key = sub_accounts.key(keys.pub(), cid, N);
         key = btoa(array_to_string(key));

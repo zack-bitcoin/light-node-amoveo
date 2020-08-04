@@ -88,7 +88,7 @@ then
              btoa(salt),
              C.amount1, C.fee1,
              C.amount2, C.fee2,
-             C.subs1, C.subs2
+             C.subs1, C.subs2, C.nonce
             ];
         var signed_so = keys.sign(serialized_offer);
         return([signed_so, btoa(C.oracle_text), C.oracle_start_height, [-6, 1]]);//the 1 is the type. this is a binary derivative, so it is type 1. scalar is 2.
@@ -128,7 +128,6 @@ then
         R.oracle_text = atob(Offer0[1]);
         R.oracle_start_height = Offer0[2];
         R.from = offer[1];
-//        R.nonce = offer[2];
         R.start_limit = offer[2];
         R.end_limit = offer[3];
         R.source_id = offer[4];
@@ -149,6 +148,7 @@ then
         R.fee2 = offer[12];
         R.subs1 = offer[13];
         R.subs2 = offer[14];
+        R.nonce = offer[15];
         return(R);
     };
     

@@ -52,7 +52,7 @@ var swaps = (function(){
              C.end_limit, salt, C.amount1,
              C.cid1, C.type1, C.amount2,
              C.cid2, C.type2, C.fee1,
-             C.fee2
+             C.fee2, C.nonce
             ];
         var signed_so = keys.sign(serialized_offer);
         return(signed_so);
@@ -66,7 +66,6 @@ var swaps = (function(){
         var offer = SO[1];
         var R = {};
         R.acc1 = offer[1];
-//        R.nonce = offer[2];
         R.start_limit = offer[2];
         R.end_limit = offer[3];
         R.salt = offer[4];
@@ -78,6 +77,7 @@ var swaps = (function(){
         R.type2 = offer[10];
         R.fee1 = offer[11];
         R.fee2 = offer[12];
+        R.nonce = offer[13];
         return(R);
     };
     function make_tx(SO) {
