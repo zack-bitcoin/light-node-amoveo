@@ -29,7 +29,7 @@ var publish_swap_offer = (function() {
                      console.log("should be zero");
                      console.log(z);
                  },
-                 get_ip(), 8090);
+                 s_ip.value, parseInt(s_port.value));
     };
 
     return({ip: function(x){ s_ip.value = x},

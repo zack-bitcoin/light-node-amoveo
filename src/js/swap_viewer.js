@@ -69,5 +69,6 @@ var swap_viewer = (function(){
         };
     };
     
-    return({offer: function(x) {offer.value = x}})
+    return({offer: function(x) {offer.value = x},
+            view: view})
 })();
