@@ -27,5 +27,10 @@ binary_interface_offer.timelimit("2");
     resolve_binary_contract.oracle_text("1=1");
 
     binary_contract_winnings.contract_id(cid);
-    
+
+    teach_binary_contract.oracle_text("1=1");
+    teach_binary_contract.oracle_height(5);
+
+    check_binary_contract.cid(cid);
+
 })();
