@@ -5,13 +5,13 @@ var swaps = (function(){
           amount1, cid1, type1, %this is what acc1 gives.
           amount2, cid2, type2, %this is what acc2 gives.
           fee1, %what acc1 pays in fees
-          fee2}).
+          }).
 */
     function all_defined(C){
         var l = [
             "acc1", "end_limit",
             "amount1", "amount2",
-            "fee1", "fee2"
+            "fee1"
         ];
         for(var i = 0; i < l.length; i++){
             if(!(C[l[i]])){
@@ -52,7 +52,7 @@ var swaps = (function(){
              C.end_limit, salt, C.amount1,
              C.cid1, C.type1, C.amount2,
              C.cid2, C.type2, C.fee1,
-             C.fee2, C.nonce
+             C.nonce
             ];
         var signed_so = keys.sign(serialized_offer);
         return(signed_so);
@@ -76,16 +76,12 @@ var swaps = (function(){
         R.cid2 = offer[9];
         R.type2 = offer[10];
         R.fee1 = offer[11];
-        R.fee2 = offer[12];
-        R.nonce = offer[13];
+        R.nonce = offer[12];
         return(R);
     };
     function make_tx(SO) {
         var offer = SO[1];
-        var fee1 = offer[11];
-        var fee2 = offer[12];
-        var fee = fee1 + fee2;
-        console.log([fee1, fee2, fee]);
+        var fee = 200000;
         return(["swap_tx", keys.pub(), SO, fee]);
     };
     function test(){
@@ -98,8 +94,7 @@ var swaps = (function(){
             amount2: 1000,
             cid2: btoa(array_to_string(hash([1]))),
             type2: 1,
-            fee1: 200000,
-            fee2: 200000
+            fee1: 200000
         };
         console.log(C);
         var X = pack(C);

@@ -15,7 +15,7 @@ var resolve_binary_contract = (function(){
     function resolve(){
         var oid = id_maker(parseInt(oracle_height.value),
                            0,0, oracle_text.value);
-        var cid = pair_buy.id_maker2(oid, 2);
+        var cid = binary_derivative.id_maker2(oid, 2);
         merkle.request_proof("accounts", keys.pub(), function(my_acc){
             merkle.request_proof("oracles", oid, function(oracle){
                 if(oracle[2] == 0){
@@ -25,7 +25,7 @@ var resolve_binary_contract = (function(){
                 }
             var nonce = my_acc[2] + 1;
             var fee = 152050;
-            var contract = pair_buy.contract2(oid);
+            var contract = binary_derivative.contract2(oid);
             var tx = ["contract_evidence_tx",
                       keys.pub(),
                       nonce, fee, contract,

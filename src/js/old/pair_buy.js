@@ -46,8 +46,8 @@ then
              "end_limit",
              "amount1",
              "amount2",
-             "fee1",
-             "fee2"];
+             "fee1"
+             ];
         for(var i = 0; i < l.length; i++){
             if(!(C[l[i]])){
                 console.log("error in all_defined. This is not defined: ");
@@ -88,7 +88,7 @@ then
              contract_hash, new_id,
              btoa(salt),
              C.amount1, C.fee1,
-             C.amount2, C.fee2,
+             C.amount2,
              C.subs1, C.subs2, C.nonce
             ];
         var signed_so = keys.sign(serialized_offer);
@@ -146,18 +146,15 @@ then
         R.amount1 = offer[9];
         R.fee1 = offer[10];
         R.amount2 = offer[11];
-        R.fee2 = offer[12];
-        R.subs1 = offer[13];
-        R.subs2 = offer[14];
-        R.nonce = offer[15];
+        R.subs1 = offer[12];
+        R.subs2 = offer[13];
+        R.nonce = offer[14];
         return(R);
     };
     
     function make_tx(SO) {
         var offer = SO[1];
-        var fee1 = offer[10];
-        var fee2 = offer[12];
-        var fee = fee1 + fee2;
+        var fee = 200000;
         return(["pair_buy_tx", keys.pub(), SO, fee]);
     };
     
@@ -203,7 +200,6 @@ then
                 amount1: 10000000,
                 amount2: 10000000,
                 fee1: 200000,
-                fee2: 200000,
                 subs1: [full, empty],
                 subs2: [empty, full],
             };

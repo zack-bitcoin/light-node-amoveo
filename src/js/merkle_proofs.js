@@ -120,7 +120,7 @@ function merkle_proofs_main() {
             return(sub_accounts.key(v[3], v[4], v[5]));
 	} else if ( t == "contract" ) {
             //code, source, many_types, source_types
-            return(hash(string_to_array(atob(pair_buy.id_maker(v[1], v[2], v[8], v[9])))));
+            return(hash(string_to_array(atob(binary_derivative.id_maker(v[1], v[2], v[8], v[9])))));
 	} else if ( t == "channel" ) {
             //return hash(integer_to_array(v[1], 32));
             return hash(string_to_array(atob(v[1])));

@@ -9,12 +9,15 @@
     subcurrency_spender.amount(1);
     subcurrency_spender.contract_id(cid)
     subcurrency_balance.value(cid);
-    binary_interface_offer.amount1("1000000");
+    new_contract.oracle_text("1=1");
+    new_contract.start_height("5");
+/*    binary_interface_offer.amount1("1000000");
     binary_interface_offer.amount2("1000000");
 binary_interface_offer.timelimit("2");
     binary_interface_offer.oracle_start_height(oracle_height_constant);
     binary_interface_offer.oracle_text("1=1");
     binary_interface_offer.direction("true");
+*/
     subcurrency_combiner.contract_id(cid);
     
     swap_offer.timelimit("2");
