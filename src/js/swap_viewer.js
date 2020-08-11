@@ -50,22 +50,21 @@ var swap_viewer = (function(){
             .concat("</p><p>you lose: ")
             .concat(Y.amount2)
             .concat(" of ")
-            .concat(contract2)
-            .concat("</p><p>you pay fee: ")
-            .concat(Y.fee2);
+            .concat(contract2);
         accept_button.onclick = function(){
             var signed_offer = X;
-            var tx = swaps.make_tx(signed_offer);
-            var stx = keys.sign(tx);
-            console.log(JSON.stringify(tx));
-	    rpc.post(["txs", [-6, stx]],
-                     function(x) {
-                         if(x == "ZXJyb3I="){
-                             display.innerHTML = "server rejected the tx";
-                         }else{
-                             display.innerHTML = "accepted trade offer and published tx. the tx id is ".concat(x);
-                         }
-                     });
+            swaps.make_tx(signed_offer, function(tx){
+                console.log(JSON.stringify(tx));
+                var stx = keys.sign(tx);
+	        rpc.post(["txs", [-6, stx]],
+                         function(x) {
+                             if(x == "ZXJyb3I="){
+                                 display.innerHTML = "server rejected the tx";
+                             }else{
+                                 display.innerHTML = "accepted trade offer and published tx. the tx id is ".concat(x);
+                             }
+                         });
+            });
         };
     };
     

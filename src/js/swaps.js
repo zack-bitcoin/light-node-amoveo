@@ -79,11 +79,93 @@ var swaps = (function(){
         R.nonce = offer[12];
         return(R);
     };
-    function make_tx(SO) {
-        var offer = SO[1];
+    function make_tx(SO, callback) {
         var fee = 200000;
-        return(["swap_tx", keys.pub(), SO, fee]);
+        var swap_tx = ["swap_tx", keys.pub(), SO, fee];
+        //instead of immediately accepting the swap, we should check what currencies this person owns.
+        //sell as much as you can of your own, and buy more as needed to complete their trade. If you do not have the source currency to buy more, then fail and give an error message.
+        var R = unpack(SO);
+        var CID = R.cid2;
+        var Type = R.type2;
+        var Amount = R.amount2;
+        console.log("make txs1");
+        make_txs2(CID, Type, Amount, function(Txs){
+            if(Txs == "error"){
+                console.log("error");
+            };
+            if(Txs == []) {
+                callback(swap_tx);
+            } else {
+                console.log(Txs);
+                Txs = [swap_tx].concat(Txs);
+                Txs = zero_accounts_nonces(Txs);
+                merkle.request_proof("accounts", keys.pub(), function(Acc){
+                    var Nonce = Acc[2] + 1;
+                    callback(["multi_tx", keys.pub(), Nonce, fee*2, [-6].concat(Txs)]);
+                });
+            };
+        });
     };
+    function make_txs2(CID, Type, Amount, callback){
+        console.log("make txs2");
+        var fee = 200000;
+        if(Type == 0){//they want veo
+            merkle.request_proof("accounts", keys.pub(), function(Acc){
+                if(Acc[1] > Amount){
+                    callback([]);//we have enough of the veo they want.
+                } else {
+                    console.log("not enough veo error");
+                    console.log(Acc);
+                    console.log(Amount);
+                    callback("error");
+                }
+            });
+        } else {//they want a subcurrency
+            console.log([keys.pub(), CID, Type]);
+            var SKey = btoa(array_to_string(sub_accounts.key(keys.pub(), CID, Type)));
+            console.log(SKey);
+            merkle.request_proof("sub_accounts", SKey, function(SA){
+                console.log(SA);
+                var bal;
+                if(SA == "empty"){
+                    bal = 0
+                } else {
+                    bal = SA[1];
+                }
+                if(bal >= Amount){//we have enough of the subcurrency they want
+                    callback([]);
+                } else {//we don't have enough of what they want. maybe we can buy more?
+                    merkle.request_proof("contracts", CID, function(Contract){
+                        console.log(Contract);
+                        var Source = Contract[8];
+                        var SourceType = Contract[9];
+                        var Tx = ["contract_use_tx", 0, 0, 0, CID, Amount - bal, 3];
+                        //return([Tx].concat(make_txs2(Source, SourceType, Amount - bal)));
+                        make_txs2(Source, SourceType, Amount - bal, function(L){return(callback([Tx].concat(L)))});
+                    });
+                };
+            });
+        };
+    };
+    function zero_accounts_nonces(L) {
+        for(var i=0; i<L.length; i++){
+            //WARNING, this version only works on contract_use_tx. the erlang version works on other types too.
+            if(L[i][0] == "contract_use_tx"){
+                L[i][1] = 0;
+                L[i][2] = 0;
+                L[i][3] = 0;
+            } else if (L[i][0] == "swap_tx") {
+                L[i][1] = 0;
+                L[i][3] = 0;
+            } else {
+                console.log("swaps unhandled case");
+                console.log(L[i][0]);
+            }
+        };
+        console.log(JSON.stringify(L));
+        return(L);
+    };
+
     function test(){
         var C = {
             acc1: keys.pub(),

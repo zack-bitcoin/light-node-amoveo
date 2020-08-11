@@ -68,8 +68,7 @@ var publish_swap_offer = (function() {
     function publish3(x){
         rpc.post(["add", x], function(z)
                  {
-                     console.log("should be zero");
-                     console.log(z);
+                     display.innerHTML = "successfully sent the swap offer to the server.";
                  },
                  s_ip.value,
                  parseInt(s_port.value));
