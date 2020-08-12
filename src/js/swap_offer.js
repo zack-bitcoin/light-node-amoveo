@@ -40,8 +40,44 @@ var swap_offer = (function(){
             offer.fee2 = fee;
             offer.acc1 = keys.pub();
             console.log(JSON.stringify(offer));
-            var signed_offer = swaps.pack(offer);
-            display.innerHTML = JSON.stringify(signed_offer);
+
+            if((offer.type1 == 0) || !(offer.type1)){
+                console.log("swap offer");
+                var bal = my_acc[1];
+                if(my_acc == "empty"){
+                    display.innerHTML = "not enough veo to make this offer. (possibly no key loaded?) ";
+                    return(0);
+                };
+                if(offer.amount1 > bal){
+                    display.innerHTML = "not enough veo to make this offer";
+                    return(0);
+                } else {
+                    var signed_offer = swaps.pack(offer);
+                    display.innerHTML = JSON.stringify(signed_offer);
+                }
+            } else {
+                console.log("swap offer");
+                var key = btoa(array_to_string(sub_accounts.key(keys.pub(), offer.cid1, offer.type1)));
+                return(merkle.request_proof("sub_accounts", key, function(sub_acc){
+                    console.log(sub_acc);
+                    if(sub_acc == "empty"){
+                        display.innerHTML = "not enough subcurrency to  make this offer (possibly no key loaded?)";
+                        return(0);
+                    };
+                    bal = sub_acc[1];
+                    if(offer.amount1 > bal){
+                        display.innerHTML = "not enough subcurrency to  make this offer";
+                        return(0);
+                    } else {
+                        
+                        var signed_offer = swaps.pack(offer);
+                        display.innerHTML = JSON.stringify(signed_offer);
+                    };
+                }));
+            };
+
+//            var signed_offer = swaps.pack(offer);
+ //           display.innerHTML = JSON.stringify(signed_offer);
         });
     };
     return({

@@ -92,17 +92,21 @@ var swaps = (function(){
         make_txs2(CID, Type, Amount, function(Txs){
             if(Txs == "error"){
                 console.log("error");
+                return(0);
             };
             if(Txs == []) {
                 callback(swap_tx);
             } else {
                 console.log(Txs);
                 Txs = [swap_tx].concat(Txs);
+                callback(Txs);
+/*                
                 Txs = zero_accounts_nonces(Txs);
                 merkle.request_proof("accounts", keys.pub(), function(Acc){
                     var Nonce = Acc[2] + 1;
                     callback(["multi_tx", keys.pub(), Nonce, fee*2, [-6].concat(Txs)]);
                 });
+*/
             };
         });
     };
@@ -136,34 +140,23 @@ var swaps = (function(){
                     callback([]);
                 } else {//we don't have enough of what they want. maybe we can buy more?
                     merkle.request_proof("contracts", CID, function(Contract){
-                        console.log(Contract);
-                        var Source = Contract[8];
-                        var SourceType = Contract[9];
-                        var Tx = ["contract_use_tx", 0, 0, 0, CID, Amount - bal, 3];
+                        var Source, SourceType;
+                        if(Contract == "empty"){
+                            console.log("contract doesn't yet exist");
+                            SourceType = 0;
+                            Source = btoa(array_to_string(integer_to_array(0, 32)));
+                        } else {
+                            console.log(Contract);
+                            Source = Contract[8];
+                            SourceType = Contract[9];
+                        }
+                        var Tx = ["contract_use_tx", 0, 0, 0, CID, Amount - bal, 3, Source, SourceType];
                         //return([Tx].concat(make_txs2(Source, SourceType, Amount - bal)));
                         make_txs2(Source, SourceType, Amount - bal, function(L){return(callback([Tx].concat(L)))});
                     });
                 };
             });
         };
-    };
-    function zero_accounts_nonces(L) {
-        for(var i=0; i<L.length; i++){
-            //WARNING, this version only works on contract_use_tx. the erlang version works on other types too.
-            if(L[i][0] == "contract_use_tx"){
-                L[i][1] = 0;
-                L[i][2] = 0;
-                L[i][3] = 0;
-            } else if (L[i][0] == "swap_tx") {
-                L[i][1] = 0;
-                L[i][3] = 0;
-            } else {
-                console.log("swaps unhandled case");
-                console.log(L[i][0]);
-            }
-        };
-        console.log(JSON.stringify(L));
-        return(L);
     };
 
     function test(){

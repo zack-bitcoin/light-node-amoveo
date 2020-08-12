@@ -23,13 +23,18 @@ var subcurrency_combiner = (function(){
                         display.innerHTML = "You don't have a complete set of shares for this market. you cannot withdraw to source currency."
                         return(0);
                     }
+                    var source = contract[8];
+                    var source_type = contract[9];
                     var tx = ["contract_use_tx",
                               keys.pub(),
                               nonce,
                               fee,
                               contract_id.value,
                               amount,
-                              many_types];
+                              many_types,
+                              source,
+                              source_type
+                             ];
                     var stx = keys.sign(tx);
                     rpc.post(["txs", [-6, stx]],
                      function(x) {

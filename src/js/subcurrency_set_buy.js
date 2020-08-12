@@ -21,13 +21,18 @@ var subcurrency_set_buy = (function(){
                 var fee = 152050;
                 var many_types = contract[2];
                 var amount = parseInt(amount_input.value);
+                var source = contract[8];
+                var source_type = contract[9];
                 var tx = ["contract_use_tx",
                           keys.pub(),
                           nonce,
                           fee,
                           contract_id.value,
                           amount,
-                          many_types];
+                          many_types,
+                          source,
+                          source_type
+                         ];
                 var stx = keys.sign(tx);
                 rpc.post(["txs", [-6, stx]],
                          function(x) {

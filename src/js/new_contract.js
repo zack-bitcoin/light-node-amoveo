@@ -90,36 +90,40 @@ then
         return(btoa(array_to_string(hash(string_to_array(atob(c))))));
     };
 */
+    function make_tx(Start, Text) {
+        var oracle_id = id_maker(Start, 0, 0, Text);//from format
+        //var CH = contract_hash_maker2(oracle_id);
+        var CH = binary_derivative.hash(oracle_id);
+        //var CH = contract_hash_maker(Start, Text);
+        var Fee = 152050;
+        var MT = 3;
+        var Source = btoa(array_to_string(integer_to_array(0, 32)));
+        var SourceType = 0;
+        var tx = ["contract_new_tx", keys.pub(), CH, Fee, MT, Source, SourceType];
+        return(tx);
+        
+    }
     function make_contract(){
-        return merkle.request_proof("accounts", keys.pub(), function (acc) {
-            var Nonce = acc[2]+1;
-            var Fee = 152050;
-            var MT = 3;
-            var Source = btoa(array_to_string(integer_to_array(0, 32)));
-            var SourceType = 0;
-            var Start = parseInt(oracle_start_height.value);
-            var Text = oracle_text.value;
-            var oracle_id = id_maker(Start, 0, 0, Text);//from format
-            //var CH = contract_hash_maker2(oracle_id);
-            var CH = binary_derivative.hash(oracle_id);
-            //var CH = contract_hash_maker(Start, Text);
-            var tx = ["contract_new_tx", keys.pub(), Nonce, Fee, CH, MT, Source, SourceType];
-            console.log(tx);
-            var stx = keys.sign(tx);
-            rpc.post(["txs", [-6, stx]],
-                     function(x) {
-                         if(x == "ZXJyb3I="){
-                             display.innerHTML = "server rejected the tx";
-                         }else{
-                             display.innerHTML = "accepted trade offer and published tx. the tx id is ".concat(x);
-                         }
-                     });
-        });
+        var Start = parseInt(oracle_start_height.value);
+        var Text = oracle_text.value;
+
+        var tx = make_tx(Start, Text);
+        console.log(tx);
+        var stx = keys.sign(tx);
+        rpc.post(["txs", [-6, stx]],
+                 function(x) {
+                     if(x == "ZXJyb3I="){
+                         display.innerHTML = "server rejected the tx";
+                     }else{
+                         display.innerHTML = "accepted trade offer and published tx. the tx id is ".concat(x);
+                     }
+                 });
     };
     return({
         start_height: function(x){oracle_start_height.value = x},
         oracle_text: function(x){oracle_text.value = x},
-        make_tx: make_contract,
+        make_tx: make_tx,
+        make_publish_tx: make_contract,
         //binary_derivative
 //        id_maker: id_maker, *
 //        id_maker2: id_maker2, *

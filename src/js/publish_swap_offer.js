@@ -66,7 +66,23 @@ var publish_swap_offer = (function() {
         }
     };
     function publish3(x){
-        rpc.post(["add", x], function(z)
+        var f = swaps.unpack(x);
+        var second_offer = 0;
+        if(!(f.type2 == 0))
+        {
+            var C = {
+                acc1: keys.pub(),
+                end_limit: 9999999999,
+                amount1: f.amount2,
+                cid1: f.cid2,
+                type1: f.type2,
+                amount2: Math.floor(f.amount2 * 0.99),
+                fee1: 200000,
+                nonce: f.nonce
+            };
+            second_offer = swaps.pack(C);//this should be an offer to sell our winnings for 99% of max value.
+        };
+        rpc.post(["add", x, second_offer], function(z)
                  {
                      display.innerHTML = "successfully sent the swap offer to the server.";
                  },

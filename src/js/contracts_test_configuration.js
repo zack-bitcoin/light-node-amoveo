@@ -21,8 +21,8 @@ binary_interface_offer.timelimit("2");
     subcurrency_combiner.contract_id(cid);
     
     swap_offer.timelimit("2");
-    swap_offer.amount1("1000000");
-    swap_offer.amount2("1000000");
+    swap_offer.amount1("10000000");
+    swap_offer.amount2("10000000");
     swap_offer.cid2(cid);
     swap_offer.type2("2");
     

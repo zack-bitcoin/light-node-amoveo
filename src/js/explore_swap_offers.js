@@ -1,4 +1,4 @@
-var publish_swap_offer = (function() {
+var explore_swap_offer = (function() {
     var div = document.getElementById("explore_swap_offers");
     var display = document.createElement("p");
     div.appendChild(display);
@@ -88,15 +88,17 @@ var publish_swap_offer = (function() {
     };
     function trade_details(tid){
         rpc.post(["read", 2, tid], function(t){
-            t = t[1];
-            console.log(t);
+            console.log(JSON.stringify(t));
+            //t = t[1];
             swap_viewer.offer(JSON.stringify(t));
             swap_viewer.view();
         }, s_ip.value, parseInt(s_port.value));
     };
     return({
         ip: function(x){s_ip.value = x},
+        ip_get: s_ip.value,
         port: function(x){s_port.value = x},
+        port_get: parseInt(s_port.value),
         refresh: refresh
     });
 
