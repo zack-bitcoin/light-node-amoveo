@@ -1,6 +1,6 @@
 var binary_derivative = (function(){
 //binary derivative contract based on a single oracle. 
-    var static_binary_derivative = atob("AAAAAAF4gxSDFhSDFhSDFAAAAAAghwAAAAABeTpGRw1IFBQAAAAAAYcWFAIAAAADAAAAFoYAAAAAAzpGhAAAAAAAFoIAAAAAABaCAP////8WgogAAAAAAAAAAAPoRxQAAAAAATpGhAD/////FoIAAAAAABaCAAAAAAAWgogAAAAAAAAAAAPoRxQAAAAAAjpGhAAAAAAAFoIA/////xaCAAAAAAAWgogAAAAAAAAAAAPoRxQUhACAAAAAFoIAf////xaCAAAAAAAWgogAAAATiAAAAAAKSEhI");
+    var static_binary_derivative = atob("AAAAAAF4gxSDFhSDFhSDFKyHAAAAAAF5OkZHDUgUFI2HFhQCAAAAAwAAABaGjzpGhIwWgowWggD/////FoKIjAQD6EcUjTpGhAD/////FoKMFoKMFoKIjAQD6EcUjjpGhIwWggD/////FoKMFoKIjAQD6EcUFIQAgAAAABaCAH////8WgowWgogEE4iWSEhI");
 //    static_binary_derivative = array_to_string(
 //        [1,255,255,255,255,3,0,132,130,130,3,0,3,100]);
     //int 0, max, nil, cons, cons, 0, 100
