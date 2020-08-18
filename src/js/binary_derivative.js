@@ -25,7 +25,6 @@ var binary_derivative = (function(){
             source_id = btoa(array_to_string(integer_to_array(0, 32)));
             source_type = 0;
         };
-        console.log(source_id);
         return(btoa(array_to_string(hash(
             string_to_array(atob(contract_hash))
                 .concat(string_to_array(atob(source_id)))

@@ -36,4 +36,17 @@ binary_interface_offer.timelimit("2");
 
     check_binary_contract.cid(cid);
 
+    new_scalar_contract.height("5");
+    new_scalar_contract.text("btc price in USD - 10000");
+    new_scalar_contract.max("5000");
+
+    scalar_oracle_creation.height("5");
+    scalar_oracle_creation.text("btc price in USD - 10000");
+    scalar_oracle_creation.max("5000");
+    scalar_oracle_creation.price("3000");
+
+    resolve_scalar_contract.height("5");
+    resolve_scalar_contract.oracle("btc price in USD - 10000");
+    resolve_scalar_contract.price("5000");
+    resolve_scalar_contract.final_price("3000");
 })();

@@ -543,8 +543,6 @@ function id_maker(start, gov1, gov2, question) {
     (integer_to_array(gov1, 4)).concat
     (integer_to_array(gov2, 4)).concat
     (hash(string_to_array(question)));
-    console.log(question);
-    console.log(JSON.stringify(x));
     return(btoa(array_to_string(hash(x))));//is array
 };
 function question_maker(id, bit) {

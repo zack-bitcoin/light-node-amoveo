@@ -1,11 +1,18 @@
 var scalar_derivative = (function(){
     var contract_bytes = atob("bpYZNRc5AzAyj4cUGIYWjDpGFBRHFHBxSG8AAAAAAXgAAAAAAngWAAAAAAN4gxSDFhSDFhSDFKyHAAAAAAF5jBWGhgAAAAACeQAAAAADeYw6RhQUAgAAAAEwRxSQjIcWFBYCAAAAIGRuan/EdSKkhbAp0OEF6cQDv9x9li1vx5O6vqNMm3KlcUiGKIYoO0ZHDUiNhxYUAgAAAAEBO0ZHDUiEAAAAAAN5FoIA/////wAAAAADeTMWgoiMBAPo");
-    function contract_maker(thing_to_measure, max_price, oracle_start) {
+    function oracle_text(max_price, thing_to_measure){
         var oracle_text_part = ("MaxPrice = ")
             .concat(max_price)
             .concat("; MaxVal = 4294967295; B = ")
             .concat(thing_to_measure)
             .concat(" from $0 to $MaxPrice; max(0, min(MaxVal, (B * MaxVal / MaxPrice)) is ");
+        return(oracle_text_part);
+    };
+    function contract_maker(thing_to_measure, max_price, oracle_start) {
+        var oracle_text_part =
+            oracle_text(max_price,
+                        thing_to_measure);
+        
         var L = oracle_text_part.length;
         var settings = [2]//binary
             .concat(integer_to_array(L, 4))
@@ -17,11 +24,13 @@ var scalar_derivative = (function(){
         return(full_contract);
     };
     function contract_hash(c){
-        return(btoa(array_to_string(hash(string_to_array(atob(c))))));
+        return(btoa(array_to_string(
+            hash(string_to_array(atob(c))))));
     };
 
     return({
         hash: contract_hash,
-        maker: contract_maker
+        maker: contract_maker,
+        oracle_text: oracle_text
     });
 })();

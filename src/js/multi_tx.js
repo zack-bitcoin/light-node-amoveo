@@ -25,7 +25,7 @@ var multi_tx = (function(){
             callback(Txs[0]);
             return(0);
         };
-        var fee = 200000;
+        var fee = 152050;
         Txs = zero_accounts_nonces(Txs);
         merkle.request_proof("accounts", keys.pub(), function(Acc){
             var Nonce = Acc[2] + 1;
