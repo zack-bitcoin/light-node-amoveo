@@ -55,4 +55,7 @@ binary_interface_offer.timelimit("2");
     teach_scalar_contract.oracle_height("5");
     teach_scalar_contract.max_val("5000");
 
+    scalar_contract_winnings.contract_id("JU3vK39D8VIVEpIgXINL2a90mlugPD2WphTdyzRvVso=");
+    scalar_contract_winnings.oracle_id("7CPONVKUE5i8FMFiVgqG5Z4HNUUyWPhdx4Y72FmZnn4=");
+    
 })();

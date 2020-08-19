@@ -21,10 +21,11 @@ var binary_contract_winnings = (function(){
                 var payout_vector;
                 var full = btoa(array_to_string([255,255,255,255]));
                 var empty = btoa(array_to_string([0,0,0,0]));
+                console.log(contract[7]);
                 if(contract[7] == "cqT6NUTkOoNv/LJozgbM28VdRNXmsbHBkhalPqmDAf0="){
-                    payout_vector = [-6, full, empty];
+                    payout_vector = [-6, full, empty, empty];
                 } else {
-                    payout_vector = [-6, empty, full];
+                    payout_vector = [-6, empty, full, empty];
                 };
                 claim2(many, cid, nonce, payout_vector);
             });
