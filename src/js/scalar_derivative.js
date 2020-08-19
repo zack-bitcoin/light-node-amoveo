@@ -12,7 +12,7 @@ var scalar_derivative = (function(){
         var oracle_text_part =
             oracle_text(max_price,
                         thing_to_measure);
-        
+        console.log(oracle_text_part); 
         var L = oracle_text_part.length;
         var settings = [2]//binary
             .concat(integer_to_array(L, 4))
@@ -21,6 +21,7 @@ var scalar_derivative = (function(){
             .concat(integer_to_array(oracle_start, 4));
         var full_contract = btoa(array_to_string(settings)
                                  .concat(contract_bytes));
+        console.log(full_contract);
         return(full_contract);
     };
     function contract_hash(c){

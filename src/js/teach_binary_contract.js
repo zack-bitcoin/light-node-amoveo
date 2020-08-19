@@ -12,7 +12,6 @@ var teach_binary_contract = (function(){
     div.appendChild(br());
     s_port.value = "8090";
 
-
     var oracle_text = text_input("oracle text: ", div);
     div.appendChild(br());
     var oracle_height = text_input("oracle height: ", div);

@@ -19,10 +19,16 @@ var new_scalar_contract = (function(){
         var Text = oracle_text.value;
         var MP = parseInt(max_price_text.value);
         var tx = make_tx(Start, Text, MP);
+        var CH = tx[2];
+        console.log(Text);
+        console.log(CH);
+        var cid = binary_derivative.id_maker(CH, 2);
         console.log(tx);
         var stx = keys.sign(tx);
         post_txs([stx], function(msg){
-            display.innerHTML = msg;
+            display.innerHTML = msg
+                .concat("<br>the contract id is <br>")
+                .concat(cid);
         });
     };
     function make_tx(start, text, max_price){
@@ -30,6 +36,8 @@ var new_scalar_contract = (function(){
         var CH = scalar_derivative.hash(contract);
         console.log("new scalar contract make tx");
         console.log(JSON.stringify(CH));
+        console.log(JSON.stringify([text, max_price, start]));
+        //i6Z+KENBfoAiJ0+GNRtw5yZrnZ/U26f+stv2/McKWZk=
         var Fee = 152050;
         var MT = 2;
         var Source = btoa(array_to_string(integer_to_array(0, 32)));

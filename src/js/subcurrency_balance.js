@@ -14,6 +14,10 @@ var subcurrency_balance = (function(){
     function balance(){
         var cid_key = contract_id.value;
         merkle.request_proof("contracts", cid_key, function(c) {
+            if(c == "empty"){
+                display.innerHTML = "that contract does not exist"
+                return(0);
+            };
             var many_types = c[2];
             balance2(many_types, cid_key, c, "");
         });
@@ -32,6 +36,7 @@ var subcurrency_balance = (function(){
         var trie_key = sub_accounts.key(keys.pub(), cid, type);
         var trie_key = btoa(array_to_string(trie_key));
         merkle.request_proof("sub_accounts", trie_key, function(x) {
+            console.log("balance 4");
             var amount = 0;
             if(x[0] == "sub_acc"){
                 amount = x[1];

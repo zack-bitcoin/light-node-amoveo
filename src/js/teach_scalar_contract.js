@@ -20,8 +20,13 @@ var teach_scalar_contract = (function(){
     var button = button_maker2("teach", teach);
     div.appendChild(button);
     function teach() {
-        rpc.post([],
-                 function(){
+        rpc.post(["add", 3,
+                  btoa(oracle_text.value),
+                  parseInt(oracle_height.value),
+                  parseInt(max_val.value)
+                 ],
+                 function(x){
+                     console.log(x);
                      display.innerHTML = "success";
                      return(0);
                  },

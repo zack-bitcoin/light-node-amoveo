@@ -3,6 +3,7 @@
 //    var cid = "7/ZnSP1bSxHBGwD9MWKhKodvrnElXEJz8ppsum+PQXQ=";
 
     var cid = "Q9z6Ijo4+n6jtXqM13pfebsCSWQvoNDGsbEXvkUiFQQ=";
+    var scalar_question = "btc price in USD - 10000";
     
     subcurrency_spender.type(1);
     subcurrency_spender.to("BNEz2wgeaARdPQT049sQOY8Ceox6NjdchBi02F2n4cRGLZg8qbz5lN9d20XpWOWk5pe358+40cmqWSHl9wLna/g=");
@@ -37,16 +38,21 @@ binary_interface_offer.timelimit("2");
     check_binary_contract.cid(cid);
 
     new_scalar_contract.height("5");
-    new_scalar_contract.text("btc price in USD - 10000");
+    new_scalar_contract.text(scalar_question);
     new_scalar_contract.max("5000");
 
     scalar_oracle_creation.height("5");
-    scalar_oracle_creation.text("btc price in USD - 10000");
+    scalar_oracle_creation.text(scalar_question);
     scalar_oracle_creation.max("5000");
     scalar_oracle_creation.price("3000");
 
     resolve_scalar_contract.height("5");
-    resolve_scalar_contract.oracle("btc price in USD - 10000");
+    resolve_scalar_contract.oracle(scalar_question);
     resolve_scalar_contract.price("5000");
     resolve_scalar_contract.final_price("3000");
+
+    teach_scalar_contract.oracle_text(scalar_question);
+    teach_scalar_contract.oracle_height("5");
+    teach_scalar_contract.max_val("5000");
+
 })();
