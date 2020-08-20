@@ -63,12 +63,16 @@ function headers_main() {
     //headers_db[top_hash] = top_header;
     
     var top_diff = 0;//accumulative difficulty of top
-    /*
-    var button = button_maker2("sync with network", function() {
-        wallet_text.innerHTML = "getting headers";
-        return more_headers();
-    });
-    document.body.appendChild(button);
+    if(configure["more_headers_button"]){
+
+        
+        var button = button_maker2("sync with network", function() {
+            wallet_text.innerHTML = "Downloading blockchain data";
+            return more_headers();
+        });
+        document.body.appendChild(button);
+    }
+        /*
     wallet_text = document.createElement("p");
     wallet_text.innerHTML = JSON.stringify([["height", 0], ["total work", 0]]);
     document.body.appendChild(wallet_text);
@@ -370,6 +374,7 @@ function headers_main() {
         if (get_more) { more_headers(); }
         else {
             keys.update_balance();
+            wallet_text.innerHTML = "Current height: " + top_header[1];
         }
     }
     function more_headers() {
@@ -440,7 +445,14 @@ function headers_main() {
         console.log(int2sci(2000));//should be 2804
         console.log(sci2int(int2sci(2000)));// should be 2000
     }
-    return {more_headers: more_headers, sci2int: sci2int, serialize: serialize_header, top: (function() { return top_header; }), db: headers_db, read_ewah: read_ewah, on_height_change: on_height_change, forks: forks};
+        return {more_headers: more_headers,
+                sci2int: sci2int,
+                serialize: serialize_header,
+                top: (function() { return top_header; }),
+                db: headers_db,
+                read_ewah: read_ewah,
+                on_height_change: on_height_change,
+                forks: forks};
 }
 var headers_object = headers_main();
 

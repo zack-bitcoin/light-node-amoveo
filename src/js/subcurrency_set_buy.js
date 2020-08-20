@@ -16,7 +16,15 @@ var subcurrency_set_buy = (function(){
 
     function doit(){
         merkle.request_proof("accounts", keys.pub(), function(account){
+            if(account == "empty"){
+                display.innerHTML = "load an account first";
+                return(0);
+            };
             merkle.request_proof("contracts", contract_id.value, function(contract){
+                if(contract == "empty"){
+                    display.innerHTML = "that contract does not exist";
+                    return(0);
+                };
                 var nonce = account[2] + 1;
                 var fee = 152050;
                 var many_types = contract[2];
@@ -33,16 +41,11 @@ var subcurrency_set_buy = (function(){
                           source,
                           source_type
                          ];
+                console.log(tx);
                 var stx = keys.sign(tx);
-                rpc.post(["txs", [-6, stx]],
-                         function(x) {
-                             if(x == "ZXJyb3I="){
-                                 display.innerHTML = "server rejected the tx";
-                             }else{
-                                 display.innerHTML = "accepted trade offer and published tx. the tx id is ".concat(x);
-                             }
-                         });
-                
+                post_txs([stx], function(msg){
+                    display.innerHTML = msg;
+                });
             });
         });
     };
@@ -60,6 +63,8 @@ var subcurrency_set_buy = (function(){
     };
 
     return({
-        contract_id: function(x){ contract_id.value = x}
+        contract_id: function(x){ contract_id.value = x},
+        amount: function(x){ amount_input.value = x},
+        doit: doit
     });
 })();

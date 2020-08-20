@@ -3,10 +3,10 @@ var resolve_binary_contract = (function(){
     var display = document.createElement("p");
     div.appendChild(display);
     var oracle_text = text_input("oracle text: ", div);
-    div.appendChild(oracle_text);
+//    div.appendChild(oracle_text);
     div.appendChild(br());
     var oracle_height = text_input("oracle start height: ", div);
-    div.appendChild(oracle_height);
+//    div.appendChild(oracle_height);
     div.appendChild(br());
     var button = button_maker2("resolve", resolve);
     div.appendChild(button);
@@ -15,35 +15,47 @@ var resolve_binary_contract = (function(){
     function resolve(){
         var oid = id_maker(parseInt(oracle_height.value),
                            0,0, oracle_text.value);
-        var cid = binary_derivative.id_maker2(oid, 2);
+        var cid = binary_derivative.id_maker2(oid, 3);
         merkle.request_proof("accounts", keys.pub(), function(my_acc){
             merkle.request_proof("oracles", oid, function(oracle){
+                merkle.request_proof("contracts", cid, function(contract){
+                if(contract == "empty"){
+                    display.innerHTML = "contract does not yet exist";
+                    console.log(cid);
+                    return(0);
+                };
+                if(oracle == "empty"){
+                    display.innerHTML = "oracle does not yet exist";
+                    return(0);
+                };
                 if(oracle[2] == 0){
                     display.innerHTML = "oracle is not yet resolved";
                     console.log(oracle);
                     return(0);
-                }
-            var nonce = my_acc[2] + 1;
-            var fee = 152050;
-            var contract = binary_derivative.contract2(oid);
-            var tx = ["contract_evidence_tx",
+                };
+                var nonce = my_acc[2] + 1;
+                var fee = 152050;
+                var contract = binary_derivative.contract2(oid);
+                var tx = ["contract_evidence_tx",
                       keys.pub(),
                       nonce, fee, contract,
                       cid, "",
                       [-6, ["oracles", oid]]];
-            var stx = keys.sign(tx);
-            post_txs([stx], function(msg){
+                console.log(tx);
+                var stx = keys.sign(tx);
+                post_txs([stx], function(msg){
                 //display.innerHTML = msg;
 
-                var tx = ["contract_timeout_tx",
-                          keys.pub(),
-                          nonce + 1, fee, cid, 0,
-                          0, 0]
-                var stx = keys.sign(tx);
-                post_txs([stx], function(msg2){
-                    display.innerHTML = msg.concat("<br>").concat(msg2);
+                    var tx = ["contract_timeout_tx",
+                              keys.pub(),
+                              nonce + 1, fee, cid, 0,
+                              0, 0]
+                    var stx = keys.sign(tx);
+                    post_txs([stx], function(msg2){
+                        display.innerHTML = msg.concat("<br>").concat(msg2);
+                    });
                 });
-            });
+                });
             });
         });
     };
@@ -53,5 +65,5 @@ var resolve_binary_contract = (function(){
         oracle_height: function(x){oracle_height.value = x},
         oracle_text: function(x){oracle_text.value = x},
         resolve: resolve
-           });
+    });
 })();

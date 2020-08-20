@@ -19,6 +19,7 @@
     configure["new_account"] = false;
     configure["watch_only_account"] = false;
     configure["channel_view"] = false;
+    configure["more_headers_button"] = true;
   </script>
     <script type="text/javascript" src="rpc.js" ></script>
     <script type="text/javascript" src="files.js" ></script>
@@ -33,6 +34,9 @@
     <script type="text/javascript" src="encryption.js" ></script>
 
     <h1>Binary Contracts</h1>
+    <h2>binary derivative id generator</h2>
+    <div id="binary_id" />
+    <script type="text/javascript" src="binary_id.js" ></script>
     <h2>new binary derivative contract</h2>
     <div id="new_contract" />
     <script type="text/javascript" src="new_contract.js" ></script>
@@ -45,6 +49,9 @@
     <br>
 
     <h1>Scalar Contracts</h1>
+    <h2>scalar derivative id generator</h2>
+    <div id="scalar_id" />
+    <script type="text/javascript" src="scalar_id.js" ></script>
     <h2>new scalar derivative contract</h2>
     <div id="new_scalar_contract" />
     <script type="text/javascript" src="new_scalar_contract.js" ></script>
@@ -63,27 +70,18 @@
     <h2>subcurrency balance</h2>
     <div id="subcurrency_balance" />
     <script type="text/javascript" src="subcurrency_balance.js" ></script>
-    <h2>subcurrency set buy</h2>
-    <div id="subcurrency_set_buy" />
-    <script type="text/javascript" src="subcurrency_set_buy.js" ></script>
     <h2>subcurrency spender</h2>
     <div id="subcurrency_spender" />
     <script type="text/javascript" src="subcurrency_spender.js" ></script>
     <h2>subcurrency combiner</h2>
     <div id="subcurrency_combiner" />
     <script type="text/javascript" src="subcurrency_combiner.js" ></script>
+    <h2>subcurrency set buy</h2>
+    <div id="subcurrency_set_buy" />
+    <script type="text/javascript" src="subcurrency_set_buy.js" ></script>
     <br>
 
     <h1>Trading</h1>
-    <h2>teach binary contract</h2>
-    <div id="teach_binary_contract" />
-    <script type="text/javascript" src="teach_binary_contract.js" ></script>
-    <h2>teach scalar contract</h2>
-    <div id="teach_scalar_contract" />
-    <script type="text/javascript" src="teach_scalar_contract.js" ></script>
-    <h2>check_contract</h2>
-    <div id="check_binary_contract" />
-    <script type="text/javascript" src="check_binary_contract.js" ></script>
     <h2>explore swap offers</h2>
     <div id="explore_swap_offers" />
     <script type="text/javascript" src="explore_swap_offers.js" ></script>
@@ -96,6 +94,15 @@
     <h2>publish swap offer</h2>
     <div id="publish_swap_offer" />
     <script type="text/javascript" src="publish_swap_offer.js" ></script>
+    <h2>check_contract</h2>
+    <div id="check_binary_contract" />
+    <script type="text/javascript" src="check_binary_contract.js" ></script>
+    <h2>teach binary contract</h2>
+    <div id="teach_binary_contract" />
+    <script type="text/javascript" src="teach_binary_contract.js" ></script>
+    <h2>teach scalar contract</h2>
+    <div id="teach_scalar_contract" />
+    <script type="text/javascript" src="teach_scalar_contract.js" ></script>
 
 
   </body>

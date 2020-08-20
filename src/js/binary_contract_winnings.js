@@ -14,7 +14,6 @@ var binary_contract_winnings = (function(){
         //-record(contract_winnings_tx, {from, nonce, fee, contract_id, amount, sub_account, winner, proof, row}).
         var cid = contract_id.value;
         merkle.request_proof("contracts", cid, function(contract){
-            console.log(JSON.stringify(contract));
             merkle.request_proof("accounts", keys.pub(), function(acc){
                 var nonce = acc[2] + 1;
                 var many = contract[2];
@@ -22,10 +21,12 @@ var binary_contract_winnings = (function(){
                 var full = btoa(array_to_string([255,255,255,255]));
                 var empty = btoa(array_to_string([0,0,0,0]));
                 console.log(contract[7]);
-                if(contract[7] == "cqT6NUTkOoNv/LJozgbM28VdRNXmsbHBkhalPqmDAf0="){
+                if(contract[7] == "NBRCGxgxiDQiCVZvrU4MByMHC0AwYw3eaFunAoHpJyU="){
                     payout_vector = [-6, full, empty, empty];
-                } else {
+                } else if(contract[7] == "ivW7MuSPsbRsYacyjBG6Z/QUn7MY+/VatVeUDZ0X0tk=") {
                     payout_vector = [-6, empty, full, empty];
+                } else {
+                    payout_vector = [-6, empty, empty, full];
                 };
                 claim2(many, cid, nonce, payout_vector);
             });
@@ -37,10 +38,10 @@ var binary_contract_winnings = (function(){
         }
         var key = sub_accounts.normal_key(keys.pub(), cid, N);
         merkle.request_proof("sub_accounts", key, function(sa){
-            console.log(sa);
             if(!(sa == "empty")){
                 var bal = sa[1];
-                if(bal > 0){
+                var scale = payout_vector[N];
+                if((bal > 0) && (!(scale == "AAAAAA=="))){
                     var fee = 152050;
                     var tx = [
                         "contract_winnings_tx",
