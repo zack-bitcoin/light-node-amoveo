@@ -22,17 +22,10 @@ var publish_swap_offer = (function() {
 
     function publish(){
         var x = JSON.parse(offer.value);
-        //console.log(JSON.parse(x));
-        console.log(JSON.stringify(x));
         var cid1 = x[1][6];
-        //console.log([cid1, cid2]);
-        //rpc.post(["read", 3, cid], function(r) {
-        //   console.log(r);
         var zero = btoa(array_to_string(integer_to_array(0,32)));
         if(!(cid1 == zero)){
             rpc.post(["read", 3, cid1], function(first){
-                console.log(first);
-                console.log(cid1);
                 if(first == 0){
                     display.innerHTML = "contract "
                         .concat(cid1)
@@ -48,40 +41,36 @@ var publish_swap_offer = (function() {
     };
     function publish2(zero, x) {
         var cid2 = x[1][9];
+        var second_offer = 0;
         if(!(cid2 == zero)){
             rpc.post(["read", 3, cid2], function(second){
-                console.log(second);
-                console.log(cid2);
                 if(second == 0) {
                     display.innerHTML = "contract "
                         .concat(cid2)
                         .concat(" is unknown to the server");
                     return(0);
                 } else {
-                    return(publish3(x));
+                    if(second.length == 4){
+                        var C = {
+                            acc1: keys.pub(),
+                            end_limit: 9999999999,
+                            amount1: f.amount2,
+                            cid1: f.cid2,
+                            type1: f.type2,
+                            amount2: Math.floor(f.amount2 * 0.99),
+                            fee1: 200000,
+                            nonce: f.nonce
+                        };
+                        second_offer = swaps.pack(C);
+                    };
+                    return(publish3(x, second_offer));
                 }
             }, s_ip.value, parseInt(s_port.value));
         } else {
-            return(publish3(x));
+            return(publish3(x, 0));
         }
     };
-    function publish3(x){
-        var f = swaps.unpack(x);
-        var second_offer = 0;
-        if(!(f.type2 == 0))
-        {
-            var C = {
-                acc1: keys.pub(),
-                end_limit: 9999999999,
-                amount1: f.amount2,
-                cid1: f.cid2,
-                type1: f.type2,
-                amount2: Math.floor(f.amount2 * 0.99),
-                fee1: 200000,
-                nonce: f.nonce
-            };
-            second_offer = swaps.pack(C);//this should be an offer to sell our winnings for 99% of max value.
-        };
+    function publish3(x, second_offer){
         rpc.post(["add", x, second_offer], function(z)
                  {
                      display.innerHTML = "successfully sent the swap offer to the server.";

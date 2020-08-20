@@ -44,11 +44,20 @@ var swap_viewer = (function(){
         merkle.request_proof("contracts", Y.cid2, function(Contract){
             if(Contract == "empty"){
                 rpc.post(["read", 3, Y.cid2], function(z){
-                    new_contract.start_height(z[2]);
-                    new_contract.oracle_text(atob(z[1]));
                     update_display(Y, now, contract1, contract2);
-                    var tx = new_contract.make_tx(parseInt(z[2]), atob(z[1]));
-                    view2([tx], X);
+                    if(z.length == 5){
+                        //{Text, Height, MaxPrice, Now}
+                        var tx = new_scalar_contract.make_tx(parseInt(z[2]), atob(z[1]), parseInt(z[3]));
+                        view2([tx], X);
+                    } else if (z.length == 4) {
+                        //new_contract.start_height(z[2]);
+                        //new_contract.oracle_text(atob(z[1]));
+                        var tx = new_contract.make_tx(parseInt(z[2]), atob(z[1]));
+                        view2([tx], X);
+                    } else {
+                        console.log("error, unsupported contract format.");
+                        return(0);
+                    };
                 }, explore_swap_offer.ip_get, explore_swap_offer.port_get);
             } else {
                 update_display(Y, now, contract1, contract2);

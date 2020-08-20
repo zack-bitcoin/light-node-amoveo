@@ -97,7 +97,7 @@ var swaps = (function(){
             if(Txs == []) {
                 callback(swap_tx);
             } else {
-                console.log(Txs);
+                console.log(JSON.stringify(Txs));
                 Txs = [swap_tx].concat(Txs);
                 callback(Txs);
 /*                
@@ -140,19 +140,32 @@ var swaps = (function(){
                     callback([]);
                 } else {//we don't have enough of what they want. maybe we can buy more?
                     merkle.request_proof("contracts", CID, function(Contract){
-                        var Source, SourceType;
-                        if(Contract == "empty"){
-                            console.log("contract doesn't yet exist");
-                            SourceType = 0;
-                            Source = btoa(array_to_string(integer_to_array(0, 32)));
-                        } else {
-                            console.log(Contract);
-                            Source = Contract[8];
-                            SourceType = Contract[9];
-                        }
-                        var Tx = ["contract_use_tx", 0, 0, 0, CID, Amount - bal, 3, Source, SourceType];
-                        //return([Tx].concat(make_txs2(Source, SourceType, Amount - bal)));
-                        make_txs2(Source, SourceType, Amount - bal, function(L){return(callback([Tx].concat(L)))});
+                        rpc.post(["read", 3, CID], function(z){
+                            if(!(z)){
+                                console.log("need to teach the contract to the server first.")
+                                return(0);
+                            };
+                            console.log(z);
+                            var Source, SourceType, MT;
+                            if(Contract == "empty"){
+                                console.log("contract doesn't yet exist");
+                                if(z.length == 5){
+                                    MT = 2;
+                                } else if (z.length == 4){
+                                    MT = 3;
+                                };
+                                SourceType = 0;
+                                Source = btoa(array_to_string(integer_to_array(0, 32)));
+                            } else {
+                                console.log(Contract);
+                                Source = Contract[8];
+                                SourceType = Contract[9];
+                                MT = Contract[2];
+                            }
+                            var Tx = ["contract_use_tx", 0, 0, 0, CID, Amount - bal, MT, Source, SourceType];
+                            //return([Tx].concat(make_txs2(Source, SourceType, Amount - bal)));
+                            make_txs2(Source, SourceType, Amount - bal, function(L){return(callback([Tx].concat(L)))});
+                        }, get_ip(), "8090");
                     });
                 };
             });

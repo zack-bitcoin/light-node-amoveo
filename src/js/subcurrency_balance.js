@@ -14,11 +14,14 @@ var subcurrency_balance = (function(){
     function balance(){
         var cid_key = contract_id.value;
         merkle.request_proof("contracts", cid_key, function(c) {
+            var many_types;
             if(c == "empty"){
-                display.innerHTML = "that contract does not exist"
-                return(0);
-            };
-            var many_types = c[2];
+                many_types = 10;
+                //display.innerHTML = "that contract does not exist"
+                //return(0);
+            } else {
+                many_types = c[2];
+            }
             balance2(many_types, cid_key, c, "");
         });
     };
