@@ -50,7 +50,7 @@ var publish_swap_offer = (function() {
                         .concat(" is unknown to the server");
                     return(0);
                 } else {
-                    if(second.length == 4){
+                    if(second[0] == "binary"){//second.length == 4){
                         var C = {
                             acc1: keys.pub(),
                             end_limit: 9999999999,

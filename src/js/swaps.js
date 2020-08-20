@@ -149,9 +149,9 @@ var swaps = (function(){
                             var Source, SourceType, MT;
                             if(Contract == "empty"){
                                 console.log("contract doesn't yet exist");
-                                if(z.length == 5){
+                                if(z[0] == "scalar"){
                                     MT = 2;
-                                } else if (z.length == 4){
+                                } else if (z[0] == "binary"){
                                     MT = 3;
                                 };
                                 SourceType = 0;

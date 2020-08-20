@@ -18,7 +18,6 @@ var swap_viewer = (function(){
     function view(){
         var X = JSON.parse(offer.value);
         var Y = swaps.unpack(X);
-        console.log(Y);
         var now = headers_object.top()[1];
 
         var contract1, contract2;
@@ -45,13 +44,13 @@ var swap_viewer = (function(){
             if(Contract == "empty"){
                 rpc.post(["read", 3, Y.cid2], function(z){
                     update_display(Y, now, contract1, contract2);
-                    if(z.length == 5){
+                    //if(z.length == 5){
+                    if(z[0] == "scalar"){
                         //{Text, Height, MaxPrice, Now}
                         var tx = new_scalar_contract.make_tx(parseInt(z[2]), atob(z[1]), parseInt(z[3]));
                         view2([tx], X);
-                    } else if (z.length == 4) {
-                        //new_contract.start_height(z[2]);
-                        //new_contract.oracle_text(atob(z[1]));
+                    //} else if (z.length == 4) {
+                    } else if (z[0] == "binary") {
                         var tx = new_contract.make_tx(parseInt(z[2]), atob(z[1]));
                         view2([tx], X);
                     } else {
