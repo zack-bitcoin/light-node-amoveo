@@ -85,10 +85,12 @@ var swaps = (function(){
         //instead of immediately accepting the swap, we should check what currencies this person owns.
         //sell as much as you can of your own, and buy more as needed to complete their trade. If you do not have the source currency to buy more, then fail and give an error message.
         var R = unpack(SO);
+        console.log(JSON.stringify(R));
         var CID = R.cid2;
         var Type = R.type2;
         var Amount = R.amount2;
         console.log("make txs1");
+        console.log(CID);
         make_txs2(CID, Type, Amount, function(Txs){
             if(Txs == "error"){
                 console.log("error");
@@ -100,18 +102,12 @@ var swaps = (function(){
                 console.log(JSON.stringify(Txs));
                 Txs = [swap_tx].concat(Txs);
                 callback(Txs);
-/*                
-                Txs = zero_accounts_nonces(Txs);
-                merkle.request_proof("accounts", keys.pub(), function(Acc){
-                    var Nonce = Acc[2] + 1;
-                    callback(["multi_tx", keys.pub(), Nonce, fee*2, [-6].concat(Txs)]);
-                });
-*/
             };
         });
     };
     function make_txs2(CID, Type, Amount, callback){
         console.log("make txs2");
+        console.log(CID);
         var fee = 200000;
         if(Type == 0){//they want veo
             merkle.request_proof("accounts", keys.pub(), function(Acc){
@@ -141,21 +137,26 @@ var swaps = (function(){
                 } else {//we don't have enough of what they want. maybe we can buy more?
                     merkle.request_proof("contracts", CID, function(Contract){
                         rpc.post(["read", 3, CID], function(z){
-                            if(!(z)){
-                                console.log("need to teach the contract to the server first.")
-                                return(0);
-                            };
                             console.log(z);
                             var Source, SourceType, MT;
                             if(Contract == "empty"){
+                                if(!(z)){
+                                    console.log("need to teach the contract to the server first.")
+                                    return(0);
+                                };
                                 console.log("contract doesn't yet exist");
                                 if(z[0] == "scalar"){
                                     MT = 2;
+                                    Source = z[5];
+                                    SourceType = z[6];
                                 } else if (z[0] == "binary"){
                                     MT = 3;
+                                    Source = z[4];
+                                    SourceType = z[5];
+                                } else {
+                                    cosole.log("server gave us a contract format we don't understand.");
+                                    return(0);
                                 };
-                                SourceType = 0;
-                                Source = btoa(array_to_string(integer_to_array(0, 32)));
                             } else {
                                 console.log(Contract);
                                 Source = Contract[8];
@@ -163,8 +164,7 @@ var swaps = (function(){
                                 MT = Contract[2];
                             }
                             var Tx = ["contract_use_tx", 0, 0, 0, CID, Amount - bal, MT, Source, SourceType];
-                            //return([Tx].concat(make_txs2(Source, SourceType, Amount - bal)));
-                            make_txs2(Source, SourceType, Amount - bal, function(L){return(callback([Tx].concat(L)))});
+                            make_txs2(Source, SourceType, Amount - bal, function(L){return(callback(L.concat([Tx])))});
                         }, get_ip(), "8090");
                     });
                 };

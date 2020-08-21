@@ -16,6 +16,7 @@ var swap_viewer = (function(){
     div.appendChild(br());
 
     function view(){
+        console.log("view");
         var X = JSON.parse(offer.value);
         var Y = swaps.unpack(X);
         var now = headers_object.top()[1];
@@ -40,50 +41,45 @@ var swap_viewer = (function(){
                 .concat(" type ")
                 .concat(Y.type2);
         }
-        merkle.request_proof("contracts", Y.cid2, function(Contract){
+        update_display(Y, now, contract1, contract2);
+        maybe_make_contracts(Y.cid2, [], function(txs){
+            view2(txs, X);
+        });
+    };
+    function maybe_make_contracts(cid, Txs, callback) {
+        console.log("maybe make contracts");
+        console.log(cid);
+        if(cid == "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="){
+            return(callback(Txs));
+        };
+        merkle.request_proof("contracts", cid, function(Contract){
             if(Contract == "empty"){
-                rpc.post(["read", 3, Y.cid2], function(z){
-                    update_display(Y, now, contract1, contract2);
+                rpc.post(["read", 3, cid], function(z){
                     //if(z.length == 5){
                     if(z[0] == "scalar"){
                         //{Text, Height, MaxPrice, Now}
-                        var tx = new_scalar_contract.make_tx(parseInt(z[2]), atob(z[1]), parseInt(z[3]));
-                        view2([tx], X);
-                    //} else if (z.length == 4) {
+                        var tx = new_scalar_contract.make_tx(parseInt(z[2]), atob(z[1]), parseInt(z[3]), z[4], parseInt(z[5]));
+                        //var cid2 = binary_derivative.id_maker(tx[2], tx[4], tx[5], tx[6]);
+                        return(maybe_make_contracts(tx[5], [tx].concat(Txs), callback));
                     } else if (z[0] == "binary") {
-                        var tx = new_contract.make_tx(parseInt(z[2]), atob(z[1]));
-                        view2([tx], X);
+                        var tx = new_contract.make_tx(parseInt(z[2]), atob(z[1]), z[4], parseInt(z[5]));
+                        //var cid2 = binary_derivative.id_maker(tx[2], tx[4], tx[5], tx[6]);
+                        return(maybe_make_contracts(tx[5], [tx].concat(Txs), callback));
+                        //return([tx].concat(Txs));
                     } else {
                         console.log("error, unsupported contract format.");
                         return(0);
                     };
                 }, explore_swap_offer.ip_get, explore_swap_offer.port_get);
             } else {
-                update_display(Y, now, contract1, contract2);
-                view2([], X);
-
-               /* 
-                accept_button.onclick = function(){
-                    var signed_offer = X;
-                    swaps.make_tx(signed_offer, function(tx){
-                        console.log(JSON.stringify(tx));
-                        var stx = keys.sign(tx);
-	                rpc.post(["txs", [-6, stx]],
-                                 function(x) {
-                                     if(x == "ZXJyb3I="){
-                                         display.innerHTML = "server rejected the tx";
-                                     }else{
-                                         console.log(x);
-                                         display.innerHTML = "accepted trade offer and published tx. the tx id is ".concat(x);
-                                     }
-                                 });
-                    });
-                };
-               */
+                return(Txs);
             };
         });
     };
     function view2(txs, X) {
+        //txs is the new_contracts parts.
+        //swap_txs is the contract_use_txs
+        //X is the swap tx.
         accept_button.onclick = function(){
             var signed_offer = X;
             swaps.make_tx(signed_offer, function(swap_txs){

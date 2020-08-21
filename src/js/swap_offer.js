@@ -75,6 +75,7 @@ var swap_offer = (function(){
                     };
                 }));
             };
+            publish_swap_offer.offer(JSON.stringify(signed_offer));
 
 //            var signed_offer = swaps.pack(offer);
  //           display.innerHTML = JSON.stringify(signed_offer);

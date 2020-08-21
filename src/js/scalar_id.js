@@ -9,6 +9,11 @@ var scalar_id = (function(){
     div.appendChild(br());
     var max_price_text = text_input("maximum value we can measure with this oracle", div);
     div.appendChild(br());
+    var source = text_input("source contract (leave blank for veo): ", div);
+    div.appendChild(br());
+    var source_type = text_input("source subcurrency type (leave blank for veo): ", div);
+    div.appendChild(br());
+
     var button = button_maker2("make contract id", doit);
     div.appendChild(button);
     function doit(){
@@ -19,8 +24,14 @@ var scalar_id = (function(){
         var CH = scalar_derivative.hash(contract);
 
         var MT = 2;
-        var Source = btoa(array_to_string(integer_to_array(0, 32)));
-        var SourceType = 0;
+        var Source, SourceType;
+        if(source.value == ""){
+            Source = btoa(array_to_string(integer_to_array(0, 32)));
+            SourceType = 0;
+        } else {
+            Source = source.value;
+            SourceType = parseInt(source_type);
+        };
         var cid = binary_derivative.id_maker(CH, MT, Source, SourceType);
         display.innerHTML = cid;
         return(0);

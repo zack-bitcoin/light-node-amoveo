@@ -11,13 +11,15 @@ var new_contract = (function(){
     div.appendChild(br());
     var button = button_maker2("make contract", make_contract);
     div.appendChild(button);
-    function make_tx(Start, Text) {
+    function make_tx(Start, Text, Source, SourceType) {
         var oracle_id = id_maker(Start, 0, 0, Text);//from format
         var CH = binary_derivative.hash(oracle_id);
         var Fee = 152050;
         var MT = 3;
-        var Source = btoa(array_to_string(integer_to_array(0, 32)));
-        var SourceType = 0;
+        if(!(Source)){
+            var Source = btoa(array_to_string(integer_to_array(0, 32)));
+            var SourceType = 0;
+        };
         var tx = ["contract_new_tx", keys.pub(), CH, Fee, MT, Source, SourceType];
         return(tx);
     }

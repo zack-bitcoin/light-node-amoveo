@@ -25,12 +25,13 @@ var binary_derivative = (function(){
             source_id = btoa(array_to_string(integer_to_array(0, 32)));
             source_type = 0;
         };
-        return(btoa(array_to_string(hash(
+        var to_hash = 
             string_to_array(atob(contract_hash))
-                .concat(string_to_array(atob(source_id)))
-                .concat(integer_to_array(many_types, 2))
-                .concat(integer_to_array(source_type, 2))
-        ))));
+            .concat(string_to_array(atob(source_id)))
+            .concat(integer_to_array(many_types, 2))
+            .concat(integer_to_array(source_type, 2));
+        console.log(to_hash);
+        return(btoa(array_to_string(hash(to_hash))));
     };
     function contract_hash_maker2(oracle_id){
         var c = contract_maker2(oracle_id);

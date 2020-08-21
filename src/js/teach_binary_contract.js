@@ -16,14 +16,28 @@ var teach_binary_contract = (function(){
     div.appendChild(br());
     var oracle_height = text_input("oracle height: ", div);
     div.appendChild(br());
+    var source = text_input("source contract (leave blank for veo): ", div);
+    div.appendChild(br());
+    var source_type = text_input("source subcurrency type (leave blank for veo): ", div);
+    div.appendChild(br());
+
     var button = button_maker2("teach", teach);
     div.appendChild(button);
     
     function teach() {
-        rpc.post(["add", 2,
-                  btoa(oracle_text.value),
-                  parseInt(oracle_height.value)],
-                 function(){
+        var msg = ["add", 2,
+                   btoa(oracle_text.value),
+                   parseInt(oracle_height.value)];
+        //added source and source_type to the p2p server. now we need to use the new api.
+        if(!(source.value == "")){
+            msg = msg.concat(
+                [source.value,
+                 parseInt(source_type.value)]);
+        };
+        console.log(msg);
+        rpc.post(msg,
+                 function(x){
+                     console.log(x);
                      display.innerHTML = "success";
                      return(0);
                  },
