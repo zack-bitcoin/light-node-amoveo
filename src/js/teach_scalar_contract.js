@@ -34,6 +34,7 @@ var teach_scalar_contract = (function(){
                 [source.value,
                  parseInt(source_type.value)]);
         };
+        console.log(msg);
         rpc.post(msg,
                  function(x){
                      console.log(x);

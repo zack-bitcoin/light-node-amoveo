@@ -1,7 +1,8 @@
 var new_scalar_contract = (function(){
-    var div = document.getElementById("new_scalar_contract");
-    var display = document.createElement("p");
-    div.appendChild(display);
+    //var div = document.getElementById("new_scalar_contract");
+    var div = document.createElement("div");
+    //var display = document.createElement("p");
+    //div.appendChild(display);
     var full = btoa(array_to_string([255,255,255,255]));
     var empty = btoa(array_to_string([0,0,0,0]));
 
@@ -20,10 +21,8 @@ var new_scalar_contract = (function(){
         var MP = parseInt(max_price_text.value);
         var tx = make_tx(Start, Text, MP);
         var CH = tx[2];
-        console.log(Text);
         console.log(CH);
         var cid = binary_derivative.id_maker(CH, 2);
-        console.log(tx);
         var stx = keys.sign(tx);
         post_txs([stx], function(msg){
             display.innerHTML = msg
@@ -31,7 +30,7 @@ var new_scalar_contract = (function(){
                 .concat(cid);
         });
     };
-    function make_tx(start, text, max_price){
+    function make_tx(start, text, max_price, Source, SourceType){
         var contract = scalar_derivative.maker(text, max_price, start);
         var CH = scalar_derivative.hash(contract);
         console.log("new scalar contract make tx");
@@ -40,8 +39,10 @@ var new_scalar_contract = (function(){
         //i6Z+KENBfoAiJ0+GNRtw5yZrnZ/U26f+stv2/McKWZk=
         var Fee = 152050;
         var MT = 2;
-        var Source = btoa(array_to_string(integer_to_array(0, 32)));
-        var SourceType = 0;
+        if(!(Source)){
+            Source = btoa(array_to_string(integer_to_array(0, 32)));
+            SourceType = 0;
+        };
         var tx = ["contract_new_tx", keys.pub(), CH, Fee, MT, Source, SourceType];
         return(tx);
     };

@@ -205,7 +205,7 @@ function merkle_proofs_main() {
             var result = string_to_array(atob(v[7]));
             var source = string_to_array(atob(v[8]));
             var sink = string_to_array(atob(v[10]));
-            var sourcetype = integer_to_array(v[9], 4);
+            var sourcetype = integer_to_array(v[9], 2);
             var volume = integer_to_array(v[11], 6);
             var many = integer_to_array(v[2], 2);
             var nonce = integer_to_array(v[3], 4);

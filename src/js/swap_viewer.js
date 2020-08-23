@@ -16,7 +16,6 @@ var swap_viewer = (function(){
     div.appendChild(br());
 
     function view(){
-        console.log("view");
         var X = JSON.parse(offer.value);
         var Y = swaps.unpack(X);
         var now = headers_object.top()[1];
@@ -47,8 +46,6 @@ var swap_viewer = (function(){
         });
     };
     function maybe_make_contracts(cid, Txs, callback) {
-        console.log("maybe make contracts");
-        console.log(cid);
         if(cid == "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="){
             return(callback(Txs));
         };
@@ -58,7 +55,7 @@ var swap_viewer = (function(){
                     //if(z.length == 5){
                     if(z[0] == "scalar"){
                         //{Text, Height, MaxPrice, Now}
-                        var tx = new_scalar_contract.make_tx(parseInt(z[2]), atob(z[1]), parseInt(z[3]), z[4], parseInt(z[5]));
+                        var tx = new_scalar_contract.make_tx(parseInt(z[2]), atob(z[1]), parseInt(z[3]), z[5], parseInt(z[6]));
                         //var cid2 = binary_derivative.id_maker(tx[2], tx[4], tx[5], tx[6]);
                         return(maybe_make_contracts(tx[5], [tx].concat(Txs), callback));
                     } else if (z[0] == "binary") {
@@ -92,7 +89,6 @@ var swap_viewer = (function(){
                                  if(x == "ZXJyb3I="){
                                      display.innerHTML = "server rejected the tx";
                                  }else{
-                                     console.log(x);
                                      display.innerHTML = "accepted trade offer and published tx. the tx id is ".concat(x);
                                  }
                              });

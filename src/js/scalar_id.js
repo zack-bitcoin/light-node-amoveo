@@ -30,8 +30,9 @@ var scalar_id = (function(){
             SourceType = 0;
         } else {
             Source = source.value;
-            SourceType = parseInt(source_type);
+            SourceType = parseInt(source_type.value);
         };
+        console.log([CH, MT, Source, SourceType]);
         var cid = binary_derivative.id_maker(CH, MT, Source, SourceType);
         display.innerHTML = cid;
         return(0);
