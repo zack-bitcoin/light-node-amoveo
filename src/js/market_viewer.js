@@ -43,7 +43,7 @@ var market_viewer = (function(){
                 .concat(" <br> amount 2: ")
                 .concat(c[7])
                 .concat(" <br> shares: ")
-                .concat(c[7]);
+                .concat(c[8]);
             //display.innerHTML = JSON.stringify(c);
             //console.log(JSON.stringify(c));
         });
