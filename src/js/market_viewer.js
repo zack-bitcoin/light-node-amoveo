@@ -10,6 +10,10 @@ var market_viewer = (function(){
 
     function doit(){
         merkle.request_proof("markets", mid.value, function(c) {
+            if(c == "empty") {
+                display.innerHTML = "that market does not exist";
+                return(0);
+            };
             //-record(market, {id, cid1, type1, amount1, cid2, type2, amount2, shares}).
     //["market","7VcDtMRdZ0vTy9kzDoiMCiqveix/bs0t5qBla4fIWYE=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",0,1010000,"vWSumtEl1WBhxaeVzu/MdBQtdmnuWTXMtupnKTDJ+vI=",2,990099,1000000]
             console.log(c);
@@ -36,6 +40,8 @@ var market_viewer = (function(){
                 .concat(" <br> amount 1: ")
                 .concat(c[4])
                 .concat(sub2)
+                .concat(" <br> amount 2: ")
+                .concat(c[7])
                 .concat(" <br> shares: ")
                 .concat(c[7]);
             //display.innerHTML = JSON.stringify(c);
