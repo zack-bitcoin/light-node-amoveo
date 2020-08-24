@@ -29,9 +29,10 @@ var market_swap = (function(){
                           Nonce, Fee,
                           mid.value, parseInt(give.value),
                           parseInt(take.value),
-                          parseInt(direction),
+                          parseInt(direction.value),
                           CID1, Type1,
-                          CID2, Type2]
+                          CID2, Type2];
+                console.log(tx);
                 var stx = keys.sign(tx);
                 post_txs([stx], function(msg){
                     display.innerHTML = msg
@@ -39,4 +40,11 @@ var market_swap = (function(){
             });
         });
     };
+    return({
+        mid: function(x){mid.value = x},
+        give: function(x){give.value = x},
+        take: function(x){take.value = x},
+        direction: function(x){direction.value = x},
+        doit: doit
+    });
 })();

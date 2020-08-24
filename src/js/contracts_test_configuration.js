@@ -68,6 +68,18 @@
     new_market.amount1("1000000");
     new_market.amount2("1000000");
 
-    market_viewer.mid("7VcDtMRdZ0vTy9kzDoiMCiqveix/bs0t5qBla4fIWYE=");
+    var mid = "7VcDtMRdZ0vTy9kzDoiMCiqveix/bs0t5qBla4fIWYE=";
+
+    market_viewer.mid(mid);
+    
+    market_liquidity_balance.mid(mid);
+
+    market_swap.mid(mid);
+    market_swap.give(10000);
+    market_swap.take(10);
+    market_swap.direction(1);
+
+    market_liquidity.mid(mid);
+    market_liquidity.amount(100000);
     
 })();

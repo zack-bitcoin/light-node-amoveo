@@ -13,6 +13,10 @@ var market_liquidity = (function(){
     function doit(){
         var Fee = 152050;
         merkle.request_proof("accounts", keys.pub(), function(Acc){
+            if(Acc == "empty") {
+                display.innerHTML = "load an account first";
+                return(0);
+            };
             merkle.request_proof("markets", mid.value, function(market){
                 //-record(market, {id, cid1, type1, amount1, cid2, type2, amount2, shares}).
                 var CID1 = market[2];
@@ -32,4 +36,8 @@ var market_liquidity = (function(){
             });
         });
     };
+    return({
+        mid: function(x){mid.value = x},
+        amount: function(x){amount.value = x}
+    });
 })();
