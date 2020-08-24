@@ -30,12 +30,6 @@ var subcurrency_balance = (function(){
             display.innerHTML = s;
             return(0);
         };
-/*        var veo_key = keys.pub();
-        var trie_key =
-            hash((string_to_array(atob(veo_key)))
-                 .concat(string_to_array(atob(cid)))
-                 .concat(integer_to_array(type, 32)));
-*/
         var trie_key = sub_accounts.key(keys.pub(), cid, type);
         var trie_key = btoa(array_to_string(trie_key));
         merkle.request_proof("sub_accounts", trie_key, function(x) {

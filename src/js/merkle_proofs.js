@@ -118,6 +118,8 @@ function merkle_proofs_main() {
 	} else if ( t == "sub_acc" ) {
             //pub, cid, type:256
             return(sub_accounts.key(v[3], v[4], v[5]));
+	} else if ( t == "market" ) {
+            return(string_to_array(atob(v[1])));
 	} else if ( t == "contract" ) {
             //code, source, many_types, source_types
             return(hash(string_to_array(atob(binary_derivative.id_maker(v[1], v[2], v[8], v[9])))));
@@ -200,6 +202,24 @@ function merkle_proofs_main() {
                 .concat(pubkey)
                 .concat(cid);
             return serialized;
+	} else if ( t == "market" ) {
+            var id = string_to_array(atob(v[1]));
+            var cid1 = string_to_array(atob(v[2]));
+            var type1 = integer_to_array(v[3], 2);
+            var amount1 = integer_to_array(v[4], 6);
+            var cid2 = string_to_array(atob(v[5]));
+            var type2 = integer_to_array(v[6], 2);
+            var amount2 = integer_to_array(v[7], 6);
+            var shares = integer_to_array(v[8], 6);
+            return([])
+                .concat(id)
+                .concat(cid1)
+                .concat(cid2)
+                .concat(type1)
+                .concat(type2)
+                .concat(amount1)
+                .concat(amount2)
+                .concat(shares);
 	} else if ( t == "contract" ) {
             var code = string_to_array(atob(v[1]));
             var result = string_to_array(atob(v[7]));

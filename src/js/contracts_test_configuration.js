@@ -62,5 +62,12 @@
     scalar_id.height(start_height);
     scalar_id.text(scalar_question);
     scalar_id.max(max_price);
+
+    new_market.cid1(cid);
+    new_market.type1("2");
+    new_market.amount1("1000000");
+    new_market.amount2("1000000");
+
+    market_viewer.mid("7VcDtMRdZ0vTy9kzDoiMCiqveix/bs0t5qBla4fIWYE=");
     
 })();
