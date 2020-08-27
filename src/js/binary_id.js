@@ -18,8 +18,6 @@ var binary_id = (function(){
         var Start = parseInt(oracle_start_height.value);
         var Text = oracle_text.value;
         var oracle_id = id_maker(Start, 0, 0, Text);//from format
-        console.log("oracle id");
-        console.log(oracle_id);
         var CH = binary_derivative.hash(oracle_id);
         var MT = 3;
         var Source, SourceType;

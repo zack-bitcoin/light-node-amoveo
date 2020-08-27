@@ -30,7 +30,6 @@ var binary_derivative = (function(){
             .concat(string_to_array(atob(source_id)))
             .concat(integer_to_array(many_types, 2))
             .concat(integer_to_array(source_type, 2));
-        console.log(to_hash);
         return(btoa(array_to_string(hash(to_hash))));
     };
     function contract_hash_maker2(oracle_id){

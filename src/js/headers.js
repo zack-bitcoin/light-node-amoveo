@@ -26,9 +26,10 @@ function headers_main() {
     var INITIAL_DIFFICULTY;
     var headers_batch = 5000;
     if (mode == "test") {
-	INITIAL_DIFFICULTY = 2500;
+	//INITIAL_DIFFICULTY = 2500;
+	INITIAL_DIFFICULTY = 10;
 	retarget_frequency = 12;
-	forks = {two: 0, four: retarget_frequency,
+	forks = {two: 0, four: 0,//retarget_frequency,
                  seven:40, twenty_nine:0};
 	top_header = 0;
     } else if (mode == "testnet") {
