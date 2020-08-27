@@ -1,6 +1,6 @@
 var new_contract = (function(){
-    //var div = document.getElementById("new_contract");
-    var div = document.createElement("div");
+    var div = document.getElementById("new_contract");
+    //var div = document.createElement("div");
     var display = document.createElement("p");
     div.appendChild(display);
     var full = btoa(array_to_string([255,255,255,255]));
