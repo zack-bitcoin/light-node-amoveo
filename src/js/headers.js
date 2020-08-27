@@ -5,7 +5,7 @@ function headers_main() {
     if (mode == "test") {
         mode = "test";
         server_port.value = "3010";
-        server_ip.value = "127.0.0.1";
+        //server_ip.value = "127.0.0.1";
     } else if (mode == "testnet") {
         mode = "testnet";
         server_port.value = "8070";
