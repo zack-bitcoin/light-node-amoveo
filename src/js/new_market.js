@@ -1,21 +1,25 @@
 var new_market = (function(){
     var div = document.getElementById("new_market");
+    if(!(div)){
+        div = document.createElement("div");
+    };
     var display = document.createElement("p");
     div.appendChild(display);
     var cid1 = text_input("subcurrency contract 1 (leave blank for veo): ", div);
     div.appendChild(br());
-    var type1 = text_input("subcurrency contract type 1 (leave blank for veo): ", div);
+    var type1 = text_input("subcurrency contract 1 type (leave blank for veo): ", div);
     div.appendChild(br());
     var amount1 = text_input("how much of the first kind of subcurrency you pay: ", div);
     div.appendChild(br());
-    var cid2 = text_input("subcurrency contract 1 (leave blank for veo): ", div);
+    var cid2 = text_input("subcurrency contract 2 (leave blank for veo): ", div);
     div.appendChild(br());
-    var type2 = text_input("subcurrency contract type 1 (leave blank for veo): ", div);
+    var type2 = text_input("subcurrency contract 2 type (leave blank for veo): ", div);
     div.appendChild(br());
     var amount2 = text_input("how much of the second kind of subcurrency you pay: ", div);
     div.appendChild(br());
     var button = button_maker2("make market", doit);
     div.appendChild(button);
+
 
     function doit(){
         var Fee = 152050;
@@ -37,6 +41,16 @@ var new_market = (function(){
                   Type2,
                   parseInt(amount1.value),
                   parseInt(amount2.value)];
+        var MID = mid(CID1, CID2, Type1, Type2);
+        console.log(JSON.stringify(tx));
+        var stx = keys.sign(tx);
+        post_txs([stx], function(msg){
+            display.innerHTML = msg
+                .concat(" and the market id is ")
+                .concat(MID);
+        });
+    };
+    function mid(CID1, CID2, Type1, Type2){
         if([CID1, Type1] <= [CID2, Type2]){
         } else {
             var CID3 = CID1;
@@ -51,13 +65,7 @@ var new_market = (function(){
                  .concat(string_to_array(atob(CID2)))
                  .concat(integer_to_array(Type1, 2))
                  .concat(integer_to_array(Type2, 2)))));
-        console.log(JSON.stringify(tx));
-        var stx = keys.sign(tx);
-        post_txs([stx], function(msg){
-            display.innerHTML = msg
-                .concat(" and the market id is ")
-                .concat(MID);
-        });
+        return(MID);
     };
 
     return({
@@ -67,6 +75,7 @@ var new_market = (function(){
         cid2: function(x){cid2.value = x},
         type2: function(x){type2.value = x},
         amount2: function(x){amount2.value = x},
+        mid: mid,
         doit: doit
     });
 })();

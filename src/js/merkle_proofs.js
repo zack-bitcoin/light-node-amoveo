@@ -122,7 +122,7 @@ function merkle_proofs_main() {
             return(string_to_array(atob(v[1])));
 	} else if ( t == "contract" ) {
             //code, source, many_types, source_types
-            return(hash(string_to_array(atob(binary_derivative.id_maker(v[1], v[2], v[8], v[9])))));
+            return(hash(string_to_array(atob(id_maker(v[1], v[2], v[8], v[9])))));
 	} else if ( t == "channel" ) {
             //return hash(integer_to_array(v[1], 32));
             return hash(string_to_array(atob(v[1])));
@@ -316,10 +316,27 @@ function merkle_proofs_main() {
 	    console.log(fun_limit);
 	});
     }
+    function id_maker(
+        contract_hash, many_types,
+        source_id, source_type)
+    {
+        //for contracts
+        if(!(source_id)){
+            source_id = btoa(array_to_string(integer_to_array(0, 32)));
+            source_type = 0;
+        };
+        var to_hash = 
+            string_to_array(atob(contract_hash))
+            .concat(string_to_array(atob(source_id)))
+            .concat(integer_to_array(many_types, 2))
+            .concat(integer_to_array(source_type, 2));
+        return(btoa(array_to_string(hash(to_hash))));
+    };
     return {request_proof: verify_callback,
 	    verify: verify_merkle,
 	    serialize: serialize_tree_element,
 	    serialize_key: serialize_key,
+            contract_id_maker: id_maker,
 	    test: test};
 }
 var merkle = merkle_proofs_main();

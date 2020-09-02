@@ -211,6 +211,9 @@ function keys_function1() {
 	    Callback(x[1]);
         });
     }
+    var update_balance_callback = function(){
+        return(0);
+    };
     function update_balance() {
         var trie_key = pubkey_64();
         var headers_top = headers_object.top();
@@ -236,6 +239,7 @@ function keys_function1() {
                                 " VEO");
                 };
                 bal_div.innerHTML = S;
+                update_balance_callback();
             });
         });
     }
@@ -273,6 +277,8 @@ function keys_function1() {
             check_balance: check_balance,
             keys_internal: (function() {return keys_internal;}),
             update_balance:update_balance,
+            update_balance_callback: (function (x) {
+                update_balance_callback = x;}),
             compress: compress_pub,
             decompress: decompress_pub };
 }
