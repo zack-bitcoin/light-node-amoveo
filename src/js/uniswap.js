@@ -244,14 +244,15 @@ var uniswap = (function(){
         var db = build_paths_db(Paths, {});
 
         var guess = array_of(a, L);
-        return(swap_price_loop(Paths, amount, guess, db, 20));
+        return(swap_price_loop(Paths, amount, guess, db, 30));
     }
     function swap_price_loop(Paths, amount, guess, db, N) {
         if(N < 1) {
             console.log(JSON.stringify(Paths));
             console.log("timeout");
             console.log(guess);
-            var gradient = get_gradient(Paths, db);
+            var db2 = make_trades(guess, Paths, JSON.parse(JSON.stringify(db)));
+            var gradient = get_gradient(Paths, db2);
             console.log(gradient);
             return(0);
         };
@@ -264,7 +265,7 @@ var uniswap = (function(){
         //calculate the final price on every path to buy a bit more. this is the gradient vector.
         var gradient = get_gradient(Paths, db2);
         console.log(guess);
-        var average = average_fun(gradient);
+        var average = average_fun(gradient, guess);
         console.log(average);
         if(good_enough(gradient, average)){
             console.log(JSON.stringify(Paths));
@@ -278,7 +279,7 @@ var uniswap = (function(){
             console.log(gradient);
             console.log(guess);
             console.log(nextGuess);
-            return(swap_price_loop(Paths, amount, nextGuess, db2, N-1));
+            return(swap_price_loop(Paths, amount, nextGuess, db, N-1));
         };
         //for the paths that are more expensive than average, buy less in the next iteration. for the paths that are less expensive, buy more in the next iteration.
     };
@@ -286,7 +287,8 @@ var uniswap = (function(){
         var r = [];
         for(var i = 0; i<guess.length; i++){
             console.log([average, guess[i], grad[i]])
-            r = r.concat([guess[i] + guess[i]*((grad[i] - average)/average)]);
+            r = r.concat([guess[i] - guess[i]*((grad[i]-average)/average)]);
+            //r = r.concat([guess[i] + 0.5*guess[i]*((grad[i] - average)/average)]);
             //r = r.concat([average * guess[i] / grad[i]]);
             console.log(JSON.stringify(r));
             
@@ -304,7 +306,7 @@ var uniswap = (function(){
         console.log(JSON.stringify([r, total, t]));
         return(t);
     };
-    function average_fun(grad) {
+    function average_fun(grad, guess) {
         var total = 0;
         for(var i = 0; i<grad.length; i++){
             //console.log(guess[i]);
@@ -362,7 +364,7 @@ var uniswap = (function(){
                 m[7] = K/m[4];
                 Amount = old - m[7];
                 db[mid] = m;
-                return(process_path(Amount, path, price*Amount/StartAmount, db));
+                return(process_path(Amount, path, price*StartAmount/Amount, db));
             } else if ((m[5] == currency[0]) &&
                        (m[6] == currency[1])){
                 m[7] = m[7] + Amount;
@@ -370,7 +372,7 @@ var uniswap = (function(){
                 m[4] = K/m[7];
                 Amount = old - m[4];
                 db[mid] = m;
-                return(process_path(Amount, path, price*Amount/StartAmount, db));
+                return(process_path(Amount, path, price*StartAmount/Amount, db));
             } else {
                 console.log("process path bad error");
                 return(0);
@@ -424,7 +426,7 @@ var uniswap = (function(){
                        m[4] = m[4] + Amount + G;
                        Amount = Amount + G;
                        db[mid] = m;
-                       return(process_path(Amount, path, price*Amount/StartAmount, db));
+                       return(process_path(Amount, path, price*StartAmount/Amount, db));
                    } else if((mcid2 == source) && (mtype2 == source_type)){
                        var a = 1;
                        var b = m[7] + Amount - m[4];
@@ -437,7 +439,7 @@ var uniswap = (function(){
                        m[7] = m[7] + Amount + G;
                        Amount = Amount + G;
                        db[mid] = m;
-                       return(process_path(Amount, path, price*Amount/StartAmount, db));
+                       return(process_path(Amount, path, price*StartAmount/Amount, db));
                    } else {
                        //starts at source. the market is between the subcurrencies.
                        if((end_currency[0] == mcid1) &&
@@ -447,7 +449,7 @@ var uniswap = (function(){
                            m[4] = K / m[7];
                            var gain = old - m[4];
                            Amount = Amount + gain;
-                           return(process_path(Amount, path, price*Amount/StartAmount, db));
+                           return(process_path(Amount, path, price*StartAmount/Amount, db));
                        } else if ((end_currency[0] == mcid2) &&
                                   (end_currency[1] == mtype2)){
                            m[4] = m[4] + Amount;
@@ -456,7 +458,7 @@ var uniswap = (function(){
                            var gain = old - m[7];
                            Amount = Amount + gain;
                            db[mid] = m;
-                           return(process_path(Amount, path, price*Amount/StartAmount, db));
+                           return(process_path(Amount, path, price*StartAmount/Amount, db));
                        } else {
                            console.log("bad error");
                            return(0);
@@ -486,7 +488,7 @@ var uniswap = (function(){
                        var G = old - m[7];
                        Amount = G - Amount;
                        db[mid] = m;
-                       return(process_path(Amount, path, price*Amount/StartAmount, db));
+                       return(process_path(Amount, path, price*StartAmount/Amount, db));
                    } else if((mcid2 == source)&&(mtype2 == source_type)){
                        m[7] = m[7] + Amount;
                        var old = m[4];
@@ -494,7 +496,7 @@ var uniswap = (function(){
                        var G = old - m[4];
                        Amount = G - Amount;
                        db[mid] = m;
-                       return(process_path(Amount, path, price*Amount/StartAmount, db));
+                       return(process_path(Amount, path, price*StartAmount/Amount, db));
                        
                    } else if((mcid1 == start_currency[0]) &&
                              (mtype1 == start_currency[1])) {
@@ -529,7 +531,7 @@ var uniswap = (function(){
                        var gain = old - m[4];
                        Amount = gain;
                        db[mid] = m;
-                       return(process_path(Amount, path, price*Amount/StartAmount, db));
+                       return(process_path(Amount, path, price*StartAmount/Amount, db));
                            
                    } else if ((mcid2 == start_currency[0]) &&
                               (mtype2 == start_currency[1])) {
@@ -547,7 +549,7 @@ var uniswap = (function(){
                            var gain = old - m[7];
                            Amount = gain;//also = Amount - B
                            db[mid] = m;
-                       return(process_path(Amount, path, price*Amount/StartAmount, db));
+                       return(process_path(Amount, path, price*StartAmount/Amount, db));
                    };
                        console.log("bad error");
                        return(0);
@@ -574,7 +576,7 @@ var uniswap = (function(){
                        m[7] = m[7] - G;
                        Amount = G;
                        db[mid] = m;
-                       return(process_path(Amount, path, price*Amount/StartAmount, db));
+                       return(process_path(Amount, path, price*StartAmount/Amount, db));
                    } else if ((mcid2 == start_currency[0]) &&
                               (mtype2 == start_currency[1])){
                        var a = 1;
@@ -588,7 +590,7 @@ var uniswap = (function(){
                        m[4] = m[4] - G;
                        Amount = G;
                        db[mid] = m;
-                       return(process_path(Amount, path, price*Amount/StartAmount, db));
+                       return(process_path(Amount, path, price*StartAmount/Amount, db));
                    } else if ((mcid1 == end_currency[0]) &&
                               (mtype1 == end_currency[1])){
                        //K = A1 * A2;
@@ -602,7 +604,7 @@ var uniswap = (function(){
                        var G = old - m[7];
                        Amount = G - Amount;
                        db[mid] = m;
-                       return(process_path(Amount, path, price*Amount/StartAmount, db));
+                       return(process_path(Amount, path, price*StartAmount/Amount, db));
                    } else if ((mcid2 == end_currency[0])&&
                               (mtype2 == end_currency[1])){
                        m[7] = m[7] + Amount;
@@ -611,7 +613,7 @@ var uniswap = (function(){
                        var G = old - m[4];
                        Amount = G - Amount;
                        db[mid] = m;
-                       return(process_path(Amount, path, price*Amount/StartAmount, db));
+                       return(process_path(Amount, path, price*StartAmount/Amount, db));
                    } else {
                        console.log("bad error");
                        return(0);
