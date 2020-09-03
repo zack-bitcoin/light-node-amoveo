@@ -274,7 +274,6 @@ var uniswap = (function(){
             var A2 = m[7];
             var K = A1 * A2;
             path = path.slice(2);
-            console.log("buying");
             if((m[2] == currency[0])&&
                (m[3] == currency[1])){
                 m[4] = m[4] + Amount;
@@ -296,16 +295,252 @@ var uniswap = (function(){
                 return(0);
             };
         };
-        if(type == "contract"){
-            var cid = path[1][1];
-            var mid = path[2][1];
-            path = path.slice(3);
-            console.log("process path");
-            console.log(JSON.stringify([
-                db[cid], db[mid]]));
+        if(type[0] == "contract"){
+            //start_currency can be any of 3 spots.
+            //end_currency can be any of 3 spots.
+            //market start can be any of 3.
+            //market end can be any of 3.
+
+            var cid = path[1][0][1];
+            var mid = path[1][1][1];
+            var c = db[cid];
+            var source = c[8];
+            var source_type = c[9];
+            var m = db[mid];
+            var mcid1 = m[2];
+            var mtype1 = m[3];
+            var mcid2 = m[5];
+            var mtype2 = m[6];
+            var K = m[4] * m[7];
+            var start_currency = path[0];
+            var end_currency = path[2];
+            path = path.slice(2);
+
+            if((start_currency[0] == source) &&
+               (start_currency[1] == source_type))
+               {
+                   if((mcid1 == source) && (mtype1 == source_type)) {
+                       //so we know that m[2] == source. so we are spending from m[7]
+                       //we are using the market to buy source currency, while using the contract to sell it.
+                       //starting with Amount of both types of subcurrency.
+
+                       //we sell the source in contract: Amount + buy_from_market
+                       //we spend in market: Amount + gain_from_market
+                       //K = A2*A1;
+                       //K = (A2-G)*(A1+Amount + G);
+                       //K = -G^2 + G(A2 - A1 - Amount) + (A2*(A1+Amount));
+                       //0 = G^2 + G(A1 + Amount - A2) + (K - A2*(A1+Amount));
+                       //0 = G^2 + G(A1 + Amount - A2) + (K - A2*A1-A2*Amount));
+                       //0 = G^2 + G(A1 + Amount - A2) + (-A2*Amount));
+                       var a = 1;
+                       var b = m[4] + Amount - m[7];
+                       var c = -Amount * m[7];
+                       var G0 = Math.sqrt(b*b - (4*a*c));
+                       var G1 = (-b + G0)/ 2;
+                       var G2 = (-b - G0)/ 2;
+                       var G = Math.max(G1, G2);
+                       m[7] = m[7] - G;
+                       m[4] = m[4] + Amount + G;
+                       Amount = Amount + G;
+                       db[mid] = m;
+                       return(process_path(Amount, path, db));
+                   } else if((mcid2 == source) && (mtype2 == source_type)){
+                       var a = 1;
+                       var b = m[7] + Amount - m[4];
+                       var c = -Amount * m[4];
+                       var G0 = Math.sqrt(b*b - (4*a*c));
+                       var G1 = (-b + G0)/ 2;
+                       var G2 = (-b - G0)/ 2;
+                       var G = Math.max(G1, G2);
+                       m[4] = m[4] - G;
+                       m[7] = m[7] + Amount + G;
+                       Amount = Amount + G;
+                       db[mid] = m;
+                       return(process_path(Amount, path, db));
+                   } else {
+                       //starts at source. the market is between the subcurrencies.
+                       if((end_currency[0] == mcid1) &&
+                          (end_currency[1] == mtype1)){
+                           m[7] = m[7] + Amount;
+                           var old = m[4];
+                           m[4] = K / m[7];
+                           var gain = old - m[4];
+                           Amount = Amount + gain;
+                           return(process_path(Amount, path, db));
+                       } else if ((end_currency[0] == mcid2) &&
+                                  (end_currency[1] == mtype2)){
+                           m[4] = m[4] + Amount;
+                           var old = m[7];
+                           m[7] = K / m[4];
+                           var gain = old - m[7];
+                           Amount = Amount + gain;
+                           db[mid] = m;
+                           return(process_path(Amount, path, db));
+                       } else {
+                           console.log("bad error");
+                           return(0);
+                       };
+                   };
+                   //from now on we only consider cases where you start out owning one of the subcurrencies.
+               } else if((end_currency[0] == source) &&
+                         (end_currency[1] == source_type)) {
+                   if((mcid1 == source)&&(mtype1 == source_type)){
+                       //contract-buy source, market spend source to buy other subcurrency
+
+                       //know: A1, A2, K
+                       //to know: Contract Buy, S, G
+
+                       //contract buy = amount,
+                       //S = Amount
+                       
+                       //K = A1 * A2
+                       //K = (A1 + S)(A2 - G)
+
+                       //G = A2 - (K/(A1+S))
+
+                       //var G = m[7] - (K/(m[4] + Amount));
+                       m[4] = m[4] + Amount;
+                       var old = m[7];
+                       m[7] = K/m[4];
+                       var G = old - m[7];
+                       Amount = G - Amount;
+                       db[mid] = m;
+                       return(process_path(Amount, path, db));
+                   } else if((mcid2 == source)&&(mtype2 == source_type)){
+                       m[7] = m[7] + Amount;
+                       var old = m[4];
+                       m[4] = K/m[7];
+                       var G = old - m[4];
+                       Amount = G - Amount;
+                       db[mid] = m;
+                       return(process_path(Amount, path, db));
+                       
+                   } else if((mcid1 == start_currency[0]) &&
+                             (mtype1 == start_currency[1])) {
+                       //contract-buy source, market spend subcurrency to buy other subcurrency
+                       //sell just enough to have equal amounts of bot
+                        //buying m[5].
+                        // buy B
+                        //gain == Amount - B
+                        //Amount - B = m[4] - m[4]
+                        //B = Amount - m[4] + K/m[7]
+                        //B = Amount - m[4] + K/(m[7] + B)
+                        //(K/(m[7] + B)) = B - Amount + m[4]
+                        //K = (m[7] + B) * (B - Amount + m[4])
+                        //0 = B^2 + B(m[7] - Amount + m[4]) + ((m[7]*(m[4]-Amount)) - K)
+
+                        //0 = a*x^2 + b*x + c
+                        // a = 1;
+                        // b = (m[7] + m[4] - Amount);
+                        // c = ((m[7] * (m[4] - Amount)) - K)
+                        // B = (-b +- sqrt(b*b - (4*a*c)))/ 2
+                           var K = m[4] * m[7];
+                           var a = 1;
+                           var b = m[7] + m[4] - Amount;
+                           var c = ((m[7] * (m[4] - Amount)) - K);
+                           var B0 = Math.sqrt(b*b - (4*a*c));
+                           var B1 = (-b + B0)/ 2;
+                           var B2 = (-b - B0)/ 2;
+                           var B = Math.max(B1, B2);
+                           m[7] = m[7] + B;
+                           var old = m[4];
+                           m[4] = K/m[7];
+                           var gain = old - m[4];
+                           Amount = gain;
+                           db[mid] = m;
+                           return(process_path(Amount, path, db));
+                           
+                   } else if ((mcid2 == start_currency[0]) &&
+                              (mtype2 == start_currency[1])) {
+                           //buying m[5], source.
+                           var a = 1;
+                           var b = m[7] + m[4] - Amount;
+                           var c = ((m[4] * (m[7] - Amount)) - K);
+                           var B0 = Math.sqrt(b*b - (4*a*c));
+                           var B1 = (-b + B0)/ 2;
+                           var B2 = (-b - B0)/ 2;
+                           var B = Math.max(B1, B2);
+                           m[4] = m[4] + B;
+                           var old = m[7];
+                           m[7] = K/m[4];
+                           var gain = old - m[7];
+                           Amount = gain;//also = Amount - B
+                           db[mid] = m;
+                           return(process_path(Amount, path, db));
+                   };
+                       console.log("bad error");
+                       return(0);
+               //};
+               } else {
+                //now we only consider cases of selling one subcurrency to get another.
+                //we know that one end of the market is the source.
+                   if((mcid1 == start_currency[0]) &&
+                      (mtype1 == start_currency[1])){
+                       //contract-sell source, market spend subcurrency to buy source.
+                       //K = A1*A2
+                       //K = (A1 + Amount + G)(A2 - G)
+                       //K = -G^2 + G*(A1 - A2 + Amount) + A2(A1+Amount)
+                       //0 = G^2 + G*(A2 - A1 -Amount) + (K - K - A2*Amount)
+                       //0 = G^2 + G*(A2 - A1 -Amount) + (- A2*Amount)
+                       var a = 1;
+                       var b = (m[7]-m[4]-Amount);
+                       var c = -m[4]*Amount;
+                       var G0 = Math.sqrt(b*b - (4*a*c));
+                       var G1 = (-b + G0)/ 2;
+                       var G2 = (-b - G0)/ 2;
+                       var G = Math.max(G1, G2);
+                       m[4] = m[4] + Amount + G;
+                       m[7] = m[7] - G;
+                       Amount = G;
+                       db[mid] = m;
+                       return(process_path(Amount, path, db));
+                   } else if ((mcid2 == start_currency[0]) &&
+                              (mtype2 == start_currency[1])){
+                       var a = 1;
+                       var b = (m[4]-m[7]-Amount);
+                       var c = -m[7]*Amount;
+                       var G0 = Math.sqrt(b*b - (4*a*c));
+                       var G1 = (-b + G0)/ 2;
+                       var G2 = (-b - G0)/ 2;
+                       var G = Math.max(G1, G2);
+                       m[7] = m[7] + Amount + G;
+                       m[4] = m[4] - G;
+                       Amount = G;
+                       db[mid] = m;
+                       return(process_path(Amount, path, db));
+                   } else if ((mcid1 == end_currency[0]) &&
+                              (mtype1 == end_currency[1])){
+                       //K = A1 * A2;
+                       //K = (A1 + Amount) * (A2 - G);
+                       //G-A2 = -K/(A1 + Amount)
+                       //G = A2 -(K/(A1+Amount));
+                       //var G = m[7] - (K/(m[4] + Amount));
+                       m[4] = m[4] + Amount;
+                       var old = m[7];
+                       m[7] = K/m[4];
+                       var G = old - m[7];
+                       Amount = G - Amount;
+                       db[mid] = m;
+                       return(process_path(Amount, path, db));
+                   } else if ((mcid2 == end_currency[0])&&
+                              (mtype2 == end_currency[1])){
+                       m[7] = m[7] + Amount;
+                       var old = m[4];
+                       m[4] = K/m[7];
+                       var G = old - m[4];
+                       Amount = G - Amount;
+                       db[mid] = m;
+                       return(process_path(Amount, path, db));
+                   } else {
+                       console.log("bad error");
+                       return(0);
+                   };
+               };
+            console.log("bad error");
             return(0);
         };
         console.log("process path bad error");
+        console.log(type);
         return(0);
     };
     function all_paths(Paths, cid2, type2, contracts, markets, Steps) {
@@ -682,6 +917,6 @@ var uniswap = (function(){
             //cid1: function(x){ cid1.value = x },
             helper: helper
             //button: next_button
-           })
-    
-})();
+           });
+     
+    })();
