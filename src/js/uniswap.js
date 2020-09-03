@@ -264,9 +264,9 @@ var uniswap = (function(){
         //console.log(JSON.stringify(db2));
         //calculate the final price on every path to buy a bit more. this is the gradient vector.
         var gradient = get_gradient(Paths, db2);
-        console.log(guess);
+        //console.log(guess);
         var average = average_fun(gradient, guess);
-        console.log(average);
+        //console.log(average);
         if(good_enough(gradient, average)){
             console.log(JSON.stringify(Paths));
             console.log(JSON.stringify(db2));
@@ -286,15 +286,21 @@ var uniswap = (function(){
     function improve_guess(average, guess, grad, amount){
         var r = [];
         for(var i = 0; i<guess.length; i++){
-            console.log([average, guess[i], grad[i]])
-            r = r.concat([guess[i] - guess[i]*((grad[i]-average)/average)]);
+            //console.log([average, guess[i], grad[i]])
+            
+            var n = guess[i] - guess[i]*((grad[i]-average)/average);
+            var n = Math.max(n, 0);
+            r = r.concat([n]);
+            //r = r.concat([guess[i] - guess[i]*((grad[i]-average)/average)]);
+
             //r = r.concat([guess[i] + 0.5*guess[i]*((grad[i] - average)/average)]);
+
             //r = r.concat([average * guess[i] / grad[i]]);
-            console.log(JSON.stringify(r));
+            //console.log(JSON.stringify(r));
             
             //r = r.concat([
         };
-        console.log(JSON.stringify(r));
+        //console.log(JSON.stringify(r));
         var total = 0;
         for(var i = 0; i<r.length; i++){
             total = total + r[i];
@@ -303,18 +309,24 @@ var uniswap = (function(){
         for(var i = 0; i<r.length; i++){
             t = t.concat([amount * r[i] / total]);
         };
-        console.log(JSON.stringify([r, total, t]));
+        //console.log(JSON.stringify([r, total, t]));
         return(t);
     };
     function average_fun(grad, guess) {
+        var guess_total = guess.reduce(function(a, b) {
+            return(a+b);
+        });
+        console.log(guess);
+        console.log(guess_total);
         var total = 0;
         for(var i = 0; i<grad.length; i++){
             //console.log(guess[i]);
-            console.log(grad[i]);
-            //total = total + (grad[i]*guess[i]);
-            total = total + grad[i];
+            //console.log(grad[i]);
+            total = total + (grad[i]*guess[i]);
+            //total = total + grad[i];
         };
-        var average = total / grad.length;
+        //var average = total / grad.length;
+        var average = total / guess_total;
         return(average);
     };
     function good_enough(grad, average) {
@@ -375,6 +387,8 @@ var uniswap = (function(){
                 return(process_path(Amount, path, price*StartAmount/Amount, db));
             } else {
                 console.log("process path bad error");
+                console.log(currency);
+                console.log(JSON.stringify(m));
                 return(0);
             };
         };
@@ -657,7 +671,7 @@ var uniswap = (function(){
                 //if the tip is one of the currencies in this market, then make paths that lead to each of the other currencies that we can.
                 if((Tip[0] == cid2) && (Tip[1] == type2)) {
                     Paths2 = Paths2.concat([Paths[p]]);
-                    console.log("this path is done.");
+                    //console.log("this path is done.");
                 } else if((Tip[0] == Source) && (Tip[1] == SourceType)) {
                     if(!(MT == 2))
                     {
@@ -722,11 +736,11 @@ var uniswap = (function(){
                         //var newPath = Paths[p].concat([Contract, m2other[0], other]);
                         Paths2 = Paths2.concat([newPath]);
                     }
-                    console.log("tip matches subcurrency");
+                    //console.log("tip matches subcurrency");
                 } else {
                     Paths2 = Paths2.concat([Paths[p]]);
-                    console.log(JSON.stringify(Tip));
-                    console.log("tip is other");
+                    //console.log(JSON.stringify(Tip));
+                    //console.log("tip is other");
                 }
 //                Paths2 = Paths2.concat([Paths[p]]);
                 //console.log(JSON.stringify(Paths2));
@@ -751,9 +765,9 @@ var uniswap = (function(){
                 var Type1 = Market[3];
                 var CID2 = Market[5];
                 var Type2 = Market[6];
-                console.log(JSON.stringify(Tip));
-                console.log(JSON.stringify(cid2));
-                console.log(JSON.stringify(type2));
+                //console.log(JSON.stringify(Tip));
+                //console.log(JSON.stringify(cid2));
+                //console.log(JSON.stringify(type2));
                 if((Tip[0] == cid2) && (Tip[1] == type2)){
                     //console.log("this path is done.");
                     Paths2 = Paths2.concat([Paths[p]]);
@@ -768,7 +782,8 @@ var uniswap = (function(){
                     //console.log("extend paths2");
                     //console.log(Market);
                 } else {
-                    Paths2 = Paths2.concat([Paths[p].concat([Market, [CID1, Type1]])])
+                    Paths2 = Paths2.concat([Paths[p]]);
+                    //Paths2 = Paths2.concat([Paths[p].concat([Market, [CID1, Type1]])])
                     //console.log(JSON.stringify([Type1, Type2, type2, CID1, CID2, cid2]));
                 }
             };
