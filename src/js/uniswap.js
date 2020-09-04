@@ -5,6 +5,7 @@ var uniswap = (function(){
     var swap_tab = document.createElement("div");
     var pool_tab = document.createElement("div");
     var ZERO = btoa(array_to_string(integer_to_array(0, 32)));
+    var trading_fee = 0.9979;
 
     function swap_mode_f() {
         current_tab.innerHTML = "";
@@ -196,7 +197,7 @@ var uniswap = (function(){
 //                console.log(JSON.stringify([amount, type1, type2, cid1, cid2, contracts, markets]));
                 var Paths = all_paths([[[cid1, type1]]], cid2, type2, contracts, markets, 5);
                 //console.log(JSON.stringify(Paths));
-                var Paths2 = end_goal(cid2, type2, Paths);//TODO, remove paths that do not end at our goal.
+                var Paths2 = end_goal(cid2, type2, Paths);
                 console.log(JSON.stringify(Paths2));
                 console.log(JSON.stringify(Paths2.length));
                 return(swap_price3(Paths2, amount));
@@ -254,7 +255,8 @@ var uniswap = (function(){
             var db2 = make_trades(guess, Paths, JSON.parse(JSON.stringify(db)));
             var gradient = get_gradient(Paths, db2);
             console.log(gradient);
-            return(0);
+            return(make_tx(guess, amount, Paths, db, db2));
+            //return(0);
         };
         //make a database of the markets and contracts that can be updated with trades.
         //console.log(JSON.stringify(db));
@@ -267,13 +269,14 @@ var uniswap = (function(){
         //console.log(guess);
         var average = average_fun(gradient, guess);
         //console.log(average);
-        if(good_enough(gradient, average)){
+        if(good_enough(gradient, guess, average)){
             console.log(JSON.stringify(Paths));
             console.log(JSON.stringify(db2));
             console.log(guess);
             console.log(gradient);
             console.log("done!");
-            return(db2);
+            return(make_tx(guess, amount, Paths, db, db2));
+            //return(db2);
         } else {
             var nextGuess = improve_guess(average, guess, gradient, amount);
             console.log(gradient);
@@ -288,7 +291,7 @@ var uniswap = (function(){
         for(var i = 0; i<guess.length; i++){
             //console.log([average, guess[i], grad[i]])
             
-            var n = guess[i] - guess[i]*((grad[i]-average)/average);
+            var n = guess[i] - 0.9*guess[i]*((grad[i]-average)/average);
             var n = Math.max(n, 0);
             r = r.concat([n]);
             //r = r.concat([guess[i] - guess[i]*((grad[i]-average)/average)]);
@@ -329,11 +332,11 @@ var uniswap = (function(){
         var average = total / guess_total;
         return(average);
     };
-    function good_enough(grad, average) {
+    function good_enough(grad, guess, average) {
         //var average = average(grad);
         for(var i = 0; i<grad.length; i++){
             var p = Math.abs(grad[i] - average) / average;
-            if(p > 0.001){
+            if((!(guess[i] == 0)) && (p > 0.001)){
                 return(false);
             };
         };
@@ -374,7 +377,7 @@ var uniswap = (function(){
                 m[4] = m[4] + Amount;
                 var old = m[7];
                 m[7] = K/m[4];
-                Amount = old - m[7];
+                Amount = (old - m[7]) * trading_fee;
                 db[mid] = m;
                 return(process_path(Amount, path, price*StartAmount/Amount, db));
             } else if ((m[5] == currency[0]) &&
@@ -382,7 +385,7 @@ var uniswap = (function(){
                 m[7] = m[7] + Amount;
                 var old = m[4];
                 m[4] = K/m[7];
-                Amount = old - m[4];
+                Amount = (old - m[4]) * trading_fee;
                 db[mid] = m;
                 return(process_path(Amount, path, price*StartAmount/Amount, db));
             } else {
@@ -438,7 +441,7 @@ var uniswap = (function(){
                        var G = Math.max(G1, G2);
                        m[7] = m[7] - G;
                        m[4] = m[4] + Amount + G;
-                       Amount = Amount + G;
+                       Amount = Amount + (G * trading_fee);
                        db[mid] = m;
                        return(process_path(Amount, path, price*StartAmount/Amount, db));
                    } else if((mcid2 == source) && (mtype2 == source_type)){
@@ -451,7 +454,7 @@ var uniswap = (function(){
                        var G = Math.max(G1, G2);
                        m[4] = m[4] - G;
                        m[7] = m[7] + Amount + G;
-                       Amount = Amount + G;
+                       Amount = Amount + (G * trading_fee);
                        db[mid] = m;
                        return(process_path(Amount, path, price*StartAmount/Amount, db));
                    } else {
@@ -462,7 +465,7 @@ var uniswap = (function(){
                            var old = m[4];
                            m[4] = K / m[7];
                            var gain = old - m[4];
-                           Amount = Amount + gain;
+                           Amount = Amount + (gain * trading_fee);
                            return(process_path(Amount, path, price*StartAmount/Amount, db));
                        } else if ((end_currency[0] == mcid2) &&
                                   (end_currency[1] == mtype2)){
@@ -470,7 +473,7 @@ var uniswap = (function(){
                            var old = m[7];
                            m[7] = K / m[4];
                            var gain = old - m[7];
-                           Amount = Amount + gain;
+                           Amount = Amount + (gain * trading_fee);
                            db[mid] = m;
                            return(process_path(Amount, path, price*StartAmount/Amount, db));
                        } else {
@@ -500,7 +503,7 @@ var uniswap = (function(){
                        var old = m[7];
                        m[7] = K/m[4];
                        var G = old - m[7];
-                       Amount = G - Amount;
+                       Amount = (G * trading_fee) - Amount;
                        db[mid] = m;
                        return(process_path(Amount, path, price*StartAmount/Amount, db));
                    } else if((mcid2 == source)&&(mtype2 == source_type)){
@@ -508,7 +511,7 @@ var uniswap = (function(){
                        var old = m[4];
                        m[4] = K/m[7];
                        var G = old - m[4];
-                       Amount = G - Amount;
+                       Amount = (G * trading_fee) - Amount;
                        db[mid] = m;
                        return(process_path(Amount, path, price*StartAmount/Amount, db));
                        
@@ -543,7 +546,7 @@ var uniswap = (function(){
                        var old = m[4];
                        m[4] = K/m[7];
                        var gain = old - m[4];
-                       Amount = gain;
+                       Amount = (gain * trading_fee);
                        db[mid] = m;
                        return(process_path(Amount, path, price*StartAmount/Amount, db));
                            
@@ -561,7 +564,7 @@ var uniswap = (function(){
                            var old = m[7];
                            m[7] = K/m[4];
                            var gain = old - m[7];
-                           Amount = gain;//also = Amount - B
+                       Amount = (gain * trading_fee);//also = Amount - B
                            db[mid] = m;
                        return(process_path(Amount, path, price*StartAmount/Amount, db));
                    };
@@ -588,7 +591,7 @@ var uniswap = (function(){
                        var G = Math.max(G1, G2);
                        m[4] = m[4] + Amount + G;
                        m[7] = m[7] - G;
-                       Amount = G;
+                       Amount = (G * trading_fee);
                        db[mid] = m;
                        return(process_path(Amount, path, price*StartAmount/Amount, db));
                    } else if ((mcid2 == start_currency[0]) &&
@@ -602,7 +605,7 @@ var uniswap = (function(){
                        var G = Math.max(G1, G2);
                        m[7] = m[7] + Amount + G;
                        m[4] = m[4] - G;
-                       Amount = G;
+                       Amount = (G * trading_fee);
                        db[mid] = m;
                        return(process_path(Amount, path, price*StartAmount/Amount, db));
                    } else if ((mcid1 == end_currency[0]) &&
@@ -616,7 +619,7 @@ var uniswap = (function(){
                        var old = m[7];
                        m[7] = K/m[4];
                        var G = old - m[7];
-                       Amount = G - Amount;
+                       Amount = (G * trading_fee) - Amount;
                        db[mid] = m;
                        return(process_path(Amount, path, price*StartAmount/Amount, db));
                    } else if ((mcid2 == end_currency[0])&&
@@ -625,7 +628,7 @@ var uniswap = (function(){
                        var old = m[4];
                        m[4] = K/m[7];
                        var G = old - m[4];
-                       Amount = G - Amount;
+                       Amount = (G * trading_fee) - Amount;
                        db[mid] = m;
                        return(process_path(Amount, path, price*StartAmount/Amount, db));
                    } else {
@@ -650,10 +653,55 @@ var uniswap = (function(){
         var Paths5 = remove_repeats(Paths4);
         return(all_paths(Paths5, cid2, type2, contracts, markets, Steps-1));
     };
-    function remove_cycles(x){
-        //TODO
-        //if a path loops back on itself, then remove it.
-        return(x);
+    function path2mids(L) {
+        if(L.length < 1){
+            return([]);
+        } else if(L[0][0] == "market"){
+            return([L[0][1]]
+                   .concat(path2mids(L.slice(1))));
+        } else if(L[0][0][0] == "contract"){
+            return([L[0][1][1]]
+                   .concat(path2mids(L.slice(1))));
+        } else {
+            return(path2mids(L.slice(1)));
+        };
+    };
+    function make_tx(guess, amount, Paths, db, db2) {
+        //remove paths where the guess is less than a tx fee.
+        var currencies = {};
+        var first_cid = Paths[0][0][0];
+        var first_type = Paths[0][0][1];
+        currencies[[first_cid, first_type]] = amount;
+        var txs = [];
+        var mids = [];
+        for(var i = 0; i<guess.length; i++){
+            if(guess[i] > 10){
+                var p = Paths[i];
+                mids = mids.concat(path2mids(p));
+                //accumulate market ids from the paths
+            };
+        };
+        mids = remove_repeats(mids);
+        console.log(mids);
+        for(var i = 0; i<mids.length; i++){
+            var id = mids[i];
+            var m1 = db[id];
+            var m2 = db2[id];
+            console.log(m1[1]);
+            if(m1[4]<m2[4]){
+                var amount = m2[4] - m1[4];
+                console.log("buy type 1");
+            } else if (m1[7] < m2[7]){
+                var amount = m2[7] - m1[7];
+                console.log("buy type 2");
+            }
+            //console.log(JSON.stringify(
+             //   [db[mids[i]],
+              //   db2[mids[i]]]));
+        };
+        //look up these markets from the db and db2.
+        //if it is different, make the market_swap_tx part for it.
+        //if any subcurrency balances are negative, buy enough complete sets to make it positive.
     };
     function contract_extentions(Paths, contracts, markets, cid2, type2) {
         var Paths2 = [];
@@ -994,10 +1042,6 @@ var uniswap = (function(){
         for (var i = 0; i < paths.length; i++) {
             var path = paths[i];
             var last = path[path.length - 1];
-            //console.log(JSON.stringify(last));
-            //console.log([cid, type]);
-            //console.log(JSON.stringify(path));
-            //console.log(JSON.stringify(paths));
             if((last[0] == cid) && (last[1] == type)){
                 paths2 = paths2.concat([paths[i]]);
             }

@@ -13,8 +13,8 @@ var teach_scalar_contract = (function(){
 
     var oracle_text = text_input("what is being measured, and at what time?: ", div);
     div.appendChild(br());
-    var oracle_height = text_input("oracle height, an integer: ", div);
-    div.appendChild(br());
+    //    var oracle_height = text_input("oracle height, an integer: ", div);
+    //div.appendChild(br());
     var max_val = text_input("maximum value that can be measured, an integer: ", div);
     div.appendChild(br());
     var source = text_input("source contract (leave blank for veo): ", div);
@@ -26,7 +26,8 @@ var teach_scalar_contract = (function(){
     function teach() {
         var msg = ["add", 3,
                    btoa(oracle_text.value),
-                   parseInt(oracle_height.value),
+                   //parseInt(oracle_height.value),
+                   0,
                    parseInt(max_val.value)
                   ];
         if(!(source.value == "")){
@@ -46,7 +47,7 @@ var teach_scalar_contract = (function(){
     };
     return({
         oracle_text: function(x){oracle_text.value = x},
-        oracle_height: function(x){oracle_height.value = x},
+        //oracle_height: function(x){oracle_height.value = x},
         max_val: function(x){max_val.value = x},
         teach: teach
     });

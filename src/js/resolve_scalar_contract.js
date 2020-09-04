@@ -65,9 +65,15 @@ var resolve_scalar_contract = (function(){
                 merkle.request_proof("accounts", keys.pub(), function(Acc){
                     var Nonce = Acc[2] + 1;
                     var fee = 152050;
+
+                    var evidence =
+                        string_to_array(atob("AJmZmZk="))
+                        .concat([0])
+                        .concat(integer_to_array(Start, 4));
+                    var evidence = btoa(array_to_string(evidence));
                     var tx1 = ["contract_evidence_tx",
                                keys.pub(), Nonce, fee, contract,
-                               cid, "AJmZmZk=",
+                               cid, evidence,//"AJmZmZk=",
                                [-6, ["oracles", oid]]];
                     console.log(JSON.stringify(tx1));
                     var stx1 = keys.sign(tx1);

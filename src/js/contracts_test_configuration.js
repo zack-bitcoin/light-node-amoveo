@@ -13,7 +13,7 @@
     subcurrency_spender.contract_id(cid)
     subcurrency_balance.value(cid);
 //    new_contract.oracle_text(binary_question);
-//    new_contract.start_height(start_height);
+    new_contract.start_height(start_height);
     subcurrency_combiner.contract_id(cid);
     
     swap_offer.timelimit("2");
@@ -22,15 +22,14 @@
     swap_offer.cid2(cid);
     swap_offer.type2("2");
     
-    resolve_binary_contract.oracle_height(start_height);
-    resolve_binary_contract.oracle_text(binary_question);
+//    resolve_binary_contract.oracle_height(start_height);
+//    resolve_binary_contract.oracle_text(binary_question);
 
-    binary_contract_winnings.contract_id(cid);
+//    binary_contract_winnings.contract_id(cid);
 
-    teach_binary_contract.oracle_text(binary_question);
-    teach_binary_contract.oracle_height(start_height);
+//    teach_binary_contract.oracle_text(binary_question);
 
-    check_binary_contract.cid(cid);
+//    check_binary_contract.cid(cid);
 
 //    new_scalar_contract.height(start_height);
 //    new_scalar_contract.text(scalar_question);
@@ -47,7 +46,7 @@
     resolve_scalar_contract.final_price(match_price);
 
     teach_scalar_contract.oracle_text(scalar_question);
-    teach_scalar_contract.oracle_height(start_height);
+    //teach_scalar_contract.oracle_height(start_height);
     teach_scalar_contract.max_val(max_price);
 
     scalar_contract_winnings.contract_id("JU3vK39D8VIVEpIgXINL2a90mlugPD2WphTdyzRvVso=");
@@ -56,10 +55,10 @@
     subcurrency_set_buy.contract_id(cid);
     subcurrency_set_buy.amount("100000000");
 
-    binary_id.start(start_height);
-    binary_id.text(binary_question);
+//    binary_id.start(start_height);
+//    binary_id.text(binary_question);
 
-    scalar_id.height(start_height);
+    //scalar_id.height(start_height);
     scalar_id.text(scalar_question);
     scalar_id.max(max_price);
 
