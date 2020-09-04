@@ -6,8 +6,8 @@ var uniswap = (function(){
     var swap_tab = document.createElement("div");
     var pool_tab = document.createElement("div");
     var ZERO = btoa(array_to_string(integer_to_array(0, 32)));
-    var trading_fee = 0.9979;
-    var slippage = 0.999;
+    var trading_fee = 0.9979995;
+    var slippage = 1;
 
     function swap_mode_f() {
         current_tab.innerHTML = "";
@@ -909,6 +909,7 @@ var uniswap = (function(){
                 .concat(price)
                 .concat(". in total you receive ")
                 .concat(Math.round(amount / price));
+            console.log(JSON.stringify(tx));
             var stx = keys.sign(tx);
             publish_tx_button.onclick = function(){
                 post_txs([stx], function(msg){
