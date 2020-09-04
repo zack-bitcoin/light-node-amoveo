@@ -21,16 +21,19 @@ var multi_tx = (function(){
         return(L);
     };
     function make(Txs, callback){
-        if(Txs.length == 1){
-            callback(Txs[0]);
-            return(0);
-        };
         var fee = 152050;
-        Txs = zero_accounts_nonces(Txs);
         merkle.request_proof("accounts", keys.pub(), function(Acc){
             var Nonce = Acc[2] + 1;
-            callback(["multi_tx", keys.pub(), Nonce, fee*(Txs.length), [-6].concat(Txs)]);
-            return(0);
+            if(Txs.length == 1){
+                var tx = Txs[0];
+                tx[1] = keys.pub();
+                tx[2] = Nonce;
+                tx[3] = fee;
+                return(callback(Txs[0]));
+            } else {
+                Txs = zero_accounts_nonces(Txs);
+                return(callback(["multi_tx", keys.pub(), Nonce, fee*(Txs.length), [-6].concat(Txs)]));
+            };
         });
 
     };
