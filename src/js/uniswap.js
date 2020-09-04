@@ -172,7 +172,8 @@ var uniswap = (function(){
             
             var sk = sub_accounts.key(keys.pub(), ls[0], 0);
             var sk = btoa(array_to_string(sk));
-            merkle.request_proof("sub_accounts", sk, function(sa){
+            //merkle.request_proof("sub_accounts", sk, function(sa){
+            rpc.post(["sub_accounts", sk], function(sa) {
                 var balance = 0;
                 if(!(sa == "empty")){
                     balance = sa[1];
@@ -194,7 +195,8 @@ var uniswap = (function(){
         var acc = accs[0];
         var sk = sub_accounts.key(keys.pub(), acc[0], acc[1]);
         var sk = btoa(array_to_string(sk));
-        merkle.request_proof("sub_accounts", sk, function(sa){
+        //merkle.request_proof("sub_accounts", sk, function(sa){
+        rpc.post(["sub_accounts", sk], function(sa){
             var balance = 0;
             if(!(sa == "empty")){
                 balance = sa[1];
@@ -239,7 +241,8 @@ var uniswap = (function(){
         var A = parseInt(amount_input.value);
         var sub_acc = sub_accounts.key(keys.pub(), CID1, Type1);
         sub_acc = btoa(array_to_string(sub_acc));
-        merkle.request_proof("sub_accounts", sub_acc, function(SA) {
+        //merkle.request_proof("sub_accounts", sub_acc, function(SA) {
+        rpc.post(["sub_accounts", sub_acc], function(SA) {
             console.log(CID1);
             console.log(sub_acc);
             console.log(SA);
@@ -1078,7 +1081,8 @@ var uniswap = (function(){
         if(MIDS.length < 1) {
             return(callback(Markets));
         };
-        merkle.request_proof("markets", MIDS[0], function(Market){
+        //merkle.request_proof("markets", MIDS[0], function(Market){
+        rpc.post(["markets", MIDS[0]], function(Market){
             get_markets(MIDS.slice(1),
                         Markets.concat([Market]),
                         callback);
@@ -1088,7 +1092,8 @@ var uniswap = (function(){
         if(CIDS.length<1) {
             return(callback(Contracts));
         };
-        merkle.request_proof("contracts", CIDS[0], function(Contract){
+        //merkle.request_proof("contracts", CIDS[0], function(Contract){
+        rpc.post(["contracts", CIDS[0]], function(Contract){
             get_contracts(CIDS.slice(1),
                           Contracts.concat([Contract]),
                           callback)
@@ -1153,6 +1158,7 @@ var uniswap = (function(){
         return([L[0]]
                .concat(flatten(L.slice(1))));
     };
+    /*
     function mids_to_markets(P, R, callback) {
         if(P.length == 0){
             return(callback(R));
@@ -1164,6 +1170,7 @@ var uniswap = (function(){
                 callback));
         });
     };
+    */
     function other_type2(N) {
         if(N == 1) { return(2);};
         if(N == 2) { return(1);};
@@ -1227,7 +1234,8 @@ var uniswap = (function(){
         if(contracts.length < 1){
             return(callback(R));
         };
-        merkle.request_proof("contracts", contracts[0], function(c) {
+        //merkle.request_proof("contracts", contracts[0], function(c) {
+        rpc.post(["contracts", contracts[0]], function(c) {
             many_types = c[2];
             contracts_to_subs2(contracts[0], 1, many_types, [], function(subs){
                 return(contracts_to_subs(
@@ -1243,7 +1251,8 @@ var uniswap = (function(){
         };
         var key = sub_accounts.key(keys.pub(), CID, N);
         var key = btoa(array_to_string(key));
-        merkle.request_proof("sub_accounts", key, function(x) {
+        //merkle.request_proof("sub_accounts", key, function(x) {
+        rpc.post(["sub_accounts", key], function(x) {
             if(x == "empty") {
                 return(contracts_to_subs2(CID, N+1, L, R, callback));
             } else {

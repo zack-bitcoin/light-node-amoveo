@@ -22,7 +22,9 @@ var multi_tx = (function(){
     };
     function make(Txs, callback){
         var fee = 152050;
-        merkle.request_proof("accounts", keys.pub(), function(Acc){
+        //merkle.request_proof("accounts", keys.pub(), function(Acc){
+        rpc.post(["account", keys.pub()], function(Acc){
+            console.log(Acc);
             var Nonce = Acc[2] + 1;
             if(Txs.length == 1){
                 var tx = Txs[0];
