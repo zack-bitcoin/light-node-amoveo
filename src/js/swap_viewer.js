@@ -55,7 +55,7 @@ var swap_viewer = (function(){
                     //if(z.length == 5){
                     if(z[0] == "scalar"){
                         //{Text, Height, MaxPrice, Now}
-                        var tx = new_scalar_contract.make_tx(parseInt(z[2]), atob(z[1]), parseInt(z[3]), z[5], parseInt(z[6]));
+                        var tx = new_scalar_contract.make_tx(atob(z[1]), parseInt(z[3]), z[5], parseInt(z[6]));
                         //var cid2 = binary_derivative.id_maker(tx[2], tx[4], tx[5], tx[6]);
                         return(maybe_make_contracts(tx[5], [tx].concat(Txs), callback));
                     } else if (z[0] == "binary") {

@@ -11,7 +11,7 @@ var scalar_derivative = (function(){
             .concat(" from $0 to $MaxPrice; max(0, min(MaxVal, (B * MaxVal / MaxPrice)) is ");
         return(oracle_text_part);
     };
-    function contract_maker(thing_to_measure, max_price, oracle_start) {
+    function contract_maker(thing_to_measure, max_price) {
         var oracle_text_part =
             oracle_text(max_price,
                         thing_to_measure);
