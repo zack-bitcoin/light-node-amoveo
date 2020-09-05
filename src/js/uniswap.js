@@ -1279,7 +1279,7 @@ var uniswap = (function(){
         contract_type.value = "1";
     // uniswap.cid("1qSyvrk/L3uBxN6uSsaX3oVypSzLpL260/CJl6e4Dq8="),
     };
-    helper();
+    //helper();
     return({load: load,
             //cid1: function(x){ cid1.value = x },
             helper: helper
