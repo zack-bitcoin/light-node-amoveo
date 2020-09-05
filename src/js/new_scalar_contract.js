@@ -12,6 +12,10 @@ var new_scalar_contract = (function(){
     div.appendChild(br());
     var max_price_text = text_input("maximum value we can measure with this oracle", div);
     div.appendChild(br());
+    var source = text_input("source contract (leave blank for veo): ", div);
+    div.appendChild(br());
+    var source_type = text_input("source subcurrency type (leave blank for veo): ", div);
+    div.appendChild(br());
     var button = button_maker2("make contract", make_contract);
     div.appendChild(button);
 
@@ -19,7 +23,15 @@ var new_scalar_contract = (function(){
         //var Start = parseInt(oracle_start_height.value);
         var Text = oracle_text.value;
         var MP = parseInt(max_price_text.value);
-        var tx = make_tx(Text, MP);
+        var Source, SourceType;
+        if(source.value == ""){
+            Source = btoa(array_to_string(integer_to_array(0, 32)));
+            SourceType = 0;
+        } else {
+            Source = source.value;
+            SourceType = parseInt(source_type.value);
+        };
+        var tx = make_tx(Text, MP, Source, SourceType);
         var CH = tx[2];
         console.log(CH);
         var cid = binary_derivative.id_maker(CH, 2);
