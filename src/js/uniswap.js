@@ -182,7 +182,7 @@ var uniswap = (function(){
                     .concat("market: ")
                     .concat(ls[0])
                     .concat(" balance: ")
-                    .concat(balance)
+                    .concat(balance / token_units())
                     .concat("<br>");
                 return(load_balances2(ls.slice(1), s));
             });
@@ -207,7 +207,7 @@ var uniswap = (function(){
                 .concat(" type: ")
                 .concat(accs[0][1])
                 .concat(" balance: ")
-                .concat(balance)
+                .concat(balance / token_units())
                 .concat("<br>");
             return(load_balances(accs.slice(1),
                                  ls, s));
@@ -238,7 +238,7 @@ var uniswap = (function(){
             display.innerHTML = "cannot trade something for itself.";
             return(0);
         };
-        var A = parseInt(amount_input.value);
+        var A = Math.round(parseInt(amount_input.value) * token_units());
         var sub_acc = sub_accounts.key(keys.pub(), CID1, Type1);
         sub_acc = btoa(array_to_string(sub_acc));
         //merkle.request_proof("sub_accounts", sub_acc, function(SA) {
@@ -1275,7 +1275,7 @@ var uniswap = (function(){
     };
     function helper(){
         contract_id.value = "95bMsSPuGa2s3M6gADqmbdBjuCVTIYc2Nf6KMw4xl48=";
-        amount_input.value = 100000000;
+        amount_input.value = "1";
         contract_type.value = "1";
     // uniswap.cid("1qSyvrk/L3uBxN6uSsaX3oVypSzLpL260/CJl6e4Dq8="),
     };

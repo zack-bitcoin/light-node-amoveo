@@ -6,9 +6,9 @@ var server_ip = document.createElement("INPUT");
 server_ip.setAttribute("type", "text");
 //server_ip.value = "159.89.106.253";// server
 server_ip.value = document.URL.split("/")[2].split(":")[0];
-if((server_ip.value) == "") {
-    server_ip.value = "159.89.87.58";
-};
+//if((server_ip.value) == "") {
+//    server_ip.value = "159.89.87.58";
+//};
 var server_ip_info = document.createElement("h8");
 server_ip_info.innerHTML = "channel node IP: ";
 var server_port = document.createElement("INPUT");
