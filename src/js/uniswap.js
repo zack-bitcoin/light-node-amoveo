@@ -178,12 +178,14 @@ var uniswap = (function(){
                 if(!(sa == "empty")){
                     balance = sa[1];
                 };
-                s = s
-                    .concat("market: ")
-                    .concat(ls[0])
-                    .concat(" balance: ")
-                    .concat(balance / token_units())
-                    .concat("<br>");
+                if(balance > 1){
+                    s = s
+                        .concat("market: ")
+                        .concat(ls[0])
+                        .concat(" balance: ")
+                        .concat(balance / token_units())
+                        .concat("<br>");
+                }
                 return(load_balances2(ls.slice(1), s));
             });
         };
@@ -238,7 +240,9 @@ var uniswap = (function(){
             display.innerHTML = "cannot trade something for itself.";
             return(0);
         };
-        var A = Math.round(parseInt(amount_input.value) * token_units());
+        var A = Math.round(parseFloat(amount_input.value) * token_units());
+        console.log(A);
+
         var sub_acc = sub_accounts.key(keys.pub(), CID1, Type1);
         sub_acc = btoa(array_to_string(sub_acc));
         //merkle.request_proof("sub_accounts", sub_acc, function(SA) {
@@ -255,11 +259,14 @@ var uniswap = (function(){
                 console.log("bad error");
                 return(0);
             }
-            A = Math.min(A, amount);
+            if(!(CID1 == ZERO)){
+                A = Math.min(A, amount);
+            };
+            console.log(A);
             rpc.post(["r", CID1, CID2], function(response){
             console.log("got paths");
             var markets = response[1].slice(1);
-            var contracts = response[2].slice(1);
+                var contracts = response[2].slice(1);
             return(swap_price2(markets, contracts,
                                A,
                                CID1, Type1,
@@ -276,9 +283,11 @@ var uniswap = (function(){
         return(get_contracts(cids, [], function(contracts){
             return(get_markets(marketids, [], function(markets) {
 //                console.log(JSON.stringify([amount, type1, type2, cid1, cid2, contracts, markets]));
+                console.log(JSON.stringify([[cid1, type1], cid2, type2, contracts, markets]));
                 var Paths = all_paths([[[cid1, type1]]], cid2, type2, contracts, markets, 5);
                 //console.log(JSON.stringify(Paths));
                 var Paths2 = end_goal(cid2, type2, Paths);
+                console.log(JSON.stringify(Paths));
                 console.log(JSON.stringify(Paths2));
                 console.log(JSON.stringify(Paths2.length));
                 return(swap_price3(Paths2, amount234));
@@ -939,6 +948,7 @@ var uniswap = (function(){
                     Paths2 = Paths2.concat([Paths[p]]);
                     //console.log("this path is done.");
                 } else if((Tip[0] == Source) && (Tip[1] == SourceType)) {
+                    console.log("tip matches");
                     if(!(MT == 2))
                     {
                         display.innerHTML = "only programmed for scalar contracts so far";
@@ -950,6 +960,8 @@ var uniswap = (function(){
                         //so we want a market that changes the wrong way + the contract.
                     //check if markets exist connecting the source to it's subcurrencies.
                     var Markets = markets_from_list(Source, SourceType, cid, markets);
+                    //Markets = Markets.concat(market_from_list(cid,1,cid,2,markets));
+                    console.log(JSON.stringify(Markets));
                     var Markets2 = [];
                     for(var i = 0; i<Markets.length; i++) {
                         var other = market_other(Source, Markets[i]);
@@ -959,6 +971,13 @@ var uniswap = (function(){
                         //var newPath = Paths[p].concat([Contract, Markets[i], other]);
                         Markets2 = Markets2.concat([newPath]);
                     };
+                    var direct = market_from_list(cid,1,cid,2,markets);
+                    if(direct.length > 0){
+                        var newPath = Paths[p].concat([[Contract,direct[0]],[cid, 1]]);
+                        Markets2 = Markets2.concat([newPath]);
+                        var newPath = Paths[p].concat([[Contract,direct[0]],[cid, 2]]);
+                        Markets2 = Markets2.concat([newPath]);
+                    }
                     Paths2 = Paths2
                         .concat([Paths[p]])
                         .concat(Markets2);
@@ -1274,12 +1293,12 @@ var uniswap = (function(){
         return(paths2);
     };
     function helper(){
-        contract_id.value = "95bMsSPuGa2s3M6gADqmbdBjuCVTIYc2Nf6KMw4xl48=";
-        amount_input.value = "1";
+        contract_id.value = "1qSyvrk/L3uBxN6uSsaX3oVypSzLpL260/CJl6e4Dq8=";//"95bMsSPuGa2s3M6gADqmbdBjuCVTIYc2Nf6KMw4xl48=";
+        amount_input.value = "2";
         contract_type.value = "1";
     // uniswap.cid("1qSyvrk/L3uBxN6uSsaX3oVypSzLpL260/CJl6e4Dq8="),
     };
-    //helper();
+    helper();
     return({load: load,
             //cid1: function(x){ cid1.value = x },
             helper: helper
