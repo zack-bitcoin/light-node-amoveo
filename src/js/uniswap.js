@@ -1214,7 +1214,7 @@ var uniswap = (function(){
                     .concat(text)
                     .concat("\"; ")
                     .concat(type)
-                    .concat("; liquidity: ")
+                    .concat("; volume: ")
                     .concat(parseFloat(contracts[0][11] / token_units()))
                     .concat("</button>");
             };
