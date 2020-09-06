@@ -36,7 +36,7 @@ var uniswap = (function(){
     var sub_accs = [];
     var liquidity_shares = [];
     var selector_label = document.createElement("span");
-    selector_label.innerHTML = "which currency to sell ";
+    selector_label.innerHTML = "which currency to sell: ";
     swap_tab.appendChild(selector_label);
     function load() {
         setTimeout(function(){
@@ -54,7 +54,7 @@ var uniswap = (function(){
                     selector.innerHTML = "";
                     //TODO figure out which subcurrencies we own in each contract. each subcurrency goes into the selector seperately.
                     contracts_to_subs(sub_accs, [], function(sub_accs2){
-                        load_balances(sub_accs2, liquidity_shares, "");
+                        load_balances(sub_accs2, liquidity_shares, "<h4>your balances in each subcurrency</h4>");
                         //console.log(JSON.stringify(sub_accs2));
                         sub_accs2 = sub_accs2.map(function(x) {
                             return(JSON.stringify(x));
