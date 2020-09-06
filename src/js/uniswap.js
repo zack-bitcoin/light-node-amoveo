@@ -21,6 +21,14 @@ var uniswap = (function(){
     var pool_mode = button_maker2("pool mode", pool_mode_f);
     pool_tab.appendChild(swap_mode);
     swap_tab.appendChild(pool_mode);
+    
+    var contracts_div = document.createElement("div");
+    display_contracts(contracts_div);
+    var markets_div = document.createElement("div");
+    display_markets(markets_div);
+
+    swap_tab.appendChild(contracts_div);
+    pool_tab.appendChild(markets_div);
 
     var swap_title = document.createElement("h3");
     swap_title.innerHTML = "Swap Currencies";
@@ -47,12 +55,12 @@ var uniswap = (function(){
                     //TODO figure out which subcurrencies we own in each contract. each subcurrency goes into the selector seperately.
                     contracts_to_subs(sub_accs, [], function(sub_accs2){
                         load_balances(sub_accs2, liquidity_shares, "");
-                        console.log(JSON.stringify(sub_accs2));
+                        //console.log(JSON.stringify(sub_accs2));
                         sub_accs2 = sub_accs2.map(function(x) {
                             return(JSON.stringify(x));
                         });
-                        console.log(JSON.stringify(sub_accs2));
-                        console.log(JSON.stringify(liquidity_shares));
+                        //console.log(JSON.stringify(sub_accs2));
+                        //console.log(JSON.stringify(liquidity_shares));
                         //                  return(0);
                         liquidity_shares = liquidity_shares.map(function(x){return(JSON.stringify([x, 0]));});
                         load_options(selector, ["veo"]
@@ -79,7 +87,20 @@ var uniswap = (function(){
     swap_tab.appendChild(br());
     var contract_id = text_input("contract id to be paid in (leave blank for veo): ", swap_tab);
     swap_tab.appendChild(br());
-    var contract_type = text_input("contract type to be paid in (leave blank for veo): ", swap_tab);
+    //    var contract_type = text_input("contract type to be paid in (leave blank for veo): ", swap_tab);
+    var contract_type = document.createElement("select");
+    var type_label = document.createElement("span");
+    type_label.innerHTML = "you win if the outcome is: ";
+    var true_option = document.createElement("option");
+    true_option.innerHTML = "true";
+    true_option.value = 1;
+    var false_option = document.createElement("option");
+    false_option.innerHTML = "false";
+    false_option.value = 2;
+    contract_type.appendChild(true_option);
+    contract_type.appendChild(false_option);
+    swap_tab.appendChild(type_label);
+    swap_tab.appendChild(contract_type);
     swap_tab.appendChild(br());
     var swap_price_button =
         button_maker2("lookup price", swap_price);
@@ -241,15 +262,10 @@ var uniswap = (function(){
             return(0);
         };
         var A = Math.round(parseFloat(amount_input.value) * token_units());
-        console.log(A);
-
         var sub_acc = sub_accounts.key(keys.pub(), CID1, Type1);
         sub_acc = btoa(array_to_string(sub_acc));
         //merkle.request_proof("sub_accounts", sub_acc, function(SA) {
         rpc.post(["sub_accounts", sub_acc], function(SA) {
-            console.log(CID1);
-            console.log(sub_acc);
-            console.log(SA);
             var amount;
             if(CID1 == ZERO ){ amount = 99999999999999999999999;}
             else if(SA == "empty"){ amount = 0;}
@@ -262,9 +278,7 @@ var uniswap = (function(){
             if(!(CID1 == ZERO)){
                 A = Math.min(A, amount);
             };
-            console.log(A);
             rpc.post(["r", CID1, CID2], function(response){
-            console.log("got paths");
             var markets = response[1].slice(1);
                 var contracts = response[2].slice(1);
             return(swap_price2(markets, contracts,
@@ -278,27 +292,12 @@ var uniswap = (function(){
         marketids, cids, amount234,
         cid1, type1, cid2, type2)
     {
-        console.log(amount234);
         //console.log(JSON.stringify([amount, type1, type2, cid1, cid2, cids, marketids]));
         return(get_contracts(cids, [], function(contracts){
             return(get_markets(marketids, [], function(markets) {
-//                console.log(JSON.stringify([amount, type1, type2, cid1, cid2, contracts, markets]));
-                console.log(JSON.stringify([[cid1, type1], cid2, type2, contracts, markets]));
                 var Paths = all_paths([[[cid1, type1]]], cid2, type2, contracts, markets, 5);
-                //console.log(JSON.stringify(Paths));
                 var Paths2 = end_goal(cid2, type2, Paths);
-                console.log(JSON.stringify(Paths));
-                console.log(JSON.stringify(Paths2));
-                console.log(JSON.stringify(Paths2.length));
                 return(swap_price3(Paths2, amount234));
-                //["contract_use_tx", 0, 0, 0,
-                //cid, amount, many, source, source_type]
-                //["market_swap_tx, 0, 0, 0,
-                //mid, give, take, direction,
-                //cid1, type1, cid2, type2]
-                //multi_tx.make(txs, function(tx){
-
-//            };
             }));
         }));
     };
@@ -335,14 +334,12 @@ var uniswap = (function(){
         return build_paths_db(Paths.slice(1), DB);
     };
     function swap_price3(Paths, amount33) {
-        console.log(amount33);
         //we need to find the optimal way to spend amount on the different paths to get the best price.
 
         //an initial guess we can keep improving.
         var L = Paths.length;
         var db = build_paths_db(Paths, {});
         if(L == 1){
-            console.log(amount33);
             var guess = [amount33];
             var db2 = make_trades(guess, Paths, JSON.parse(JSON.stringify(db)));
             return(make_tx(guess, amount33, Paths, db, db2));
@@ -354,39 +351,24 @@ var uniswap = (function(){
     }
     function swap_price_loop(Paths, amount, guess, db, N) {
         if(N < 1) {
-            console.log(JSON.stringify(Paths));
-            console.log("timeout");
-            console.log(guess);
             var db2 = make_trades(guess, Paths, JSON.parse(JSON.stringify(db)));
             var gradient = get_gradient(Paths, db2);
-            console.log(gradient);
             return(make_tx(guess, amount, Paths, db, db2));
-            //return(0);
         };
         //make a database of the markets and contracts that can be updated with trades.
         //console.log(JSON.stringify(db));
 
         //update the database based on our current guess of the distribution.
         var db2 = make_trades(guess, Paths, JSON.parse(JSON.stringify(db)));
-        //console.log(JSON.stringify(db2));
         //calculate the final price on every path to buy a bit more. this is the gradient vector.
         var gradient = get_gradient(Paths, db2);
-        //console.log(guess);
         var average = average_fun(gradient, guess);
-        //console.log(average);
         if(good_enough(gradient, guess, average)){
-            console.log(JSON.stringify(Paths));
-            console.log(JSON.stringify(db2));
-            console.log(guess);
-            console.log(gradient);
             console.log("done!");
             return(make_tx(guess, amount, Paths, db, db2));
             //return(db2);
         } else {
             var nextGuess = improve_guess(average, guess, gradient, amount);
-            console.log(gradient);
-            console.log(guess);
-            console.log(nextGuess);
             return(swap_price_loop(Paths, amount, nextGuess, db, N-1));
         };
         //for the paths that are more expensive than average, buy less in the next iteration. for the paths that are less expensive, buy more in the next iteration.
@@ -394,21 +376,11 @@ var uniswap = (function(){
     function improve_guess(average, guess, grad, amount){
         var r = [];
         for(var i = 0; i<guess.length; i++){
-            //console.log([average, guess[i], grad[i]])
             
             var n = guess[i] - 0.9*guess[i]*((grad[i]-average)/average);
             var n = Math.max(n, 0);
             r = r.concat([n]);
-            //r = r.concat([guess[i] - guess[i]*((grad[i]-average)/average)]);
-
-            //r = r.concat([guess[i] + 0.5*guess[i]*((grad[i] - average)/average)]);
-
-            //r = r.concat([average * guess[i] / grad[i]]);
-            //console.log(JSON.stringify(r));
-            
-            //r = r.concat([
         };
-        //console.log(JSON.stringify(r));
         var total = 0;
         for(var i = 0; i<r.length; i++){
             total = total + r[i];
@@ -417,7 +389,6 @@ var uniswap = (function(){
         for(var i = 0; i<r.length; i++){
             t = t.concat([amount * r[i] / total]);
         };
-        //console.log(JSON.stringify([r, total, t]));
         return(t);
     };
     function average_fun(grad, guess) {
@@ -428,12 +399,8 @@ var uniswap = (function(){
         console.log(guess_total);
         var total = 0;
         for(var i = 0; i<grad.length; i++){
-            //console.log(guess[i]);
-            //console.log(grad[i]);
             total = total + (grad[i]*guess[i]);
-            //total = total + grad[i];
         };
-        //var average = total / grad.length;
         var average = total / guess_total;
         return(average);
     };
@@ -459,7 +426,6 @@ var uniswap = (function(){
         for(var i = 0; i<guess.length; i++){
             var x = process_path(guess[i], paths[i], 1, db);
             db = x[0];
-            //console.log(x[1]);
         };
         return(db);
     };
@@ -795,8 +761,6 @@ var uniswap = (function(){
         for(var i = 0; i<guess.length; i++){
             maxGuess = Math.max(maxGuess, guess[i]);
         };
-        console.log(JSON.stringify(db2));
-        console.log(JSON.stringify([guess, amount, Paths]));
         for(var i = 0; i<guess.length; i++){
             if(guess[i] == maxGuess){
                 var x = process_path(1, Paths[i], 1, db2);
@@ -822,12 +786,10 @@ var uniswap = (function(){
             };
         };
         mids = remove_repeats(mids);
-        console.log(mids);
         for(var i = 0; i<mids.length; i++){
             var id = mids[i];
             var m1 = db[id];
             var m2 = db2[id];
-            console.log(m1[1]);
             var tx = ["market_swap_tx", 0,
                       0, 0,
                       mids[i], 0,//parseInt(give.value),
@@ -837,14 +799,12 @@ var uniswap = (function(){
                       m1[5], m1[6]];
             if(m1[7]<m2[7]){
                 //var amount = m2[4] - m1[4];
-                console.log("buy type 1");
                 tx[5] = Math.round(m2[7] - m1[7]);
                 currencies_add(m1[5], m1[6], -tx[5], currencies);
                 tx[6] = Math.round((m1[4] - m2[4])*trading_fee*slippage);
                 currencies_add(m1[2], m1[3], tx[6], currencies);
                 tx[7] = 2;//direction
             } else if (m1[4] < m2[4]){
-                console.log("buy type 2");
                 //var amount = m2[7] - m1[7];
                 tx[5] = Math.round(m2[4] - m1[4]);
                 currencies_add(m1[2], m1[3], -tx[5], currencies);
@@ -868,7 +828,6 @@ var uniswap = (function(){
             var Acc = currencies[Accs[i]];
             if(Acc < 0){
                 if(!(Accs[i] == [ZERO,0])){
-                    console.log([Accs[i], [ZERO, 0]]);
                     potential_use_contracts =
                         potential_use_contracts.concat([[Accs[i], Acc]]);
                 };
@@ -891,17 +850,11 @@ var uniswap = (function(){
         var to_buy = Object.keys(max_contract_needs);
         for(var i = 0; i<to_buy.length; i++){
             var cid = to_buy[i];
-            console.log(JSON.stringify(Object.keys(db)));
-            console.log(JSON.stringify(to_buy));
             //console.log(JSON.stringify(ch));
             var c = db[cid];
-            console.log(JSON.stringify(cid));
-            console.log(JSON.stringify(c));
             var source = c[8];
             var source_type = c[9];
             //var cid = merkle.contract_id_maker(ch, 2, source, source_type);
-            console.log(JSON.stringify(cid));
-            console.log(JSON.stringify(db[cid]));
             var tx = ["contract_use_tx", 0, 0, 0,
                       cid,
                       -max_contract_needs[cid],
@@ -910,8 +863,6 @@ var uniswap = (function(){
             txs = txs.concat([tx]);
         };
         multi_tx.make(txs, function(tx){
-            //display.innerHTML = JSON.stringify(tx);
-            //console.log(JSON.stringify(tx));
             display.innerHTML = "you can sell "
                 .concat(amount)
                 .concat(" at a price of ")
@@ -926,8 +877,6 @@ var uniswap = (function(){
                 });
             };
         });
-        //console.log(JSON.stringify(currencies));
-        //console.log(JSON.stringify(potential_use_contracts));
     };
     function contract_extentions(Paths, contracts, markets, cid2, type2) {
         var Paths2 = [];
@@ -946,9 +895,7 @@ var uniswap = (function(){
                 //if the tip is one of the currencies in this market, then make paths that lead to each of the other currencies that we can.
                 if((Tip[0] == cid2) && (Tip[1] == type2)) {
                     Paths2 = Paths2.concat([Paths[p]]);
-                    //console.log("this path is done.");
                 } else if((Tip[0] == Source) && (Tip[1] == SourceType)) {
-                    console.log("tip matches");
                     if(!(MT == 2))
                     {
                         display.innerHTML = "only programmed for scalar contracts so far";
@@ -960,15 +907,11 @@ var uniswap = (function(){
                         //so we want a market that changes the wrong way + the contract.
                     //check if markets exist connecting the source to it's subcurrencies.
                     var Markets = markets_from_list(Source, SourceType, cid, markets);
-                    //Markets = Markets.concat(market_from_list(cid,1,cid,2,markets));
-                    console.log(JSON.stringify(Markets));
                     var Markets2 = [];
                     for(var i = 0; i<Markets.length; i++) {
                         var other = market_other(Source, Markets[i]);
                         var step = [Contract, Markets[i]];
                         var newPath = Paths[p].concat([step, other]);
-                        //var step = [Contract, Markets[i]];
-                        //var newPath = Paths[p].concat([Contract, Markets[i], other]);
                         Markets2 = Markets2.concat([newPath]);
                     };
                     var direct = market_from_list(cid,1,cid,2,markets);
@@ -982,7 +925,6 @@ var uniswap = (function(){
                         .concat([Paths[p]])
                         .concat(Markets2);
                         //*/
-//                        console.log("tip matches source");
                 //}
                 } else if (Tip[0] == cid){
                     //so we can change it into any of the other subcurrencies, or the source.
@@ -1018,27 +960,16 @@ var uniswap = (function(){
                         var other = [Source, SourceType];
                         var step = [Contract, m2other[0]];
                         var newPath = Paths[p].concat([step, other]);
-                        //var newPath = Paths[p].concat([Contract, m2other[0], other]);
                         Paths2 = Paths2.concat([newPath]);
                     }
-                    //console.log("tip matches subcurrency");
                 } else {
                     Paths2 = Paths2.concat([Paths[p]]);
-                    //console.log(JSON.stringify(Tip));
-                    //console.log("tip is other");
                 }
-//                Paths2 = Paths2.concat([Paths[p]]);
-                //console.log(JSON.stringify(Paths2));
-//                Paths2 = Paths2.concat([Paths[p]]);
-//                console.log(JSON.stringify([
- //                   Paths[p], {Source, SourceType}]));
             };
-            //Paths2 = Paths2.concat([Paths[p]]);
         };
         return Paths2;
     };
     function market_extentions(Paths, markets, cid2, type2) {
-        //console.log(JSON.stringify(markets));
         var Paths2 = [];
         for (var p = 0; p<Paths.length; p++){
             for (var c = 0; c<markets.length; c++){
@@ -1050,26 +981,16 @@ var uniswap = (function(){
                 var Type1 = Market[3];
                 var CID2 = Market[5];
                 var Type2 = Market[6];
-                //console.log(JSON.stringify(Tip));
-                //console.log(JSON.stringify(cid2));
-                //console.log(JSON.stringify(type2));
                 if((Tip[0] == cid2) && (Tip[1] == type2)){
-                    //console.log("this path is done.");
                     Paths2 = Paths2.concat([Paths[p]]);
                 } else if((Tip[0] == CID1) && (Tip[1] == Type1)){
                     Paths2 = Paths2
                         .concat([Paths[p]])
                         .concat([Paths[p].concat([Market, [CID2, Type2]])])
-                    //console.log(JSON.stringify(Path));
-                    //console.log("extend paths");
                 } else if ((Tip[0] == CID2) && (Tip[1] == Type2)) {
                     Paths2 = Paths2.concat([Paths[p].concat([Market, [CID1, Type1]])])
-                    //console.log("extend paths2");
-                    //console.log(Market);
                 } else {
                     Paths2 = Paths2.concat([Paths[p]]);
-                    //Paths2 = Paths2.concat([Paths[p].concat([Market, [CID1, Type1]])])
-                    //console.log(JSON.stringify([Type1, Type2, type2, CID1, CID2, cid2]));
                 }
             };
         };
@@ -1152,21 +1073,6 @@ var uniswap = (function(){
         };
         return(false);
     };
-        
-
-/*
-        var MIDDirect = new_market.mid(CID1, CID2, Type1, Type2);
-        var Paths = [[MIDDirect]];
-        if((!(CID1 == ZERO)) && (!(CID2 == ZERO))){
-            var MID1 = new_market.mid(CID1, ZERO, Type1, 0);
-            var MID2 = new_market.mid(ZERO, CID2, 0, Type2);
-            Paths = Paths.concat([[MID1, MID2]]);
-        };
-        mids_to_markets(flatten(Paths), [], function(Markets){
-            console.log(JSON.stringify(Paths));
-            console.log(JSON.stringify(Markets));
-        });
-*/
     function flatten(L) {
         if(L.length == 0){
             return(L);
@@ -1178,19 +1084,6 @@ var uniswap = (function(){
         return([L[0]]
                .concat(flatten(L.slice(1))));
     };
-    /*
-    function mids_to_markets(P, R, callback) {
-        if(P.length == 0){
-            return(callback(R));
-        };
-        merkle.request_proof("markets", P[0], function(market){
-            return(mids_to_markets(
-                P.slice(1),
-                R.concat([market]),
-                callback));
-        });
-    };
-    */
     function other_type2(N) {
         if(N == 1) { return(2);};
         if(N == 2) { return(1);};
@@ -1212,11 +1105,6 @@ var uniswap = (function(){
     };
 
 
-//    var next_button = button_maker2("next", function(){
-//        console.log(selector.value);
-//    });
-//    swap_tab.appendChild(next_button);
-//    swap_tab.appendChild(br());
     //todo, create a dropdown menu of the currencies you own, to choose which one to spend.
     //todo, create a dropdown menu of all the currencies that this can be sold for.
     //todo, they should write how much they want to sell
@@ -1292,6 +1180,76 @@ var uniswap = (function(){
         };
         return(paths2);
     };
+    function display_contracts(div) {
+        rpc.post(["contracts"], function(contracts){
+            var s = "<h4>existing contracts</h4>";
+            return(display_contracts2(div, contracts.slice(1), s));
+        }, get_ip(), 8091);//8091 is explorer
+    };
+    function display_contracts2(div, contracts, s) {
+        console.log(contracts);
+        if(contracts.length < 1) {
+            console.log(s);
+            div.innerHTML = s;
+            return(0);
+        }
+        //var cid = contracts[0][1];
+        cid = contract_to_cid(contracts[0]); 
+        rpc.post(["read", 3, cid], function(oracle_text) {
+            console.log(contracts[0]);
+            console.log(cid);
+            if(!(oracle_text == 0)) {
+                var type = oracle_text[0];
+                var text = atob(oracle_text[1]);
+                console.log(text);
+                console.log(JSON.stringify(oracle_text));
+                s = s
+//                    .concat("id: ")
+//                    .concat(cid)
+                    .concat("<button onclick=\"")
+                    .concat("uniswap.cid('")
+                    .concat(cid)
+                    .concat("')\"> ")
+                    .concat(" type: ")
+                    .concat(type)
+                    .concat("; oracle question: \"")
+                    .concat(text)
+                    .concat("\"; flavors ")
+                    .concat(contracts[0][2])
+                    .concat("; volume ")
+                    .concat(contracts[0][11])
+                    .concat("</button>");
+            };
+            display_contracts2(div, contracts.slice(1), s);
+        }, get_ip(), 8090);
+
+    };
+    function display_contracts_old(div) {
+        rpc.post(["contracts"], function(contracts){
+            var s = "";
+            for(var i = 1; i<contracts.length; i++){
+                var cid = contracts[i][1];
+                rpc.post(["read", 3, cid], function(oracle_text) {
+                    console.log(cid);
+                    console.log(oracle_text);
+                }, get_ip(), 8090)
+                s = s
+                    .concat("contract: ")
+                    .concat(cid)
+                    .concat(" flavors ")
+                    .concat(contracts[i][2])
+                    .concat(" volume ")
+                    .concat(contracts[i][11])
+            };
+            console.log(JSON.stringify(contracts));
+            }, get_ip(), 8091);
+    };
+    function display_markets(div) {
+        rpc.post(["markets"], function(markets){
+            console.log(JSON.stringify(markets));
+            }, get_ip(), 8091);
+    };
+
     function helper(){
         contract_id.value = "1qSyvrk/L3uBxN6uSsaX3oVypSzLpL260/CJl6e4Dq8=";//"95bMsSPuGa2s3M6gADqmbdBjuCVTIYc2Nf6KMw4xl48=";
         amount_input.value = "2";
@@ -1300,7 +1258,7 @@ var uniswap = (function(){
     };
     //helper();
     return({load: load,
-            //cid1: function(x){ cid1.value = x },
+            cid: function(x){ contract_id.value = x },
             helper: helper
             //button: next_button
            });
