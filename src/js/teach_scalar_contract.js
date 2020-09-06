@@ -39,7 +39,8 @@ var teach_scalar_contract = (function(){
         rpc.post(msg,
                  function(x){
                      console.log(x);
-                     display.innerHTML = "success";
+                     display.innerHTML = "successfully taught tx with id: "
+                         .concat(x);
                      return(0);
                  },
                  s_ip.value,
