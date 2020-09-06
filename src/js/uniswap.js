@@ -36,7 +36,7 @@ var uniswap = (function(){
     var sub_accs = [];
     var liquidity_shares = [];
     var selector_label = document.createElement("span");
-    selector_label.innerHTML = "which currency to lose ";
+    selector_label.innerHTML = "which currency to sell ";
     swap_tab.appendChild(selector_label);
     function load() {
         setTimeout(function(){
@@ -1210,14 +1210,12 @@ var uniswap = (function(){
                     .concat("uniswap.cid('")
                     .concat(cid)
                     .concat("')\"> ")
-                    .concat(" type: ")
-                    .concat(type)
-                    .concat("; oracle question: \"")
+                    .concat("oracle question: \"")
                     .concat(text)
-                    .concat("\"; flavors ")
-                    .concat(contracts[0][2])
-                    .concat("; volume ")
-                    .concat(contracts[0][11])
+                    .concat("\"; ")
+                    .concat(type)
+                    .concat("; liquidity: ")
+                    .concat(parseFloat(contracts[0][11] / token_units()))
                     .concat("</button>");
             };
             display_contracts2(div, contracts.slice(1), s);
