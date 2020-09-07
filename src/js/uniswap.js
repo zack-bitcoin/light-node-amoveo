@@ -204,7 +204,7 @@ var uniswap = (function(){
                         .concat("market: ")
                         .concat(ls[0])
                         .concat(" balance: ")
-                        .concat(balance / token_units())
+                        .concat((balance / token_units()).toString())
                         .concat("<br>");
                 }
                 return(load_balances2(ls.slice(1), s));
@@ -224,14 +224,16 @@ var uniswap = (function(){
             if(!(sa == "empty")){
                 balance = sa[1];
             };
-            s = s
-                .concat("contract: ")
-                .concat(accs[0][0])
-                .concat(" type: ")
-                .concat(accs[0][1])
-                .concat(" balance: ")
-                .concat(balance / token_units())
-                .concat("<br>");
+            if(balances > 1){
+                s = s
+                    .concat("contract: ")
+                    .concat(accs[0][0])
+                    .concat(" type: ")
+                    .concat(accs[0][1])
+                    .concat(" balance: ")
+                    .concat((balance / token_units()).toString)
+                    .concat("<br>");
+            }
             return(load_balances(accs.slice(1),
                                  ls, s));
         });
