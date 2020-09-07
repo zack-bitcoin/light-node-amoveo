@@ -1241,32 +1241,21 @@ var uniswap = (function(){
         rpc.post(["read", 3, cid1], function(oracle_text1) {
             rpc.post(["read", 3, cid2], function(oracle_text2) {
                 console.log([oracle_text1, oracle_text2]);
+                var include = true;
                 var text1, text2;
                 if(!oracle_text1){
-                    if(cid1 == ZERO){
-                        text1 = " veo ";
-                    } else {
-                        text1 = "contract id: "
-                            .concat(cid1)
-                            .concat(" ");
-                    }
+                    include = false;
                 } else {
                     text1 = ("oracle question: ")
                         .concat(atob(oracle_text1[1]));
                 };
                 if(!oracle_text2){
-                    //text2 = "unknown oracle";
-                    if(cid2 == ZERO){
-                        text2 = " veo ";
-                    } else {
-                        text2 = "contract id: "
-                            .concat(cid2)
-                            .concat(" ");
-                    };
+                    include = false;
                 } else {
                     text2 = ("oracle question: ")
                         .concat(atob(oracle_text2[1]));
                 }
+                if(include){
                 s = s
                     .concat("Currency 1. ")
                     //.concat("oracle question: ")
@@ -1289,7 +1278,8 @@ var uniswap = (function(){
                     .concat(mid)
                     .concat("')\">buy/sell liquidity in this market</button>")
                     .concat("<br><br>")
-                    .concat("");
+                        .concat("");
+                }
                 display_markets2(
                     div,
                     markets.slice(1),
