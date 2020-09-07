@@ -1238,6 +1238,16 @@ var uniswap = (function(){
         var type2 = market[8];
         var amount1 = market2[4] / token_units();
         var amount2 = market2[7] / token_units();
+        if(type1 == 1){
+            type1 = "true";
+        } else if(type1 == 2){
+            type1 = "false";
+        }
+        if(type2 == 1){
+            type2 = "true";
+        } else if(type2 == 2){
+            type2 = "false";
+        }
         rpc.post(["read", 3, cid1], function(oracle_text1) {
             rpc.post(["read", 3, cid2], function(oracle_text2) {
                 console.log([oracle_text1, oracle_text2]);
