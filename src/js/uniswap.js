@@ -52,20 +52,19 @@ var uniswap = (function(){
                     display.innerHTML = "";
                     swap_mode_f();
                     selector.innerHTML = "";
+                    //market_selector.innerHTML = "";
                     //TODO figure out which subcurrencies we own in each contract. each subcurrency goes into the selector seperately.
                     contracts_to_subs(sub_accs, [], function(sub_accs2){
                         load_balances(sub_accs2, liquidity_shares, "<h4>your balances in each subcurrency</h4>");
-                        //console.log(JSON.stringify(sub_accs2));
                         sub_accs2 = sub_accs2.map(function(x) {
                             return(JSON.stringify(x));
                         });
-                        //console.log(JSON.stringify(sub_accs2));
-                        //console.log(JSON.stringify(liquidity_shares));
-                        //                  return(0);
                         liquidity_shares = liquidity_shares.map(function(x){return(JSON.stringify([x, 0]));});
                         load_options(selector, ["veo"]
                                      .concat(sub_accs2)
                                      .concat(liquidity_shares));
+//                        load_options(market_selector,
+//                                     liquidity_shares);
                     });
 
                 };
@@ -75,12 +74,6 @@ var uniswap = (function(){
 
 
     var selector = document.createElement("select");
-    //console.log(sub_accs);
-    //console.log(liquidity_shares);
-/*    load_options(selector, ["veo"]
-                 .concat(sub_accs)
-                 .concat(liquidity_shares));
-*/
     swap_tab.appendChild(selector);
     swap_tab.appendChild(br());
     var amount_input = text_input("amount to sell: ", swap_tab);
@@ -112,78 +105,6 @@ var uniswap = (function(){
     swap_tab.appendChild(swap_price_button);
     swap_tab.appendChild(publish_tx_button);
 
-    //trying to calculate the optimal path.
-    // constant factor markets.
-
-    //buying P of type 1.
-    //[m1, m2] -> [m1 + P, m2m1/(m1+P))]
-
-    //original price m1/m2
-    //final price ((m1+P)^2)/(m1*m2)
-    
-    //if there are 2 markets in parallel, we want their final prices to be equal.
-    //how much should we buy in each market?
-    // (m1+P1)/K1 = (m2+P2)/K2  (where K1 = sqrt(m1*m1b), and K2 is the same for market 2)
-
-
-    
-    //buying P of type 1.
-    //[m1, m2] -> [m1 + P, m2m1/(m1+P))]
-    
-    //g = m2 - m2*m1/(m1+P)
-    //g = m2 - K1/(m1+P)
-    //g = m2(1 - m1/(m1+P))
-    //g = m2(P/(m1+P))
-    //g = m2/((m1/P)+1))
-
-    //g' = m2*m1/((m1+P)^2)
-    //g' = m2/m1
-
-
-    //g2 = n2/((n1/g)+1)
-    //g2 = n2/((n1((m1/P)+1)/m2)+1)
-    //g2 = n2/((n1*(m1/P + 1)/m2)+1)
-    //g2 = n2/((n1*(m1/P + 1) + m2)/m2))
-    //g2 = n2*m2/(n1*m1/P + n1 + m2)
-//*** g2 = n2/(n1*((m1/P) + 1)/m2) + 1)
-
-    //g2 = n2 - n2*n1/(n1+g)
-    //g2'= n2*n1/((n1+g)^2
-    // = n2*m2/(n1*m1)
-
-    
-    //g2 = n2(1/((n1/g)+1))
-    //g2 = n2(1/((n1/(m2(1/((m1/P)+1))))+1))
-   
-
-
-    //this is the familiar Q1/C1 = Q2/C2 formula for capacitors in parallel and all share the same voltage drop.
-    //so markets have a concept of "capacitance", which is the sqrt of (coins1 * coins2), this is the sqrt of the constant factor that the constant factor market is based on.
-
-    // V*C = Q
-    // sqrt(price)*constant = m1
-    // sqrt(m1/m2)*sqrt(m1*m2) = m1
-
-    
-
-
-
-    
-
-//If we consider 2 markets in series, then the total price slippage of the system is the sum of the price slippage of the parts. and the quantity of subcurrency pushed through is the same for the entire path.
-//(total slippage) = slipage1 + slippage2
-//total slippage = paid / capacitance1 + paid/capacitance2
-//total paid / total capacitance = paid / capcitance1 + paid / capacitance2
-//-> 1/C = 1/c1 + 1/c2
-
-    // Q = C * V.
-    // amount of charge = capacitance * voltage
-    // amount of money added to the market =
-    //   capacitance * price slippage
-
-    
-    //todo
-    //* we need a way to start from a contract id, and look up all the markets that connect to that contract.
     function load_balances2(ls, s){
         if(ls.length < 1){
             balances.innerHTML = s;
@@ -193,8 +114,8 @@ var uniswap = (function(){
             
             var sk = sub_accounts.key(keys.pub(), ls[0], 0);
             var sk = btoa(array_to_string(sk));
-            //merkle.request_proof("sub_accounts", sk, function(sa){
             rpc.post(["sub_accounts", sk], function(sa) {
+//                rpc.post(["markets", mid], function(market) {
                 var balance = 0;
                 if(!(sa == "empty")){
                     balance = sa[1];
@@ -202,12 +123,30 @@ var uniswap = (function(){
                 if(balance > 1){
                     s = s
                         .concat("market: ")
-                        .concat(ls[0])
+                        .concat(mid)
+/*                        .concat(" cid1: ")
+                        .concat(market[2])
+                        .concat(" type1: ")
+                        .concat(market[3])
+                        .concat(" amount1: ")
+                        .concat((market[4] / token_units()).toString())
+                        .concat(" cid2: ")
+                        .concat(market[5])
+                        .concat(" type2: ")
+                        .concat(market[6])
+                        .concat(" amount2: ")
+                        .concat((market[7] / token_units()).toString())
+*/
+                        //.concat(" price: ")
+                        //.concat((market[4]/market[7]).toString())
+//                        .concat(" shares: ")
+//                        .concat((market[8] / token_units()).toString())
                         .concat(" balance: ")
                         .concat((balance / token_units()).toString())
-                        .concat("<br>");
+                        .concat("<br><br>");
                 }
                 return(load_balances2(ls.slice(1), s));
+//                });
             });
         };
     };
@@ -218,7 +157,6 @@ var uniswap = (function(){
         var acc = accs[0];
         var sk = sub_accounts.key(keys.pub(), acc[0], acc[1]);
         var sk = btoa(array_to_string(sk));
-        //merkle.request_proof("sub_accounts", sk, function(sa){
         rpc.post(["sub_accounts", sk], function(sa){
             var balance = 0;
             if(!(sa == "empty")){
@@ -238,7 +176,34 @@ var uniswap = (function(){
                                  ls, s));
         });
     };
-    
+    function liquidity_trade() {
+        //TODO copy code from subcurrency set buy
+        var C1 = market_selector.value;
+        var C1 = JSON.parse(C1);
+        var mid = C1[0];
+        //var source = contract[8];
+        //var source_type = contract[9];
+        //var many_types = contract[2];
+        var mav = Math.round(parseFloat(market_amount.value) * token_units());
+        rpc.post(["markets", mid], function(Market){
+            var CID1 = Market[2];
+            var Type1 = Market[3];
+            var CID2 = Market[5];
+            var Type2 = Market[6];
+            var tx = ["market_liquidity_tx",
+                      0,0,0,
+                      mid, mav,
+                      CID1, Type1, CID2, Type2];
+            var txs = [tx];
+            multi_tx.make(txs, function(tx){
+                console.log(JSON.stringify(tx));
+                var stx = keys.sign(tx);
+                post_txs([stx], function(msg){
+                    display.innerHTML = msg;
+                });
+            });
+        });
+    };
     function swap_price() {
         var C1 = selector.value;
         var CID1, CID2, Type1, Type2;
@@ -266,7 +231,6 @@ var uniswap = (function(){
         var A = Math.round(parseFloat(amount_input.value) * token_units());
         var sub_acc = sub_accounts.key(keys.pub(), CID1, Type1);
         sub_acc = btoa(array_to_string(sub_acc));
-        //merkle.request_proof("sub_accounts", sub_acc, function(SA) {
         rpc.post(["sub_accounts", sub_acc], function(SA) {
             var amount;
             if(CID1 == ZERO ){ amount = 99999999999999999999999;}
@@ -294,7 +258,6 @@ var uniswap = (function(){
         marketids, cids, amount234,
         cid1, type1, cid2, type2)
     {
-        //console.log(JSON.stringify([amount, type1, type2, cid1, cid2, cids, marketids]));
         return(get_contracts(cids, [], function(contracts){
             return(get_markets(marketids, [], function(markets) {
                 var Paths = all_paths([[[cid1, type1]]], cid2, type2, contracts, markets, 5);
@@ -322,22 +285,14 @@ var uniswap = (function(){
         };
         if(Paths[0] == "contract") {
             var contract = Paths;
-            //var ch = contract[1];
-            //var mt = contract[2];
-            //var source = contract[8];
-            //var source_type = contract[9];
-            //var cid = binary_derivative.id_maker(
-            //    ch, mt, source, source_type);
             var cid = contract_to_cid(contract);
             DB[cid] = contract;
-            //DB[contract[1]] = contract;
             return(DB);
         };
         return build_paths_db(Paths.slice(1), DB);
     };
     function swap_price3(Paths, amount33) {
         //we need to find the optimal way to spend amount on the different paths to get the best price.
-
         //an initial guess we can keep improving.
         var L = Paths.length;
         if(L == 0){
@@ -363,7 +318,6 @@ var uniswap = (function(){
             return(make_tx(guess, amount, Paths, db, db2));
         };
         //make a database of the markets and contracts that can be updated with trades.
-        //console.log(JSON.stringify(db));
 
         //update the database based on our current guess of the distribution.
         var db2 = make_trades(guess, Paths, JSON.parse(JSON.stringify(db)));
@@ -373,7 +327,6 @@ var uniswap = (function(){
         if(good_enough(gradient, guess, average)){
             console.log("done!");
             return(make_tx(guess, amount, Paths, db, db2));
-            //return(db2);
         } else {
             var nextGuess = improve_guess(average, guess, gradient, amount);
             return(swap_price_loop(Paths, amount, nextGuess, db, N-1));
@@ -383,11 +336,11 @@ var uniswap = (function(){
     function improve_guess(average, guess, grad, amount){
         var r = [];
         for(var i = 0; i<guess.length; i++){
-            
             var n = guess[i] - 0.9*guess[i]*((grad[i]-average)/average);
             var n = Math.max(n, 0);
             r = r.concat([n]);
         };
+        //we also need to normalize, to make sure the sum of how much we are buying on each path is still equal to how much we want to spend.
         var total = 0;
         for(var i = 0; i<r.length; i++){
             total = total + r[i];
@@ -402,8 +355,6 @@ var uniswap = (function(){
         var guess_total = guess.reduce(function(a, b) {
             return(a+b);
         });
-        console.log(guess);
-        console.log(guess_total);
         var total = 0;
         for(var i = 0; i<grad.length; i++){
             total = total + (grad[i]*guess[i]);
@@ -412,7 +363,6 @@ var uniswap = (function(){
         return(average);
     };
     function good_enough(grad, guess, average) {
-        //var average = average(grad);
         for(var i = 0; i<grad.length; i++){
             var p = Math.abs(grad[i] - average) / average;
             if((!(guess[i] == 0)) && (p > 0.001)){
@@ -474,12 +424,6 @@ var uniswap = (function(){
             };
         };
         if(type[0] == "contract"){
-            //start_currency can be any of 3 spots.
-            //end_currency can be any of 3 spots.
-            //market start can be any of 3.
-            //market end can be any of 3.
-
-            //var cid = path[1][0][1];
             var contract = path[1][0];
             var cid = contract_to_cid(contract);;
             var mid = path[1][1][1];
@@ -824,9 +768,6 @@ var uniswap = (function(){
                 return(0);
             };
             txs = txs.concat([tx]);
-            //console.log(JSON.stringify(
-             //   [db[mids[i]],
-              //   db2[mids[i]]]));
         };
         //if any subcurrency balances are negative, buy enough complete sets to make it positive.
         var Accs = Object.keys(currencies);
@@ -845,7 +786,6 @@ var uniswap = (function(){
             var puc = potential_use_contracts[i];
             var id = puc[0];
             var id = id.slice(0, id.search(","));
-            //var amount = puc[1];
             if(!(max_contract_needs[id])){
                 max_contract_needs[id] = puc[1];
             } else {
@@ -857,11 +797,9 @@ var uniswap = (function(){
         var to_buy = Object.keys(max_contract_needs);
         for(var i = 0; i<to_buy.length; i++){
             var cid = to_buy[i];
-            //console.log(JSON.stringify(ch));
             var c = db[cid];
             var source = c[8];
             var source_type = c[9];
-            //var cid = merkle.contract_id_maker(ch, 2, source, source_type);
             var tx = ["contract_use_tx", 0, 0, 0,
                       cid,
                       -max_contract_needs[cid],
@@ -896,8 +834,6 @@ var uniswap = (function(){
                 var Source = Contract[8];
                 var SourceType = Contract[9];
                 var MT = Contract[2];
-                //var CH = Contract[1];
-                //var cid = merkle.contract_id_maker(CH, MT, Source, SourceType);
                 var cid = contract_to_cid(Contract);
                 //if the tip is one of the currencies in this market, then make paths that lead to each of the other currencies that we can.
                 if((Tip[0] == cid2) && (Tip[1] == type2)) {
@@ -1029,7 +965,6 @@ var uniswap = (function(){
         if(MIDS.length < 1) {
             return(callback(Markets));
         };
-        //merkle.request_proof("markets", MIDS[0], function(Market){
         rpc.post(["markets", MIDS[0]], function(Market){
             get_markets(MIDS.slice(1),
                         Markets.concat([Market]),
@@ -1040,7 +975,6 @@ var uniswap = (function(){
         if(CIDS.length<1) {
             return(callback(Contracts));
         };
-        //merkle.request_proof("contracts", CIDS[0], function(Contract){
         rpc.post(["contracts", CIDS[0]], function(Contract){
             get_contracts(CIDS.slice(1),
                           Contracts.concat([Contract]),
@@ -1111,17 +1045,22 @@ var uniswap = (function(){
         };
     };
 
-
-    //todo, create a dropdown menu of the currencies you own, to choose which one to spend.
-    //todo, create a dropdown menu of all the currencies that this can be sold for.
-    //todo, they should write how much they want to sell
-    //todo, the amount that they receive, and the price they are trading at, it should be automatically displayed.
-    //todo, the balance should have a zeroth-confirmation component, so they get immediate feedback that the tx was published, and the effect it has.
-
     var pool_title = document.createElement("h3");
     pool_title.innerHTML = "Buy/Sell Liquidity Pool Shares";
     pool_tab.appendChild(pool_title);
     //todo, create a dropdown menu of the markets you own liquidity shares in. Also make a button to look up other markets.
+    var market_selector = document.createElement("select");
+    var market_selector_label = document.createElement("span");
+    market_selector_label.innerHTML = "which market: ";
+    pool_tab.appendChild(market_selector_label);
+    pool_tab.appendChild(market_selector);
+    pool_tab.appendChild(br());
+    var market_amount = text_input("amount of liquidity to give/take: ", pool_tab);
+    pool_tab.appendChild(br());
+    var market_trade_button =
+        button_maker2("buy/sell liquidity", liquidity_trade);
+    pool_tab.appendChild(market_trade_button);
+    pool_tab.appendChild(br());
     //todo, once a market is selected, display your current balance, and the price for buying/selling right now.
     // possibly use a market swap, and/or a contract_use_tx in a flash loan to get the currency you need to participate in the pool.
     //have a field to type the amount to buy, a button for 'buy more liquidity shares', and a button for 'sell your liquidity shares'.
@@ -1254,10 +1193,68 @@ var uniswap = (function(){
     };
     function display_markets(div) {
         rpc.post(["markets"], function(markets){
-            console.log(JSON.stringify(markets));
+            var s = "<h4>existing markets</h4>";
+            markets = markets.slice(1);
+            var m2 = markets.map(function(m) {return(JSON.stringify([m[1], 0]));});
+            console.log(m2);
+            market_selector.innerHTML = "";
+            load_options(market_selector, m2);
+            return(display_markets2(div, markets, s));
             }, get_ip(), 8091);
     };
-
+    function display_markets2(div, markets, s){
+        if(markets.length < 1) {
+            console.log(s);
+            div.innerHTML = s;
+            return(0);
+        };
+        //-record(market, {mid, height, volume = 0, txs = [], cid1, type1, cid2, type2, amount1, amount2}).
+        var market = markets[0];
+        var mid = market[1];
+        console.log(JSON.stringify(market));
+        var cid1 = market[5];
+        var type1 = market[6];
+        var cid2 = market[7];
+        var type2 = market[8];
+        var amount1 = market[9];
+        var amount2 = market[10];
+        rpc.post(["read", 3, cid1], function(oracle_text1) {
+            rpc.post(["read", 3, cid2], function(oracle_text2) {
+                console.log([oracle_text1, oracle_text2]);
+                var text1, text2;
+                if(!oracle_text1){
+                    text1 = "unknown oracle";
+                } else {
+                    text1 = atob(oracle_text1[1]);
+                };
+                if(!oracle_text2){
+                    text2 = "unknown oracle";
+                } else {
+                    text2 = atob(oracle_text1[1]);
+                }
+                s = s
+                    .concat("Currency 1. ")
+                    .concat("oracle question: ")
+                    .concat(text1)
+                    .concat(". It wins if result is: ")
+                    .concat(type1)
+//                    .concat(". amount in market: ")
+//                    .concat(amount1)
+                    .concat(". Currency 2. oracle question: ")
+                    .concat(text2)
+                    .concat(". It wins if result is: ")
+                    .concat(type2)
+//                    .concat(". amount in market: ")
+//                    .concat(amount2)
+                    .concat("<button onclick=\"uniswap.market('")
+                    .concat(mid)
+                    .concat("')\">buy/sell</button>")
+                    .concat("<br><br>")
+                    .concat("");
+                display_markets2(div, markets.slice(1), s);
+            }, get_ip(), 8090);
+        }, get_ip(), 8090);
+    };
     function helper(){
         contract_id.value = "1qSyvrk/L3uBxN6uSsaX3oVypSzLpL260/CJl6e4Dq8=";//"95bMsSPuGa2s3M6gADqmbdBjuCVTIYc2Nf6KMw4xl48=";
         amount_input.value = "2";
@@ -1268,6 +1265,7 @@ var uniswap = (function(){
     return({load: load,
             cid: function(x){ contract_id.value = x },
             type: function(x){ contract_type.value = x },
+            market: function(x){ market_selector.value = JSON.stringify([x, 0]) },
             helper: helper
             //button: next_button
            });
