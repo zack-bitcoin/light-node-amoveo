@@ -338,6 +338,9 @@ var uniswap = (function(){
 
         //an initial guess we can keep improving.
         var L = Paths.length;
+        if(L == 0){
+            display.innerHTML = "error. there is no way to transform the input currency into the output currency.";
+        };
         var db = build_paths_db(Paths, {});
         if(L == 1){
             var guess = [amount33];
@@ -347,6 +350,8 @@ var uniswap = (function(){
         var a = amount33 / L;
 
         var guess = array_of(a, L);
+        console.log("swap price 3");
+        console.log(guess);
         return(swap_price_loop(Paths, amount33, guess, db, 30));
     }
     function swap_price_loop(Paths, amount, guess, db, N) {
@@ -1187,7 +1192,7 @@ var uniswap = (function(){
         }, get_ip(), 8091);//8091 is explorer
     };
     function display_contracts2(div, contracts, s) {
-        console.log(contracts);
+        console.log(JSON.stringify(contracts));
         if(contracts.length < 1) {
             console.log(s);
             div.innerHTML = s;
@@ -1206,17 +1211,20 @@ var uniswap = (function(){
                 s = s
 //                    .concat("id: ")
 //                    .concat(cid)
-                    .concat("<button onclick=\"")
-                    .concat("uniswap.cid('")
-                    .concat(cid)
-                    .concat("')\"> ")
                     .concat("oracle question: \"")
                     .concat(text)
                     .concat("\"; ")
                     .concat(type)
                     .concat("; volume: ")
-                    .concat(parseFloat(contracts[0][11] / token_units()))
-                    .concat("</button>");
+                    .concat((contracts[0][11] / token_units()).toString())
+                    .concat("<button onclick=\"uniswap.cid('")
+                    .concat(cid)
+                    .concat("'); uniswap.type(1);\"> buying true</button>")
+                    .concat("<button onclick=\"uniswap.cid('")
+                    .concat(cid)
+                    .concat("'); uniswap.type(2);\"> buying false</button>")
+                    .concat("<br>")
+                    .concat("");
             };
             display_contracts2(div, contracts.slice(1), s);
         }, get_ip(), 8090);
@@ -1257,6 +1265,7 @@ var uniswap = (function(){
     //helper();
     return({load: load,
             cid: function(x){ contract_id.value = x },
+            type: function(x){ contract_type.value = x },
             helper: helper
             //button: next_button
            });
