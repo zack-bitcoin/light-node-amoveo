@@ -809,11 +809,11 @@ var uniswap = (function(){
         };
         multi_tx.make(txs, function(tx){
             display.innerHTML = "you can sell "
-                .concat(amount)
+                .concat((amount / token_units()).toString())
                 .concat(" at a price of ")
                 .concat(price)
                 .concat(". in total you receive ")
-                .concat(Math.round(amount / price));
+                .concat((amount / price / token_units()).toString());
             console.log(JSON.stringify(tx));
             var stx = keys.sign(tx);
             publish_tx_button.onclick = function(){
