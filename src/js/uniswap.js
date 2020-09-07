@@ -45,16 +45,16 @@ var uniswap = (function(){
                     display.innerHTML = "<h1>load a key with funds.</h1>";
                     current_tab.innerHTML = "";
                 } else {
-                    //console.log(JSON.stringify(response[1]));
                     sub_accs = response[1][3].slice(1);
-                    //console.log(sub_accs);
                     liquidity_shares = response[1][4].slice(1);
                     display.innerHTML = "";
+                }
                     swap_mode_f();
                     selector.innerHTML = "";
                     //market_selector.innerHTML = "";
                     //TODO figure out which subcurrencies we own in each contract. each subcurrency goes into the selector seperately.
                     contracts_to_subs(sub_accs, [], function(sub_accs2){
+                console.log(JSON.stringify(sub_accs2));
                         load_balances(sub_accs2, liquidity_shares, "<h4>your balances in each subcurrency</h4>");
                         sub_accs2 = sub_accs2.map(function(x) {
                             return(JSON.stringify(x));
@@ -66,10 +66,9 @@ var uniswap = (function(){
 //                        load_options(market_selector,
 //                                     liquidity_shares);
                     });
-
-                };
+                
             }, get_ip(), 8091);
-        }, 0);
+        });
     };
 
 
@@ -162,14 +161,14 @@ var uniswap = (function(){
             if(!(sa == "empty")){
                 balance = sa[1];
             };
-            if(balances > 1){
+            if(balance > 1){
                 s = s
                     .concat("contract: ")
                     .concat(accs[0][0])
                     .concat(" type: ")
                     .concat(accs[0][1])
                     .concat(" balance: ")
-                    .concat((balance / token_units()).toString)
+                    .concat((balance / token_units()).toString())
                     .concat("<br>");
             }
             return(load_balances(accs.slice(1),
@@ -200,6 +199,7 @@ var uniswap = (function(){
                 var stx = keys.sign(tx);
                 post_txs([stx], function(msg){
                     display.innerHTML = msg;
+                    keys.update_balance();
                 });
             });
         });
@@ -819,6 +819,7 @@ var uniswap = (function(){
             publish_tx_button.onclick = function(){
                 post_txs([stx], function(msg){
                     display.innerHTML = msg;
+                    keys.update_balance();
                 });
             };
         });
