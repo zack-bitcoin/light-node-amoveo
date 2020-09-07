@@ -1191,6 +1191,20 @@ var uniswap = (function(){
             console.log(JSON.stringify(contracts));
             }, get_ip(), 8091);
     };
+    function markets_consensus_state(L, R, callback){
+        if(L.length < 1) {
+            return(callback(R));
+        } else {
+            var mid = L[0][1];
+            console.log(mid);
+            rpc.post(["markets", mid], function(market){
+                return(markets_consensus_state(
+                    L.slice(1),
+                    R.concat([market]),
+                    callback));
+            });
+        };
+    };
     function display_markets(div) {
         rpc.post(["markets"], function(markets){
             var s = "<h4>existing markets</h4>";
@@ -1199,10 +1213,15 @@ var uniswap = (function(){
             console.log(m2);
             market_selector.innerHTML = "";
             load_options(market_selector, m2);
-            return(display_markets2(div, markets, s));
+            markets_consensus_state(
+                markets,
+                [],
+                function(markets2){
+                    return(display_markets2(div, markets, markets2, s));
+                });
             }, get_ip(), 8091);
     };
-    function display_markets2(div, markets, s){
+    function display_markets2(div, markets, markets2, s){
         if(markets.length < 1) {
             console.log(s);
             div.innerHTML = s;
@@ -1210,48 +1229,72 @@ var uniswap = (function(){
         };
         //-record(market, {mid, height, volume = 0, txs = [], cid1, type1, cid2, type2, amount1, amount2}).
         var market = markets[0];
+        var market2 = markets2[0];
         var mid = market[1];
         console.log(JSON.stringify(market));
         var cid1 = market[5];
         var type1 = market[6];
         var cid2 = market[7];
         var type2 = market[8];
-        var amount1 = market[9];
-        var amount2 = market[10];
+        var amount1 = market2[4] / token_units();
+        var amount2 = market2[7] / token_units();
         rpc.post(["read", 3, cid1], function(oracle_text1) {
             rpc.post(["read", 3, cid2], function(oracle_text2) {
                 console.log([oracle_text1, oracle_text2]);
                 var text1, text2;
                 if(!oracle_text1){
-                    text1 = "unknown oracle";
+                    if(cid1 == ZERO){
+                        text1 = " veo ";
+                    } else {
+                        text1 = "contract id: "
+                            .concat(cid1)
+                            .concat(" ");
+                    }
                 } else {
-                    text1 = atob(oracle_text1[1]);
+                    text1 = ("oracle question: ")
+                        .concat(atob(oracle_text1[1]));
                 };
                 if(!oracle_text2){
-                    text2 = "unknown oracle";
+                    //text2 = "unknown oracle";
+                    if(cid2 == ZERO){
+                        text2 = " veo ";
+                    } else {
+                        text2 = "contract id: "
+                            .concat(cid2)
+                            .concat(" ");
+                    };
                 } else {
-                    text2 = atob(oracle_text1[1]);
+                    text2 = ("oracle question: ")
+                        .concat(atob(oracle_text2[1]));
                 }
                 s = s
                     .concat("Currency 1. ")
-                    .concat("oracle question: ")
+                    //.concat("oracle question: ")
                     .concat(text1)
                     .concat(". It wins if result is: ")
                     .concat(type1)
 //                    .concat(". amount in market: ")
 //                    .concat(amount1)
-                    .concat(". Currency 2. oracle question: ")
+                    .concat(".<br> Currency 2. ")// oracle question: ")
                     .concat(text2)
                     .concat(". It wins if result is: ")
                     .concat(type2)
-//                    .concat(". amount in market: ")
-//                    .concat(amount2)
-                    .concat("<button onclick=\"uniswap.market('")
+                    .concat("<br> amounts: ")
+                    .concat((amount1).toString())
+                    .concat(" ")
+                    .concat((amount2).toString())
+                    .concat(" price: ")
+                    .concat((amount1/amount2).toString())
+                    .concat("<br><button onclick=\"uniswap.market('")
                     .concat(mid)
-                    .concat("')\">buy/sell</button>")
+                    .concat("')\">buy/sell liquidity in this market</button>")
                     .concat("<br><br>")
                     .concat("");
-                display_markets2(div, markets.slice(1), s);
+                display_markets2(
+                    div,
+                    markets.slice(1),
+                    markets2.slice(1),
+                    s);
             }, get_ip(), 8090);
         }, get_ip(), 8090);
     };
