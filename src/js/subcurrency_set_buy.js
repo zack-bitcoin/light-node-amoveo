@@ -21,6 +21,8 @@ var subcurrency_set_buy = (function(){
                 return(0);
             };
             merkle.request_proof("contracts", contract_id.value, function(contract){
+            //rpc.post(["contracts", contract_id.value], function(contract){
+            
                 if(contract == "empty"){
                     display.innerHTML = "that contract does not exist";
                     return(0);

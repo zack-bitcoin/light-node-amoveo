@@ -195,6 +195,18 @@ function text_input(query, div) {
     div.appendChild(x);
     return x;
 };
+function load_selector_options(selector, L) {
+    if(L.length < 1) {
+        return(0);
+    };
+    var option = document.createElement("option");
+    option.innerHTML = L[0];
+    option.value = L[0];
+    selector.appendChild(option);
+    var L2 = L.slice(1);
+    load_selector_options(selector, L2);
+};
+
 
 function tree_number_to_value(t) {
     if (t < 101) {
