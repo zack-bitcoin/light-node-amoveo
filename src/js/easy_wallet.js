@@ -31,17 +31,18 @@ var tabs = (function(){
                 swap_selector.innerHTML = "";
                     //market_selector.innerHTML = "";
                     //TODO figure out which subcurrencies we own in each contract. each subcurrency goes into the selector seperately.
+                console.log(JSON.stringify(sub_accs));
                 contracts_to_subs(sub_accs, [], function(sub_accs2){
                         console.log(JSON.stringify(sub_accs2));
                         load_balances(sub_accs2, liquidity_shares, "<h4>your balances in each subcurrency</h4>");
                         sub_accs2 = sub_accs2.map(function(x) {
                             return(JSON.stringify(x));
                         });
-                        liquidity_shares = liquidity_shares.map(function(x){return(JSON.stringify([x, 0]));});
-                        load_selector_options(
-                            swap_selector, ["veo"]
-                                .concat(sub_accs2)
-                                .concat(liquidity_shares));
+                    liquidity_shares = liquidity_shares.map(function(x){return(JSON.stringify([x, 0]));});
+                    load_selector_options(
+                        swap_selector, ["veo"]
+                                //.concat(sub_accs2)
+                            .concat(liquidity_shares));
 //                        load_options(market_selector,
 //                                     liquidity_shares);
                     });
@@ -55,13 +56,13 @@ var tabs = (function(){
         };
         //merkle.request_proof("contracts", contracts[0], function(c) {
         rpc.post(["contracts", contracts[0]], function(c) {
-            many_types = c[2];
-            contracts_to_subs2(contracts[0], 1, many_types, [], function(subs){
-                return(contracts_to_subs(
-                    contracts.slice(1),
-                    R.concat(subs),
-                    callback));
-            });
+                many_types = c[2];
+                contracts_to_subs2(contracts[0], 1, many_types, [], function(subs){
+                    return(contracts_to_subs(
+                        contracts.slice(1),
+                        R.concat(subs),
+                        callback));
+                });
         });
     };
     function contracts_to_subs2(CID, N, L, R, callback) {
@@ -126,6 +127,8 @@ var tabs = (function(){
         };
     };
     function load_balances(accs, ls, s) {
+        console.log("load balances");
+        console.log(accs);
         if(accs.length < 1){
             return load_balances2(ls, s);
         };
@@ -138,17 +141,46 @@ var tabs = (function(){
                 balance = sa[1];
             };
             if(balance > 1){
-                s = s
-                    .concat("contract: ")
-                    .concat(accs[0][0])
-                    .concat(" type: ")
-                    .concat(accs[0][1])
-                    .concat(" balance: ")
-                    .concat((balance / token_units()).toString())
-                    .concat("<br>");
-            }
-            return(load_balances(accs.slice(1),
-                                 ls, s));
+                console.log(accs[0][0]);
+                rpc.post(["read", 3, accs[0][0]], function(oracle_text) {
+                    console.log(oracle_text);
+
+                    var option = document.createElement("option");
+                    var option_type;
+                    if(acc[1] == 1){
+                        option_type = "";
+                    } else if (acc[1] == 2){
+                        option_type = "the opposite of ";
+                    } else {
+                        console.log("bad subcurrency type error");
+                        return(0);
+                    }
+                    option.innerHTML = option_type
+                        .concat(atob(oracle_text[1]).slice(0, 60));
+                    option.value = JSON.stringify([acc[0], acc[1]]);
+                    swap_selector.appendChild(option);
+
+
+                    var text = "contract: "
+                        .concat(accs[0][0]);
+                    if(!(oracle_text == 0)) {
+                        text = ("oracle text: ")
+                            .concat(atob(oracle_text[1]));
+                    };
+                    s = s
+                        .concat(text)
+//                        .concat("contract: ")
+ //                       .concat(accs[0][0])
+                        .concat(" type: ")
+                        .concat(accs[0][1])
+                        .concat(" balance: ")
+                        .concat((balance / token_units()).toString())
+                        .concat("<br>");
+                    return(load_balances(accs.slice(1), ls, s));
+                }, get_ip(), 8090);
+            } else {
+                return(load_balances(accs.slice(1), ls, s));
+            };
         });
     };
     function change_tab(To) {

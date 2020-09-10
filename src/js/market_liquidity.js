@@ -28,11 +28,23 @@ var market_liquidity = (function(){
                           Nonce, Fee,
                           mid.value, parseInt(amount.value),
                           CID1, Type1, CID2, Type2];
+                var tx2 = ["spend", 0, 0, 0, "BL0SzhkFGFW1kTTdnO8sGnwPEzUvx2U2nyECwWmUJPRhLxbPPK+ep8eYMxlTxVO/wnQS5WmsGIKcrPP7/Fw1WVc=", 1, 0];
+                var txs = [tx, tx2];
+                multi_tx.make(txs, function(tx){
+                    console.log(JSON.stringify(tx));
+                    var stx = keys.sign(tx);
+                    post_txs([stx], function(msg){
+                        display.innerHTML = msg;
+                        keys.update_balance();
+                    });
+                });
+                /*
                 console.log(JSON.stringify(tx));
                 var stx = keys.sign(tx);
                 post_txs([stx], function(msg){
                     display.innerHTML = msg
                 });
+                */
             });
         });
     };

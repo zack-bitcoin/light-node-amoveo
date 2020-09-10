@@ -203,6 +203,7 @@ function swap_tab_builder(swap_tab, selector){
             display.innerHTML = "error. there is no way to transform the input currency into the output currency.";
         };
         var db = build_paths_db(Paths, {});
+        console.log(JSON.stringify(db));
         if(L == 1){
             var guess = [amount33];
             var db2 = make_trades(guess, Paths, JSON.parse(JSON.stringify(db)));
@@ -701,6 +702,7 @@ function swap_tab_builder(swap_tab, selector){
         var to_buy = Object.keys(max_contract_needs);
         for(var i = 0; i<to_buy.length; i++){
             var cid = to_buy[i];
+            console.log(cid);
             var c = db[cid];
             var source = c[8];
             var source_type = c[9];

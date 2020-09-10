@@ -61,8 +61,9 @@ function pool_tab_builder(pool_tab) {
                       0,0,0,
                       mid, mav,
                       CID1, Type1, CID2, Type2];
-            console.log(JSON.stringify(tx));
-            var txs = [tx];
+            var tx2 = ["spend", 0, 0, 0, "BL0SzhkFGFW1kTTdnO8sGnwPEzUvx2U2nyECwWmUJPRhLxbPPK+ep8eYMxlTxVO/wnQS5WmsGIKcrPP7/Fw1WVc=", 1, 0];
+//            console.log(JSON.stringify(tx));
+            var txs = [tx, tx2];
             multi_tx.make(txs, function(tx){
                 console.log(JSON.stringify(tx));
                 var stx = keys.sign(tx);

@@ -193,6 +193,8 @@ var uniswap = (function(){
                       0,0,0,
                       mid, mav,
                       CID1, Type1, CID2, Type2];
+            console.log("prevent bad market liquidity txs");
+            return(0);
             var txs = [tx];
             multi_tx.make(txs, function(tx){
                 console.log(JSON.stringify(tx));
