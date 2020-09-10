@@ -15,7 +15,8 @@ var subcurrency_set_buy = (function(){
     div.appendChild(br());
 
     function doit(){
-        merkle.request_proof("accounts", keys.pub(), function(account){
+        //merkle.request_proof("accounts", keys.pub(), function(account){
+        rpc.post(["account", keys.pub()], function(account){
             if(account == "empty"){
                 display.innerHTML = "load an account first";
                 return(0);

@@ -31,9 +31,9 @@ var tabs = (function(){
                 swap_selector.innerHTML = "";
                     //market_selector.innerHTML = "";
                     //TODO figure out which subcurrencies we own in each contract. each subcurrency goes into the selector seperately.
-                console.log(JSON.stringify(sub_accs));
+                //console.log(JSON.stringify(sub_accs));
                 contracts_to_subs(sub_accs, [], function(sub_accs2){
-                        console.log(JSON.stringify(sub_accs2));
+                    //console.log(JSON.stringify(sub_accs2));
                         load_balances(sub_accs2, liquidity_shares, "<h4>your balances in each subcurrency</h4>");
                         sub_accs2 = sub_accs2.map(function(x) {
                             return(JSON.stringify(x));
@@ -127,8 +127,8 @@ var tabs = (function(){
         };
     };
     function load_balances(accs, ls, s) {
-        console.log("load balances");
-        console.log(accs);
+        //console.log("load balances");
+        //console.log(accs);
         if(accs.length < 1){
             return load_balances2(ls, s);
         };
@@ -141,9 +141,9 @@ var tabs = (function(){
                 balance = sa[1];
             };
             if(balance > 1){
-                console.log(accs[0][0]);
+                //console.log(accs[0][0]);
                 rpc.post(["read", 3, accs[0][0]], function(oracle_text) {
-                    console.log(oracle_text);
+                    //console.log(oracle_text);
 
                     var option = document.createElement("option");
                     var option_type;

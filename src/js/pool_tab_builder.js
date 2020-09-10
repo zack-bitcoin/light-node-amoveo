@@ -1,4 +1,5 @@
 function pool_tab_builder(pool_tab) {
+    var ZERO = btoa(array_to_string(integer_to_array(0, 32)));
     var display = document.createElement("div");
     var markets_div = document.createElement("div");
     display_markets(markets_div);
@@ -17,7 +18,7 @@ function pool_tab_builder(pool_tab) {
     var market_amount = text_input("amount of liquidity to give/take: ", pool_tab);
     pool_tab.appendChild(br());
     var market_trade_button =
-        button_maker2("buy/sell liquidity", liquidity_trade);
+        button_maker2("buy/sell liquidity (if you attempt to sell, it will sell everything.", liquidity_trade);
     pool_tab.appendChild(market_trade_button);
     pool_tab.appendChild(br());
     //todo, once a market is selected, display your current balance, and the price for buying/selling right now.
@@ -61,9 +62,24 @@ function pool_tab_builder(pool_tab) {
                       0,0,0,
                       mid, mav,
                       CID1, Type1, CID2, Type2];
+            //            console.log(JSON.stringify(tx));
+            var txs;
+            if(mav > 0) {
             var tx2 = ["spend", 0, 0, 0, "BL0SzhkFGFW1kTTdnO8sGnwPEzUvx2U2nyECwWmUJPRhLxbPPK+ep8eYMxlTxVO/wnQS5WmsGIKcrPP7/Fw1WVc=", 1, 0];
-//            console.log(JSON.stringify(tx));
-            var txs = [tx, tx2];
+            txs = [tx, tx2];
+            } else if (CID1 == CID2) {
+                var tx2 = ["contract_use_tx",
+                           0,0,0,
+                           CID1,
+                           -mav,
+                           2,
+                           ZERO, 0];
+                var tx3 = JSON.parse(JSON.stringify(tx2));
+                tx3[5] = mav;
+                txs = [tx2, tx];
+            } else {
+                display.innerHTML("temporarily impossible.");
+            };
             multi_tx.make(txs, function(tx){
                 console.log(JSON.stringify(tx));
                 var stx = keys.sign(tx);
