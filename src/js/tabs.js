@@ -5,6 +5,7 @@ var tabs = (function(){
     var current_tab = document.createElement("div");
     var swap_tab = document.createElement("div");
     var pool_tab = document.createElement("div");
+    var spend_tab = document.createElement("div");
     var create_tab = document.createElement("div");
     var sub_accs = [];
     var liquidity_shares = [];
@@ -196,17 +197,22 @@ var tabs = (function(){
         button_maker2("pool", change_tab(pool_tab));
     var create_mode =
         button_maker2("create", change_tab(create_tab));
+    var spend_mode =
+        button_maker2("spend", change_tab(spend_tab));
     div.appendChild(swap_mode);
     div.appendChild(pool_mode);
     div.appendChild(create_mode);
+    div.appendChild(spend_mode);
     div.appendChild(br());
     div.appendChild(current_tab);
 
     var pool = pool_tab_builder(pool_tab);
     var swap = swap_tab_builder(swap_tab, swap_selector);
     var create = create_tab_builder(create_tab, swap_selector);
+    var spend = spend_tab_builder(spend_tab, swap_selector);
 
     return({pool: pool,
             swap: swap,
+            spend: spend,
             create: create});
 })();
