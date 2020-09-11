@@ -32,8 +32,8 @@ function create_tab_builder(div, selector){
     function make_contract(){
         var Text = oracle_text.value;
         var MP = parseInt(max_price_text.value);
-        var amount1 = parseInt(amount1_text.value);
-        var amount2 = parseInt(amount2_text.value);
+        var amount1 = Math.round(parseFloat(amount1_text.value) * token_units());
+        var amount2 = Math.round(parseFloat(amount2_text.value) * token_units());
         var Amount = Math.max(amount1, amount2);
         if(MP<1){
             display.innerHTML = "max price must be an integer";
