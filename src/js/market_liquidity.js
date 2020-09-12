@@ -29,16 +29,14 @@ var market_liquidity = (function(){
                           mid.value, parseInt(amount.value),
                           CID1, Type1, CID2, Type2];
                 var txs = [tx];
-                display.innerHTML = "blocks for security reasons.";
-                return(0);
-                multi_tx.make(txs, function(tx){
-                    console.log(JSON.stringify(tx));
-                    var stx = keys.sign(tx);
-                    post_txs([stx], function(msg){
-                        display.innerHTML = msg;
-                        keys.update_balance();
-                    });
+                //multi_tx.make(txs, function(tx){
+                console.log(JSON.stringify(tx));
+                var stx = keys.sign(tx);
+                post_txs([stx], function(msg){
+                    display.innerHTML = msg;
+                    keys.update_balance();
                 });
+                //});
                 /*
                 console.log(JSON.stringify(tx));
                 var stx = keys.sign(tx);

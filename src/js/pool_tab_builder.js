@@ -18,7 +18,7 @@ function pool_tab_builder(pool_tab) {
     var market_amount = text_input("amount of liquidity to give/take: ", pool_tab);
     pool_tab.appendChild(br());
     var market_trade_button =
-        button_maker2("buy/sell liquidity (if you attempt to sell, it will sell everything.", liquidity_trade);
+        button_maker2("buy/sell liquidity", liquidity_trade);
     pool_tab.appendChild(market_trade_button);
     pool_tab.appendChild(br());
     //todo, once a market is selected, display your current balance, and the price for buying/selling right now.
@@ -58,14 +58,24 @@ function pool_tab_builder(pool_tab) {
             var Type1 = Market[3];
             var CID2 = Market[5];
             var Type2 = Market[6];
-            var tx = ["market_liquidity_tx",
-                      0,0,0,
-                      mid, mav,
-                      CID1, Type1, CID2, Type2];
-            //            console.log(JSON.stringify(tx));
-            var txs;
+            rpc.post(["account", keys.pub()], function(Acc){
+                var Nonce = Acc[2] + 1;
+                var fee = 152050;
+                var tx = ["market_liquidity_tx",
+                          keys.pub(),Nonce,fee,
+                          mid, mav,
+                          CID1, Type1, CID2, Type2];
+                console.log(JSON.stringify(tx));
+                var stx = keys.sign(tx);
+                post_txs([stx], function(msg){
+                    display.innerHTML = msg;
+                    keys.update_balance();
+                });
+/*
+                
+            var txs = [tx];
             if(mav > 0) {
-            var tx2 = ["spend", 0, 0, 0, "BL0SzhkFGFW1kTTdnO8sGnwPEzUvx2U2nyECwWmUJPRhLxbPPK+ep8eYMxlTxVO/wnQS5WmsGIKcrPP7/Fw1WVc=", 1, 0];
+                //var tx2 = ["spend", 0, 0, 0, "BL0SzhkFGFW1kTTdnO8sGnwPEzUvx2U2nyECwWmUJPRhLxbPPK+ep8eYMxlTxVO/wnQS5WmsGIKcrPP7/Fw1WVc=", 1, 0];
             txs = [tx, tx2];
             } else if (CID1 == CID2) {
                 var tx2 = ["contract_use_tx",
@@ -87,6 +97,7 @@ function pool_tab_builder(pool_tab) {
                     display.innerHTML = msg;
                     keys.update_balance();
                 });
+*/
             });
         });
     };

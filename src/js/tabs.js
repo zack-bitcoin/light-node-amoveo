@@ -198,7 +198,7 @@ var tabs = (function(){
     var create_mode =
         button_maker2("create", change_tab(create_tab));
     var spend_mode =
-        button_maker2("spend", change_tab(spend_tab));
+        button_maker2("send", change_tab(spend_tab));
     div.appendChild(swap_mode);
     div.appendChild(pool_mode);
     div.appendChild(create_mode);

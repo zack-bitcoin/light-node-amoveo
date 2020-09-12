@@ -2,7 +2,7 @@ function spend_tab_builder(div, selector){
     var ZERO = btoa(array_to_string(integer_to_array(0, 32)));
     var display = document.createElement("div");
     var title = document.createElement("h3");
-    title.innerHTML = "Spend currency";
+    title.innerHTML = "Send currency";
     div.appendChild(title);
     div.appendChild(br());
     div.appendChild(display);
