@@ -10,6 +10,8 @@ var tabs = (function(){
     var sub_accs = [];
     var liquidity_shares = [];
     var swap_selector = document.createElement("select");
+    var create_selector = document.createElement("select");
+    var spend_selector = document.createElement("select");
     
     div.appendChild(balances);
     div.appendChild(display);
@@ -31,6 +33,8 @@ var tabs = (function(){
                 }
                 //swap_mode_f();
                 swap_selector.innerHTML = "";
+                create_selector.innerHTML = "";
+                spend_selector.innerHTML = "";
                     //market_selector.innerHTML = "";
                     //TODO figure out which subcurrencies we own in each contract. each subcurrency goes into the selector seperately.
                 //console.log(JSON.stringify(sub_accs));
@@ -41,12 +45,13 @@ var tabs = (function(){
                             return(JSON.stringify(x));
                         });
                     liquidity_shares = liquidity_shares.map(function(x){return(JSON.stringify([x, 0]));});
+                    var Options = ["veo"].concat(liquidity_shares);
                     load_selector_options(
-                        swap_selector, ["veo"]
-                                //.concat(sub_accs2)
-                            .concat(liquidity_shares));
-//                        load_options(market_selector,
-//                                     liquidity_shares);
+                        swap_selector, Options);
+                    load_selector_options(
+                        spend_selector, Options);
+                    load_selector_options(
+                        create_selector, Options);
                     });
                 
             }, get_ip(), 8091);
@@ -208,8 +213,8 @@ var tabs = (function(){
 
     var pool = pool_tab_builder(pool_tab);
     var swap = swap_tab_builder(swap_tab, swap_selector);
-    var create = create_tab_builder(create_tab, swap_selector);
-    var spend = spend_tab_builder(spend_tab, swap_selector);
+    var spend = spend_tab_builder(spend_tab, spend_selector);
+    var create = create_tab_builder(create_tab, create_selector);
 
     return({pool: pool,
             swap: swap,

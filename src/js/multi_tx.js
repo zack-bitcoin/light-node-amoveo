@@ -26,7 +26,7 @@ var multi_tx = (function(){
         rpc.post(["account", keys.pub()], function(Acc){
             console.log(Acc);
             var Nonce = Acc[2] + 1;
-            if(Txs.length == 1){
+            if(false){//Txs.length == 1){
                 var tx = Txs[0];
                 tx[1] = keys.pub();
                 tx[2] = Nonce;
