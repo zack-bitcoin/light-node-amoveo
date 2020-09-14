@@ -16,6 +16,9 @@ function pool_tab_builder(pool_tab) {
     pool_tab.appendChild(market_selector);
     pool_tab.appendChild(br());
     var market_amount = text_input("amount of liquidity to give/take: ", pool_tab);
+    var sell_all_button = button_maker2("sell max", sell_all_fun);
+    pool_tab.appendChild(sell_all_button);
+
     pool_tab.appendChild(br());
     var market_trade_button =
         button_maker2("buy/sell liquidity", liquidity_trade);
@@ -44,6 +47,21 @@ function pool_tab_builder(pool_tab) {
         load_options(selector, L2);
     };
 */
+    function sell_all_fun() {
+        var C1 = market_selector.value;
+        var C1 = JSON.parse(C1);
+        var mid = C1[0];
+        var trie_key = sub_accounts.key(keys.pub(), mid, 0);
+        var trie_key = btoa(array_to_string(trie_key));
+        merkle.request_proof("sub_accounts", trie_key, function(x) {
+            var amount = 0;
+            if(x[0] == "sub_acc"){
+                amount = x[1];
+            };
+            amount = amount / token_units();
+            market_amount.value = (amount).toString();
+        });
+    };
     function liquidity_trade() {
         //TODO copy code from subcurrency set buy
         var C1 = market_selector.value;
@@ -164,41 +182,53 @@ function pool_tab_builder(pool_tab) {
                 console.log([oracle_text1, oracle_text2]);
                 var include = true;
                 var text1, text2;
-                if(!oracle_text1){
+                if(cid1 == ZERO){
+                    text1 = "veo <br>";
+                } else if(!oracle_text1){
                     include = false;
                 } else {
                     text1 = ("oracle question: ")
                         .concat(atob(oracle_text1[1]));
                 };
-                if(!oracle_text2){
+                if(cid2 == ZERO){
+                    text2 = "veo <br>";
+                } else if(!oracle_text2){
                     include = false;
                 } else {
                     text2 = ("oracle question: ")
                         .concat(atob(oracle_text2[1]));
                 }
                 if(include){
-                s = s
-                    .concat("Currency 1. ")
+                    s = s
+                        .concat("Currency 1. ")
                     //.concat("oracle question: ")
-                    .concat(text1)
-                    .concat(". It wins if result is: ")
-                    .concat(type1)
+                        .concat(text1);
+                    if(!(type1 == 0)){
+                    s = s
+                        .concat(". It wins if result is: ")
+                        .concat(type1)
 //                    .concat(". amount in market: ")
 //                    .concat(amount1)
-                    .concat(".<br> Currency 2. ")// oracle question: ")
-                    .concat(text2)
-                    .concat(". It wins if result is: ")
-                    .concat(type2)
-                    .concat("<br> amounts: ")
-                    .concat((amount1).toString())
-                    .concat(" ")
-                    .concat((amount2).toString())
-                    .concat(" price: ")
-                    .concat((amount1/amount2).toString())
-                    .concat("<br><button onclick=\"tabs.pool.market('")
-                    .concat(mid)
-                    .concat("')\">buy/sell liquidity in this market</button>")
-                    .concat("<br><br>")
+                            .concat(".<br> Currency 2. ")// oracle question: ")
+                    };
+                    s = s
+                        .concat(text2)
+                    if(!(type2 == 0)){
+                        s = s
+                            .concat(". It wins if result is: ")
+                            .concat(type2)
+                    };
+                    s = s
+                        .concat("<br> amounts: ")
+                        .concat((amount1).toString())
+                        .concat(" ")
+                        .concat((amount2).toString())
+                        .concat(" price: ")
+                        .concat((amount1/amount2).toString())
+                        .concat("<br><button onclick=\"tabs.pool.market('")
+                        .concat(mid)
+                        .concat("')\">buy/sell liquidity in this market</button>")
+                        .concat("<br><br>")
                         .concat("");
                 }
                 display_markets2(
