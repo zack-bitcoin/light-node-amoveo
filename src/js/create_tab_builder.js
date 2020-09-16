@@ -8,19 +8,45 @@ function create_tab_builder(div, selector){
     div.appendChild(br());
     div.appendChild(display);
     div.appendChild(br());
+    var normal_button = button_maker2("normal mode", function(){
+        current_div.innerHTML = "";
+        current_div.appendChild(normal_div);
+    });
+    div.appendChild(normal_button);
+    var scalar_button = button_maker2("scalar mode", function(){
+        current_div.innerHTML = "";
+        current_div.appendChild(scalar_div);
+    });
+    div.appendChild(scalar_button);
+    div.appendChild(br());
     var selector_label = document.createElement("span");
     selector_label.innerHTML = "source currency: ";
     div.appendChild(selector_label);
     div.appendChild(selector);
     div.appendChild(br());
-    var oracle_text = text_input("the question we ask the oracle", div);
-    div.appendChild(br());
+
+    var normal_div = document.createElement("div");
+    var scalar_div = document.createElement("div");
+    var current_div = document.createElement("div");
+    current_div.appendChild(normal_div);
+
+    var oracle_text = text_input("the question we ask the oracle", normal_div);
+    normal_div.appendChild(br());
+
+    var website_text = text_input("website where we look up the value for this oracle", scalar_div);
+    scalar_div.appendChild(br());
+    var time_text = text_input("the date and time when the value is measured, in China Standard Time zone. GMT + 8.", scalar_div);
+    scalar_div.appendChild(br());
+    var ticker_text = text_input("the name of the thing being measured. for example: 'BTC' ", scalar_div);
+    scalar_div.appendChild(br());
+
     var max_price_text = text_input("maximum value we can measure with this oracle", div);
     div.appendChild(br());
     var amount_text = text_input("amount to invest in liquidity shares", div);
     div.appendChild(br());
     var probability_text = text_input("initial value of type 1. should be between 0 and 1.", div);
     div.appendChild(br());
+    div.appendChild(current_div);
 /*
     var amount1_text = text_input("how many of type 1 coins to put into the initial market", div);
     div.appendChild(br());
@@ -30,16 +56,31 @@ function create_tab_builder(div, selector){
 
 
     var button = button_maker2("make contract", make_contract);
-    div.appendChild(button);
+    normal_div.appendChild(button);
+    var scalar_button = button_maker2("make contract", make_scalar_contract);
+    scalar_div.appendChild(scalar_button);
     div.appendChild(br());
 
 
     function make_contract(){
         var Text = oracle_text.value;
+        return(make_contract2(Text));
+    }
+    function make_scalar_contract(){
+        var website = website_text.value;
+        var time = time_text.value;
+        var ticker = ticker_text.value;
+        var Text = "W = "
+            .concat(website)
+            .concat("; T = ")
+            .concat(time)
+            .concat(" China Standard Time (GMT+8); ticker = ")
+            .concat(ticker)
+            .concat("; return(the price of ticker at time T according to website W) ");
+        return(make_contract2(Text));
+    }
+    function make_contract2(Text) {
         var MP = parseInt(max_price_text.value);
-        //var amount1 = Math.round(parseFloat(amount1_text.value) * token_units());
-        //var amount2 = Math.round(parseFloat(amount2_text.value) * token_units());
-        //var Amount = Math.max(amount1, amount2);
         var price = parseFloat(probability_text.value);
         if(price<0){
             console.log("price must be greater than 0");
@@ -54,7 +95,7 @@ function create_tab_builder(div, selector){
         var amount2 = amount*(1-price);
 
         if(MP<1){
-            display.innerHTML = "max price must be an integer";
+            display.innerHTML = "max price must be an integer greater than 0.";
             return(0);
         }
         var Source, SourceType;
@@ -67,11 +108,6 @@ function create_tab_builder(div, selector){
             SourceType = V[1];
         }
            
-        //console.log(JSON.stringify(selector.value));
-        //console.log(JSON.stringify(Text));
-        //console.log(JSON.stringify(MP));
-
-
         var price = amount1 / amount2; 
         var source_amount = amount;
         var new_contract_tx =
@@ -80,6 +116,9 @@ function create_tab_builder(div, selector){
         var CH = new_contract_tx[2];
         var cid = binary_derivative.id_maker(CH, 2);
         var txs = [new_contract_tx];
+
+
+        
         if (amount1 == amount2) {
             txs = txs.concat([
                 ["contract_use_tx", 0,0,0,
@@ -165,28 +204,7 @@ function create_tab_builder(div, selector){
                  V, A1]
             ]);
         };
-
-        
-        /*
-        var new_contract_tx =
-            new_scalar_contract.make_tx(
-                Text, MP, Source, SourceType);
-        var CH = new_contract_tx[2];
-        var cid = binary_derivative.id_maker(CH, 2);
-
-        var new_market_tx = ["market_new_tx", 0,0,0,
-                             cid, cid, 1, 2,
-                             amount1, amount2];
-        var set_buy_tx =
-         ["contract_use_tx", 0,0,0,
-          cid, Amount, 2, Source, SourceType];
-
-        var txs = [new_contract_tx,
-                   set_buy_tx,
-                   new_market_tx];
-        */
         console.log(JSON.stringify(txs));
-        //return(0);
         multi_tx.make(txs, function(tx){
             var stx = keys.sign(tx);
                 post_txs([stx], function(msg){

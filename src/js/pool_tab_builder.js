@@ -56,9 +56,9 @@ function pool_tab_builder(pool_tab) {
         merkle.request_proof("sub_accounts", trie_key, function(x) {
             var amount = 0;
             if(x[0] == "sub_acc"){
-                amount = x[1];
+                amount = (x[1] - 1);
             };
-            amount = amount / token_units();
+            amount = (-1) * amount / token_units();
             market_amount.value = (amount).toString();
         });
     };
@@ -198,6 +198,10 @@ function pool_tab_builder(pool_tab) {
                     text2 = ("oracle question: ")
                         .concat(atob(oracle_text2[1]));
                 }
+                s = s
+                    .concat("Market id: ")
+                    .concat(mid)
+                    .concat("<br>");
                 if(include){
                     s = s
                         .concat("Currency 1. ")
