@@ -28,11 +28,13 @@ function create_tab_builder(div, selector){
     var normal_div = document.createElement("div");
     var stablecoin_div = document.createElement("div");
     var current_div = document.createElement("div");
-    current_div.appendChild(normal_div);
+    current_div.appendChild(stablecoin_div);
 
     var oracle_text = text_input("the question we ask the oracle", normal_div);
     normal_div.appendChild(br());
     var max_price_text = text_input("maximum value we can measure with this oracle", normal_div);
+    normal_div.appendChild(br());
+    var probability_text = text_input("initial value of type 1. should be between 0 and 1.", normal_div);
     normal_div.appendChild(br());
 
     var website_text = text_input("website where we look up the value for this oracle", stablecoin_div);
@@ -49,8 +51,6 @@ function create_tab_builder(div, selector){
     //var max_price_text = text_input("maximum value we can measure with this oracle", div);
     //div.appendChild(br());
     var amount_text = text_input("amount to invest in liquidity shares", div);
-    div.appendChild(br());
-    var probability_text = text_input("initial value of type 1. should be between 0 and 1.", div);
     div.appendChild(br());
     div.appendChild(current_div);
 /*
@@ -71,7 +71,16 @@ function create_tab_builder(div, selector){
     function make_contract(){
         var Text = oracle_text.value;
         var MP = parseFloat(max_price_text.value);
-        return(make_contract2(Text, MP));
+        var price = parseFloat(probability_text.value);
+        if(price<0){
+            console.log("price must be greater than 0");
+            return(0);
+        };
+        if(price>1){
+            console.log("price must be less than 1");
+            return(0);
+        };
+        return(make_contract2(Text, MP, price));
     }
     function make_stablecoin_contract(){
         var website = website_text.value;
@@ -92,22 +101,16 @@ function create_tab_builder(div, selector){
             .concat(ticker)
             .concat("; return(the price of ticker at time T according to website W) * ")
             .concat(Scale);
-        return(make_contract2(Text, MaxVal));
+        var price = 1/(1 + coll);
+        return(make_contract2(Text, MaxVal, price));
     }
-    function make_contract2(Text, MP) {
+    function make_contract2(Text, MP, price) {
         //console.log(MP);
-        var price = parseFloat(probability_text.value);
-        if(price<0){
-            console.log("price must be greater than 0");
-            return(0);
-        };
-        if(price>1){
-            console.log("price must be less than 1");
-            return(0);
-        };
         var amount = Math.round(parseFloat(amount_text.value)*token_units());
         var amount1 = amount*price;
         var amount2 = amount*(1-price);
+        console.log([MP, price]);
+        console.log([amount1, amount2]);
 
         if(MP<1){
             display.innerHTML = "max price must be an integer greater than 0.";
@@ -123,7 +126,7 @@ function create_tab_builder(div, selector){
             SourceType = V[1];
         }
            
-        var price = amount1 / amount2; 
+        //var price = amount1 / amount2; 
         var source_amount = amount;
         var new_contract_tx =
             new_scalar_contract.make_tx(
@@ -240,4 +243,12 @@ function create_tab_builder(div, selector){
                 });
         });
     };
+    return({
+        website:(function(x){website_text.value = x}),
+        time:(function(x){time_text.value = x}),
+        coll:(function(x){coll_text.value = x}),
+        starting_price:(function(x){starting_price_text.value = x}),
+        ticker:(function(x){ticker_text.value = x}),
+        amount:(function(x){amount_text.value = x})
+    });
 };

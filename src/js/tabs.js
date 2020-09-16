@@ -47,9 +47,9 @@ var tabs = (function(){
                     liquidity_shares = liquidity_shares.map(function(x){return(JSON.stringify([x, 0]));});
                     var Options = ["veo"].concat(liquidity_shares);
                     load_selector_options(
-                        swap_selector, Options);
-                    load_selector_options(
                         spend_selector, Options);
+                    load_selector_options(
+                        swap_selector, Options);
                     load_selector_options(
                         create_selector, Options);
                     });
@@ -150,8 +150,7 @@ var tabs = (function(){
             if(balance > 1){
                 //console.log(accs[0][0]);
                 rpc.post(["read", 3, accs[0][0]], function(oracle_text) {
-                    //console.log(oracle_text);
-
+                    console.log(oracle_text);
                     var option = document.createElement("option");
                     var option_type;
                     if(acc[1] == 1){
@@ -161,19 +160,23 @@ var tabs = (function(){
                     } else {
                         console.log("bad subcurrency type error");
                         return(0);
-                    }
-                    option.innerHTML = option_type
-                        .concat(atob(oracle_text[1]).slice(0, 60));
-                    option.value = JSON.stringify([acc[0], acc[1]]);
-                    swap_selector.appendChild(option);
+                    };
 
-
-                    var text = "contract: "
-                        .concat(accs[0][0]);
+                    var text;
                     if(!(oracle_text == 0)) {
                         text = ("oracle text: ")
                             .concat(atob(oracle_text[1]));
-                    };
+                        option.innerHTML = option_type
+                            .concat(atob(oracle_text[1]).slice(0, 60));
+                    } else {
+                        var text = "contract: "
+                            .concat(accs[0][0]);
+                        option.innerHTML = JSON.stringify([acc[0], acc[1]]);
+                    }
+                    option.value = JSON.stringify([acc[0], acc[1]]);
+                    swap_selector.appendChild(option);
+                    spend_selector.appendChild(option.cloneNode(true));
+                    create_selector.appendChild(option.cloneNode(true));
                     s = s
                         .concat(text)
 //                        .concat("contract: ")
@@ -212,9 +215,11 @@ var tabs = (function(){
     div.appendChild(current_tab);
 
     var pool = pool_tab_builder(pool_tab);
-    var swap = swap_tab_builder(swap_tab, swap_selector);
     var spend = spend_tab_builder(spend_tab, spend_selector);
+    var swap = swap_tab_builder(swap_tab, swap_selector);
+    //var swap = swap_tab_builder(swap_tab, spend_selector.cloneNode(true));
     var create = create_tab_builder(create_tab, create_selector);
+    //var create = create_tab_builder(create_tab, spend_selector.cloneNode(true));
 
     return({pool: pool,
             swap: swap,
