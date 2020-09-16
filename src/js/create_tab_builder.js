@@ -32,16 +32,22 @@ function create_tab_builder(div, selector){
 
     var oracle_text = text_input("the question we ask the oracle", normal_div);
     normal_div.appendChild(br());
+    var max_price_text = text_input("maximum value we can measure with this oracle", normal_div);
+    normal_div.appendChild(br());
 
     var website_text = text_input("website where we look up the value for this oracle", stablecoin_div);
     stablecoin_div.appendChild(br());
     var time_text = text_input("the date and time when the value is measured, in China Standard Time zone. GMT + 8.", stablecoin_div);
     stablecoin_div.appendChild(br());
+    var coll_text = text_input("collateralization", stablecoin_div);
+    stablecoin_div.appendChild(br());
+    var starting_price_text = text_input("starting price on website", stablecoin_div);
+    stablecoin_div.appendChild(br());
     var ticker_text = text_input("the name of the thing being measured. for example: 'BTC' ", stablecoin_div);
     stablecoin_div.appendChild(br());
 
-    var max_price_text = text_input("maximum value we can measure with this oracle", div);
-    div.appendChild(br());
+    //var max_price_text = text_input("maximum value we can measure with this oracle", div);
+    //div.appendChild(br());
     var amount_text = text_input("amount to invest in liquidity shares", div);
     div.appendChild(br());
     var probability_text = text_input("initial value of type 1. should be between 0 and 1.", div);
@@ -64,23 +70,32 @@ function create_tab_builder(div, selector){
 
     function make_contract(){
         var Text = oracle_text.value;
-        return(make_contract2(Text));
+        var MP = parseFloat(max_price_text.value);
+        return(make_contract2(Text, MP));
     }
     function make_stablecoin_contract(){
         var website = website_text.value;
         var time = time_text.value;
         var ticker = ticker_text.value;
+        var coll = parseFloat(coll_text.value);
+        var starting_price = parseFloat(starting_price_text.value);
+        console.log([coll, starting_price]);
+        //var MP = coll * starting_price;
+        var MaxVal = 4294967295;
+        var Scale = Math.round(MaxVal / starting_price / coll);
+        //var MP = MaxVal;
         var Text = "W = "
             .concat(website)
             .concat("; T = ")
             .concat(time)
             .concat(" China Standard Time (GMT+8); ticker = ")
             .concat(ticker)
-            .concat("; return(the price of ticker at time T according to website W) ");
-        return(make_contract2(Text));
+            .concat("; return(the price of ticker at time T according to website W) * ")
+            .concat(Scale);
+        return(make_contract2(Text, MaxVal));
     }
-    function make_contract2(Text) {
-        var MP = parseInt(max_price_text.value);
+    function make_contract2(Text, MP) {
+        //console.log(MP);
         var price = parseFloat(probability_text.value);
         if(price<0){
             console.log("price must be greater than 0");
@@ -111,7 +126,7 @@ function create_tab_builder(div, selector){
         var price = amount1 / amount2; 
         var source_amount = amount;
         var new_contract_tx =
-            new_stablecoin_contract.make_tx(
+            new_scalar_contract.make_tx(
                 Text, MP, Source, SourceType);
         var CH = new_contract_tx[2];
         var cid = binary_derivative.id_maker(CH, 2);
