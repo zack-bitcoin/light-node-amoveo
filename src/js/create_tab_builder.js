@@ -13,11 +13,11 @@ function create_tab_builder(div, selector){
         current_div.appendChild(normal_div);
     });
     div.appendChild(normal_button);
-    var scalar_button = button_maker2("scalar mode", function(){
+    var stablecoin_button = button_maker2("stablecoin mode", function(){
         current_div.innerHTML = "";
-        current_div.appendChild(scalar_div);
+        current_div.appendChild(stablecoin_div);
     });
-    div.appendChild(scalar_button);
+    div.appendChild(stablecoin_button);
     div.appendChild(br());
     var selector_label = document.createElement("span");
     selector_label.innerHTML = "source currency: ";
@@ -26,19 +26,19 @@ function create_tab_builder(div, selector){
     div.appendChild(br());
 
     var normal_div = document.createElement("div");
-    var scalar_div = document.createElement("div");
+    var stablecoin_div = document.createElement("div");
     var current_div = document.createElement("div");
     current_div.appendChild(normal_div);
 
     var oracle_text = text_input("the question we ask the oracle", normal_div);
     normal_div.appendChild(br());
 
-    var website_text = text_input("website where we look up the value for this oracle", scalar_div);
-    scalar_div.appendChild(br());
-    var time_text = text_input("the date and time when the value is measured, in China Standard Time zone. GMT + 8.", scalar_div);
-    scalar_div.appendChild(br());
-    var ticker_text = text_input("the name of the thing being measured. for example: 'BTC' ", scalar_div);
-    scalar_div.appendChild(br());
+    var website_text = text_input("website where we look up the value for this oracle", stablecoin_div);
+    stablecoin_div.appendChild(br());
+    var time_text = text_input("the date and time when the value is measured, in China Standard Time zone. GMT + 8.", stablecoin_div);
+    stablecoin_div.appendChild(br());
+    var ticker_text = text_input("the name of the thing being measured. for example: 'BTC' ", stablecoin_div);
+    stablecoin_div.appendChild(br());
 
     var max_price_text = text_input("maximum value we can measure with this oracle", div);
     div.appendChild(br());
@@ -57,8 +57,8 @@ function create_tab_builder(div, selector){
 
     var button = button_maker2("make contract", make_contract);
     normal_div.appendChild(button);
-    var scalar_button = button_maker2("make contract", make_scalar_contract);
-    scalar_div.appendChild(scalar_button);
+    var stablecoin_button = button_maker2("make contract", make_stablecoin_contract);
+    stablecoin_div.appendChild(stablecoin_button);
     div.appendChild(br());
 
 
@@ -66,7 +66,7 @@ function create_tab_builder(div, selector){
         var Text = oracle_text.value;
         return(make_contract2(Text));
     }
-    function make_scalar_contract(){
+    function make_stablecoin_contract(){
         var website = website_text.value;
         var time = time_text.value;
         var ticker = ticker_text.value;
@@ -111,7 +111,7 @@ function create_tab_builder(div, selector){
         var price = amount1 / amount2; 
         var source_amount = amount;
         var new_contract_tx =
-            new_scalar_contract.make_tx(
+            new_stablecoin_contract.make_tx(
                 Text, MP, Source, SourceType);
         var CH = new_contract_tx[2];
         var cid = binary_derivative.id_maker(CH, 2);
