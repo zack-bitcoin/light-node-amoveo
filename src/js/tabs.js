@@ -40,19 +40,25 @@ var tabs = (function(){
                 //console.log(JSON.stringify(sub_accs));
                 contracts_to_subs(sub_accs, [], function(sub_accs2){
                     //console.log(JSON.stringify(sub_accs2));
-                        load_balances(sub_accs2, liquidity_shares, "<h4>your balances in each subcurrency</h4>");
-                        sub_accs2 = sub_accs2.map(function(x) {
-                            return(JSON.stringify(x));
+                    balances.innerHTML = "";
+                    load_balances(
+                        sub_accs2, liquidity_shares, "<h4>your balances in each subcurrency</h4>",
+                        function(){
+
+
+                            sub_accs2 = sub_accs2.map(function(x) {
+                                return(JSON.stringify(x));
+                            });
+                            liquidity_shares = liquidity_shares.map(function(x){return(JSON.stringify([x, 0]));});
+                            var Options = ["veo"].concat(liquidity_shares);
+                            load_selector_options(
+                                spend_selector, Options);
+                            load_selector_options(
+                                swap_selector, Options);
+                            load_selector_options(
+                                create_selector, Options);
                         });
-                    liquidity_shares = liquidity_shares.map(function(x){return(JSON.stringify([x, 0]));});
-                    var Options = ["veo"].concat(liquidity_shares);
-                    load_selector_options(
-                        spend_selector, Options);
-                    load_selector_options(
-                        swap_selector, Options);
-                    load_selector_options(
-                        create_selector, Options);
-                    });
+                });
                 
             }, get_ip(), 8091);
         });
@@ -88,10 +94,10 @@ var tabs = (function(){
             };
         });
     };
-    function load_balances2(ls, s){
+    function load_balances2(ls, s, callback){
         if(ls.length < 1){
-            balances.innerHTML = s;
-            return(0);
+            //balances.innerHTML = s;
+            return(callback());
         } else {
             var mid = ls[0];
             
@@ -104,7 +110,9 @@ var tabs = (function(){
                     balance = sa[1];
                 };
                 if(balance > 1){
-                    s = s
+                    var temp_span = document.createElement("span");
+                    //s = s
+                    temp_span.innerHTML = ""
                         .concat("market: ")
                         .concat(mid)
 /*                        .concat(" cid1: ")
@@ -126,18 +134,19 @@ var tabs = (function(){
 //                        .concat((market[8] / token_units()).toString())
                         .concat(" balance: ")
                         .concat((balance / token_units()).toString())
-                        .concat("<br><br>");
+                        .concat("<br>");
+                    balances.appendChild(temp_span);
                 }
-                return(load_balances2(ls.slice(1), s));
+                return(load_balances2(ls.slice(1), s, callback));
 //                });
             });
         };
     };
-    function load_balances(accs, ls, s) {
+    function load_balances(accs, ls, s, callback) {
         //console.log("load balances");
         //console.log(accs);
         if(accs.length < 1){
-            return load_balances2(ls, s);
+            return load_balances2(ls, s, callback);
         };
         var acc = accs[0];
         var sk = sub_accounts.key(keys.pub(), acc[0], acc[1]);
@@ -156,7 +165,7 @@ var tabs = (function(){
                     if(acc[1] == 1){
                         option_type = "";
                     } else if (acc[1] == 2){
-                        option_type = "the opposite of ";
+                        option_type = "inverse ";
                     } else {
                         console.log("bad subcurrency type error");
                         return(0);
@@ -164,10 +173,26 @@ var tabs = (function(){
 
                     var text;
                     if(!(oracle_text == 0)) {
-                        text = ("oracle text: ")
-                            .concat(atob(oracle_text[1]));
-                        option.innerHTML = option_type
-                            .concat(atob(oracle_text[1]).slice(0, 60));
+                        var ot1 = atob(oracle_text[1]);
+                        console.log(ot1);
+                        if(is_ticker_format(ot1)){
+                            var ticker =
+                                decode_ticker(ot1);
+                            text = ("ticker: ")
+                                .concat(ticker)
+                                .concat(" contract id: ")
+                                .concat(accs[0][0]);
+                            option.innerHTML =
+                                option_type
+                                .concat(ticker);
+                        } else {
+                            text = ("oracle text: ")
+                                .concat(ot1)
+                                .concat(" contract id: ")
+                                .concat(accs[0][0]);
+                            option.innerHTML = option_type
+                                .concat((ot1).slice(0, 60));
+                        }
                     } else {
                         var text = "contract: "
                             .concat(accs[0][0]);
@@ -177,7 +202,11 @@ var tabs = (function(){
                     swap_selector.appendChild(option);
                     spend_selector.appendChild(option.cloneNode(true));
                     create_selector.appendChild(option.cloneNode(true));
-                    s = s
+                    var temp_span = document.createElement("span");
+                    
+                    
+                    // s = s
+                    temp_span.innerHTML = ""
                         .concat(text)
 //                        .concat("contract: ")
  //                       .concat(accs[0][0])
@@ -186,11 +215,13 @@ var tabs = (function(){
                         .concat(" balance: ")
                         .concat((balance / token_units()).toString())
                         .concat("<br>");
-                    return(load_balances(accs.slice(1), ls, s));
+                    balances.appendChild(temp_span);
+                    //return(load_balances(accs.slice(1), ls, s, callback));
                 }, get_ip(), 8090);
             } else {
-                return(load_balances(accs.slice(1), ls, s));
+                //return(load_balances(accs.slice(1), ls, s, callback));
             };
+            return(load_balances(accs.slice(1), ls, s, callback));
         });
     };
     function change_tab(To) {
@@ -198,6 +229,23 @@ var tabs = (function(){
             current_tab.innerHTML = "";
             current_tab.appendChild(To);
         });
+    };
+    //const ticker_regex = RegExp("^W = [(a-z)(A-Z)]*\.[(a-z)(A-Z)]*; T = [\\d|:|\\-| ]*China Standard Time \\(GMT\\+8\\); ticker = [(a-z)(A-Z)]*; return\\(the price of ticker at time T according to website W\\) \\* \\d*");
+    const ticker_regex = RegExp("^W = (qtrade\.io)|(coinmarketcap\.com); T = [\\d|:|\\-| ]*China Standard Time \\(GMT\\+8\\); ticker = [(a-z)(A-Z)]*; return\\(the price of ticker at time T according to website W\\) \\* \\d*");
+    function is_ticker_format(x) {
+        return(ticker_regex.test(x));
+    };
+    function decode_ticker(x) {
+        var l = x.split(";");
+        var ticker = l[2].split("= ")[1];
+        var date = l[1].split("= ")[1].split(" China")[0];
+        return(ticker
+               .concat(" - ")
+               .concat(date));
+    };
+    function test() {
+        var x = "W = qtrade.io; T = 12:00 20-9-2020 China Standard Time (GMT+8); ticker = BTC; return(the price of ticker at time T according to website W) * 810371187736";
+        console.log(ticker_regex.test(x));
     };
     var swap_mode =
         button_maker2("swap", change_tab(swap_tab));
@@ -224,5 +272,8 @@ var tabs = (function(){
     return({pool: pool,
             swap: swap,
             spend: spend,
-            create: create});
+            create: create,
+            is_ticker_format: is_ticker_format,
+            decode_ticker: decode_ticker,
+            test: test});
 })();

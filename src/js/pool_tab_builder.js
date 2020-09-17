@@ -83,7 +83,7 @@ function pool_tab_builder(pool_tab) {
                           keys.pub(),Nonce,fee,
                           mid, mav,
                           CID1, Type1, CID2, Type2];
-                console.log(JSON.stringify(tx));
+                //console.log(JSON.stringify(tx));
                 var stx = keys.sign(tx);
                 post_txs([stx], function(msg){
                     display.innerHTML = msg;
@@ -125,7 +125,7 @@ function pool_tab_builder(pool_tab) {
             return(callback(R));
         } else {
             var mid = L[0][1];
-            console.log(mid);
+            //console.log(mid);
             rpc.post(["markets", mid], function(market){
                 return(markets_consensus_state(
                     L.slice(1),
@@ -139,7 +139,7 @@ function pool_tab_builder(pool_tab) {
             var s = "<h4>existing markets</h4>";
             markets = markets.slice(1);
             var m2 = markets.map(function(m) {return(JSON.stringify([m[1], 0]));});
-            console.log(m2);
+            //console.log(m2);
             market_selector.innerHTML = "";
             load_selector_options(market_selector, m2);
             markets_consensus_state(
@@ -152,7 +152,7 @@ function pool_tab_builder(pool_tab) {
     };
     function display_markets2(div, markets, markets2, s){
         if(markets.length < 1) {
-            console.log(s);
+            //console.log(s);
             div.innerHTML = s;
             return(0);
         };
@@ -160,7 +160,7 @@ function pool_tab_builder(pool_tab) {
         var market = markets[0];
         var market2 = markets2[0];
         var mid = market[1];
-        console.log(JSON.stringify(market));
+        //console.log(JSON.stringify(market));
         var cid1 = market[5];
         var type1 = market[6];
         var cid2 = market[7];
@@ -179,7 +179,7 @@ function pool_tab_builder(pool_tab) {
         }
         rpc.post(["read", 3, cid1], function(oracle_text1) {
             rpc.post(["read", 3, cid2], function(oracle_text2) {
-                console.log([oracle_text1, oracle_text2]);
+                //console.log([oracle_text1, oracle_text2]);
                 var include = true;
                 var text1, text2;
                 if(cid1 == ZERO){

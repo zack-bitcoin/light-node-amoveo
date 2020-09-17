@@ -13,7 +13,8 @@ var subcurrency_combiner = (function(){
     div.appendChild(br());
 
     function doit(){
-        merkle.request_proof("accounts", keys.pub(), function(account){
+        //merkle.request_proof("accounts", keys.pub(), function(account){
+        rpc.post(["account", keys.pub()], function(account){
             merkle.request_proof("contracts", contract_id.value, function(contract){
                 var nonce = account[2] + 1;
                 var fee = 152050;
@@ -35,6 +36,7 @@ var subcurrency_combiner = (function(){
                               source,
                               source_type
                              ];
+                    console.log(JSON.stringify(tx));
                     var stx = keys.sign(tx);
                     rpc.post(["txs", [-6, stx]],
                      function(x) {

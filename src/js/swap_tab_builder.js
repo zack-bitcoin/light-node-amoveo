@@ -55,22 +55,25 @@ function swap_tab_builder(swap_tab, selector){
         }, get_ip(), 8091);//8091 is explorer
     };
     function display_contracts2(div, contracts, s) {
-        console.log(JSON.stringify(contracts));
+        //console.log(JSON.stringify(contracts));
         if(contracts.length < 1) {
-            console.log(s);
+            //console.log(s);
             div.innerHTML = s;
             return(0);
         }
         //var cid = contracts[0][1];
         cid = contract_to_cid(contracts[0]); 
         rpc.post(["read", 3, cid], function(oracle_text) {
-            console.log(contracts[0]);
-            console.log(cid);
+            //console.log(contracts[0]);
+            //console.log(cid);
             if(!(oracle_text == 0)) {
                 var type = oracle_text[0];
                 var text = atob(oracle_text[1]);
-                console.log(text);
-                console.log(JSON.stringify(oracle_text));
+                //console.log(text);
+                //console.log(JSON.stringify(oracle_text));
+                if(tabs.is_ticker_format(text)){
+                    text = tabs.decode_ticker(text);
+                }
                 s = s
 //                    .concat("id: ")
 //                    .concat(cid)
@@ -203,7 +206,7 @@ function swap_tab_builder(swap_tab, selector){
             display.innerHTML = "error. there is no way to transform the input currency into the output currency.";
         };
         var db = build_paths_db(Paths, {});
-        console.log(JSON.stringify(db));
+        //console.log(JSON.stringify(db));
         if(L == 1){
             var guess = [amount33];
             var db2 = make_trades(guess, Paths, JSON.parse(JSON.stringify(db)));
@@ -212,8 +215,8 @@ function swap_tab_builder(swap_tab, selector){
         var a = amount33 / L;
 
         var guess = array_of(a, L);
-        console.log("swap price 3");
-        console.log(guess);
+        //console.log("swap price 3");
+        //console.log(guess);
         return(swap_price_loop(Paths, amount33, guess, db, 30));
     }
     function swap_price_loop(Paths, amount, guess, db, N) {
@@ -702,7 +705,7 @@ function swap_tab_builder(swap_tab, selector){
         var to_buy = Object.keys(max_contract_needs);
         for(var i = 0; i<to_buy.length; i++){
             var cid = to_buy[i];
-            console.log(cid);
+            //console.log(cid);
             var c = db[cid];
             var source = c[8];
             var source_type = c[9];
@@ -720,7 +723,7 @@ function swap_tab_builder(swap_tab, selector){
                 .concat(price)
                 .concat(". in total you receive ")
                 .concat((amount / price / token_units()).toString());
-            console.log(JSON.stringify(tx));
+            //console.log(JSON.stringify(tx));
             var stx = keys.sign(tx);
             publish_tx_button.onclick = function(){
                 post_txs([stx], function(msg){
