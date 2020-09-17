@@ -1,4 +1,9 @@
 var tabs = (function(){
+    const urlParams = new URLSearchParams(window.location.search);
+    var hide_non_standard = urlParams.get('hide_non_standard');
+    if(hide_non_standard == "true"){
+        hide_non_standard = true;
+    };
     var display = document.createElement("div");
     var balances = document.createElement("div");
     var div = document.getElementById("main");
@@ -21,10 +26,11 @@ var tabs = (function(){
     keys.update_balance_callback(load);
 
     function load() {
+        display.innerHTML = "looking up which currencies you own.";
         setTimeout(function(){
             rpc.post(["account", keys.pub()], function(response){
                 if(response == "error") {
-                    display.innerHTML = "<h1>load a key with funds.</h1>";
+                    display.innerHTML = "<h3>load a key with funds.</h3>";
                     //current_tab.innerHTML = "";
                 } else {
                     sub_accs = response[1][3].slice(1);
@@ -236,7 +242,7 @@ var tabs = (function(){
             current_tab.appendChild(To);
         });
     };
-    //const ticker_regex = RegExp("^W = [(a-z)(A-Z)]*\.[(a-z)(A-Z)]*; T = [\\d|:|\\-| ]*China Standard Time \\(GMT\\+8\\); ticker = [(a-z)(A-Z)]*; return\\(the price of ticker at time T according to website W\\) \\* \\d*");
+    //const ticker_regex = RegExp("^W = [(a-z)(A-Z)]*\.[(a-z)(A-Z)]*; T = [\\d|:|\\-| ]*China Standard Time \\(GMT\\+8\\); ticker = [(a-z)(A-Z)]*; return\\(the price of ticker at time T according to website W\\) \\* \\d*$");
     const ticker_regex = RegExp("^W = (qtrade\.io)|(coinmarketcap\.com)|(coinpaprika\.com); T = [\\d|:|\\-| ]*China Standard Time \\(GMT\\+8\\); ticker = [(a-z)(A-Z)]*; return\\(the price of ticker at time T according to website W\\) \\* \\d*");
     function is_ticker_format(x) {
         return(ticker_regex.test(x));
@@ -270,7 +276,7 @@ var tabs = (function(){
 
     var pool = pool_tab_builder(pool_tab);
     var spend = spend_tab_builder(spend_tab, spend_selector);
-    var swap = swap_tab_builder(swap_tab, swap_selector);
+    var swap = swap_tab_builder(swap_tab, swap_selector, hide_non_standard);
     //var swap = swap_tab_builder(swap_tab, spend_selector.cloneNode(true));
     var create = create_tab_builder(create_tab, create_selector);
     //var create = create_tab_builder(create_tab, spend_selector.cloneNode(true));

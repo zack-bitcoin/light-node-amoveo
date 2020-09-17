@@ -1,4 +1,4 @@
-function swap_tab_builder(swap_tab, selector){
+function swap_tab_builder(swap_tab, selector, hide_non_standard){
     var ZERO = btoa(array_to_string(integer_to_array(0, 32)));
     var trading_fee = 0.9979995;
     var slippage = 1;
@@ -71,27 +71,33 @@ function swap_tab_builder(swap_tab, selector){
                 var text = atob(oracle_text[1]);
                 //console.log(text);
                 //console.log(JSON.stringify(oracle_text));
-                if(tabs.is_ticker_format(text)){
+                var TickerBool =
+                    tabs.is_ticker_format(text);
+                if(TickerBool){
                     text = tabs.decode_ticker(text);
+                } else {
+                    //text = atob(oracle_text[1]);
                 }
-                s = s
+                if((!(hide_non_standard)) || TickerBool){
+                    s = s
 //                    .concat("id: ")
 //                    .concat(cid)
                     //.concat("oracle question: \"")
-                    .concat("\"")
-                    .concat(text)
-                    .concat("\"~ ")
-//                    .concat(type)
-                    .concat("; volume: ")
-                    .concat((contracts[0][11] / token_units()).toString())
-                    .concat("<button onclick=\"tabs.swap.cid('")
-                    .concat(cid)
-                    .concat("'); tabs.swap.type(1);\"> buying true</button>")
-                    .concat("<button onclick=\"tabs.swap.cid('")
-                    .concat(cid)
-                    .concat("'); tabs.swap.type(2);\"> buying false</button>")
-                    .concat("<br>")
-                    .concat("");
+                        .concat("\"")
+                        .concat(text)
+                        .concat("\"~ ")
+                    //                    .concat(type)
+                        .concat("; volume: ")
+                        .concat((contracts[0][11] / token_units()).toString())
+                        .concat("<button onclick=\"tabs.swap.cid('")
+                        .concat(cid)
+                        .concat("'); tabs.swap.type(1);\"> buying true</button>")
+                        .concat("<button onclick=\"tabs.swap.cid('")
+                        .concat(cid)
+                        .concat("'); tabs.swap.type(2);\"> buying false</button>")
+                        .concat("<br>")
+                        .concat("");
+                };
             };
             display_contracts2(div, contracts.slice(1), s);
         }, get_ip(), 8090);
