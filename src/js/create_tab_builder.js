@@ -37,9 +37,29 @@ function create_tab_builder(div, selector){
     var probability_text = text_input("initial value of type 1. should be between 0 and 1.", normal_div);
     normal_div.appendChild(br());
 
-    var website_text = text_input("website where we look up the value for this oracle", stablecoin_div);
+    //var website_text = text_input("website where we look up the value for this oracle", stablecoin_div);
+    //stablecoin_div.appendChild(br());
+
+    var website_text = document.createElement("select");
+    var option_qtrade = document.createElement("option");
+    option_qtrade.innerHTML = "qtrade.io";
+    option_qtrade.value = "qtrade.io";
+    var option_cmc = document.createElement("option");
+    option_cmc.innerHTML = "coinmarketcap.com";
+    option_cmc.value = "coinmarketcap.com";
+    var option_cp = document.createElement("option");
+    option_cp.innerHTML = "coinpaprika.com";
+    option_cp.value = "coinpaprika.com";
+    website_text.appendChild(option_qtrade);
+    website_text.appendChild(option_cmc);
+    website_text.appendChild(option_cp);
+    website_label = document.createElement("span");
+    website_label.innerHTML = "website to get the price info";
+    stablecoin_div.appendChild(website_label);
+    stablecoin_div.appendChild(website_text);
     stablecoin_div.appendChild(br());
-    var time_text = text_input("the date and time when the value is measured, in China Standard Time zone. GMT + 8.", stablecoin_div);
+
+    var time_text = text_input("the date and time when the value is measured, in China Standard Time zone. GMT + 8. example: '12:00 25-12-2020'", stablecoin_div);
     stablecoin_div.appendChild(br());
     var coll_text = text_input("collateralization", stablecoin_div);
     stablecoin_div.appendChild(br());

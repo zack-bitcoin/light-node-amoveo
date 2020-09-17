@@ -35,6 +35,12 @@ var tabs = (function(){
                 swap_selector.innerHTML = "";
                 create_selector.innerHTML = "";
                 spend_selector.innerHTML = "";
+                load_selector_options(
+                    spend_selector, ["veo"]);
+                load_selector_options(
+                    swap_selector, ["veo"]);
+                load_selector_options(
+                    create_selector, ["veo"]);
                     //market_selector.innerHTML = "";
                     //TODO figure out which subcurrencies we own in each contract. each subcurrency goes into the selector seperately.
                 //console.log(JSON.stringify(sub_accs));
@@ -50,7 +56,7 @@ var tabs = (function(){
                                 return(JSON.stringify(x));
                             });
                             liquidity_shares = liquidity_shares.map(function(x){return(JSON.stringify([x, 0]));});
-                            var Options = ["veo"].concat(liquidity_shares);
+                            var Options = liquidity_shares;
                             load_selector_options(
                                 spend_selector, Options);
                             load_selector_options(
@@ -231,7 +237,7 @@ var tabs = (function(){
         });
     };
     //const ticker_regex = RegExp("^W = [(a-z)(A-Z)]*\.[(a-z)(A-Z)]*; T = [\\d|:|\\-| ]*China Standard Time \\(GMT\\+8\\); ticker = [(a-z)(A-Z)]*; return\\(the price of ticker at time T according to website W\\) \\* \\d*");
-    const ticker_regex = RegExp("^W = (qtrade\.io)|(coinmarketcap\.com); T = [\\d|:|\\-| ]*China Standard Time \\(GMT\\+8\\); ticker = [(a-z)(A-Z)]*; return\\(the price of ticker at time T according to website W\\) \\* \\d*");
+    const ticker_regex = RegExp("^W = (qtrade\.io)|(coinmarketcap\.com)|(coinpaprika\.com); T = [\\d|:|\\-| ]*China Standard Time \\(GMT\\+8\\); ticker = [(a-z)(A-Z)]*; return\\(the price of ticker at time T according to website W\\) \\* \\d*");
     function is_ticker_format(x) {
         return(ticker_regex.test(x));
     };
