@@ -251,9 +251,15 @@ var tabs = (function(){
         var l = x.split(";");
         var ticker = l[2].split("= ")[1];
         var date = l[1].split("= ")[1].split(" China")[0];
+        var scale = parseInt(l[3].split(" * ")[1]);
+        var MaxVal = 4294967295;
+        var Max2 = MaxVal / scale;
         return(ticker
                .concat(" - ")
-               .concat(date));
+               .concat(date)
+               .concat(" - ")
+               .concat(Max2.toFixed(8).toString())
+               .concat(" veo"));
     };
     function test() {
         var x = "W = qtrade.io; T = 12:00 20-9-2020 China Standard Time (GMT+8); ticker = BTC; return(the price of ticker at time T according to website W) * 810371187736";

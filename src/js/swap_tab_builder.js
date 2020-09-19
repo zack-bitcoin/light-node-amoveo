@@ -166,6 +166,15 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
             }, get_ip(), 8091);
         });
     };
+    function read_max(MV, RV) {
+        var r;
+        for(var i=0; i<MV.length; i++){
+            if(MV[i] == "maximize"){
+                r = RV[i];
+            };
+        };
+        return(r);
+    };
     const many_loops = 70;
     function swap_price2(
         marketids, cids, amount234,
@@ -192,18 +201,23 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                                    .concat(markets),
                                    T);
                 multi_tx.make(txs, function(tx){
-                    display.innerHTML = "you can sell"
-                        .concat(JSON.stringify(tx));
-                    var stx = keys.sign(tx);
-                    
+                    var maximized = read_max(V, apply(T, M));
+                    var price = amount234/maximized;
+                    display.innerHTML = "you can sell "
+                        .concat((amount234 / token_units()).toString())
+                        .concat(" at a price of ")
+                        .concat(price)
+                        .concat(". in total you receive ")
+                        .concat((amount234 / price / token_units()).toString())
+                        .concat("");
                     publish_tx_button.onclick = function(){
+                    var stx = keys.sign(tx);
                         post_txs([stx], function(msg){
                             display.innerHTML = msg;
                             keys.update_balance();
                         });
                     };
                 });
-                //return(T);
             }));
         }));
     };
