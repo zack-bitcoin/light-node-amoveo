@@ -1,3 +1,16 @@
+/*
+  matrix strategy.
+  contract1 - typeA, typeB
+  market1 - C1A, C1B
+  market2 - C1A, veo
+
+       veo         C1A  C1B 
+  C1   -1          1    1
+  M1   0           -1   (A*B)/(A+1)
+  M2   (A*V)/(A+1) -1   0
+
+
+*/
 function swap_tab_builder(swap_tab, selector, hide_non_standard){
     var ZERO = btoa(array_to_string(integer_to_array(0, 32)));
     var trading_fee = 0.9979995;
@@ -103,9 +116,6 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
         }, get_ip(), 8090);
     };
 
-
-
-    
     function swap_price() {
         var C1 = selector.value;
         var CID1, CID2, Type1, Type2;
@@ -156,7 +166,362 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
             }, get_ip(), 8091);
         });
     };
+    const many_loops = 70;
     function swap_price2(
+        marketids, cids, amount234,
+        cid1, type1, cid2, type2)
+    {
+        return(get_contracts(cids, [], function(contracts){
+            return(get_markets(marketids, [], function(markets) {
+                var M0 = build_matrix(contracts, markets);
+                var M = M0[1];
+                var currencies = M0[0];
+                var L = build_list(0, M[0].length);
+                //var L2 = JSON.parse(JSON.stringify(L));
+                var V = build_V(amount234, cid1, type1, cid2, type2, currencies);
+                //console.log(JSON.stringify(currencies));
+                //console.log(JSON.stringify(V));
+                //console.log(JSON.stringify([cid2, type2, cid1, type1]));
+                //console.log(JSON.stringify(L));
+                var T = optimize_price(M, V, L, amount234, many_loops);
+                console.log(JSON.stringify(contracts));
+                console.log(JSON.stringify(markets));
+                console.log(T);
+                console.log(apply(T, M));
+                var txs = make_txs(contracts
+                                   .concat(markets),
+                                   T);
+                multi_tx.make(txs, function(tx){
+                    display.innerHTML = "you can sell"
+                        .concat(JSON.stringify(tx));
+                    var stx = keys.sign(tx);
+                    
+                    publish_tx_button.onclick = function(){
+                        post_txs([stx], function(msg){
+                            display.innerHTML = msg;
+                            keys.update_balance();
+                        });
+                    };
+                });
+                //return(T);
+            }));
+        }));
+    };
+    function make_txs(cms, amounts) {
+        var r = [];
+        for(var i = 0; i<amounts.length; i++){
+            var tx;
+            if(cms[i][0] == "contract"){
+                var ch = cms[i][1];
+                var mt = cms[i][2];
+                var source = cms[i][8];
+                var source_type = cms[i][9];
+                var cid = binary_derivative.id_maker(ch, mt, source, source_type);
+                tx = ["contract_use_tx", 0,0,0,
+                      cid, Math.round(amounts[i]), mt,
+                      source, source_type];
+            } else if(cms[i][0] == "market"){
+                var mid = cms[i][1];
+                var cid1 = cms[i][2];
+                var type1 = cms[i][3];
+                var cid2 = cms[i][5];
+                var type2 = cms[i][6];
+                var give = Math.abs(amounts[i]);
+                var a1 = cms[1][4];
+                var a2 = cms[1][7];
+                var direction;
+                if(amounts[i] < 0){
+                    //give = (a1 - ((a1*a2)/(a2+amounts[i]))) * 0.99;
+                    //give = -(a2 - ((a1*a2)/(a1+amounts[i]))) * 0.99;
+                    //take = -amounts[i];
+                    take = (a1 - ((a1*a2)/(a2-amounts[i]))) * 0.99;
+                    direction = 2;
+                } else {
+                    take = (a2 - ((a1*a2)/(a1+amounts[i]))) * 0.99;
+                    direction = 1;
+                }
+                tx = ["market_swap_tx",0,0,0,
+                      mid, Math.round(give), Math.round(take),
+                      direction, cid1, type1,
+                      cid2, type2];
+            } else {
+                console.log("bad error");
+                return(0);
+            };
+            r = r.concat([tx]);
+        };
+        return(r);
+    };
+    function build_list(X, Size) {
+        var r = [];
+        for(var i = 0; i<Size; i++){
+            r = r.concat(X);
+        };
+        return(r);
+    };
+    function contracts2subcurrencies(contracts){
+        var r = [];
+        for(var i = 0; i<contracts.length; i++){
+            var c = contracts[i];
+            var ch = c[1];
+            var mt = c[2];
+            var sid = c[8];
+            var st = c[9];
+            var cid = binary_derivative.id_maker(ch, mt, sid, st);
+            for(var t = 0; t<mt; t++){
+                r = r.concat([[cid, t+1]]);
+            };
+        }
+        return(r);
+    };
+    function transpose(a) {
+        return Object.keys(a[0]).map(function(c) {
+            return a.map(function(r) { return r[c]; });
+        });
+    }
+    function build_matrix(contracts, markets) {
+        var subcurrencies = contracts2subcurrencies(contracts).concat([[ZERO, 0]]);
+        var M = contract_rows(contracts, subcurrencies)
+            .concat(market_rows(markets, subcurrencies));
+        var M2 = transpose(M);
+        //console.log(M2);
+        //console.log(M[0]);
+        //console.log(M2[0]);
+        return([subcurrencies, M2]);
+    };
+    function build_V(A, CID1, Type1, CID2, Type2, currencies){
+        var r = [];
+        for(var i = 0; i<currencies.length; i++){
+            var c = currencies[i];
+            if((CID1 == c[0])&&(Type1 == c[1])){
+                r = r.concat([-A]);
+            }else if ((CID2 == c[0])&&(Type2 == c[1])){
+                r = r.concat(["maximize"]);
+            } else {
+                r = r.concat([0]);
+            };
+        };
+        return(r);
+    };
+    function market_rows(markets, s) {
+        var r = [];
+        for(var i = 0; i < markets.length; i++) {
+            var c = markets[i];
+            r[i] = market_row(c, s);
+        };
+        return(r);
+    };
+    function market_row(market, currencies) {
+        var r = [];
+        for(var i = 0; i<currencies.length; i++) {
+            var c = currencies[i];
+            var cid1 = market[2];
+            var type1 = market[3];
+            var cid2 = market[5];
+            var type2 = market[6];
+            var a1 = market[4];
+            var a2 = market[7];
+            if((c[0] == cid1) && (c[1] == type1)){
+                //currency being spent
+                r = r.concat([
+                    (function(x){
+                        if(x > 0){
+                            return(-x);
+                        } else {
+                            return(a1 - ((a1*a2)/(a2+x)));
+                        };
+                    })]);
+            } else if ((c[0] == cid2) && (c[1] == type2)){
+                // currency being received.
+                //a1*a2 = (a1+x)*(a2-y)
+                //a2-y = (a1*a2)/(a1+x)
+                //y = a2 - ((a1*a2)/(a1+x))
+                r = r.concat([
+                    (function(x){
+                        if(x>0){
+                            return(a2 - ((a1*a2)/(a1+x)));
+                        } else {
+                            return(x);
+                        }
+                    })]);
+            } else {
+                r = r.concat([(function(x){return(0)})]);
+            }
+        };
+        return(r);
+    };
+    function contract_rows(contracts, s) {
+        var r = [];
+        for(var i = 0; i < contracts.length; i++) {
+            var c = contracts[i];
+            r[i] = contract_row(c, s);
+        };
+        return(r);
+    };
+    function contract_row(contract, currencies) {
+        var r = [];
+        for(var i = 0; i<currencies.length; i++) {
+            var c = currencies[i];
+            var cid = contract_to_cid(contract);
+            if(c[0] == cid){
+                //gain each subcurrency
+                r = r.concat([(function(x){return(x)})]);
+            } else if ((c[0] == contract[8]) &&
+                       (c[1] == contract[9])){
+                //lose the source currency
+                r = r.concat([(function(x){return(-x)})]);
+            } else {
+                r = r.concat([(function(x){return(0)})]);
+            };
+        };
+        return(r);
+    };
+    function apply(V, M) {
+        //console.log(JSON.stringify([V, M]));
+        var r = [];
+        for(i = 0; i<M.length; i++){
+            r = r.concat([dot(V, M[i])]);
+        };
+        return(r);
+    };
+    function dot(Vals, Funs) {
+        var r = 0;
+        for(var i = 0; i<Vals.length; i++){
+            r += Funs[i](Vals[i]);
+        };
+        return(r);
+    };
+    function distance(V, V2, SendAmount) {
+        var N = V.length;
+        //var r = SendAmount*(N+1);
+        var r = 0;
+        for(var i = 0; i<V.length; i++){
+            if(V[i] == "maximize"){
+                r += 2*Math.pow(2, -(V2[i]/SendAmount));
+                //r -= V2[i];//
+                //(V2[i]*V2[i]);
+            } else {
+                var x = (V[i] - V2[i]);
+                r += (x*x);
+            };
+        };
+        //r = Math.max(0, r);
+        return(Math.sqrt(r));
+        //return(r);
+    };
+    function check(guess, M, V, SendAmount) {
+        var V2 = apply(guess, M);
+        //console.log(guess);
+        //console.log(V);
+        //console.log(V2);
+        var D = distance(V, V2, SendAmount);
+        return(D);
+    }
+    function last_guess(guess, improve, M, V, SendAmount) {
+        var D = check(improve, M, V, SendAmount);
+        //console.log(improve);
+        //console.log(D);
+        return(D < 1000);
+        //return(false);
+    };
+    function largest(L) {
+        var r = 0;
+        for(var i = 0; i<L.length; i++){
+            r = Math.max(r, L[i]);
+        };
+        return(r);
+    };
+    function calc_grad(guess, M, V, SendAmount, times) {
+        var r = [];
+        var delta = 0.1;
+        var c = check(guess, M, V, SendAmount);
+        var guess2;
+        //var max_guess = largest(guess);
+        for(var i = 0; i<M[0].length; i++){
+            guess2 = JSON.parse(JSON.stringify(guess));
+            guess2[i] += delta;
+            var c2 = check(guess2, M, V, SendAmount);
+            //console.log(c);
+            //console.log(c2);
+            //r = r.concat([((c - c2)*SendAmount/(many_loops+3-times)/delta)]);
+            r = r.concat([((c - c2)*SendAmount/(Math.pow(1.11, (many_loops+2-times)))/delta/3)]);
+        };
+        //console.log(c);
+        //console.log(guess);
+        //console.log(r);
+        return(r);
+    };
+    function next_guess(guess, M, V, SendAmount, times) {
+        var grad = calc_grad(guess, M, V, SendAmount, times);
+        //console.log(JSON.stringify(M));
+        //console.log(JSON.stringify(grad));
+        var improve = vector_sum(grad, guess);
+        //return(grad);
+        return(improve);
+    };
+    function vector_sum(a, b){
+        var r = [];
+        for(var i = 0; i<a.length; i++){
+            r = r.concat(a[i] + b[i]);
+        };
+        return(r);
+    };
+    function optimize_price(M, V, guess, SendAmount, times){
+        //console.log(times);
+        if(times<1){
+            console.log(guess);
+            return(guess);
+        };
+        //console.log(guess);
+        var improve = next_guess(guess, M, V, SendAmount, times);
+        //console.log(improve);
+        if(last_guess(guess, improve, M, V, SendAmount)){
+            console.log("finished");
+            return(improve);
+        }
+        //return(0);
+        return(optimize_price(M, V, improve, SendAmount, times-1));
+/*
+        console.log(M[0]);
+        console.log(JSON.stringify(M));
+        console.log(JSON.stringify(M[0][0](55)));
+        console.log(V);
+*/
+    };
+    function contract_to_cid(Contract) {
+        var Source = Contract[8];
+        var SourceType = Contract[9];
+        var MT = Contract[2];
+        var CH = Contract[1];
+        var cid = merkle.contract_id_maker(CH, MT, Source, SourceType);
+        return(cid);
+    };
+    function get_markets(MIDS, Markets, callback){
+        if(MIDS.length < 1) {
+            return(callback(Markets));
+        };
+        rpc.post(["markets", MIDS[0]], function(Market){
+            get_markets(MIDS.slice(1),
+                        Markets.concat([Market]),
+                        callback);
+        });
+    };
+    function get_contracts(CIDS, Contracts, callback){
+        if(CIDS.length<1) {
+            return(callback(Contracts));
+        };
+        rpc.post(["contracts", CIDS[0]], function(Contract){
+            get_contracts(CIDS.slice(1),
+                          Contracts.concat([Contract]),
+                          callback)
+        });
+    };
+
+
+
+
+   /* 
+    function swap_price2_old(
         marketids, cids, amount234,
         cid1, type1, cid2, type2)
     {
@@ -591,14 +956,6 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
         var Paths5 = remove_repeats(Paths4);
         return(all_paths(Paths5, cid2, type2, contracts, markets, Steps-1));
     };
-    function contract_to_cid(Contract) {
-        var Source = Contract[8];
-        var SourceType = Contract[9];
-        var MT = Contract[2];
-        var CH = Contract[1];
-        var cid = merkle.contract_id_maker(CH, MT, Source, SourceType);
-        return(cid);
-    };
     function path2mids(L) {
         if(L.length < 1){
             return([]);
@@ -783,7 +1140,7 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                     Paths2 = Paths2
                         .concat([Paths[p]])
                         .concat(Markets2);
-                        //*/
+                        //
                 //}
                 } else if (Tip[0] == cid){
                     //so we can change it into any of the other subcurrencies, or the source.
@@ -877,26 +1234,6 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
         var m3 = markets_from_list(CID2, Type2, CID1, m2);
         return(m3);
     };
-    function get_markets(MIDS, Markets, callback){
-        if(MIDS.length < 1) {
-            return(callback(Markets));
-        };
-        rpc.post(["markets", MIDS[0]], function(Market){
-            get_markets(MIDS.slice(1),
-                        Markets.concat([Market]),
-                        callback);
-        });
-    };
-    function get_contracts(CIDS, Contracts, callback){
-        if(CIDS.length<1) {
-            return(callback(Contracts));
-        };
-        rpc.post(["contracts", CIDS[0]], function(Contract){
-            get_contracts(CIDS.slice(1),
-                          Contracts.concat([Contract]),
-                          callback)
-        });
-    };
     function remove_cycles(L) {
         if(L.length < 1){
             return([]);
@@ -960,6 +1297,7 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
             return(0);
         };
     };
+    */
     return({
         cid: function(x){ contract_id.value = x },
         type: function(x){ contract_type.value = x }
