@@ -257,9 +257,9 @@ var tabs = (function(){
         return(ticker
                .concat(" - ")
                .concat(date)
-               .concat(" - ")
+               .concat(" - collateral limit price: ")
                .concat(Max2.toFixed(8).toString())
-               .concat(" veo"));
+               .concat(""));
     };
     function test() {
         var x = "W = qtrade.io; T = 12:00 20-9-2020 China Standard Time (GMT+8); ticker = BTC; return(the price of ticker at time T according to website W) * 810371187736";
