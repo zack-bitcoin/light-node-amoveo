@@ -16,6 +16,10 @@ var multi_tx = (function(){
                 L[i][1] = 0;
                 L[i][2] = 0;
                 L[i][3] = 0;
+            } else if (L[i][0] == "market_liquidity_tx") {
+                L[i][1] = 0;
+                L[i][2] = 0;
+                L[i][3] = 0;
             } else {
                 console.log("swaps unhandled case");
                 console.log(L[i][0]);

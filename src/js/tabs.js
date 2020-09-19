@@ -257,8 +257,8 @@ var tabs = (function(){
         return(ticker
                .concat(" - ")
                .concat(date)
-               .concat(" - collateral limit price: ")
-               .concat(Max2.toFixed(8).toString())
+               .concat(" - ")//collateral limit price: ")
+               .concat(Max2.toFixed(4).toString())
                .concat(""));
     };
     function test() {

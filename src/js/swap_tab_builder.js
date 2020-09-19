@@ -39,15 +39,19 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
     //    var contract_type = text_input("contract type to be paid in (leave blank for veo): ", swap_tab);
     var contract_type = document.createElement("select");
     var type_label = document.createElement("span");
-    type_label.innerHTML = "you win if the outcome is: ";
+    type_label.innerHTML = "kind to buy: ";
     var true_option = document.createElement("option");
-    true_option.innerHTML = "true";
+    true_option.innerHTML = "long";
     true_option.value = 1;
     var false_option = document.createElement("option");
-    false_option.innerHTML = "false";
+    false_option.innerHTML = "short";
     false_option.value = 2;
+    var pool_option = document.createElement("option");
+    pool_option.innerHTML = "pool";
+    pool_option.value = 0;
     contract_type.appendChild(true_option);
     contract_type.appendChild(false_option);
+    //contract_type.appendChild(pool_option);
     swap_tab.appendChild(type_label);
     swap_tab.appendChild(contract_type);
     swap_tab.appendChild(br());
@@ -92,6 +96,7 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                     //text = atob(oracle_text[1]);
                 }
                 if((!(hide_non_standard)) || TickerBool){
+                    var mid = new_market.mid(cid, cid, 1, 2);
                     s = s
 //                    .concat("id: ")
 //                    .concat(cid)
@@ -104,10 +109,13 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                         .concat((contracts[0][11] / token_units()).toString())
                         .concat("<button onclick=\"tabs.swap.cid('")
                         .concat(cid)
-                        .concat("'); tabs.swap.type(1);\"> buying true</button>")
+                        .concat("'); tabs.swap.type(1);\"> long </button>")
                         .concat("<button onclick=\"tabs.swap.cid('")
                         .concat(cid)
-                        .concat("'); tabs.swap.type(2);\"> buying false</button>")
+                        .concat("'); tabs.swap.type(2);\"> short </button>")
+//                        .concat("<button onclick=\"tabs.swap.cid('")
+ //                       .concat(mid)
+  //                      .concat("'); tabs.swap.type(0);\"> pool </button>")
                         .concat("<br>")
                         .concat("");
                 };
@@ -157,12 +165,12 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                 A = Math.min(A, amount);
             };
             rpc.post(["r", CID1, CID2], function(response){
-            var markets = response[1].slice(1);
+                var markets = response[1].slice(1);
                 var contracts = response[2].slice(1);
-            return(swap_price2(markets, contracts,
-                               A,
-                               CID1, Type1,
-                               CID2, Type2));
+                return(swap_price2(markets, contracts,
+                                   A,
+                                   CID1, Type1,
+                                   CID2, Type2));
             }, get_ip(), 8091);
         });
     };
@@ -175,7 +183,7 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
         };
         return(r);
     };
-    const many_loops = 70;
+    const many_loops = 120;
     function swap_price2(
         marketids, cids, amount234,
         cid1, type1, cid2, type2)
@@ -192,11 +200,13 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                 //console.log(JSON.stringify(V));
                 //console.log(JSON.stringify([cid2, type2, cid1, type1]));
                 //console.log(JSON.stringify(L));
+                //best_guess = [10000000000000, L];
                 var T = optimize_price(M, V, L, amount234, many_loops);
                 console.log(JSON.stringify(contracts));
                 console.log(JSON.stringify(markets));
-                console.log(T);
-                console.log(apply(T, M));
+                //console.log(JSON.stringify(V));
+                console.log(JSON.stringify(T));
+                console.log(JSON.stringify(apply(T, M)));
                 var txs = make_txs(contracts
                                    .concat(markets),
                                    T);
@@ -208,10 +218,11 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                         .concat(" at a price of ")
                         .concat(price)
                         .concat(". in total you receive ")
-                        .concat((amount234 / price / token_units()).toString())
+                        .concat((maximized / token_units()).toString())
                         .concat("");
                     publish_tx_button.onclick = function(){
-                    var stx = keys.sign(tx);
+                        var stx = keys.sign(tx);
+                        console.log(JSON.stringify(tx));
                         post_txs([stx], function(msg){
                             display.innerHTML = msg;
                             keys.update_balance();
@@ -223,7 +234,9 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
     };
     function make_txs(cms, amounts) {
         var r = [];
-        for(var i = 0; i<amounts.length; i++){
+        var j = -1;
+        for(var i = 0; i<cms.length; i++){
+            j++;
             var tx;
             if(cms[i][0] == "contract"){
                 var ch = cms[i][1];
@@ -232,37 +245,53 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                 var source_type = cms[i][9];
                 var cid = binary_derivative.id_maker(ch, mt, source, source_type);
                 tx = ["contract_use_tx", 0,0,0,
-                      cid, Math.round(amounts[i]), mt,
+                      cid, Math.round(amounts[j]), mt,
                       source, source_type];
+                if(amounts[j] > 1) {
+                    r = r.concat([tx]);
+                };
             } else if(cms[i][0] == "market"){
                 var mid = cms[i][1];
                 var cid1 = cms[i][2];
                 var type1 = cms[i][3];
                 var cid2 = cms[i][5];
                 var type2 = cms[i][6];
-                var give = Math.abs(amounts[i]);
+                var give = Math.abs(amounts[j]);
                 var a1 = cms[1][4];
                 var a2 = cms[1][7];
                 var direction;
-                if(amounts[i] < 0){
+                if(amounts[j] < 0){
                     //give = (a1 - ((a1*a2)/(a2+amounts[i]))) * 0.99;
                     //give = -(a2 - ((a1*a2)/(a1+amounts[i]))) * 0.99;
                     //take = -amounts[i];
-                    take = (a1 - ((a1*a2)/(a2-amounts[i]))) * 0.99;
+                    take = (a1 - ((a1*a2)/(a2-amounts[j]))) * 0.99;
                     direction = 2;
                 } else {
-                    take = (a2 - ((a1*a2)/(a1+amounts[i]))) * 0.99;
+                    take = (a2 - ((a1*a2)/(a1+amounts[j]))) * 0.99;
                     direction = 1;
                 }
                 tx = ["market_swap_tx",0,0,0,
                       mid, Math.round(give), Math.round(take),
                       direction, cid1, type1,
                       cid2, type2];
+                if(give > 1){
+                    r = r.concat([tx]);
+                };
+/*
+                j++;
+                if(amounts[j] > 1) {
+                r = r.concat([
+                    ["market_liquidity_tx",0,0,0,
+                     mid, Math.round(amounts[j]),
+                     cid1, type1, cid2, type2]
+                ]);
+                }
+*/
             } else {
                 console.log("bad error");
                 return(0);
             };
-            r = r.concat([tx]);
+            //r = r.concat([tx]);
         };
         return(r);
     };
@@ -270,6 +299,14 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
         var r = [];
         for(var i = 0; i<Size; i++){
             r = r.concat(X);
+        };
+        return(r);
+    };
+    function markets2subcurrencies(markets){
+        var r = [];
+        for(var i = 0; i<markets.length; i++){
+            var mid = markets[i][1];
+            r = r.concat([[mid, 0]]);
         };
         return(r);
     };
@@ -294,7 +331,9 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
         });
     }
     function build_matrix(contracts, markets) {
-        var subcurrencies = contracts2subcurrencies(contracts).concat([[ZERO, 0]]);
+        var subcurrencies = contracts2subcurrencies(contracts)
+            //.concat(markets2subcurrencies(markets))
+            .concat([[ZERO, 0]]);
         var M = contract_rows(contracts, subcurrencies)
             .concat(market_rows(markets, subcurrencies));
         var M2 = transpose(M);
@@ -321,7 +360,46 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
         var r = [];
         for(var i = 0; i < markets.length; i++) {
             var c = markets[i];
-            r[i] = market_row(c, s);
+            r = r.concat([market_row(c, s)]);
+            //r = r.concat([liquidity_row(c, s)]);
+        };
+        return(r);
+    };
+    function liquidity_row(market, currencies) {
+        var mid = market[1];
+        var cid1 = market[2];
+        var type1 = market[3];
+        var cid2 = market[5];
+        var type2 = market[6];
+        var a1 = market[4];
+        var a2 = market[7];
+        var volume = market[8];
+        console.log([a1, a2, volume]);
+        var r = [];
+        for(var i = 0; i<currencies.length; i++) {
+            var c = currencies[i];
+            var id1 = c[0];
+            var type = c[1];
+            if((type == 0) && (id1 == mid)){
+                r = r.concat([(function(x){return(x)})]);
+            } else if((type == type1) &&
+                      (id1 == cid1)){
+                r = r.concat([(function(x){
+                    return(-x);
+                    //return(-x * a1 / volume);
+                })]);
+            } else if((type == type2) &&
+                      (id1 == cid2)){
+                r = r.concat([(function(x){
+                    return(-x);
+                    //return(-x * a2 / volume);
+                })]);
+            } else {
+                r = r.concat([
+                    (function(x){
+                        return(0);
+                    })]);
+            };
         };
         return(r);
     };
@@ -340,9 +418,12 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                 r = r.concat([
                     (function(x){
                         if(x > 0){
+                            //a1 += x;
                             return(-x);
                         } else {
-                            return(a1 - ((a1*a2)/(a2+x)));
+                            var r = (a1 - ((a1*a2)/(a2+x)));
+                            //a1 += r;
+                            return(r);
                         };
                     })]);
             } else if ((c[0] == cid2) && (c[1] == type2)){
@@ -353,8 +434,11 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                 r = r.concat([
                     (function(x){
                         if(x>0){
-                            return(a2 - ((a1*a2)/(a1+x)));
+                            var r = (a2 - ((a1*a2)/(a1+x)));
+                            //a2 += r;
+                            return(r);
                         } else {
+                            //a2 += x;
                             return(x);
                         }
                     })]);
@@ -406,12 +490,18 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
         return(r);
     };
     function distance(V, V2, SendAmount) {
+        //console.log(V);
+        //console.log(V2);
         var N = V.length;
         //var r = SendAmount*(N+1);
         var r = 0;
+        var get;
         for(var i = 0; i<V.length; i++){
             if(V[i] == "maximize"){
-                r += 2*Math.pow(2, -(V2[i]/SendAmount));
+                get = V2[i];
+                //r -= get/SendAmount;
+
+                r += Math.pow(2, -(V2[i]/SendAmount))/1;
                 //r -= V2[i];//
                 //(V2[i]*V2[i]);
             } else {
@@ -419,24 +509,33 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                 r += (x*x);
             };
         };
+        if(r == Infinity){
+            console.log("should not be infinity");
+            return(0);
+        };
         //r = Math.max(0, r);
         return(Math.sqrt(r));
         //return(r);
     };
+    var best_guess;
     function check(guess, M, V, SendAmount) {
         var V2 = apply(guess, M);
+        //console.log(M);
         //console.log(guess);
         //console.log(V);
         //console.log(V2);
         var D = distance(V, V2, SendAmount);
+//        if(D < best_guess[0]){
+//            best_guess = [D, guess];
+//        }
         return(D);
     }
     function last_guess(guess, improve, M, V, SendAmount) {
         var D = check(improve, M, V, SendAmount);
         //console.log(improve);
-        //console.log(D);
-        return(D < 1000);
-        //return(false);
+        console.log(D);
+        //return(D < 1000);
+        return(false);
     };
     function largest(L) {
         var r = 0;
@@ -447,7 +546,7 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
     };
     function calc_grad(guess, M, V, SendAmount, times) {
         var r = [];
-        var delta = 0.1;
+        var delta = 0.00001;
         var c = check(guess, M, V, SendAmount);
         var guess2;
         //var max_guess = largest(guess);
@@ -458,7 +557,7 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
             //console.log(c);
             //console.log(c2);
             //r = r.concat([((c - c2)*SendAmount/(many_loops+3-times)/delta)]);
-            r = r.concat([((c - c2)*SendAmount/(Math.pow(1.11, (many_loops+2-times)))/delta/3)]);
+            r = r.concat([((c - c2)*SendAmount/(Math.pow(1.1, (many_loops+2-times)))/delta/3)]);
         };
         //console.log(c);
         //console.log(guess);
@@ -481,12 +580,14 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
         return(r);
     };
     function optimize_price(M, V, guess, SendAmount, times){
-        //console.log(times);
+        console.log(times);
         if(times<1){
             console.log(guess);
+            //return(best_guess[1]);
             return(guess);
         };
-        //console.log(guess);
+        console.log(guess);
+        console.log(JSON.stringify(apply(guess, M)));
         var improve = next_guess(guess, M, V, SendAmount, times);
         //console.log(improve);
         if(last_guess(guess, improve, M, V, SendAmount)){
