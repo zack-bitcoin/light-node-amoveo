@@ -51,6 +51,7 @@ var tabs = (function(){
                     //TODO figure out which subcurrencies we own in each contract. each subcurrency goes into the selector seperately.
                 //console.log(JSON.stringify(sub_accs));
                 contracts_to_subs(sub_accs, [], function(sub_accs2){
+                    //console.log(JSON.stringify(sub_accs));
                     //console.log(JSON.stringify(sub_accs2));
                     balances.innerHTML = "";
                     load_balances(
@@ -112,7 +113,7 @@ var tabs = (function(){
             return(callback());
         } else {
             var mid = ls[0];
-            
+            //console.log([keys.pub(), ls[0]]);
             var sk = sub_accounts.key(keys.pub(), ls[0], 0);
             var sk = btoa(array_to_string(sk));
             rpc.post(["sub_accounts", sk], function(sa) {
@@ -171,7 +172,7 @@ var tabs = (function(){
             if(balance > 1){
                 //console.log(accs[0][0]);
                 rpc.post(["read", 3, accs[0][0]], function(oracle_text) {
-                    console.log(oracle_text);
+                    //console.log(oracle_text);
                     var option = document.createElement("option");
                     var option_type;
                     if(acc[1] == 1){
@@ -186,7 +187,7 @@ var tabs = (function(){
                     var text;
                     if(!(oracle_text == 0)) {
                         var ot1 = atob(oracle_text[1]);
-                        console.log(ot1);
+                        //console.log(ot1);
                         if(is_ticker_format(ot1)){
                             var ticker =
                                 decode_ticker(ot1);
@@ -257,9 +258,8 @@ var tabs = (function(){
         return(ticker
                .concat(" - ")
                .concat(date)
-               .concat(" - ")//collateral limit price: ")
-               .concat(Max2.toFixed(4).toString())
-               .concat(""));
+               .concat(" - collateral limit price: ")
+               .concat(Max2.toFixed(8).toString()));
     };
     function test() {
         var x = "W = qtrade.io; T = 12:00 20-9-2020 China Standard Time (GMT+8); ticker = BTC; return(the price of ticker at time T according to website W) * 810371187736";
