@@ -101,9 +101,9 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                         .concat("<button onclick=\"tabs.swap.cid('")
                         .concat(cid)
                         .concat("'); tabs.swap.type(2);\"> short</button>")
-                        .concat("<button onclick=\"tabs.swap.cid('")
-                        .concat(mid)
-                        .concat("'); tabs.swap.type(0);\"> pool</button>")
+//                        .concat("<button onclick=\"tabs.swap.cid('")
+//                        .concat(mid)
+//                        .concat("'); tabs.swap.type(0);\"> pool</button>")
                         .concat("<br>")
                         .concat("");
                 };
