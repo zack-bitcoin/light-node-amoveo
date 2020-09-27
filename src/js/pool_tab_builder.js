@@ -1,3 +1,87 @@
+/*
+The new plan is to first swap to the source of the contract we want liquidity in, 
+then we do a use_contract_tx to buy a set of the subcurrency.
+Then 3 market_liquidity_tx to convert our currencies into liquidities.
+
+
+move all 3 markets to the same price in such a way that you are left holding equal amounts of each subcurrency.
+
+K1 = A00 * A10 = A01 * A11
+K2 = B00 * B10 = B01 * B11
+K3 = C00 * C10 = C01 * C11
+
+A10 + C00 = A11 + C01
+B10 + C10 = B11 + C11
+A00 + B00 > A01 + B01
+
+A10 + C00 = A11 + (K3/C11)
+B10 + C10 = B11 + C11
+A00 + B00 > (K1/A11) + (K2/B11)
+
+C11 = K3/(A10 + C00 - A11)
+
+B11 = B10 + C10 + K3/(A10 + C00 - A11)
+
+A00 + B00 > (K1/A11) + (K2/(B10 + C10 + K3/(A10 + C00 - A11)))
+-> choose A11 to minimize: (K1/A11) + (K2/(B10 + C10 + K3/(A10 + C00 - A11)))
+= (K1/A11) + (K2*(A10 + C00 - A11)/((B10 + C10)*(A10 + C00 - A11) + K3)
+
+d(A11)/dx -> (-K1/A11) + K2*((((B10 + C10)*(A10 + C00 - A11) + K3) * (-1)) - (((A10 + C00 - A11))*(B10 + C10)(-1)))/(((B10 + C10)*(A10 + C00 - A11) + K3)^2) = 0
+
+let Z = (B10 + C10)*(A10 + C00 - A11)
+
+0 = (-K1/A11) + (K2*((-(Z+K3) + Z)))/((Z+K3)^2)
+0 = (-K1/A11) + (K2*(-K3))/((Z+K3)^2)
+0 = (K1/A11) + (K2*K3)/((Z+K3)^2)
+0 = (K1)((Z+K3)^2) + (K2*K3)*A11
+0 = (K1)((((B10 + C10)*(A10 + C00 - A11))+K3)^2) + (K2*K3)*A11
+
+let X = B10 + C10, Y = A10 + C00
+
+0 = K1(((X*(Y-A11))+K3)^2) + K2*K3*A11
+0 = K1(X*Y +K3 - X*A)^2 + K2*K3*A
+
+let Z = X*Y + K3
+
+0 = K1(Z - X*A)^2 + K2*K3*A
+0 = K1(Z*Z - 2*X*A*Z + X*X*A*A) + K2*K3*A
+0 = A*A(X*X*K1) + A(K2*K3 - K1*2*X*Z) + K1*Z*Z
+0 = A*A(X*X) + A((K2*K3/K1) - 2*X*Z) + Z*Z
+0 = A*A + A((K2*K3/(K1*X*X)) - 2*Z/X) + Z*Z/X/X
+
+reminder Z/X = Y+(K3/X)
+
+0 = A*A + A((K2*K3/(K1*X*X)) - 2*(Y+(K3/X))) + (Y+(K3/X))^2
+
+a=1
+b=((K2*K3/(K1*X*X)) - 2*(Y+(K3/X)))
+c = (Y+(K3/X))^2
+
+A11a = (-b + sqrt(b*b - 4*a*c))/2
+A11b = (-b + sqrt(b*b - 4*a*c))/2
+
+A11 = max(A11a, A11b)
+A01 = K1 / A11
+C01 = (A10 + C00) - A11
+C11 = K3 / C01
+B11 = B10 + C10 - C11
+B01 = K2 / B11
+
+
+
+
+3) 
+T = how much source you start with.
+P = inititial probability
+B = amount of source to convert to subcurrencies
+B = T(P/((1+P)(1-P)))
+A1 = B(1-P)
+A2 = B*P
+
+in the market between 2 subcurrencies, invest B and A2.
+in the market between source and the more valuable currency, invest (T-B) source, and A1 of the more valuable kind.
+
+*/
 function pool_tab_builder(pool_tab) {
     var ZERO = btoa(array_to_string(integer_to_array(0, 32)));
     var display = document.createElement("div");
@@ -83,12 +167,14 @@ function pool_tab_builder(pool_tab) {
                           keys.pub(),Nonce,fee,
                           mid, mav,
                           CID1, Type1, CID2, Type2];
-                //console.log(JSON.stringify(tx));
+                console.log(JSON.stringify(tx));
                 var stx = keys.sign(tx);
                 post_txs([stx], function(msg){
                     display.innerHTML = msg;
                     keys.update_balance();
                 });
+
+
 /*
                 
             var txs = [tx];
