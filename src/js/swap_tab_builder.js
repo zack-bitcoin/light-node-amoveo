@@ -39,7 +39,7 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
     pool_option.value = 0;
     contract_type.appendChild(true_option);
     contract_type.appendChild(false_option);
-    contract_type.appendChild(pool_option);
+    //contract_type.appendChild(pool_option);
     swap_tab.appendChild(type_label);
     swap_tab.appendChild(contract_type);
     swap_tab.appendChild(br());
@@ -140,6 +140,13 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
             return(0);
         };
         var A = Math.round(parseFloat(amount_input.value) * token_units());
+        return(txs_maker(A, CID1, Type1, CID2, Type2,
+                        function(txs){
+                            return(make_tx2(
+                                txs, [CID1, Type1],
+                                [CID2, Type2]))}));
+    };
+    function txs_maker(A, CID1, Type1, CID2, Type2, callback){
         var sub_acc = sub_accounts.key(keys.pub(), CID1, Type1);
         sub_acc = btoa(array_to_string(sub_acc));
         rpc.post(["sub_accounts", sub_acc], function(SA) {
@@ -161,20 +168,22 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
             return(swap_price2(markets, contracts,
                                A,
                                CID1, Type1,
-                               CID2, Type2));
+                               CID2, Type2,
+                               callback));
             }, get_ip(), 8091);
         });
     };
     function swap_price2(
         marketids, cids, amount234,
-        cid1, type1, cid2, type2)
+        cid1, type1, cid2, type2,
+        callback)
     {
         return(get_contracts(cids, [], function(contracts){
             return(get_markets(marketids, [], function(markets) {
                 var Paths = all_paths([[[cid1, type1]]], cid2, type2, contracts, markets, 5);
                 var Paths2 = end_goal(cid2, type2, Paths);
                 Paths2 = Paths2.reverse();
-                return(swap_price3(Paths2, amount234));
+                return(swap_price3(Paths2, amount234, callback));
             }));
         }));
     };
@@ -214,7 +223,7 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
         };
         return build_paths_db(Paths.slice(1), DB);
     };
-    function swap_price3(Paths, amount33) {
+    function swap_price3(Paths, amount33, callback) {
         //we need to find the optimal way to spend amount on the different paths to get the best price.
         //an initial guess we can keep improving.
         console.log(JSON.stringify(Paths));
@@ -228,16 +237,16 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
             var guess = [amount33];
             var db20 = make_trades(guess, Paths, db);
             var db2 = db20[0];
-            return(make_tx(guess, amount33, Paths, db, db2));
+            return(make_tx(guess, amount33, Paths, db, db2, callback));
         }
         var a = amount33 / L;
 
         var guess = array_of(a, L);
         //console.log("swap price 3");
         //console.log(guess);
-        return(swap_price_loop(Paths, amount33, guess, db, 90));
+        return(swap_price_loop(Paths, amount33, guess, db, callback, 90));
     }
-    function swap_price_loop(Paths0, amount, guess0, db, N) {
+    function swap_price_loop(Paths0, amount, guess0, db, callback, N) {
         var guess = [];
         var Paths = [];
         for(var i = 0; i<guess0.length; i++){
@@ -251,7 +260,7 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
         var db2 = db20[0]
         if(N < 1) {
             //var gradient = get_gradient(Paths, db2);
-            return(make_tx(guess, amount, Paths, db, db2));
+            return(make_tx(guess, amount, Paths, db, db2, callback));
         };
         //make a database of the markets and contracts that can be updated with trades.
 
@@ -268,10 +277,10 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
         if(good_enough(gradient, guess, average)){
             console.log("done!");
             console.log(guess);
-            return(make_tx(guess, amount, Paths, db, db2));
+            return(make_tx(guess, amount, Paths, db, db2, callback));
         } else {
             var nextGuess = improve_guess(average, guess, gradient, amount);
-            return(swap_price_loop(Paths, amount, nextGuess, db, N-1));
+            return(swap_price_loop(Paths, amount, nextGuess, db, callback, N-1));
         };
         //for the paths that are more expensive than average, buy less in the next iteration. for the paths that are less expensive, buy more in the next iteration.
     };
@@ -777,7 +786,7 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
         return arr.length % 2 !== 0 ? nums[mid] : (nums[mid - 1] + nums[mid]) / 2;
     };
 */
-    function calculate_loss(amount, currency, txs) {
+    function calculate_loss(currency, txs) {
         console.log(JSON.stringify(currency));
         var r = 0;
         for(var i = 0; i<txs.length; i++){
@@ -804,10 +813,9 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                 };
             };
         };
-        //return(amount/r);
         return(r);
     };
-    function calculate_gain(amount, currency, txs) {
+    function calculate_gain(currency, txs) {
         var r = 0;
         for(var i = 0; i<txs.length; i++){
             if(txs[i][0]=="contract_use_tx"){
@@ -829,7 +837,6 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                 };
             };
         };
-        //return(amount/r);
         return(r);
     };
     function normalize(L) {
@@ -842,7 +849,7 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
         };
         return(L);
     };
-    function make_tx(guess, amount, Paths, db, db2) {
+    function make_tx(guess, amount, Paths, db, db2, callback) {
         console.log("make tx guess is ");
         console.log(JSON.stringify(guess));
         //remove paths where the guess is less than a tx fee.
@@ -947,11 +954,17 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                       source, source_type];
             txs = txs.concat([tx]);
         };
+        return(callback(txs));
+        //return(make_tx2(txs, Paths[0][0], Paths[0][Paths[0].length - 1]));
+    };
+    function make_tx2(txs, spend_currency, gain_currency) {
+
         multi_tx.make(txs, function(tx){
             //var maximized = read_max(currencies, apply(T, M), cid2, type2);
             //var price = amount234/maximized;
-            var loss = calculate_loss(amount, Paths[0][0], txs);
-            var gain = calculate_gain(amount, Paths[0][Paths[0].length - 1], txs);
+            //var loss = calculate_loss(amount, Paths[0][0], txs);
+            var loss = calculate_loss(spend_currency, txs);
+            var gain = calculate_gain(gain_currency, txs);
             var tx_price = loss/gain;
             display.innerHTML = "you can sell "
                 //.concat((amount / token_units()).toString())
@@ -1303,6 +1316,9 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
     return({
         cid: function(x){ contract_id.value = x },
         type: function(x){ contract_type.value = x },
+        txs_maker: txs_maker,
+        contract_to_cid: contract_to_cid,
+        calculate_gain: calculate_gain,
         test: test
     });
 };

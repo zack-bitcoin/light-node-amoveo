@@ -51,7 +51,7 @@ var new_market = (function(){
         });
     };
     function mid(CID1, CID2, Type1, Type2){
-        if([CID1, Type1] <= [CID2, Type2]){
+        if(true){//([CID1, Type1] <= [CID2, Type2]){
         } else {
             var CID3 = CID1;
             var Type3 = Type1;

@@ -16,6 +16,7 @@ var tabs = (function(){
     var liquidity_shares = [];
     var swap_selector = document.createElement("select");
     var create_selector = document.createElement("select");
+    var pool_selector = document.createElement("select");
     var spend_selector = document.createElement("select");
     
     div.appendChild(balances);
@@ -40,6 +41,7 @@ var tabs = (function(){
                 //swap_mode_f();
                 swap_selector.innerHTML = "";
                 create_selector.innerHTML = "";
+                pool_selector.innerHTML = "";
                 spend_selector.innerHTML = "";
                 load_selector_options(
                     spend_selector, ["veo"]);
@@ -47,6 +49,8 @@ var tabs = (function(){
                     swap_selector, ["veo"]);
                 load_selector_options(
                     create_selector, ["veo"]);
+                load_selector_options(
+                    pool_selector, ["veo"]);
                     //market_selector.innerHTML = "";
                     //TODO figure out which subcurrencies we own in each contract. each subcurrency goes into the selector seperately.
                 //console.log(JSON.stringify(sub_accs));
@@ -70,6 +74,8 @@ var tabs = (function(){
                                 swap_selector, Options);
                             load_selector_options(
                                 create_selector, Options);
+                            load_selector_options(
+                                pool_selector, Options);
                         });
                 });
                 
@@ -215,6 +221,7 @@ var tabs = (function(){
                     swap_selector.appendChild(option);
                     spend_selector.appendChild(option.cloneNode(true));
                     create_selector.appendChild(option.cloneNode(true));
+                    pool_selector.appendChild(option.cloneNode(true));
                     var temp_span = document.createElement("span");
                     
                     
@@ -280,11 +287,11 @@ var tabs = (function(){
     div.appendChild(br());
     div.appendChild(current_tab);
 
-    var pool = pool_tab_builder(pool_tab);
+    var pool = pool_tab_builder(pool_tab, pool_selector, hide_non_standard);
     var spend = spend_tab_builder(spend_tab, spend_selector);
     var swap = swap_tab_builder(swap_tab, swap_selector, hide_non_standard);
     //var swap = swap_tab_builder(swap_tab, spend_selector.cloneNode(true));
-    var create = create_tab_builder(create_tab, create_selector);
+    var create = create_tab_builder(create_tab, create_selector, hide_non_standard);
     //var create = create_tab_builder(create_tab, spend_selector.cloneNode(true));
 
     return({pool: pool,

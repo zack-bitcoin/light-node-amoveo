@@ -176,20 +176,32 @@ function create_tab_builder(div, selector){
 
             // A1 + A2 = B
             // V + B = T
-            // A2/B = P ; A2 = P*B
-            // A2/(B+A2) = A1/V ; A2*V = A1(B+A2)
+            // P = V / A1
+            // P/(1-P) = B / A2
 
-            //get rid of A2
-            // V + B = T
-            // A1 + P*B = B
-            // P*V = A1*(1+P)
+            //get rid of the Vs
+            // A1 + A2 = B
+            // P*A1 + B = T
+            // P/(1-P) = B / A2
 
-            //get rid of A1
-            // V + B = T
-            //B = P*V/((1+P)(1-P))
+            //get rid of the A1s
+            // P*(B-A2) + B = T
+            // P/(1-P) = B / A2
+            // -> A2 = B*(1-P)/P
 
-            //get rid of B
-            //T-V = P*V/((1+P)(1-P))
+            //get rid of the A2s
+            //P*(B-(B*(1-P)/P)) + B = T
+            // -> B(P(1-((1-P)/P))) + B = T
+            // B(P-(1-P))+B = T
+            //B(2P-1)+B = T
+            //B(1+(2P-1)) = T
+            //B(2P) = T
+
+
+            
+
+
+            
 
             //solve for V
             //T = P*V/((1+P)(1-P)) + V
@@ -200,14 +212,15 @@ function create_tab_builder(div, selector){
 
             //B = T - V
 
-            //B = T(P/((1+P)(1-P)))
+            //B = T(P/(P + (1+P)(1-P)))
             //V = T - B
             //A1 = B(1-P)
             //A2 = B*P
             
             var T = amount;
             var P = 1/price;
-            var B = Math.round(T*(P/((1+P)*(1-P))));
+            var B = Math.round(T*(P/(P + ((1+P)*(1-P)))));
+            //var B = T*(P / (P + ((1 + P) * (1 - P))));
             var V = Math.round(T - B);
             var A1 = Math.round(B*(1-P));
             var A2 = Math.round(B*P);
@@ -226,7 +239,7 @@ function create_tab_builder(div, selector){
         } else if (amount2 > amount1){
             var T = amount;
             var P = price;
-            var B = Math.round(T*(P/((1+P)*(1-P))));
+            var B = Math.round(T*(P/(P + ((1+P)*(1-P)))));
             var V = Math.round(T - B);
             var A1 = Math.round(B*(1-P));
             var A2 = Math.round(B*P);
