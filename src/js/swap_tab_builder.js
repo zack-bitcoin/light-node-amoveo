@@ -822,17 +822,13 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                    (currency[1] == txs[i][7])){
                     var buy = txs[i][5];
                     console.log("buy 1");
-                    console.log(buy);
-                    console.log(volume);
-                    console.log(market[4]);
-                    console.log((buy/(buy+volume))*market[4]);
-                    r += (buy/(buy+volume))*market[4];
+                    r += (buy/(volume))*market[4];
 
                 } else if ((currency[0] == txs[i][8]) &&
                            (currency[1] == txs[i][9])){
                     console.log("buy 2");
                     var buy = txs[i][5];
-                    r += (buy/(buy+volume))*market[7];
+                    r += (buy/(volume))*market[7];
 
                 };
             };

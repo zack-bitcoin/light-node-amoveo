@@ -291,12 +291,10 @@ K3 = C00 * C10 = C01 * C11
         var liquidity_txs = [
             ["contract_use_tx", 0,0,0,
              cid, B0, 2, source_cid, source_type],
-
-            //TODO!!! we are buying in amounts of shares, not in amounts of subcurrencies.
             ["market_liquidity_tx",0,0,0,
-             mid3,Math.floor((B1/(B1 + starta))*market3[8]),cid,1,cid,2],
+             mid3,Math.floor((B1/(starta))*market3[8]),cid,1,cid,2],
             ["market_liquidity_tx",0,0,0,
-             mida,Math.floor((A1/(A1 + marketa[7]))*marketa[8]),source_cid,
+             mida,Math.floor((A1/(marketa[4]))*marketa[8]),source_cid,
              source_type,cid,typea]];
         //console.log(JSON.stringify(txs));
         //console.log(price);
