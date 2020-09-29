@@ -121,7 +121,8 @@ function create_tab_builder(div, selector){
             .concat(ticker)
             .concat("; return(the price of ticker at time T according to website W) * ")
             .concat(Scale);
-        var price = 1/(1 + coll);
+        //var price = 1/(1 + coll);
+        var price = 1/(coll);
         return(make_contract2(Text, MaxVal, price));
     }
     function make_contract2(Text, MP, price) {
@@ -164,7 +165,14 @@ function create_tab_builder(div, selector){
                  Source, SourceType],
                 ["market_new_tx", 0,0,0,
                  cid, cid, 1, 2,
-                 amount1, amount1]]);
+                 amount-1000, amount-1000],
+                ["market_new_tx",0,0,0,
+                 ZERO,cid,0,1,
+                 1000, 1000],
+                ["market_new_tx",0,0,0,
+                 ZERO,cid,0,2,
+                 1000, 1000]
+            ]);
         } else if (amount1 > amount2){
             //T = total veo invested.
             //P = initial probability of type 1.
@@ -196,34 +204,29 @@ function create_tab_builder(div, selector){
             //B(2P-1)+B = T
             //B(1+(2P-1)) = T
             //B(2P) = T
-
-
-            
-
-
-            
-
-            //solve for V
-            //T = P*V/((1+P)(1-P)) + V
-            //T = V*(P/((1+P)(1-P)) + 1)
-            //T = V*((P + (1+P)(1-P))/((1+P)(1-P)))
-            //V = T/((P + (1+P)(1-P))/((1+P)(1-P)))
-            //V = T*(((1+P)(1-P))/(P + (1+P)(1-P)))
-
-            //B = T - V
-
-            //B = T(P/(P + (1+P)(1-P)))
+            //B = T/2/P
+            //V = T-B = T(1 - 1/(2*P)) = T(2P - 1)/(2p)
             //V = T - B
+            //A1 = V/P
+            //A2 = B - A1
+
+            
             //A1 = B(1-P)
             //A2 = B*P
             
             var T = amount;
-            var P = 1/price;
-            var B = Math.round(T*(P/(P + ((1+P)*(1-P)))));
+            var P = price;
+            var B = Math.round(amount/2/P);
+            //var B = Math.round(amount/2/(1 - ((1-P)/4)));
+            //var B = Math.round(T*(P/(P + ((1+P)*(1-P)))));
             //var B = T*(P / (P + ((1 + P) * (1 - P))));
             var V = Math.round(T - B);
-            var A1 = Math.round(B*(1-P));
-            var A2 = Math.round(B*P);
+            //var A1 = Math.round(B*(1-P));
+            //var A2 = Math.round(B*P);
+            //var A1 = Math.round(V*P);
+            //var A2 = B-A1;
+            var A1 = Math.round(V/P);
+            var A2 = Math.round(B - A1);
 
             txs = txs.concat([
                 ["contract_use_tx", 0,0,0,
@@ -231,25 +234,36 @@ function create_tab_builder(div, selector){
                  Source, SourceType],
                 ["market_new_tx",0,0,0,
                  cid,cid,1,2,
-                 A2, B],
+                 A2, B-1000],
                 ["market_new_tx",0,0,0,
                  ZERO,cid,0,1,
-                 V, A1]
+                 V, A1],
+                ["market_new_tx",0,0,0,
+                 ZERO,cid,0,2,
+                 1000, 1000]
             ]);
         } else if (amount2 > amount1){
             var T = amount;
-            var P = price;
-            var B = Math.round(T*(P/(P + ((1+P)*(1-P)))));
+            var P = 1 - price;
+            //var B = Math.round(T*(P/(P + ((1+P)*(1-P)))));
+            var B = Math.round(amount/2/P);
+            //var B = Math.round(amount/2/(1 - ((1-P)/4)));
             var V = Math.round(T - B);
-            var A1 = Math.round(B*(1-P));
-            var A2 = Math.round(B*P);
+            //var A1 = Math.round(B*(1-P));
+            //var A2 = Math.round(B*P);
+            //var A1 = Math.round(V*P);
+            var A1 = Math.round(V/P);
+            var A2 = B-A1;
             txs = txs.concat([
                 ["contract_use_tx", 0,0,0,
                  cid, B, 2,
                  Source, SourceType],
                 ["market_new_tx",0,0,0,
                  cid,cid,2,1,
-                 A2, B],
+                 A2, B-1000],
+                ["market_new_tx",0,0,0,
+                 ZERO,cid,0,1,
+                 1000, 1000],
                 ["market_new_tx",0,0,0,
                  ZERO,cid,0,2,
                  V, A1]
@@ -258,8 +272,10 @@ function create_tab_builder(div, selector){
         console.log(JSON.stringify(txs));
         multi_tx.make(txs, function(tx){
             var stx = keys.sign(tx);
-                post_txs([stx], function(msg){
-                    display.innerHTML = msg;
+            //publish_tx_button.onclick = function(){
+            post_txs([stx], function(msg){
+                display.innerHTML = msg;
+                if(!(msg == "server rejected the tx")){
                     setTimeout(function(){
                         var msg =
                             ["add", 3, btoa(Text),
@@ -273,8 +289,9 @@ function create_tab_builder(div, selector){
                         }, get_ip(), 8090);
                     }, 0);
                     keys.update_balance();
-                });
-        });
+                };
+            });
+        })
     };
     return({
         website:(function(x){website_text.value = x}),
