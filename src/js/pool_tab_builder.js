@@ -117,15 +117,15 @@ function pool_tab_builder(pool_tab, selector, hide_non_standard) {
                 var SourceType = contract[9];
                 var A = Math.round(parseFloat(amount_input.value) * token_units());
                 if((CID1 == SourceCID) && (Type1 == SourceType)){
-                    return(lookup_price2(A, [], SourceCID, SourceType, GoalCID));
+                    return(lookup_price2(A, [], SourceCID, SourceType, GoalCID, [CID1, Type1]));
                 };
                 tabs.swap.txs_maker(A, CID1, Type1, SourceCID, SourceType, function(swap_txs){
-                    var A2 = tabs.swap.calculate_gain([SourceCID, SourceType], swap_txs);
-                    return(lookup_price2(A2, swap_txs, SourceCID, SourceType, GoalCID));
+                    var A2 = tabs.swap.calculate_gain([SourceCID, SourceType], swap_txs, []);
+                    return(lookup_price2(A2, swap_txs, SourceCID, SourceType, GoalCID, [CID1, Type1]));
                 });
             });
     };
-    function lookup_price2(Amount, swap_txs, SourceCID, SourceType, CID){
+    function lookup_price2(Amount, swap_txs, SourceCID, SourceType, CID, SpentCurrency){
         //move all 3 markets to the same price in such a way that you are left profiting in source currency terms.
         console.log(SourceCID);
         console.log(SourceType);
@@ -248,12 +248,12 @@ K3 = C00 * C10 = C01 * C11
                     };
                     console.log(JSON.stringify(swap_txs));
                     console.log(JSON.stringify(txs2));
-                    return(lookup_price3(swap_txs, txs2, Amount, (A01/A11), mid1, mid2, mid3, CID, SourceCID, SourceType, market1, market2, market3));
+                    return(lookup_price3(swap_txs, txs2, Amount, (A01/A11), mid1, mid2, mid3, CID, SourceCID, SourceType, market1, market2, market3, SpentCurrency));
                 });
             });
         });
     };
-    function lookup_price3(swap_txs, arb_txs, amount, price, mid1, mid2, mid3, cid, source_cid, source_type, market1, market2, market3) {
+    function lookup_price3(swap_txs, arb_txs, amount, price, mid1, mid2, mid3, cid, source_cid, source_type, market1, market2, market3, SpentCurrency) {
         //var B = amount*(price / (price + ((1 + price) * (1 - price))));
         //var B = amount * (1-price)*(1-price)/(2 - (4*price) - (price*price));
 
@@ -307,6 +307,23 @@ K3 = C00 * C10 = C01 * C11
         multi_tx.make(full_txs, function(tx){
             console.log(JSON.stringify(tx));
             //calculate loss/gain info, and display it.
+            var markets = [market1, market2, market3];
+            var loss = tabs.swap.calculate_loss(SpentCurrency, full_txs, markets);
+
+            var gain1 = tabs.swap.calculate_gain([mid1, 0], full_txs, markets);
+            var gain2 = tabs.swap.calculate_gain([mid2, 0], full_txs, markets);
+            var gain3 = tabs.swap.calculate_gain([mid3, 0], full_txs, markets);
+            console.log(JSON.stringify([loss, gain1, gain2, gain3]));
+            display.innerHTML = "you can sell "
+                .concat((loss / token_units()).toString())
+                .concat(" to gain <br>")
+                .concat((gain1 / token_units()).toString())
+                .concat(" of liquidity shares type 1 <br>")
+                .concat((gain2 / token_units()).toString())
+                .concat(" of liquidity shares type 2 <br>")
+                .concat((gain3 / token_units()).toString())
+                .concat(" of liquidity shares type 3 <br>")
+                .concat("");
             var stx = keys.sign(tx);
             publish_tx_button.onclick = function(){
                 post_txs([stx], function(msg){
