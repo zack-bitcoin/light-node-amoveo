@@ -4,53 +4,6 @@ then we do a use_contract_tx to buy a set of the subcurrency.
 Then 3 market_liquidity_tx to convert our currencies into liquidities.
 
 
-take the arbitrage profits.
-move all 3 markets to the same price in such a way that you are left profiting in source-currency terms. 
-
-K1 = A00 * A10 = A01 * A11
-K2 = B00 * B10 = B01 * B11
-K3 = C00 * C10 = C01 * C11
-
-A10 + C00 = A11 + C01
-B10 + C10 = B11 + C11
-A00 + B00 > A01 + B01
-
-A10 + C00 = A11 + (K3/C11)
-B10 + C10 = B11 + C11
-A00 + B00 > (K1/A11) + (K2/B11)
-
-C11 = K3/(A10 + C00 - A11)
-
-B11 = B10 + C10 + K3/(A10 + C00 - A11)
-
-A00 + B00 > (K1/A11) + (K2/(B10 + C10 + K3/(A10 + C00 - A11)))
--> choose A11 to minimize: (K1/A11) + (K2/(B10 + C10 + K3/(A10 + C00 - A11)))
-
-= (K1/A11) + (K2*(A10 + C00 - A11)/((B10 + C10)*(A10 + C00 - A11) + K3))
-let X = B10 + C10
-let Z = X*(A10 + C00 - A11)
-= (K1/A11) + (K2*Z/(X(Z + K3)))
-
-set A11 to minimize.
-d(A11)/dx = 0 -> 0 = (-K1/(A11*A11)) + (((X*(Z+K3)*K2)-((K2*Z)*X))/((X(Z+K3))^2))*(-X)
-0 = (-K1/(A11*A11)) + X*((K2*Z)*X - (X*K2*(Z+K3)))/((X(Z+K3))^2)
-0 = (-K1/(A11*A11)) + ((K2*Z) - (K2*(Z+K3)))/(((Z+K3))^2)
-0 = (-K1/(A11*A11)) + (K2*K3)/((Z+K3)^2)
-K1/(A11*A11) = (K2*K3)/((Z+K3)^2)
-K1(Z+K3)^2 = (K2*K3)*(A11*A11)
-K1((X*(A10+C00-A11)+K3)^2 = (K2*K3)*(A11*A11)
-let Y = A10 + C00
-K1((X*(Y-A11)+K3)^2 = (K2*K3)*(A11*A11)
-K1(X*X*(Y-A11)*(Y-A11) + K3*K3 + K3*X*(Y-A11)) = (K2*K3)*(A11*A11)
-K1(X*X*(Y*Y + A11*A11 - 2*Y*A11) + K3*K3 + K3*X*(Y-A11)) = (K2*K3)*(A11*A11)
-K1*X*X*(Y*Y + A11*A11 - 2*Y*A11) + K1*K3*K3 + K1*K3*X*(Y-A11) = (K2*K3)*(A11*A11)
-K1*X*X*(Y*Y + A11*A11 - 2*Y*A11) + K1*K3*K3 + K1*K3*X*(Y-A11) = (K2*K3)*(A11*A11)
-A11*A11(K1*X*X) - A11(2*Y*K1*X*X) + (Y*Y*X*X*K1) + (K1*K3*K3) + (K1*K3*X*(Y-A11)) - A11*A11*(K2*K3) = 0
-A11*A11(K1*X*X) - A11(2*Y*K1*X*X) + (Y*Y*X*X*K1) + (K1*K3*K3) + (K1*K3*X*Y) -A11*(K1*K3*X)) - A11*A11*(K2*K3) = 0
-A11*A11(K1*X*X - K2*K3) + A11(-K1*K3*X - 2*Y*K1*X*X) + ((Y*Y*X*X*K1 + K1*K3*K3 + K1*K3*X*Y)) = 0
-
-
-
 
 3) 
 T = how much source you start with.
@@ -127,9 +80,9 @@ function pool_tab_builder(pool_tab, selector, hide_non_standard) {
     };
     function lookup_price2(Amount, swap_txs, SourceCID, SourceType, CID, SpentCurrency){
         //move all 3 markets to the same price in such a way that you are left profiting in source currency terms.
-        console.log(SourceCID);
-        console.log(SourceType);
-        console.log(CID);
+        //console.log(SourceCID);
+        //console.log(SourceType);
+        //console.log(CID);
         var mid1 = new_market.mid(SourceCID, CID, SourceType, 1);
         var mid2 = new_market.mid(SourceCID, CID, SourceType, 2);
         var mid3 = new_market.mid(CID, CID, 1, 2);
@@ -137,10 +90,60 @@ function pool_tab_builder(pool_tab, selector, hide_non_standard) {
             rpc.post(["markets", mid2], function(market2){
                 rpc.post(["markets", mid3], function(market3){
                     /*
+definition of constant product
 K1 = A00 * A10 = A01 * A11
 K2 = B00 * B10 = B01 * B11
 K3 = C00 * C10 = C01 * C11
-                      
+[
+require all have the same price
+P = A01/A11
+(1-P) = B01/B11
+C01 / C11 = (1-P)/P
+->
+A01 = sqrt(P*K1)
+B01 = sqrt((1-P)*K2)
+C01 = sqrt((1-P)*K3/P)
+A11 = sqrt(K1/P)
+B11 = sqrt(K2/(1-P))
+C11 = sqrt(K3*P/(1-P))
+
+require that we don't lose currency
+C00 + A10 >= C01 + A11
+B10 + C10 >= B11 + C11
+A00 + B00 >= A01 + B01
+->
+E1) C00 + A10 >= sqrt((1-P)*K3/P) + sqrt(K1/P) 
+E2) B10 + C10 >= sqrt(K2/(1-P)) + sqrt(K3*P/1-P)
+E3) A00 + B00 >= sqrt(P*K1) + sqrt((1-P)*K2)
+
+E1)
+A = sqrt(B/x) + sqrt(C*(1-x)/x)
+A = C00 + A10
+B = K3
+C = K1
+->
+x = (1/(A^4 + 2*A^2*C + C^2))*(A^2*B + A^2*C - B*C + C^2 + 2*sqrt(A^4*B*C - A^2*B^2*C + A^2*B*C^2))
+always decreasing. only crosses zero once for positive x.
+
+E2)
+A = sqrt(B/(1-x)) + sqrt(C*x/(1-x))
+A = B10 + C10
+B = K2
+C = K3
+->
+x = (1/(A^4 + 2*A^2*C + C^2))*(A^4 - A^2*B + A^2*C + B*C + 2*sqrt(A^4*B*C - A^2*B^2*C + A^2*B*C^2))
+always increasing. only crosses zero once for positive x.
+
+E3)
+A = sqrt(B*x) + sqrt(C*(1-x))
+A = A00 + B00
+B = K1
+C = K2
+x = (1/(B^2 + 2*B*C + C^2))*(A^2*B - A^2*C + B*C + C^2 +/- 2*sqrt(A^2*B*C - A^2*B^2*C + A^2*B*C^2))
+second derivative is always negative
+
+
+
                       */
                     var A00 = market1[4];
                     var A10 = market1[7];
@@ -148,14 +151,54 @@ K3 = C00 * C10 = C01 * C11
                     var B10 = market2[7];
                     var C00 = market3[4];
                     var C10 = market3[7];
-                    console.log(JSON.stringify([[A00, A10], [B00, B10], [C00, C10]]));
+                    //console.log(JSON.stringify([[A00, A10], [B00, B10], [C00, C10]]));
                     var K1 = A00 * A10;
                     var K2 = B00 * B10;
                     var K3 = C00 * C10;
-                    console.log(JSON.stringify([K1, K2, K3]));
+                    //console.log(JSON.stringify([K1, K2, K3]));
                     var X = B10 + C10;
                     var Y = A10 + C00;
-                    console.log(JSON.stringify([X, Y]));
+
+                    var A = C00 + A10;
+                    var B = K3;
+                    var C = K1;
+                    var P_lower_limit = (1/(Math.pow(A, 4) + 2*A*A*C + C*C))*(A*A*B + A*A*C - B*C + C*C + 2*Math.sqrt(A*A*A*A*B*C - A*A*B*B*C + A*A*B*C*C));
+                    //var P_lower_limit = (K1+K3)/((C00 + A10)^2 + K3);
+                    A = B10 + C10;
+                    B = K2;
+                    C = K3;
+                    //var P_upper_limit = ((B10 + C10)^2 - K2) / ((B10 + C10)^2 + K3);
+                    var P_upper_limit = (1/(Math.pow(A, 4) + 2*A*A*C + C*C))*(Math.pow(A, 4) - A*A*B + A*A*C + B*C + 2*Math.sqrt(Math.pow(A, 4)*B*C - A*A*B*B*C + A*A*B*C*C));
+                    if(P_lower_limit > P_upper_limit) {
+                        console.log(P_lower_limit);
+                        console.log(P_upper_limit);
+                        console.log("impossible error");
+                        return(0);
+                    };
+                    var Pl = P_lower_limit;
+                    var Pu = P_upper_limit;
+                    console.log(JSON.stringify([Pl, Pu]));
+
+                    var C1 = Math.sqrt(Pl*K1) + Math.sqrt((1-Pl)*K2);
+                    var C2 = Math.sqrt(Pu*K1) + Math.sqrt((1-Pu)*K2);
+                    var P;
+                    console.log(JSON.stringify([C1, C2]));
+                    if(C1 > C2) {
+                        P = Pu;
+                    } else {
+                        P = Pl;
+                    };
+                    //P = (Pu + Pl)/2;
+                    //P = 1-P;
+                    A01 = Math.sqrt(P*K1);
+                    B01 = Math.sqrt((1-P)*K2);
+                    C01 = Math.sqrt((1-P)*K3/P);
+                    A11 = Math.sqrt(K1/P);
+                    B11 = Math.sqrt(K2/(1-P));
+                    C11 = Math.sqrt(K3*P/(1-P));
+                    /*
+                    
+                    //console.log(JSON.stringify([X, Y]));
                     //console.log(JSON.stringify(1));
                     //var a = 1;
                     //var b = ((K2*K3/(K1*X*X)) - (2*(Y+(K3/X))));
@@ -174,8 +217,25 @@ K3 = C00 * C10 = C01 * C11
                     var C11 = K3 / C01;
                     var B11 = B10 + C10 - C11;
                     var B01 = K2 / B11;
+                    */
+                    market1[4] = A01;
+                    market1[7] = A11;
+                    market2[4] = B01;
+                    market2[7] = B11;
+                    market3[4] = C01;
+                    market3[7] = C11;
                     console.log(JSON.stringify(
                         [[A01, A11],[B01, B11],[C01,C11]]));
+                    var price1 = A01/A11;
+                    var price2 = B01/B11;
+                    var price3 = C11 / C01;
+                    var price3b = price1/price2;
+                    if(Math.abs(price3-price3b)>0.0001){
+                        console.log(price3);
+                        console.log(price3b);
+                        console.log("bad market mix");
+                        return(0);
+                    }
                     var txs2 = [];
                     if(A01 > A00){
                         console.log("buy type 2 in market 1");
@@ -246,15 +306,14 @@ K3 = C00 * C10 = C01 * C11
                              CID, 1,
                              CID, 2]]);
                     };
-                    console.log(JSON.stringify(swap_txs));
-                    console.log(JSON.stringify(txs2));
+                    //console.log(JSON.stringify(swap_txs));
+                    //console.log(JSON.stringify(txs2));
                     return(lookup_price3(swap_txs, txs2, Amount, (A01/A11), mid1, mid2, mid3, CID, SourceCID, SourceType, market1, market2, market3, SpentCurrency));
                 });
             });
         });
     };
     function lookup_price3(swap_txs, arb_txs, amount, price, mid1, mid2, mid3, cid, source_cid, source_type, market1, market2, market3, SpentCurrency) {
-        //var B = amount*(price / (price + ((1 + price) * (1 - price))));
         //var B = amount * (1-price)*(1-price)/(2 - (4*price) - (price*price));
 
         var mida;
@@ -273,29 +332,72 @@ K3 = C00 * C10 = C01 * C11
             price = 1-price;
             starta = market3[4];
         };
+        /*
+          T = total to spend*
+          B = portion to turn to subcurrency
+          P3 = price in market 3 
+          PA = price in the market with the more valuable subcurrency and with veo.*
+          I3 = amount of the more expensive currency to invest in market 3 
+          IA = amount of source to invest in marketa. 
+
+A          IA + B = T   //unconverted source is put into a market
+B          IA/(B-I3) = PA //definition of price in marketa. a number < 1, >0.5.
+C          P3 = (1-PA)/PA //we can calculate the price in market3 based on the price in the other market. A number >0 and < 0.5
+D          P3 = I3/B // definition of price in market3
+
+
+IA + B = T
+IA/(B-I3) = PA
+(1-PA)/PA = I3/B
+-> I3 = B(1-PA)/PA
+
+
+IA + B = T
+IA/(B-(B(1-PA)/PA)) = PA
+->
+IA/(B(1-((1-PA)/PA)) = PA
+IA/(B(((PA-1+PA)/PA)) = PA
+IA/(B(((2PA-1)/PA)) = PA
+IA*PA/(B*(2PA-1)) = PA
+IA = B*(2PA-1)
+
+
+IA + B = T
+IA = B*(2PA-1)
+-> B(1+(2PA-1)) = T
+->B = T/2/PA
+
+
+         */
+        //var B = amount*(price / (price + ((1 + price) * (1 - price))));
+        //var B = amount*(price / (price + ((1 + price) * (1 - price))));
+        //var B = amount * (1-price)*(1-price)/(2 - (4*price) - (price*price));
         var B = amount / 2 / price;
-        console.log(JSON.stringify([B, B/amount, amount, price]));
+        //var B = amount / 2 / price;
+        //console.log(JSON.stringify([B, B/amount, amount, price]));
         var V = amount - B;
         //var A1 = V/price;
         var A1 = V*price;
-        var A2 = B - A1;
-        console.log(JSON.stringify([A1, A2]));
+        //xvar A2 = B - A1;
+        //console.log(JSON.stringify([A1, A2]));
         //var A1 = B*(1 - price);
         //var A2 = B*price;
 
 //in the market between 2 subcurrencies, invest B and A2.
         //in the market between source and the more valuable currency, invest (T-B) source, and A1 of the more valuable kind.
         var B0 = Math.ceil(B);
-        var B1 = Math.floor(B);
+        var B1 = Math.floor(B*trading_fee);
         var A1 = Math.floor(A1*trading_fee);
+        //var A1 = Math.floor(A1);
         var liquidity_txs = [
             ["contract_use_tx", 0,0,0,
              cid, B0, 2, source_cid, source_type],
             ["market_liquidity_tx",0,0,0,
              mid3,Math.floor((B1/(starta))*market3[8]),cid,1,cid,2],
             ["market_liquidity_tx",0,0,0,
-             mida,Math.floor((A1/(marketa[4]))*marketa[8]),source_cid,
-             source_type,cid,typea]];
+             mida,Math.floor((V/(marketa[4]))*marketa[8]),source_cid,
+             source_type,cid,typea]
+        ];
         //console.log(JSON.stringify(txs));
         //console.log(price);
         //console.log(amount);
@@ -306,12 +408,16 @@ K3 = C00 * C10 = C01 * C11
             console.log(JSON.stringify(tx));
             //calculate loss/gain info, and display it.
             var markets = [market1, market2, market3];
-            var loss = tabs.swap.calculate_loss(SpentCurrency, full_txs, markets);
+            var loss = tabs.swap.calculate_loss(SpentCurrency, full_txs, markets) - tabs.swap.calculate_gain(SpentCurrency, full_txs, markets);
+            var loss1 = tabs.swap.calculate_loss([cid, 1], full_txs, markets) - tabs.swap.calculate_gain([cid, 1], full_txs, markets);
+            var loss2 = tabs.swap.calculate_loss([cid, 2], full_txs, markets) - tabs.swap.calculate_gain([cid, 2], full_txs, markets);
 
             var gain1 = tabs.swap.calculate_gain([mid1, 0], full_txs, markets);
             var gain2 = tabs.swap.calculate_gain([mid2, 0], full_txs, markets);
             var gain3 = tabs.swap.calculate_gain([mid3, 0], full_txs, markets);
-            console.log(JSON.stringify([loss, gain1, gain2, gain3]));
+            console.log(JSON.stringify([loss, loss1, loss2//,
+                                        //gain1, gain2, gain3
+                                       ]));
             display.innerHTML = "you can sell "
                 .concat((loss / token_units()).toString())
                 .concat(" to gain <br>")

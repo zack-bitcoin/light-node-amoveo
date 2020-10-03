@@ -779,15 +779,8 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
             currencies[[cid, type]] = amount;
         }
     };
-/*
-    const median = arr => {
-        const mid = Math.floor(arr.length / 2),
-              nums = [...arr].sort((a, b) => a - b);
-        return arr.length % 2 !== 0 ? nums[mid] : (nums[mid - 1] + nums[mid]) / 2;
-    };
-*/
     function calculate_loss(currency, txs, markets) {
-        console.log(JSON.stringify(currency));
+        //console.log(JSON.stringify(currency));
         var r = 0;
         for(var i = 0; i<txs.length; i++){
             if(txs[i][0]=="contract_use_tx"){
@@ -795,29 +788,29 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                    (txs[i][8] == currency[1])){
                     r += txs[i][5];
                 };
-                if(txs[i][4] == currency[0]){
-                    r -= txs[i][5];
-                };
+                //if(txs[i][4] == currency[0]){
+                //    r -= txs[i][5];
+                //};
             } else if (txs[i][0] == "market_swap_tx") {
                 var direction = txs[i][7];
                 if(direction == 1){
                     if((currency[0] == txs[i][8]) &&
                        (currency[1] == txs[i][9])){
-                        r += txs[i][6];
+                        r += txs[i][5];
                     }
                 } else if (direction == 2){
                     if((currency[0] == txs[i][10]) &&
                        (currency[1] == txs[i][11])){
-                        r += txs[i][6];
+                        r += txs[i][5];
                     };
                 };
             } else if (txs[i][0] == "market_liquidity_tx") {
-                console.log(JSON.stringify(txs[i][4]));
-                console.log(JSON.stringify(markets));
+                //console.log(JSON.stringify(txs[i][4]));
+                //console.log(JSON.stringify(markets));
                 var market = get_market(txs[i][4], markets);
                 var volume = market[8];
-                console.log(JSON.stringify(currency));
-                console.log(JSON.stringify([txs[i][6], txs[i][8]]));
+                //console.log(JSON.stringify(currency));
+                //console.log(JSON.stringify([txs[i][6], txs[i][8]]));
                 if((currency[0] == txs[i][6]) &&
                    (currency[1] == txs[i][7])){
                     var buy = txs[i][5];
