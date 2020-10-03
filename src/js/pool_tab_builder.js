@@ -119,8 +119,8 @@ E3) A00 + B00 >= sqrt(P*K1) + sqrt((1-P)*K2)
 E1)
 A = sqrt(B/x) + sqrt(C*(1-x)/x)
 A = C00 + A10
-B = K3
-C = K1
+B = K1
+C = K3
 ->
 x = (1/(A^4 + 2*A^2*C + C^2))*(A^2*B + A^2*C - B*C + C^2 + 2*sqrt(A^4*B*C - A^2*B^2*C + A^2*B*C^2))
 always decreasing. only crosses zero once for positive x.
@@ -160,8 +160,8 @@ second derivative is always negative
                     var Y = A10 + C00;
 
                     var A = C00 + A10;
-                    var B = K3;
-                    var C = K1;
+                    var B = K1;
+                    var C = K3;
                     var P_lower_limit = (1/(Math.pow(A, 4) + 2*A*A*C + C*C))*(A*A*B + A*A*C - B*C + C*C + 2*Math.sqrt(A*A*A*A*B*C - A*A*B*B*C + A*A*B*C*C));
                     //var P_lower_limit = (K1+K3)/((C00 + A10)^2 + K3);
                     A = B10 + C10;
@@ -179,11 +179,11 @@ second derivative is always negative
                     var Pu = P_upper_limit;
                     console.log(JSON.stringify([Pl, Pu]));
 
-                    var C1 = Math.sqrt(Pl*K1) + Math.sqrt((1-Pl)*K2);
+                    var C1 = Math.sqrt(Pl*K1) + Math.sqrt((1-Pl)*K2);//A01 + B01
                     var C2 = Math.sqrt(Pu*K1) + Math.sqrt((1-Pu)*K2);
                     var P;
-                    console.log(JSON.stringify([C1, C2]));
-                    if(C1 > C2) {
+                    console.log(JSON.stringify([A00 + B00, C1, C2]));
+                    if(C1 < C2) {
                         P = Pu;
                     } else {
                         P = Pl;
@@ -385,7 +385,7 @@ IA = B*(2PA-1)
 
 //in the market between 2 subcurrencies, invest B and A2.
         //in the market between source and the more valuable currency, invest (T-B) source, and A1 of the more valuable kind.
-        var B0 = Math.ceil(B);
+        var B0 = Math.ceil(B*1.005);
         var B1 = Math.floor(B*trading_fee);
         var A1 = Math.floor(A1*trading_fee);
         //var A1 = Math.floor(A1);
