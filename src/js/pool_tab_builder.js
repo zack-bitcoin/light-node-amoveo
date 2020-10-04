@@ -22,21 +22,93 @@ function pool_tab_builder(pool_tab, selector, hide_non_standard) {
     pool_tab.appendChild(selector_label);
     pool_tab.appendChild(selector);
     pool_tab.appendChild(br());
-    var amount_input = text_input("amount to sell: ", pool_tab);
+    var amount_input = text_input("amount to use to buy liquidity shares: ", pool_tab);
     pool_tab.appendChild(br());
-    var contract_id = text_input("contract id to be paid in (leave blank for veo): ", pool_tab);
+    var contract_id = text_input("contract id: ", pool_tab);
     pool_tab.appendChild(br());
     var pool_price_button =
-        button_maker2("lookup price", lookup_price);
+        button_maker2("lookup price to buy liquidity shares", lookup_price);
+    var pool_sell_button =
+        button_maker2("lookup price to sell all liquidity shares", sell_all);
     var publish_tx_button =
         button_maker2("confirm the trade",
                       function(){
                           display.innerHTML = "lookup the price first";
                           return(0);});
     pool_tab.appendChild(pool_price_button);
+    pool_tab.appendChild(pool_sell_button);
     pool_tab.appendChild(publish_tx_button);
 
-
+    function sell_all(){
+        console.log("sell all");
+        var GoalCID = contract_id.value;
+        rpc.post(
+            ["contracts", GoalCID],
+            function(contract){
+                var SourceCID = contract[8];
+                var SourceType = contract[9];
+                var CID = GoalCID;
+                var mid1 = new_market.mid(SourceCID, CID, SourceType, 1);
+                var mid2 = new_market.mid(SourceCID, CID, SourceType, 2);
+                var mid3 = new_market.mid(CID, CID, 1, 2);
+                merkle.request_proof("markets", mid1, function(market1){
+                    merkle.request_proof("markets", mid2, function(market2){
+                        merkle.request_proof("markets", mid3, function(market3){
+                            var mid2key = function(m){
+                                return(btoa(array_to_string(sub_accounts.key(keys.pub(), m, 0))));
+                            };
+                            var key1 = mid2key(mid1);
+                            var key2 = mid2key(mid2);
+                            var key3 = mid2key(mid3);
+                            var txs = [];
+                            merkle.request_proof("sub_accounts", key1, function(sa1) {
+                                merkle.request_proof("sub_accounts", key2, function(sa2) {
+                                    merkle.request_proof("sub_accounts", key3, function(sa3) {
+                                        console.log(JSON.stringify([CID, sa1, sa2, sa3, key1, key2, key3]));
+                                        var make_tx = function(mid, sa, market){
+                                            if(sa == "empty"){
+                                                return([]);
+                                            } else {
+                                                return([["market_liquidity_tx", 0,0,0,
+                                                         mid, 1-sa[1], market[2], market[3],
+                                                         market[5], market[6]]]);
+                                            };
+                                        };
+                                        txs = txs.concat(make_tx(mid1, sa1, market1));
+                                        txs = txs.concat(make_tx(mid2, sa2, market2));
+                                        txs = txs.concat(make_tx(mid3, sa3, market3));
+                                        display.innerHTML = sell_ls_msg(txs);
+                                        console.log(JSON.stringify(txs));
+                                        multi_tx.make(txs, function(tx){
+                                            var stx = keys.sign(tx);
+                                            publish_tx_button.onclick = function(){
+                                                post_txs([stx], function(msg){
+                                                    display.innerHTML = msg;
+                                                    keys.update_balance();
+                                                });
+                                            };
+                                            
+                                        });
+                                    })
+                                });
+                            });
+                        });
+                    });
+                });
+            });
+    };
+    function sell_ls_msg(txs) {
+        var r = "";
+        for(var i = 0; i<txs.length; i++){
+            txs[i][5];
+            r = r.concat("you can sell ")
+                .concat((-txs[i][5]/token_units()).toString())
+                .concat(" of market ")
+                .concat(txs[i][4])
+                .concat("<br>");
+        };
+        return(r);
+    };
     function lookup_price(){
         console.log("lookup price");
         var C1 = selector.value;
@@ -288,8 +360,6 @@ So we only need to check the 2 limits of the range, and go with whichever price 
         });
     };
     function lookup_price3(swap_txs, arb_txs, amount, price, mid1, mid2, mid3, cid, source_cid, source_type, market1, market2, market3, SpentCurrency, db) {
-        //var B = amount * (1-price)*(1-price)/(2 - (4*price) - (price*price));
-
         var mida;
         var typea;
         var marketa;
