@@ -1347,6 +1347,7 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
         contract_to_cid: contract_to_cid,
         calculate_gain: calculate_gain,
         calculate_loss: calculate_loss,
+        get_market: get_market,
         test: test
     });
 };

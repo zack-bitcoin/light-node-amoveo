@@ -54,6 +54,7 @@ function pool_tab_builder(pool_tab, selector, hide_non_standard) {
                 merkle.request_proof("markets", mid1, function(market1){
                     merkle.request_proof("markets", mid2, function(market2){
                         merkle.request_proof("markets", mid3, function(market3){
+                            var markets = [market1, market2, market3];
                             var mid2key = function(m){
                                 return(btoa(array_to_string(sub_accounts.key(keys.pub(), m, 0))));
                             };
@@ -77,7 +78,7 @@ function pool_tab_builder(pool_tab, selector, hide_non_standard) {
                                         txs = txs.concat(make_tx(mid1, sa1, market1));
                                         txs = txs.concat(make_tx(mid2, sa2, market2));
                                         txs = txs.concat(make_tx(mid3, sa3, market3));
-                                        display.innerHTML = sell_ls_msg(txs);
+                                        display.innerHTML = sell_ls_msg(txs, markets);
                                         console.log(JSON.stringify(txs));
                                         multi_tx.make(txs, function(tx){
                                             var stx = keys.sign(tx);
@@ -97,8 +98,43 @@ function pool_tab_builder(pool_tab, selector, hide_non_standard) {
                 });
             });
     };
-    function sell_ls_msg(txs) {
+    function sell_ls_msg(txs, markets) {
         var r = "";
+        var currencies = {};//source, sub1, sub2
+        console.log(JSON.stringify(txs));
+        var loss = [0,0,0];
+        for(var i = 0; i<txs.length; i++){
+            var id = txs[i][4];
+            var loss = -txs[i][5];
+            var market =
+                tabs.swap.get_market(id, markets);
+            var key1 = [market[2], market[3]];
+            var key2 = [market[5], market[6]];
+            if(!(currencies[key1])){
+                currencies[key1] = 0;
+            };
+            if(!(currencies[key2])){
+                currencies[key2] = 0;
+            };
+            currencies[key1] += loss*market[4]/market[8];
+            currencies[key2] += loss*market[7]/market[8];
+        };
+        r = ("you can sell all your liquidity shares to receive: <br>");
+        for(var k in currencies){
+            r = r.concat((currencies[k] / token_units()).toString())
+                .concat(" of currency type ")
+                .concat((k).toString())
+                .concat("<br>");
+        };
+        console.log(JSON.stringify(currencies));
+       /* 
+        r = ("you can sell all your liquidity shares to receive: <br>")
+            .concat((currencies[0] / token_units()).to_string)
+            .concat(" of the source currency. <br>")
+            .concat((currencies[1] / token_units()).to_string)
+            .concat(" of subcurrency type 1. <br>")
+            .concat((currencies[2] / token_units()).to_string)
+            .concat(" of subcurrency type 2. <br>");
         for(var i = 0; i<txs.length; i++){
             txs[i][5];
             r = r.concat("you can sell ")
@@ -107,6 +143,7 @@ function pool_tab_builder(pool_tab, selector, hide_non_standard) {
                 .concat(txs[i][4])
                 .concat("<br>");
         };
+*/
         return(r);
     };
     function lookup_price(){
