@@ -479,7 +479,7 @@ IA = B*(2PA-1)
             return(0);
         }
         //var cid = contracts[0][1];
-        cid = tabs.swap.contract_to_cid(contracts[0]); 
+        var cid = tabs.swap.contract_to_cid(contracts[0]); 
         rpc.post(["read", 3, cid], function(oracle_text) {
             //console.log(contracts[0]);
             //console.log(cid);
