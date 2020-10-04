@@ -446,15 +446,27 @@ IA = B*(2PA-1)
             console.log(JSON.stringify([loss, loss1, loss2//,
                                         //gain1, gain2, gain3
                                        ]));
+            var source_worth = 0;
+            var sub1_worth = 0;
+            var sub2_worth = 0;
+
+            source_worth += gain1*market1[4]/market1[8];
+            sub1_worth += gain1*market1[7]/market1[8];
+            source_worth += gain2*market2[4]/market2[8];
+            sub2_worth += gain2*market2[7]/market2[8];
+            sub1_worth += gain3*market3[4]/market3[8];
+            sub2_worth += gain3*market3[7]/market3[8];
+            
+
             display.innerHTML = "you can sell "
                 .concat((loss / token_units()).toString())
-                .concat(" to gain <br>")
-                .concat((gain1 / token_units()).toString())
-                .concat(" of liquidity shares type 1 <br>")
-                .concat((gain2 / token_units()).toString())
-                .concat(" of liquidity shares type 2 <br>")
-                .concat((gain3 / token_units()).toString())
-                .concat(" of liquidity shares type 3 <br>")
+                .concat(" to gain liquidity shares that are currently worth: <br>")
+                .concat((source_worth / token_units()).toString())
+                .concat(" of source currency. <br>")
+                .concat((sub1_worth / token_units()).toString())
+                .concat(" of subcurrency type 1. <br>")
+                .concat((sub2_worth / token_units()).toString())
+                .concat(" of subcurrency type 2. <br>")
                 .concat("");
             var stx = keys.sign(tx);
             publish_tx_button.onclick = function(){
