@@ -89,6 +89,7 @@ function pool_tab_builder(pool_tab, selector, hide_non_standard) {
         rpc.post(["markets", mid1], function(market1){
             rpc.post(["markets", mid2], function(market2){
                 rpc.post(["markets", mid3], function(market3){
+                    var db = JSON.parse(JSON.stringify([market1, market2, market3]));
                     /*
 definition of constant product
 K1 = A00 * A10 = A01 * A11
@@ -156,20 +157,21 @@ second derivative is always negative
                     var K2 = B00 * B10;
                     var K3 = C00 * C10;
                     //console.log(JSON.stringify([K1, K2, K3]));
-                    var X = B10 + C10;
-                    var Y = A10 + C00;
+                    //var X = B10 + C10;
+                    //var Y = A10 + C00;
 
                     var A = C00 + A10;
                     var B = K1;
                     var C = K3;
                     var P_lower_limit = (1/(Math.pow(A, 4) + 2*A*A*C + C*C))*(A*A*B + A*A*C - B*C + C*C + 2*Math.sqrt(A*A*A*A*B*C - A*A*B*B*C + A*A*B*C*C));
+                    console.log(JSON.stringify([A, Math.sqrt(K1/P_lower_limit) + Math.sqrt(K3 * (1-P_lower_limit)/P_lower_limit)]));
                     //var P_lower_limit = (K1+K3)/((C00 + A10)^2 + K3);
                     A = B10 + C10;
                     B = K2;
                     C = K3;
                     //var P_upper_limit = ((B10 + C10)^2 - K2) / ((B10 + C10)^2 + K3);
-                    var P_upper_limit = (1/(Math.pow(A, 4) + 2*A*A*C + C*C))*(Math.pow(A, 4) - A*A*B + A*A*C + B*C + 2*Math.sqrt(Math.pow(A, 4)*B*C - A*A*B*B*C + A*A*B*C*C));
-                    if(P_lower_limit > P_upper_limit) {
+                    var P_upper_limit = (1/(Math.pow(A, 4) + 2*A*A*C + C*C))*(Math.pow(A, 4) - A*A*B + A*A*C + B*C - 2*Math.sqrt(Math.pow(A, 4)*B*C - A*A*B*B*C + A*A*B*C*C));
+                    if(P_lower_limit > (0.001 + P_upper_limit)) {
                         console.log(P_lower_limit);
                         console.log(P_upper_limit);
                         console.log("impossible error");
@@ -181,12 +183,22 @@ second derivative is always negative
 
                     var C1 = Math.sqrt(Pl*K1) + Math.sqrt((1-Pl)*K2);//A01 + B01
                     var C2 = Math.sqrt(Pu*K1) + Math.sqrt((1-Pu)*K2);
+                    var A1 = Math.sqrt((1-Pl)*K3/Pl) + Math.sqrt(K1/Pl);
+                    var A2 = Math.sqrt((1-Pu)*K3/Pu) + Math.sqrt(K1/Pu);
+                    var B1 = Math.sqrt(K2/(1-Pl)) + Math.sqrt(K3*Pl/(1-Pl));
+                    var B2 = Math.sqrt(K2/(1-Pu)) + Math.sqrt(K3*Pu/(1-Pu));
                     var P;
-                    console.log(JSON.stringify([A00 + B00, C1, C2]));
-                    if(C1 < C2) {
-                        P = Pu;
+                    console.log("how much the market's ownership in each share type changes, looking at either price.");
+                    console.log(JSON.stringify([
+                        [A1 - (C00 + A10), A2 - (C00 + A10)],
+                        [B1 - (C10 + B10), B2 - (C10 + B10)],
+                        [C1 - (A00 + B00), C2 - (A00 + B00)],
+                    ]));
+                    console.log(JSON.stringify([A00 + B00, C1, C2]));// Why does C1 == A00 + B00???
+                    if(C1 > C2) {
+                        P = Pu;//bad
                     } else {
-                        P = Pl;
+                        P = Pl;//good
                     };
                     //P = (Pu + Pl)/2;
                     //P = 1-P;
@@ -237,7 +249,7 @@ second derivative is always negative
                         return(0);
                     }
                     var txs2 = [];
-                    if(A01 > A00){
+                    if((A01 > A00)&&((A01 - A00)>1)){
                         console.log("buy type 2 in market 1");
                         console.log(A01 - A00);
                         txs2 = txs2.concat([
@@ -248,7 +260,7 @@ second derivative is always negative
                              1,
                              SourceCID, SourceType,
                              CID, 1]]);
-                    } else if (A01 < A00){
+                    } else if ((A01 < A00)&&((A00 - A01)>1)){
                         console.log("buy type 1 in market 1");
                         console.log(A11 - A10);
                         txs2 = txs2.concat([
@@ -260,7 +272,7 @@ second derivative is always negative
                              SourceCID, SourceType,
                              CID, 1]]);
                     };
-                    if(B01 > B00){
+                    if((B01 > B00)&&((B01 - B00)>1)){
                         console.log("buy type 2 in market 2");
                         console.log(B01 - B00);
                         txs2 = txs2.concat([
@@ -271,7 +283,7 @@ second derivative is always negative
                              1,
                              SourceCID, SourceType,
                              CID, 2]]);
-                    } else if (B01 < B00){
+                    } else if ((B01 < B00)&&((B00 - B01)>1)){
                         console.log("buy type 1 in market 2");
                         console.log(B11 - B10);
                         txs2 = txs2.concat([
@@ -283,7 +295,7 @@ second derivative is always negative
                              SourceCID, SourceType,
                              CID, 2]]);
                     };
-                    if(C01 > C00){
+                    if((C01 > C00)&&((C01 - C00)>1)){
                         console.log("buy type 2 in market 3");
                         console.log(C01 - C00);
                         txs2 = txs2.concat([
@@ -294,7 +306,7 @@ second derivative is always negative
                              1,
                              CID, 1,
                              CID, 2]]);
-                    } else if (C01 < C00){
+                    } else if ((C01 < C00)&&((C00 - C01)>1)){
                         console.log("buy type 1 in market 3");
                         console.log(C11 - C10);
                         txs2 = txs2.concat([
@@ -308,12 +320,12 @@ second derivative is always negative
                     };
                     //console.log(JSON.stringify(swap_txs));
                     //console.log(JSON.stringify(txs2));
-                    return(lookup_price3(swap_txs, txs2, Amount, (A01/A11), mid1, mid2, mid3, CID, SourceCID, SourceType, market1, market2, market3, SpentCurrency));
+                    return(lookup_price3(swap_txs, txs2, Amount, (A01/A11), mid1, mid2, mid3, CID, SourceCID, SourceType, market1, market2, market3, SpentCurrency, db));
                 });
             });
         });
     };
-    function lookup_price3(swap_txs, arb_txs, amount, price, mid1, mid2, mid3, cid, source_cid, source_type, market1, market2, market3, SpentCurrency) {
+    function lookup_price3(swap_txs, arb_txs, amount, price, mid1, mid2, mid3, cid, source_cid, source_type, market1, market2, market3, SpentCurrency, db) {
         //var B = amount * (1-price)*(1-price)/(2 - (4*price) - (price*price));
 
         var mida;
@@ -385,7 +397,7 @@ IA = B*(2PA-1)
 
 //in the market between 2 subcurrencies, invest B and A2.
         //in the market between source and the more valuable currency, invest (T-B) source, and A1 of the more valuable kind.
-        var B0 = Math.ceil(B*1.005);
+        var B0 = Math.ceil(B);//*1.005);
         var B1 = Math.floor(B*trading_fee);
         var A1 = Math.floor(A1*trading_fee);
         //var A1 = Math.floor(A1);
@@ -407,7 +419,8 @@ IA = B*(2PA-1)
         multi_tx.make(full_txs, function(tx){
             console.log(JSON.stringify(tx));
             //calculate loss/gain info, and display it.
-            var markets = [market1, market2, market3];
+            //var markets = [market1, market2, market3];
+            var markets = db;
             var loss = tabs.swap.calculate_loss(SpentCurrency, full_txs, markets) - tabs.swap.calculate_gain(SpentCurrency, full_txs, markets);
             var loss1 = tabs.swap.calculate_loss([cid, 1], full_txs, markets) - tabs.swap.calculate_gain([cid, 1], full_txs, markets);
             var loss2 = tabs.swap.calculate_loss([cid, 2], full_txs, markets) - tabs.swap.calculate_gain([cid, 2], full_txs, markets);
