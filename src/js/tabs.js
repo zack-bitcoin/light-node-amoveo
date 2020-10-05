@@ -128,7 +128,7 @@ var tabs = (function(){
                 if(!(sa == "empty")){
                     balance = sa[1];
                 };
-                if(balance > 1){
+                if(balance > 10000){
                     var temp_span = document.createElement("span");
                     //s = s
                     temp_span.innerHTML = ""
@@ -175,7 +175,7 @@ var tabs = (function(){
             if(!(sa == "empty")){
                 balance = sa[1];
             };
-            if(balance > 1){
+            if(balance > 10000){
                 //console.log(accs[0][0]);
                 rpc.post(["read", 3, accs[0][0]], function(oracle_text) {
                     //console.log(oracle_text);
@@ -255,13 +255,20 @@ var tabs = (function(){
     function is_ticker_format(x) {
         return(ticker_regex.test(x));
     };
+    function coll_limit(x) {
+        var l = x.split(";");
+        var scale = parseInt(l[3].split(" * ")[1]);
+        var MaxVal = 4294967295;
+        return(MaxVal / scale);
+    };
     function decode_ticker(x) {
         var l = x.split(";");
         var ticker = l[2].split("= ")[1];
         var date = l[1].split("= ")[1].split(" China")[0];
-        var scale = parseInt(l[3].split(" * ")[1]);
-        var MaxVal = 4294967295;
-        var Max2 = MaxVal / scale;
+        //var scale = parseInt(l[3].split(" * ")[1]);
+        //var MaxVal = 4294967295;
+        //var Max2 = MaxVal / scale;
+        var Max2 = coll_limit(x);
         return(ticker
                .concat(" - ")
                .concat(date)
@@ -300,5 +307,6 @@ var tabs = (function(){
             create: create,
             is_ticker_format: is_ticker_format,
             decode_ticker: decode_ticker,
+            coll_limit: coll_limit,
             test: test});
 })();

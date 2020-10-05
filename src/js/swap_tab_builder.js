@@ -271,9 +271,9 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                            
         //console.log(JSON.stringify(Paths[0]));
         var average = average_fun(gradient, guess);
-        console.log(guess);
-        console.log(JSON.stringify(gradient));
-        console.log(JSON.stringify(average));
+        //console.log(guess);
+        //console.log(JSON.stringify(gradient));
+        //console.log(JSON.stringify(average));
         if(good_enough(gradient, guess, average)){
             console.log("done!");
             console.log(guess);
@@ -985,7 +985,7 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
         //return(make_tx2(txs, Paths[0][0], Paths[0][Paths[0].length - 1]));
     };
     function make_tx2(txs, markets, spend_currency, gain_currency) {
-
+        //look up oracle text
         multi_tx.make(txs, function(tx){
             //var maximized = read_max(currencies, apply(T, M), cid2, type2);
             //var price = amount234/maximized;
@@ -993,21 +993,44 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
             var loss = calculate_loss(spend_currency, txs, markets);
             var gain = calculate_gain(gain_currency, txs, markets);
             var tx_price = loss/gain;
-            display.innerHTML = "you can sell "
+            rpc.post(["read", 3, gain_currency[0]], function(oracle_text) {
+                var to_display = "you can sell "
                 //.concat((amount / token_units()).toString())
-                .concat((loss / token_units()).toString())
-                .concat(" at a price of ")
-                .concat(1/tx_price)
-                .concat(". in total you receive ")
-                .concat((gain / token_units()).toString());
-            console.log(JSON.stringify(tx));
-            var stx = keys.sign(tx);
-            publish_tx_button.onclick = function(){
-                post_txs([stx], function(msg){
-                    display.innerHTML = msg;
-                    keys.update_balance();
-                });
-            };
+                        .concat((loss / token_units()).toString())
+                        .concat(" at a price of ")
+                        .concat(1/tx_price)
+                        .concat(". in total you receive ")
+                        .concat((gain / token_units()).toString())
+                        .concat("");
+                if(oracle_text && (!(oracle_text == 0))) {
+                    var text = atob(oracle_text[1]);
+                    var TickerBool =
+                        tabs.is_ticker_format(text);
+                    if(TickerBool){
+                        var Limit = tabs.coll_limit(text);
+                            //receive gain
+                        if(gain_currency[1] == 1){
+                            to_display = to_display
+                                .concat("<br>")
+                                .concat(Limit.toString());
+                        } else if(gain_currency[1] == 2){
+                            to_display = to_display
+                                .concat("<br>collateral limit price of what you are buying: ")
+                                .concat(Limit.toString());
+
+                        };
+                    };
+                };
+                display.innerHTML = to_display;
+                console.log(JSON.stringify(tx));
+                var stx = keys.sign(tx);
+                publish_tx_button.onclick = function(){
+                    post_txs([stx], function(msg){
+                        display.innerHTML = msg;
+                        keys.update_balance();
+                    });
+                };
+            }, get_ip(), 8090);
         });
     };
     function contract_extentions(Paths, contracts, markets, cid2, type2) {

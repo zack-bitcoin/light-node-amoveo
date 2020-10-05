@@ -31,17 +31,22 @@
             return 0;
         }
         var from = keys.pub();
-        merkle.request_proof("accounts", from, function(acc) {
+        //merkle.request_proof("accounts", from, function(acc) {
+        rpc.post(["account", from], function(acc) {
 	    var nonce = acc[2] + 1;
             var tx = ["oracle_bet", from, nonce, fee, oid, direction, amount];
             var stx = keys.sign(tx);
             var txs = [stx];
             console.log(JSON.stringify(tx));
             console.log(JSON.stringify(stx));
-            return rpc.post(["txs", [-6].concat(txs)], function(x) {
-                status.innerHTML = "status: <font color=\"green\">successfully attempted to make a oracle_bet tx.</font>";
-                return 0;
-            });
+            return post_txs(txs, function(msg){
+                    status.innerHTML = msg;
+                    keys.update_balance();
+                });
+//            return rpc.post(["txs", [-6].concat(txs)], function(x) {
+//                status.innerHTML = "status: <font color=\"green\">successfully attempted to make a oracle_bet tx.</font>";
+//                return 0;
+//        });
         });
     };
 })();
