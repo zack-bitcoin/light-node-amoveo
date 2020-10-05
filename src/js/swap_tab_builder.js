@@ -924,16 +924,16 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                       m1[5], m1[6]];
             if(m1[7]<m2[7]){
                 //var amount = m2[4] - m1[4];
-                tx[5] = Math.round(m2[7] - m1[7]);
+                tx[5] = Math.ceil(m2[7] - m1[7]);
                 currencies_add(m1[5], m1[6], -tx[5], currencies);
-                tx[6] = Math.round((m1[4] - m2[4])*trading_fee*slippage);
+                tx[6] = Math.floor((m1[4] - m2[4])*trading_fee*slippage);
                 currencies_add(m1[2], m1[3], tx[6], currencies);
                 tx[7] = 2;//direction
             } else if (m1[4] < m2[4]){
                 //var amount = m2[7] - m1[7];
-                tx[5] = Math.round(m2[4] - m1[4]);
+                tx[5] = Math.ceil(m2[4] - m1[4]);
                 currencies_add(m1[2], m1[3], -tx[5], currencies);
-                tx[6] = Math.round((m1[7] - m2[7])*trading_fee*slippage);
+                tx[6] = Math.floor((m1[7] - m2[7])*trading_fee*slippage);
                 currencies_add(m1[5], m1[6], tx[6], currencies);
                 tx[7] = 1;
             } else {
@@ -979,7 +979,7 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                       -max_contract_needs[cid],
                       2,
                       source, source_type];
-            txs = txs.concat([tx]);
+            txs = [tx].concat(txs);
         };
         return(callback(txs, markets));
         //return(make_tx2(txs, Paths[0][0], Paths[0][Paths[0].length - 1]));
@@ -990,11 +990,13 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
             //var maximized = read_max(currencies, apply(T, M), cid2, type2);
             //var price = amount234/maximized;
             //var loss = calculate_loss(amount, Paths[0][0], txs);
-            var loss = calculate_loss(spend_currency, txs, markets);
-            var gain = calculate_gain(gain_currency, txs, markets);
+            var loss = calculate_loss(spend_currency, txs, markets) - calculate_gain(spend_currency, txs, markets);
+            var gain = calculate_gain(gain_currency, txs, markets) - calculate_loss(gain_currency, txs, markets);
             var tx_price = loss/gain;
             rpc.post(["read", 3, gain_currency[0]], function(oracle_text) {
-                var to_display = "you can sell "
+                rpc.post(["contracts", gain_currency[0]], function(Contract){
+                    var Source = [Contract[8], Contract[9]];
+                    var to_display = "you can sell "
                 //.concat((amount / token_units()).toString())
                         .concat((loss / token_units()).toString())
                         .concat(" at a price of ")
@@ -1002,34 +1004,48 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                         .concat(". in total you receive ")
                         .concat((gain / token_units()).toString())
                         .concat("");
-                if(oracle_text && (!(oracle_text == 0))) {
-                    var text = atob(oracle_text[1]);
-                    var TickerBool =
-                        tabs.is_ticker_format(text);
-                    if(TickerBool){
-                        var Limit = tabs.coll_limit(text);
-                            //receive gain
-                        if(gain_currency[1] == 1){
+                    if(oracle_text && (!(oracle_text == 0))) {
+                        var text = atob(oracle_text[1]);
+                        var TickerBool =
+                            tabs.is_ticker_format(text);
+                        if(TickerBool){
+                            var Limit = tabs.coll_limit(text);
+                            var mid1 = new_market.mid(Source[0], gain_currency[0], 0, 1);
+                            var mid2 = new_market.mid(Source[0], gain_currency[0], 0, 2);
+                            var mid3 = new_market.mid(gain_currency[0], gain_currency[0], 1, 2);
+                            var market1 = get_market(mid1, markets);
+                            var market2 = get_market(mid2, markets);
+                            var market3 = get_market(mid3, markets);
+                            var K1 = market1[4] * market1[7];
+                            var K2 = market2[4] * market2[7];
+                            var K3 = market3[4] * market3[7];
+                            var P1 = market1[4] / market1[7];
+                            var P2 = 1 - (market2[4]/market2[7]);
+                            //R = (1-P)/P
+                            //PR = 1-P
+                            //P(R+1) = 1
+                            //P = 1/(R+1)
+                            var P3 = 1/(1 + (market3[4]/market3[7]));
+                            var W1 = Math.sqrt(K1);
+                            var W2 = Math.sqrt(K2);
+                            var W3 = Math.sqrt(K3);
+                            var W_total = W1+W2+W3;
+                            var P = (P1*W1 + P2*W2 + P3*W3) / W_total;
                             to_display = to_display
-                                .concat("<br>")
-                                .concat(Limit.toString());
-                        } else if(gain_currency[1] == 2){
-                            to_display = to_display
-                                .concat("<br>collateral limit price of what you are buying: ")
-                                .concat(Limit.toString());
-
+                                .concat("<br>starting price of this stablecoin: ")
+                                .concat(((Limit*P).toFixed(8)).toString());
                         };
                     };
-                };
-                display.innerHTML = to_display;
-                console.log(JSON.stringify(tx));
-                var stx = keys.sign(tx);
-                publish_tx_button.onclick = function(){
-                    post_txs([stx], function(msg){
-                        display.innerHTML = msg;
-                        keys.update_balance();
-                    });
-                };
+                    display.innerHTML = to_display;
+                    console.log(JSON.stringify(tx));
+                    var stx = keys.sign(tx);
+                    publish_tx_button.onclick = function(){
+                        post_txs([stx], function(msg){
+                            display.innerHTML = msg;
+                            keys.update_balance();
+                        });
+                    };
+                });
             }, get_ip(), 8090);
         });
     };
@@ -1209,18 +1225,19 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
         for(var i = 1; i<L.length; i += 2){
             if(L[i][0] == "market"){
                 console.log("in has repeats");
+                //return(true);
             } else {
                 var market = L[i][1];
                 var cid1 = market[2];
                 var type1 = market[3];
                 var cid2 = market[5];
                 var type2 = market[6];
-                console.log("HERE");
-                console.log(
-                    JSON.stringify(
-                        [[start_c, end_c],
-                         [[cid1, type1],
-                          [cid2, type2]]]));
+                //console.log("HERE");
+                //console.log(
+                //    JSON.stringify(
+                //        [[start_c, end_c],
+                //         [[cid1, type1],
+                //          [cid2, type2]]]));
                 if(((cid1 == start_c[0]) &&
                     (type1 == start_c[1])) &&
                    ((cid2 == end_c[0]) &&
