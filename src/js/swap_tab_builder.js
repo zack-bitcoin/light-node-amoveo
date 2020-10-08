@@ -1035,6 +1035,11 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                             var P = (P1*W1 + P2*W2 + P3*W3) / W_total;
                             console.log(P*Limit);
                             var price = loss / Limit / gain;
+                            var price_a = 1/price;
+                            var price_b = Limit / P;
+                            var slippage = (Math.abs(price_a - price_b))/price_b;
+                            console.log(JSON.stringify([price_a, price_b, slippage]));
+                               
                             to_display = "you can sell "
                                 .concat((loss / token_units()).toString())
                         .concat(" X<br> price is ")
@@ -1047,7 +1052,8 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                                 .concat(" X per v")
                                 .concat(ticker)
                                 .concat("<br> slippage is ")
-                                .concat(((1/price)-(P*Limit)).toFixed(8).toString())
+                            //.concat(((1/price)-(P*Limit)).toFixed(8).toString())
+                                .concat(slippage.toFixed(8).toString())
                                 .concat("<br> you receive ")
                                 .concat((Limit * gain / token_units()).toFixed(8).toString())
                                 .concat(" v")
