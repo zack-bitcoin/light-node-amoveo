@@ -1,6 +1,7 @@
 function swap_tab_builder(swap_tab, selector, hide_non_standard){
     var ZERO = btoa(array_to_string(integer_to_array(0, 32)));
     var trading_fee = 0.9979995;
+    var loop_limit = 90;
     //var trading_fee = 0.98;
     var slippage = 1;
     var display = document.createElement("div");
@@ -244,7 +245,7 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
         var guess = array_of(a, L);
         //console.log("swap price 3");
         //console.log(guess);
-        return(swap_price_loop(Paths, amount33, guess, db, markets, callback, 90));
+        return(swap_price_loop(Paths, amount33, guess, db, markets, callback, loop_limit));
     }
     function swap_price_loop(Paths0, amount, guess0, db, markets, callback, N) {
         var guess = [];
@@ -1031,14 +1032,44 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                             var W1 = Math.sqrt(K1);
                             var W2 = Math.sqrt(K2);
                             var W3 = Math.sqrt(K3);
-                            var W_total = W1+W2+W3;
-                            var P = (P1*W1 + P2*W2 + P3*W3) / W_total;
+                            var Ps = [P1, P2, P3];
+                            console.log(Ps);
+                            var Ws = [W1, W2, W3];
+                            console.log(Ws);
+                            var W_total = 0;
+                            var P = 0;
+                            for(var i = 0; i<Ps.length; i++) {
+                                if(!(Number.isNaN(Ps[i]))){
+                                    console.log("Ps is number");
+                                    console.log(i);
+                                    console.log(Ps[i]);
+                                    P += Ps[i]*Ws[i];
+                                    W_total += Ws[i];
+                                };
+                            };
+                            P = P / W_total;
+                            //var W_total = W1+W2+W3;
+                            //var P = (P1*W1 + P2*W2 + P3*W3) / W_total;
+                            console.log([P, Limit, W_total]);
                             console.log(P*Limit);
                             var price = loss / Limit / gain;
                             var price_a = 1/price;
                             var price_b = Limit / P;
                             var slippage = (Math.abs(price_a - price_b))/price_b;
+                            console.log(JSON.stringify([P1, P2, P3]));
                             console.log(JSON.stringify([price_a, price_b, slippage]));
+                            var trading_fees = 0;
+                            for(var i = 0; i<txs.length; i++){
+                                if(txs[i][0] == "market_swap_tx"){
+                                    trading_fees += txs[i][5] * 0.002;//hard coded governance fee
+                                }
+                            };
+                            
+                            var total_fees =
+                                tx[3]//mining fee
+                                + (slippage * loss)//slippage loss
+                                + trading_fees;
+                            //console.log(total_fees);
                                
                             to_display = "you can sell "
                                 .concat((loss / token_units()).toString())
@@ -1049,8 +1080,9 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                                 //.concat("<br> limit is: ")
                                 //.concat((Limit).toString())//  veo/bitcoin
                             //do something with gain/ token_units()
-                                .concat(" X per v")
+                                .concat("v")
                                 .concat(ticker)
+                                .concat(" per X")
                                 .concat("<br> slippage is ")
                             //.concat(((1/price)-(P*Limit)).toFixed(8).toString())
                                 .concat(slippage.toFixed(8).toString())
@@ -1058,6 +1090,11 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                                 .concat((Limit * gain / token_units()).toFixed(8).toString())
                                 .concat(" v")
                                 .concat(ticker)
+                                .concat("<br>veo fees: ")
+                                .concat(((trading_fees + tx[3])/token_units()).toFixed(8).toString())
+                                .concat("<br>portion fee: ")
+                                .concat((slippage*100).toFixed(2).toString())
+                                .concat("%")
                                 .concat("");
                         };
                     };
