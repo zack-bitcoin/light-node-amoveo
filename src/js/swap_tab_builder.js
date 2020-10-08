@@ -1012,7 +1012,6 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                         if(TickerBool){
                             var Limit = tabs.coll_limit(text);
                             var ticker = tabs.symbol(text);
-                            /*
                             var mid1 = new_market.mid(Source[0], gain_currency[0], 0, 1);
                             var mid2 = new_market.mid(Source[0], gain_currency[0], 0, 2);
                             var mid3 = new_market.mid(gain_currency[0], gain_currency[0], 1, 2);
@@ -1034,12 +1033,12 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                             var W3 = Math.sqrt(K3);
                             var W_total = W1+W2+W3;
                             var P = (P1*W1 + P2*W2 + P3*W3) / W_total;
-                            */
+                            console.log(P*Limit);
                             var price = loss / Limit / gain;
                             to_display = "you can sell "
                                 .concat((loss / token_units()).toString())
-                        .concat(" X at a price of ")
-                                .concat((1/price).toString())
+                        .concat(" X<br> price is ")
+                                .concat((1/price).toFixed(8).toString())
                                 //.concat("<br>starting price of this stablecoin: ")
                                 //.concat(((Limit*P).toFixed(8)).toString())
                                 //.concat("<br> limit is: ")
@@ -1047,8 +1046,10 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                             //do something with gain/ token_units()
                                 .concat(" X per v")
                                 .concat(ticker)
+                                .concat("<br> slippage is ")
+                                .concat(((1/price)-(P*Limit)).toFixed(8).toString())
                                 .concat("<br> you receive ")
-                                .concat((Limit * gain / token_units()).toString())
+                                .concat((Limit * gain / token_units()).toFixed(8).toString())
                                 .concat(" v")
                                 .concat(ticker)
                                 .concat("");
