@@ -1004,12 +1004,15 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                         .concat(". in total you receive ")
                         .concat((gain / token_units()).toString())
                         .concat("");
+
                     if(oracle_text && (!(oracle_text == 0))) {
                         var text = atob(oracle_text[1]);
                         var TickerBool =
                             tabs.is_ticker_format(text);
                         if(TickerBool){
                             var Limit = tabs.coll_limit(text);
+                            var ticker = tabs.symbol(text);
+                            /*
                             var mid1 = new_market.mid(Source[0], gain_currency[0], 0, 1);
                             var mid2 = new_market.mid(Source[0], gain_currency[0], 0, 2);
                             var mid3 = new_market.mid(gain_currency[0], gain_currency[0], 1, 2);
@@ -1031,9 +1034,22 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                             var W3 = Math.sqrt(K3);
                             var W_total = W1+W2+W3;
                             var P = (P1*W1 + P2*W2 + P3*W3) / W_total;
-                            to_display = to_display
-                                .concat("<br>starting price of this stablecoin: ")
-                                .concat(((Limit*P).toFixed(8)).toString());
+                            */
+                            var price = loss / Limit / gain;
+                            to_display = "you can sell "
+                                .concat((loss / token_units()).toString())
+                        .concat(" at a price of ")
+                                .concat((1/price).toString())
+                                //.concat("<br>starting price of this stablecoin: ")
+                                //.concat(((Limit*P).toFixed(8)).toString())
+                                //.concat("<br> limit is: ")
+                                //.concat((Limit).toString())//  veo/bitcoin
+                            //do something with gain/ token_units()
+                                .concat("<br> you receive ")
+                                .concat((Limit * gain / token_units()).toString())
+                                .concat(" v")
+                                .concat(ticker)
+                                .concat("");
                         };
                     };
                     display.innerHTML = to_display;

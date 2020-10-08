@@ -261,9 +261,15 @@ var tabs = (function(){
         var MaxVal = 4294967295;
         return(MaxVal / scale);
     };
-    function decode_ticker(x) {
+    function symbol(x) {
         var l = x.split(";");
         var ticker = l[2].split("= ")[1];
+        return(ticker);
+    };
+    function decode_ticker(x) {
+        var l = x.split(";");
+        //var ticker = l[2].split("= ")[1];
+        var ticker = symbol(x);
         var date = l[1].split("= ")[1].split(" China")[0];
         //var scale = parseInt(l[3].split(" * ")[1]);
         //var MaxVal = 4294967295;
@@ -308,5 +314,6 @@ var tabs = (function(){
             is_ticker_format: is_ticker_format,
             decode_ticker: decode_ticker,
             coll_limit: coll_limit,
+            symbol: symbol,
             test: test});
 })();
