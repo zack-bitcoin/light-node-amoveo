@@ -1038,13 +1038,15 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                             var price = loss / Limit / gain;
                             to_display = "you can sell "
                                 .concat((loss / token_units()).toString())
-                        .concat(" at a price of ")
+                        .concat(" X at a price of ")
                                 .concat((1/price).toString())
                                 //.concat("<br>starting price of this stablecoin: ")
                                 //.concat(((Limit*P).toFixed(8)).toString())
                                 //.concat("<br> limit is: ")
                                 //.concat((Limit).toString())//  veo/bitcoin
                             //do something with gain/ token_units()
+                                .concat(" X per v")
+                                .concat(ticker)
                                 .concat("<br> you receive ")
                                 .concat((Limit * gain / token_units()).toString())
                                 .concat(" v")
