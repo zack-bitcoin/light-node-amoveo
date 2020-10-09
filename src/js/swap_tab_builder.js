@@ -1080,7 +1080,7 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                                 //.concat("<br> limit is: ")
                                 //.concat((Limit).toString())//  veo/bitcoin
                             //do something with gain/ token_units()
-                                .concat("v")
+                                .concat(" v")
                                 .concat(ticker)
                                 .concat(" per X")
                                 .concat("<br> slippage is ")
