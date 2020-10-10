@@ -22,6 +22,28 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
     swap_tab.appendChild(selector);
     swap_tab.appendChild(br());
     var amount_input = text_input("amount to sell: ", swap_tab);
+    var sell_all_button = button_maker2("sell all", function(){
+        var currency = selector.value;
+        if(currency == "veo") {
+            rpc.post(["account", keys.pub()], function(acc){
+                amount_input.value = (acc[1] / token_units()).toFixed(8);
+            });
+        } else {
+            currency = JSON.parse(currency);
+            console.log(currency);
+            var trie_key = sub_accounts.key(keys.pub(), currency[0], currency[1]);
+            trie_key = btoa(array_to_string(trie_key));
+            rpc.post(["sub_accounts", trie_key], function(acc) {
+                var balance = 0;
+                if(!(acc == "empty")){
+                    balance = acc[1];
+                };
+                amount_input.value = (balance / token_units()).toFixed(8);
+                
+            });
+        };
+    });
+    swap_tab.appendChild(sell_all_button);
     swap_tab.appendChild(br());
     var contract_id = text_input("contract id to be paid in (leave blank for veo): ", swap_tab);
     swap_tab.appendChild(br());
@@ -923,13 +945,14 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                       0,//parseInt(direction.value),
                       m1[2], m1[3],
                       m1[5], m1[6]];
-            if(m1[7]<m2[7]){
+            if(m1[7] < m2[7]){
                 //var amount = m2[4] - m1[4];
                 tx[5] = Math.ceil(m2[7] - m1[7]);
                 currencies_add(m1[5], m1[6], -tx[5], currencies);
                 tx[6] = Math.floor((m1[4] - m2[4])*trading_fee*slippage);
                 currencies_add(m1[2], m1[3], tx[6], currencies);
                 tx[7] = 2;//direction
+                txs = txs.concat([tx]);
             } else if (m1[4] < m2[4]){
                 //var amount = m2[7] - m1[7];
                 tx[5] = Math.ceil(m2[4] - m1[4]);
@@ -937,11 +960,13 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                 tx[6] = Math.floor((m1[7] - m2[7])*trading_fee*slippage);
                 currencies_add(m1[5], m1[6], tx[6], currencies);
                 tx[7] = 1;
+                txs = txs.concat([tx]);
             } else {
-                console.log("failure");
-                return(0);
+                //console.log(JSON.stringify([m1, m2]));
+                //console.log("failure");
+                //return(0);
             };
-            txs = txs.concat([tx]);
+            //txs = txs.concat([tx]);
         };
         //if any subcurrency balances are negative, buy enough complete sets to make it positive.
         var Accs = Object.keys(currencies);
@@ -1085,16 +1110,16 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                                 .concat(" per X")
                                 .concat("<br> slippage is ")
                             //.concat(((1/price)-(P*Limit)).toFixed(8).toString())
-                                .concat(slippage.toFixed(8).toString())
-                                .concat("<br> you receive ")
+                                .concat((slippage * 100).toFixed(3).toString())
+                                .concat("% <br> you receive ")
                                 .concat((Limit * gain / token_units()).toFixed(8).toString())
                                 .concat(" v")
                                 .concat(ticker)
                                 .concat("<br>veo fees: ")
                                 .concat(((trading_fees + tx[3])/token_units()).toFixed(8).toString())
-                                .concat("<br>portion fee: ")
-                                .concat((slippage*100).toFixed(2).toString())
-                                .concat("%")
+//                                .concat("<br>portion fee: ")
+//                                .concat((slippage*100).toFixed(2).toString())
+//                                .concat("%")
                                 .concat("");
                         };
                     };

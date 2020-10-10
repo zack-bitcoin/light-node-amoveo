@@ -35,7 +35,8 @@ var tabs = (function(){
                     //current_tab.innerHTML = "";
                 } else {
                     sub_accs = response[1][3].slice(1);
-                    liquidity_shares = response[1][4].slice(1);
+                    //liquidity_shares = response[1][4].slice(1);
+                    liquidity_shares = [];
                     display.innerHTML = "";
                 }
                 //swap_mode_f();
@@ -218,7 +219,9 @@ var tabs = (function(){
                         option.innerHTML = JSON.stringify([acc[0], acc[1]]);
                     }
                     option.value = JSON.stringify([acc[0], acc[1]]);
-                    swap_selector.appendChild(option);
+                    if(!(acc[1] == 0)) {
+                        swap_selector.appendChild(option);
+                    };
                     spend_selector.appendChild(option.cloneNode(true));
                     create_selector.appendChild(option.cloneNode(true));
                     pool_selector.appendChild(option.cloneNode(true));
