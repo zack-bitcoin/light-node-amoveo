@@ -217,9 +217,6 @@ function create_tab_builder(div, selector){
             var T = amount;
             var P = price;
             var B = Math.round(amount/2/P);
-            //var B = Math.round(amount/2/(1 - ((1-P)/4)));
-            //var B = Math.round(T*(P/(P + ((1+P)*(1-P)))));
-            //var B = T*(P / (P + ((1 + P) * (1 - P))));
             var V = Math.round(T - B);
             //var A1 = Math.round(B*(1-P));
             //var A2 = Math.round(B*P);

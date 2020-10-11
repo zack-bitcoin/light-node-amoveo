@@ -90,8 +90,17 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
             return(0);
         }
         //var cid = contracts[0][1];
-        cid = contract_to_cid(contracts[0]); 
+        var cid = contract_to_cid(contracts[0]);
+        var source = contracts[0][8];
         rpc.post(["read", 3, cid], function(oracle_text) {
+            var mid1 = new_market.mid(source, cid, 0, 1);
+            var mid2 = new_market.mid(source, cid, 0, 2);
+            var mid3 = new_market.mid(cid, cid, 1, 2);
+            rpc.post(["markets", mid1], function(market1){
+                rpc.post(["markets", mid2], function(market2){
+                    rpc.post(["markets", mid3], function(market3){
+                        var p_est = price_estimate(market1, market2, market3);
+                        console.log(p_est);
             //console.log(contracts[0]);
             //console.log(cid);
             if(!(oracle_text == 0)) {
@@ -99,15 +108,12 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                 var text = atob(oracle_text[1]);
                 //console.log(text);
                 //console.log(JSON.stringify(oracle_text));
-                var TickerBool =
+                var ticker_bool =
                     tabs.is_ticker_format(text);
-                if(TickerBool){
-                    text = tabs.decode_ticker(text);
-                } else {
-                    //text = atob(oracle_text[1]);
-                }
-                if((!(hide_non_standard)) || TickerBool){
-                    var mid = new_market.mid(cid, cid, 1, 2);
+                if(ticker_bool){
+                    text = tabs.decode_ticker(text, p_est);
+                };
+                if((!(hide_non_standard)) || ticker_bool){
                     s = s
 //                    .concat("id: ")
 //                    .concat(cid)
@@ -115,7 +121,6 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                         .concat("\"")
                         .concat(text)
                         .concat("\"~ ")
-                    //                    .concat(type)
                         .concat("; volume: ")
                         .concat((contracts[0][11] / token_units()).toString())
                         .concat("<button onclick=\"tabs.swap.cid('")
@@ -124,14 +129,14 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                         .concat("<button onclick=\"tabs.swap.cid('")
                         .concat(cid)
                         .concat("'); tabs.swap.type(2);\"> buy inverse contract </button>")
-//                        .concat("<button onclick=\"tabs.swap.cid('")
-//                        .concat(mid)
-//                        .concat("'); tabs.swap.type(0);\"> pool</button>")
                         .concat("<br>")
                         .concat("");
                 };
             }
-            display_contracts2(div, contracts.slice(1), s);
+                    display_contracts2(div, contracts.slice(1), s);
+                });
+            });
+            });
         }, get_ip(), 8090);
     };
 
@@ -431,22 +436,15 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                 //console.log(Amount);
                 m = clean_market(m, K);
                 Amount = (old - m[7]) * trading_fee;
-                //console.log(Amount);
                 db[mid] = m;
-                //if((Amount/StartAmount) > 100){
-                //console.log(JSON.stringify([StartAmount, Amount, price, [A1, A2], [m[4], m[7]]]));
-                //};
-                //console.log(JSON.stringify([StartAmount, Amount]));
                 return(process_path(Amount, path, price*StartAmount/Amount, db));
             } else if ((m[5] == currency[0]) &&
                        (m[6] == currency[1])){
                 m[7] = m[7] + Amount;
                 var old = m[4];
                 m[4] = K/m[7];
-                //console.log(Amount);
                 m = clean_market(m, K);
                 Amount = (old - m[4]) * trading_fee;
-                //console.log(Amount);
                 db[mid] = m;
                 return(process_path(Amount, path, price*StartAmount/Amount, db));
             } else {
@@ -599,13 +597,6 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                        var G = old - m[7];
                        m = clean_market(m, K);
                        Amount = Amount - G;
-                       /*
-                       m[7] = m[7] + Amount;
-                       var old = m[4];
-                       m[4] = K/m[7];
-                       var G = old - m[4];
-                       Amount = (G * trading_fee) - Amount;
-                       */
                        db[mid] = m;
                        return(process_path(Amount, path, price*StartAmount/Amount, db));
                        
@@ -1033,9 +1024,9 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
 
                     if(oracle_text && (!(oracle_text == 0))) {
                         var text = atob(oracle_text[1]);
-                        var TickerBool =
+                        var ticker_bool =
                             tabs.is_ticker_format(text);
-                        if(TickerBool){
+                        if(ticker_bool){
                             var Limit = tabs.coll_limit(text);
                             var ticker = tabs.symbol(text);
                             var mid1 = new_market.mid(Source[0], gain_currency[0], 0, 1);
@@ -1044,45 +1035,20 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                             var market1 = get_market(mid1, markets);
                             var market2 = get_market(mid2, markets);
                             var market3 = get_market(mid3, markets);
-                            var K1 = market1[4] * market1[7];
-                            var K2 = market2[4] * market2[7];
-                            var K3 = market3[4] * market3[7];
-                            var P1 = market1[4] / market1[7];
-                            var P2 = 1 - (market2[4]/market2[7]);
-                            //R = (1-P)/P
-                            //PR = 1-P
-                            //P(R+1) = 1
-                            //P = 1/(R+1)
-                            var P3 = 1/(1 + (market3[4]/market3[7]));
-                            var W1 = Math.sqrt(K1);
-                            var W2 = Math.sqrt(K2);
-                            var W3 = Math.sqrt(K3);
-                            var Ps = [P1, P2, P3];
-                            console.log(Ps);
-                            var Ws = [W1, W2, W3];
-                            console.log(Ws);
-                            var W_total = 0;
-                            var P = 0;
-                            for(var i = 0; i<Ps.length; i++) {
-                                if(!(Number.isNaN(Ps[i]))){
-                                    console.log("Ps is number");
-                                    console.log(i);
-                                    console.log(Ps[i]);
-                                    P += Ps[i]*Ws[i];
-                                    W_total += Ws[i];
-                                };
-                            };
-                            P = P / W_total;
-                            //var W_total = W1+W2+W3;
-                            //var P = (P1*W1 + P2*W2 + P3*W3) / W_total;
-                            console.log([P, Limit, W_total]);
-                            console.log(P*Limit);
-                            var price = loss / Limit / gain;
-                            var price_a = 1/price;
-                            var price_b = Limit / P;
+                            var P = price_estimate(market1, market2, market3);//value of a stablecoin in veo. between 0 and 1, 1 means the margin is used up.
+                            
+                            //console.log([P, Limit, W_total]);
+                            //console.log(P*Limit);
+                            //var price = loss / Limit / gain;
+                            //var price_a = 1/price;
+                            var price = gain / Limit / loss;
+                            var price_a = Limit * loss / gain;
+                            //var price_b = Limit / P;
+                            var price_b = Limit * P;
+                            console.log(JSON.stringify([price_a, price_b, Limit, P]));
                             var slippage = (Math.abs(price_a - price_b))/price_b;
-                            console.log(JSON.stringify([P1, P2, P3]));
-                            console.log(JSON.stringify([price_a, price_b, slippage]));
+                            //console.log(JSON.stringify([P1, P2, P3]));
+                            //console.log(JSON.stringify([price_a, price_b, slippage]));
                             var trading_fees = 0;
                             for(var i = 0; i<txs.length; i++){
                                 if(txs[i][0] == "market_swap_tx"){
@@ -1135,6 +1101,36 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                 });
             }, get_ip(), 8090);
         });
+    };
+    function price_estimate(market1, market2, market3) {
+        var K1 = market1[4] * market1[7];
+        var K2 = market2[4] * market2[7];
+        var K3 = market3[4] * market3[7];
+        var P1 = market1[4] / market1[7];
+        var P2 = 1 - (market2[4]/market2[7]);
+        //R = (1-P)/P
+        //PR = 1-P
+        //P(R+1) = 1
+        //P = 1/(R+1)
+        var P3 = 1/(1 + (market3[4]/market3[7]));
+        var W1 = Math.sqrt(K1);
+        var W2 = Math.sqrt(K2);
+        var W3 = Math.sqrt(K3);
+        var Ps = [P1, P2, P3];
+        console.log(Ps);
+        var Ws = [W1, W2, W3];
+        console.log(Ws);
+        var W_total = 0;
+        var P = 0;
+        for(var i = 0; i<Ps.length; i++) {
+            if(!(Number.isNaN(Ps[i]))){
+                P += Ps[i]*Ws[i];
+                W_total += Ws[i];
+            };
+        };
+        P = P / W_total;
+        console.log(P);
+        return(P);
     };
     function contract_extentions(Paths, contracts, markets, cid2, type2) {
         var Paths2 = [];

@@ -269,7 +269,7 @@ var tabs = (function(){
         var ticker = l[2].split("= ")[1];
         return(ticker);
     };
-    function decode_ticker(x) {
+    function decode_ticker(x, price) {
         var l = x.split(";");
         //var ticker = l[2].split("= ")[1];
         var ticker = symbol(x);
@@ -278,11 +278,29 @@ var tabs = (function(){
         //var MaxVal = 4294967295;
         //var Max2 = MaxVal / scale;
         var Max2 = coll_limit(x);
+        console.log(x);
+        console.log(price);
+        console.log(Max2 / price);
+        console.log(Max2);
+        if(price){
+            var Max3 = Max2 * price;
+            var M3 = 100*(Max2 - Max3)/Max3;
+            return(ticker
+                   .concat(" - ")
+                   .concat(date)
+                   .concat(" - collateral: ")
+                   .concat(M3.toFixed(2).toString())
+                   .concat("% - price: ")
+                   .concat((Max3).toFixed(8).toString())
+                   .concat(" "));
+        } else {
         return(ticker
                .concat(" - ")
                .concat(date)
                .concat(" - collateral limit price: ")
-               .concat(Max2.toFixed(8).toString()));
+               .concat(Max2.toFixed(8).toString())
+               .concat(""));
+        };
     };
     function test() {
         var x = "W = qtrade.io; T = 12:00 20-9-2020 China Standard Time (GMT+8); ticker = BTC; return(the price of ticker at time T according to website W) * 810371187736";
