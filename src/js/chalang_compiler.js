@@ -72,10 +72,15 @@ var chalang_compiler = (function() {
         is_list: 137
     };
     function remove_comments(s) {
-        // erlang style comments % comment
-        return(s.replace(
+        // single-line erlang style comments % comment
+        s = s.replace(
                 /%[^\n]*(\n|$)/g,
-            "\n"));
+            "\n");
+        // multi-line ( forth style comments )
+        s = s.replace(
+                /\([^)]*(\n|$|\))/g,
+            "");
+        return(s);
     };
     function clean_whitespace(page){
         return(page.replace(/\s+/g, " "));
@@ -93,8 +98,8 @@ var chalang_compiler = (function() {
         var page1 = add_spaces(page0);
         var page2 = clean_whitespace(page1);
         var page3 = do_macros(page2);
-        var fv = get_funs(page3,
-                          {many:0,vars:[],funs:{}});
+        var db = {many:0,vars:{},funs:{}};
+        var fv = get_funs(page3, db);
         var page4 = remove_functions(page3);
         var ops = to_opcodes(page4, fv);
         return(ops.code);
@@ -123,7 +128,8 @@ var chalang_compiler = (function() {
                 bytes = bytes.concat([2,0,0,0,32])
                     .concat(fun);
 //            } else if(is_var){//require variables to start with a letter.
-                //TODO, 
+                //TODO,
+                //maybe it would be better if variables were declared.
             } else if (!(isNaN(w))){
                 w = parseInt(w);
                 if(w<0){
@@ -152,12 +158,18 @@ var chalang_compiler = (function() {
                 bytes = bytes.concat([2])
                     .concat(four)
                     .concat(string_to_array(bin));
-            } else if(vars2[w]){
-                bytes = bytes.concat([0, vars2[w]]);
+            } else if(!(vars2[w] === undefined)){
+                //existing variable.
+                var four = four_bytes(vars2[w]);
+                bytes = bytes.concat([0])
+                    .concat(four);
             } else {
-                //so it is a undefined variable then.
-                vars2[db.many] = w;
+                //new variable then.
+                vars2[w] = db.many;
+                var four = four_bytes(db.many);
                 db.many += 1;
+                bytes = bytes.concat([0])
+                    .concat(four);
             };
         };
         return({vars: vars2, code: bytes, many: db.many});
@@ -182,9 +194,7 @@ var chalang_compiler = (function() {
     };
     var funs_regex = /:\s+[^\;]*/g;
     function get_funs(page, db){
-        //console.log("get funs");
         var funs = page.match(funs_regex);
-        //console.log(funs);
         if(!(funs)){
             return(db);
         };
@@ -196,9 +206,8 @@ var chalang_compiler = (function() {
             db.vars = ops.vars;
             db.many = ops.many;
             var code = ops.code;
-            console.log(code);
             var signature = hash(code)
-            db.funs[signature] = code;
+            db.funs[name] = signature;
         };
         return(db);
     };
@@ -207,24 +216,58 @@ var chalang_compiler = (function() {
         var macro = page.match(first_macro);
         if(macro){
             macro = parse_macro(macro[0]);
-            page = page.replace(first_macro, "");
-            page = page.replace(/;/, "");
-            page = page.replaceAll(macro.name, macro.def);
+            console.log(macro);
+            page = page.replace(/macro\s+[^\;]*;/, "");
+            var words = page.match(/[^\s]+/g);
+            words = words.map(function(word){
+                if(word === macro.name){
+                    return(macro.def);
+                };
+                return(word);
+            });
+            page = words.join(" ");
             return(do_macros(page));
             
         } else {
-            return(page)
+            return(page);
         };
     };
     function test0(){
-        var code = " def 3 4 + ; call  35 36 37 260 ";
-        return(test(code));
+        var map_code = "\
+( a b c )\
+macro [ nil ; \
+macro , swap cons ; \
+macro ] , reverse ; \
+: square dup * ; \
+\
+: map2 \
+  car swap r@ call rot cons swap\
+  nil ==\
+  if\
+    drop drop reverse \
+  else \
+    drop recurse call \
+  then ; \
+macro map \
+  >r nil swap map2 call r> drop \
+\
+; \
+macro test \
+[ 5,6, 7] \
+square print print print map \
+[25,  36, 49] \
+== >r drop drop r> \
+;\
+test\
+";
+        return(test(map_code));
     }
     function test(code){
         var s = doit(code);
-        //console.log(s);
+        console.log(JSON.stringify(s));
         var d = chalang_object.data_maker(1000, 1000, 50, 1000, [], [], chalang_object.new_state(0, 0));
         var x = chalang_object.run5(s, d);
+        console.log(JSON.stringify(x.stack));
         return(x.stack);
     };
     return({
