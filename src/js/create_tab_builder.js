@@ -111,7 +111,7 @@ function create_tab_builder(div, selector){
         console.log([coll, starting_price]);
         //var MP = coll * starting_price;
         var MaxVal = 4294967295;
-        var Scale = Math.round(MaxVal / starting_price * coll);
+        var Scale = Math.round(MaxVal / starting_price / coll);
         //var MP = MaxVal;
         var Text = "W = "
             .concat(website)

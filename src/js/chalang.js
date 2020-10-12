@@ -201,6 +201,18 @@ function chalang_main() {
         }
     }
     var op_code = {};
+    op_code[ops.int1] = function(i, code, d){
+        var int_array = code.slice(i+1, i+2);
+        var new_int = array_to_int(int_array);
+        d.stack = ([new_int]).concat(d.stack);
+        return {i: i+1, d: d, g: 1, s: "int1", r: 1};
+    };
+    op_code[ops.int2] = function(i, code, d){
+        var int_array = code.slice(i+1, i+3);
+        var new_int = array_to_int(int_array);
+        d.stack = ([new_int]).concat(d.stack);
+        return {i: i+2, d: d, g: 1, s: "int2", r: 1};
+    };
     op_code[ops.int_op] = function(i, code, d) {
         var int_array = code.slice(i+1, i+5);
         var new_int = array_to_int(int_array);
@@ -242,14 +254,14 @@ function chalang_main() {
 	    console.log("undefined function");
 	    console.log(code_hash);
 	} else {
-	    console.log("function named ");
-	    console.log(code_hash);
+	    //console.log("function named ");
+	    //console.log(code_hash);
 	}
         var s = definition.length;
         d.stack = d.stack.slice(1);
         d = run2(definition, d);
-	console.log("d after ops call ");
-	console.log(JSON.stringify(d));
+	//console.log("d after ops call ");
+	//console.log(JSON.stringify(d));
         return {i: i, d: d, g: (s + 10), s: "slow call op", r: (s - 1)};
     }
     op_code[ops.def] = function(i, code, d) {
@@ -262,8 +274,8 @@ function chalang_main() {
         //var hash_array = small_hash(definition);
         var hash_array = hash(definition);
         var b = btoa(array_to_string(hash_array));
-	console.log("new function hash is ");
-	console.log(b);
+	//console.log("new function hash is ");
+	//console.log(b);
         var call_code = ([ops.binary_op]).concat(integer_to_array(hash_size, 4)).concat(hash_array);
         var definition2 = replace(ops.recurse, call_code, definition);
         //var definition2 = replace(ops.recurse, ([ops.binary_op]).concat(integer_to_array(hash_size, 4)).concat(hash_array), definition);
@@ -617,7 +629,7 @@ function chalang_main() {
         throw("fail error");
     };
     function run2(code, d) {
-        console.log("run 2");
+        //console.log("run 2");
         for (var i = 0; i<code.length; i++) {
             //console.log("run cycle");
             //console.log(i);
@@ -656,6 +668,11 @@ function chalang_main() {
                 var a = arithmetic_chalang(code[i], d.stack[0], d.stack[1]);
                 d.stack = a.concat(d.stack.slice(2));
                 op_print(d, i, ("math ").concat((code[i]).toString()));
+            } else if ((code[i]>139) && (code[i]<176)){
+                d.op_gas = d.op_gas - 1;
+                d.ram_current = d.ram_current - 1;
+                var a = code[i] - 140;
+                d.stack = [a].concat(d.stack);
             } else {
                 var y = op_code[code[i]](i, code, d);
 		//console.log("return after calling function definition ");
@@ -897,8 +914,8 @@ function chalang_main() {
         return{"name": "state", "height": height, "slash": slash};
     }
     function data_maker(op_gas, ram_gas, many_vs, many_funs, script_sig, code, state) {
-	console.log("data maker vars ");
-	console.log(many_vs);
+	//console.log("data maker vars ");
+	//console.log(many_vs);
         var arr = [];
         arr.length = Math.min(200, many_vs);
         return {"name": "d", "op_gas":op_gas, "stack": [], "alt": [], "ram_most": 0, "ram_limit":ram_gas, "vars": arr, "funs":{}, "many_funs": 0, "fun_limit":many_funs, "ram_current":(script_sig.length + code.length), "state":state};
