@@ -1,5 +1,4 @@
 var chalang_compiler = (function() {
-    var int_bits = 32;
     var w2o = {
         "int": 0,
         binary: 2,
@@ -80,6 +79,10 @@ var chalang_compiler = (function() {
         s = s.replace(
                 /\([^)]*(\n|$|\))/g,
             "");
+        // single-line forth style comments ; comment
+        s = s.replace(
+                /\;[^\n]*(\n|$)/g,
+            ";\n");
         return(s);
     };
     function clean_whitespace(page){
@@ -93,12 +96,34 @@ var chalang_compiler = (function() {
                 return(" "+x+" ")});
         return(page);
     };
+    var vars_regex = /var(\s+[^\s\;]+)+\s*;/g;
+    function get_vars(page){
+        var vars = {};
+        var n = 1;
+        //grab between "var" and ";"
+        page.match(vars_regex)[0]
+        //convert to list of words
+            .match(/[^\s]+/g)
+        //remove "var" and ";" from the ends
+            .slice(1, -1)
+            .map(function(x){
+                vars[x] = n;
+                n += 1;
+            });
+        return(vars);
+    };
+    function remove_vars(page){
+        return(page.replace(vars_regex, ""));
+    };
     function doit(s){
         var page0 = remove_comments(s);
         var page1 = add_spaces(page0);
+        var vars = get_vars(page1);
+        page1 = remove_vars(page1);
         var page2 = clean_whitespace(page1);
+        //console.log(vars);
         var page3 = do_macros(page2);
-        var db = {many:0,vars:{},funs:{}};
+        var db = {many:0,vars:vars,funs:{}};
         var fv = get_funs(page3, db);
         var page4 = remove_functions(page3);
         var ops = to_opcodes(page4, fv);
@@ -163,13 +188,16 @@ var chalang_compiler = (function() {
                 var four = four_bytes(vars2[w]);
                 bytes = bytes.concat([0])
                     .concat(four);
-            } else {
+            }  else {
+                console.log("undefined variable");
+                console.log(w);
+                return(0);
                 //new variable then.
-                vars2[w] = db.many;
-                var four = four_bytes(db.many);
-                db.many += 1;
-                bytes = bytes.concat([0])
-                    .concat(four);
+                //vars2[w] = db.many;
+                //var four = four_bytes(db.many);
+                //db.many += 1;
+                //bytes = bytes.concat([0])
+                //    .concat(four);
             };
         };
         return({vars: vars2, code: bytes, many: db.many});
@@ -212,11 +240,14 @@ var chalang_compiler = (function() {
         return(db);
     };
     var first_macro = /macro\s+[^\;]*/;
+//    function escapeRegExp(string) {
+//        return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+//    }
     function do_macros(page){
         var macro = page.match(first_macro);
         if(macro){
             macro = parse_macro(macro[0]);
-            console.log(macro);
+            //console.log(macro);
             page = page.replace(/macro\s+[^\;]*;/, "");
             var words = page.match(/[^\s]+/g);
             words = words.map(function(word){
@@ -233,33 +264,36 @@ var chalang_compiler = (function() {
         };
     };
     function test0(){
-        var map_code = "\
-( a b c )\
-macro [ nil ; \
-macro , swap cons ; \
-macro ] , reverse ; \
-: square dup * ; \
-\
-: map2 \
-  car swap r@ call rot cons swap\
-  nil ==\
-  if\
-    drop drop reverse \
-  else \
-    drop recurse call \
-  then ; \
-macro map \
-  >r nil swap map2 call r> drop \
-\
-; \
-macro test \
-[ 5,6, 7] \
-square print print print map \
-[25,  36, 49] \
-== >r drop drop r> \
-;\
-test\
-";
+        var map_code = `
+( a b c 
+multiline comment
+)
+var foo bar; %variable declaration
+foo 4 ! %storing a value in the variable
+macro [ nil ; forth style comments
+macro , swap cons ;
+macro ] , reverse ;
+: square dup * ;
+: map2
+  car swap r@ call rot cons swap
+  nil ==
+  if
+    drop drop reverse 
+  else 
+    drop recurse call 
+  then ; 
+macro map 
+  >r nil swap map2 call r> drop 
+
+; 
+macro test 
+[ 5,6, 7] 
+square print print print map 
+[25, 36, 49] 
+== >r drop drop r> 
+;
+test
+`;
         return(test(map_code));
     }
     function test(code){
