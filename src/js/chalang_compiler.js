@@ -119,14 +119,13 @@ var chalang_compiler = (function() {
         var page0 = remove_comments(s);
         var page1 = add_spaces(page0);
         var vars = get_vars(page1);
-        page1 = remove_vars(page1);
-        var page2 = clean_whitespace(page1);
-        //console.log(vars);
-        var page3 = do_macros(page2);
-        var db = {many:0,vars:vars,funs:{}};
-        var fv = get_funs(page3, db);
-        var page4 = remove_functions(page3);
-        var ops = to_opcodes(page4, fv);
+        var page2 = remove_vars(page1);
+        var page3 = clean_whitespace(page2);
+        var page4 = do_macros(page3);
+        var db = {vars:vars,funs:{}};
+        var fv = get_funs(page4, db);
+        var page5 = remove_functions(page4);
+        var ops = to_opcodes(page5, fv);
         return(ops.code);
     };
     function remove_functions(page){
@@ -146,61 +145,49 @@ var chalang_compiler = (function() {
             var w = words[i];
             var b = w2o[w];
             var fun = db.funs[w];
-            var is_var = db.vars[w];
-            if(b){
-                bytes = bytes.concat([b]);
+            var more;
+            if(b){ more = [b];
             } else if(fun){
-                bytes = bytes.concat([2,0,0,0,32])
+                more = ([2,0,0,0,32])
                     .concat(fun);
-//            } else if(is_var){//require variables to start with a letter.
-                //TODO,
-                //maybe it would be better if variables were declared.
             } else if (!(isNaN(w))){
                 w = parseInt(w);
                 if(w<0){
                     console.log("no negatives.");
                     return(0);
-                } else if(w<36){
-                    bytes = bytes.concat([140+w]);
-                } else if(w<256){
-                    bytes = bytes.concat([3, w]);
-                } else if(w<65536){
-                    var w1 = Math.round(w / 256);
-                    var w2 = w % 256;
-                    bytes = bytes.concat([4, w1, w2]);
-                } else if(w<4294967296){
-                    var four = four_bytes(w);
-                    bytes = bytes.concat([0]).concat(four);
-                } else {
-                    console.log("number too big");
-                    return(0);
                 };
+                more = num2bytes(w);
             } else if(w == "binary") {
                 var b = words[i+1];
                 var bin = atob(b);
                 var s = bin.length;
                 var four = four_bytes(s);
-                bytes = bytes.concat([2])
+                more = ([2])
                     .concat(four)
                     .concat(string_to_array(bin));
             } else if(!(vars2[w] === undefined)){
                 //existing variable.
-                var four = four_bytes(vars2[w]);
-                bytes = bytes.concat([0])
-                    .concat(four);
+                more = num2bytes(vars2[w]);
             }  else {
                 console.log("undefined variable");
                 console.log(w);
                 return(0);
-                //new variable then.
-                //vars2[w] = db.many;
-                //var four = four_bytes(db.many);
-                //db.many += 1;
-                //bytes = bytes.concat([0])
-                //    .concat(four);
             };
+            bytes = bytes.concat(more);
         };
-        return({vars: vars2, code: bytes, many: db.many});
+        return({vars: vars2, code: bytes});
+    };
+    function num2bytes(w){
+        if(w<36){ return([140+w]);
+        } else if(w<256){ return([3, w]);
+        } else if(w<65536){
+            var w1 = Math.round(w / 256);
+            var w2 = w % 256;
+            return([4, w1, w2]);
+        } else {
+            var four = four_bytes(vars2[w]);
+            return([0].concat(four));
+        };
     };
     function four_bytes(w){
         var w4 = w%256;
@@ -232,7 +219,6 @@ var chalang_compiler = (function() {
             var def = (f).replace(macro_name, "").trim();
             var ops = to_opcodes(def, db);
             db.vars = ops.vars;
-            db.many = ops.many;
             var code = ops.code;
             var signature = hash(code)
             db.funs[name] = signature;
@@ -240,14 +226,10 @@ var chalang_compiler = (function() {
         return(db);
     };
     var first_macro = /macro\s+[^\;]*/;
-//    function escapeRegExp(string) {
-//        return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-//    }
     function do_macros(page){
         var macro = page.match(first_macro);
         if(macro){
             macro = parse_macro(macro[0]);
-            //console.log(macro);
             page = page.replace(/macro\s+[^\;]*;/, "");
             var words = page.match(/[^\s]+/g);
             words = words.map(function(word){
@@ -258,7 +240,6 @@ var chalang_compiler = (function() {
             });
             page = words.join(" ");
             return(do_macros(page));
-            
         } else {
             return(page);
         };
@@ -268,9 +249,9 @@ var chalang_compiler = (function() {
 ( a b c 
 multiline comment
 )
-var foo bar; %variable declaration
+var foo bar 4; %variable declaration
 foo 4 ! %storing a value in the variable
-macro [ nil ; forth style comments
+macro [ nil ; forth style comment
 macro , swap cons ;
 macro ] , reverse ;
 : square dup * ;
