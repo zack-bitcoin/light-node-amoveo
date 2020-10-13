@@ -283,8 +283,8 @@ var tabs = (function(){
         console.log(Max2 / price);
         console.log(Max2);
         if(price){
-            var Max3 = Max2 * price;
-            var M3 = 100*price;
+            var Max3 = Max2 * (1/price);
+            var M3 = 100*(1/price);
             return(ticker
                    .concat(" - ")
                    .concat(date)

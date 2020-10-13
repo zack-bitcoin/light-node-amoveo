@@ -268,6 +268,7 @@ function create_tab_builder(div, selector){
         };
         console.log(JSON.stringify(txs));
         multi_tx.make(txs, function(tx){
+            return(0);
             var stx = keys.sign(tx);
             //publish_tx_button.onclick = function(){
             post_txs([stx], function(msg){

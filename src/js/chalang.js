@@ -300,8 +300,8 @@ function chalang_main() {
         //var hash_array = small_hash(definition);
         var hash_array = hash(definition);
         var b = btoa(array_to_string(hash_array));
-	console.log("new function hash is ");
-	console.log(b);
+	//console.log("new function hash is ");
+	//console.log(b);
         var definition2 = replace(ops.recurse, ([ops.binary_op]).concat(integer_to_array(hash_size, 4)).concat(hash_array), definition);
         d.funs[b] = definition2;
         var s = definition2.length + 4;
@@ -314,7 +314,7 @@ function chalang_main() {
         return {i: i, d: d, g: (s + 30), s: "define op", r: (s+s)};
     }
     op_code[ops.print] = function(i, code, d) {
-        console.log(JSON.stringify(d.stack));
+        //console.log(JSON.stringify(d.stack));
         return {i: i, d: d, g: 0, s: "print op"};
     };
     op_code[ops.drop] = function(i, code, d) {
