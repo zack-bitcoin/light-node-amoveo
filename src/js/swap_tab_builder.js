@@ -113,6 +113,7 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                 if(ticker_bool){
                     text = tabs.decode_ticker(text, p_est);
                 };
+                console.log(hide_non_standard);
                 if((!(hide_non_standard)) || ticker_bool){
                     s = s
 //                    .concat("id: ")

@@ -35,8 +35,8 @@ var tabs = (function(){
                     //current_tab.innerHTML = "";
                 } else {
                     sub_accs = response[1][3].slice(1);
-                    //liquidity_shares = response[1][4].slice(1);
-                    liquidity_shares = [];
+                    liquidity_shares = response[1][4].slice(1);
+                    //liquidity_shares = [];
                     display.innerHTML = "";
                 }
                 //swap_mode_f();
@@ -59,6 +59,7 @@ var tabs = (function(){
                     //console.log(JSON.stringify(sub_accs));
                     //console.log(JSON.stringify(sub_accs2));
                     balances.innerHTML = "";
+                    //console.log(liquidity_shares);
                     load_balances(
                         sub_accs2, liquidity_shares, "<h4>your balances in each subcurrency</h4>",
                         function(){

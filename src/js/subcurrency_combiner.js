@@ -57,7 +57,9 @@ var subcurrency_combiner = (function(){
         };
         var key = sub_accounts.key(keys.pub(), cid, N);
         key = btoa(array_to_string(key));
-        merkle.request_proof("sub_accounts", key, function(sa){
+        //merkle.request_proof("sub_accounts", key, function(sa){
+        rpc.post(["sub_accounts", key], function(sa){
+            console.log(sa);
             var sub_amount = sa[1];
             amount_calc(N-1, Math.min(sub_amount, amount), cid, callback);
         });
