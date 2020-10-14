@@ -12,13 +12,13 @@ function create_tab_builder(div, selector){
         current_div.innerHTML = "";
         current_div.appendChild(normal_div);
     });
-    div.appendChild(normal_button);
+//    div.appendChild(normal_button);
     var stablecoin_button = button_maker2("stablecoin mode", function(){
         current_div.innerHTML = "";
         current_div.appendChild(stablecoin_div);
     });
-    div.appendChild(stablecoin_button);
-    div.appendChild(br());
+    //div.appendChild(stablecoin_button);
+    //div.appendChild(br());
     var selector_label = document.createElement("span");
     selector_label.innerHTML = "source currency: ";
     div.appendChild(selector_label);
@@ -111,7 +111,7 @@ function create_tab_builder(div, selector){
         console.log([coll, starting_price]);
         //var MP = coll * starting_price;
         var MaxVal = 4294967295;
-        var Scale = Math.round(MaxVal / starting_price / coll);
+        var Scale = Math.round(MaxVal / starting_price * coll);
         //var MP = MaxVal;
         var Text = "W = "
             .concat(website)
@@ -268,7 +268,7 @@ function create_tab_builder(div, selector){
         };
         console.log(JSON.stringify(txs));
         multi_tx.make(txs, function(tx){
-            return(0);
+            //return(0);
             var stx = keys.sign(tx);
             //publish_tx_button.onclick = function(){
             post_txs([stx], function(msg){

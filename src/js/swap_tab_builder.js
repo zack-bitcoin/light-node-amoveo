@@ -101,6 +101,7 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                     rpc.post(["markets", mid3], function(market3){
                         var p_est = price_estimate(market1, market2, market3);
                         console.log(p_est);
+                        console.log(JSON.stringify([cid, mid3]));
             //console.log(contracts[0]);
             //console.log(cid);
             if(!(oracle_text == 0)) {
@@ -111,6 +112,7 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                 var ticker_bool =
                     tabs.is_ticker_format(text);
                 if(ticker_bool){
+                    console.log("about to decode");
                     text = tabs.decode_ticker(text, p_est);
                 };
                 console.log(hide_non_standard);
@@ -138,7 +140,7 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                 });
             });
             });
-        }, get_ip(), 8090);
+        }, get_ip(), 8090);//p2p derivatives server
     };
 
 
@@ -211,7 +213,8 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
             return(get_markets(marketids, [], function(markets) {
                 var Paths = all_paths([[[cid1, type1]]], cid2, type2, contracts, markets, 5);
                 var Paths2 = end_goal(cid2, type2, Paths);
-                Paths2 = Paths2.reverse();
+                //Paths2 = Paths2.reverse();
+                //Paths2 = Paths.slice(1);
                 return(swap_price3(Paths2, amount234, markets, callback));
             }));
         }));
@@ -255,7 +258,10 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
     function swap_price3(Paths, amount33, markets, callback) {
         //we need to find the optimal way to spend amount on the different paths to get the best price.
         //an initial guess we can keep improving.
-        console.log(JSON.stringify(Paths));
+        //Paths = Paths.slice(2);
+        //console.log(JSON.stringify(Paths[1]));
+        //Paths = [Paths[0]].concat(Paths.slice(2));
+        //console.log(JSON.stringify(Paths));
         var L = Paths.length;
         if(L == 0){
             display.innerHTML = "error. there is no way to transform the input currency into the output currency.";
@@ -300,9 +306,9 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                            
         //console.log(JSON.stringify(Paths[0]));
         var average = average_fun(gradient, guess);
-        //console.log(guess);
-        //console.log(JSON.stringify(gradient));
-        //console.log(JSON.stringify(average));
+        console.log(guess);
+        console.log(JSON.stringify(gradient));
+        console.log(JSON.stringify(average));
         if(good_enough(gradient, guess, average)){
             console.log("done!");
             console.log(guess);
@@ -389,7 +395,7 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
             };
             r = r.concat([x[1]]);//bigger is worse
             //db4 = x[0];
-            //r = r.concat([1/x[1]]);//bigger is better
+            //r = r.concat([-1/x[1]]);//bigger is better
         };
         return(r);
     };
@@ -1042,6 +1048,7 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                             //console.log(P*Limit);
                             //var price = loss / Limit / gain;
                             //var price_a = 1/price;
+                            console.log(JSON.stringify([gain, loss, Limit]));
                             var price = gain / Limit / loss;
                             var price_a = Limit * loss / gain;
                             //var price_b = Limit / P;
@@ -1118,6 +1125,7 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
         var W2 = Math.sqrt(K2);
         var W3 = Math.sqrt(K3);
         var Ps = [P1, P2, P3];
+        console.log([market1[4], market1[7]]);
         console.log(Ps);
         var Ws = [W1, W2, W3];
         console.log(Ws);

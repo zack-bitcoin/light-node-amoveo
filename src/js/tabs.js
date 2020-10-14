@@ -44,6 +44,7 @@ var tabs = (function(){
                 create_selector.innerHTML = "";
                 pool_selector.innerHTML = "";
                 spend_selector.innerHTML = "";
+                console.log("about to load veo option");
                 load_selector_options(
                     spend_selector, ["veo"]);
                 load_selector_options(
@@ -263,6 +264,7 @@ var tabs = (function(){
         var l = x.split(";");
         var scale = parseInt(l[3].split(" * ")[1]);
         var MaxVal = 4294967295;
+        console.log(scale);
         return(MaxVal / scale);
     };
     function symbol(x) {
@@ -280,17 +282,17 @@ var tabs = (function(){
         //var Max2 = MaxVal / scale;
         var Max2 = coll_limit(x);
         console.log(x);
-        console.log(price);
+        console.log(price);// 1/3, correct.
         console.log(Max2 / price);
         console.log(Max2);
         if(price){
-            var Max3 = Max2 * (1/price);
-            var M3 = 100*(1/price);
+            var M3 = 100*(price);
+            var Max3 = Max2 * ((price));
             return(ticker
                    .concat(" - ")
                    .concat(date)
                    .concat(" - collateral: ")
-                   .concat(M3.toFixed(2).toString())
+                   .concat(M3.toFixed(2).toString())//is 150, should be 200
                    .concat("% - price: ")
                    .concat((Max3).toFixed(8).toString())
                    .concat(" "));
