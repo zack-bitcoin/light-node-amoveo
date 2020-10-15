@@ -1048,11 +1048,12 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                             //console.log(P*Limit);
                             //var price = loss / Limit / gain;
                             //var price_a = 1/price;
-                            console.log(JSON.stringify([gain, loss, Limit]));
+                            console.log(JSON.stringify([gain, loss, Limit, P]));
                             var price = gain / Limit / loss;
-                            var price_a = Limit * loss / gain;
-                            //var price_b = Limit / P;
-                            var price_b = Limit * P;
+                            //var price_a = Limit * loss / gain;
+                            var price_a = Limit * gain / loss;
+                            var price_b = Limit / P;
+                            //var price_b = Limit * P;
                             console.log(JSON.stringify([price_a, price_b, Limit, P]));
                             var slippage = (Math.abs(price_a - price_b))/price_b;
                             //console.log(JSON.stringify([P1, P2, P3]));
@@ -1073,7 +1074,8 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                             to_display = "you can sell "
                                 .concat((loss / token_units()).toString())
                         .concat(" X<br> price is ")
-                                .concat((1/price).toFixed(8).toString())
+                                //.concat((1/price).toFixed(8).toString())
+                                .concat((price_a).toFixed(8).toString())
                                 //.concat("<br>starting price of this stablecoin: ")
                                 //.concat(((Limit*P).toFixed(8)).toString())
                                 //.concat("<br> limit is: ")

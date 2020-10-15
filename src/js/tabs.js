@@ -82,7 +82,7 @@ var tabs = (function(){
                         });
                 });
                 
-            }, get_ip(), 8091);
+            }, get_ip(), 8091), 0
         });
     };
     function contracts_to_subs(contracts, R, callback) {
@@ -282,26 +282,32 @@ var tabs = (function(){
         //var Max2 = MaxVal / scale;
         var Max2 = coll_limit(x);
         console.log(x);
-        console.log(price);// 1/3, correct.
-        console.log(Max2 / price);
+        console.log(price);// 2/3. btc is 2/3rds of it's limit price.
+        //limit of btc is 1/Max2
+        console.log(price/Max2);//value of btc in veo
+        console.log(Max2 / price);//value of veo in btc
         console.log(Max2);
+        var collateral = 1 + (((1-price)/price));
+        //var collateral = 1 + ((price/(1-price)));
+        var display_price = Max2 / ((price));
         if(price){
-            var M3 = 100 + (100*((1-price)/price));
-            var Max3 = Max2 * ((price));
             return(ticker
                    .concat(" - ")
                    .concat(date)
                    .concat(" - collateral: ")
-                   .concat(M3.toFixed(2).toString())//is 150, should be 200
+                   .concat((100*collateral).toFixed(2).toString())//is 150, should be 200
                    .concat("% - price: ")
-                   .concat((Max3).toFixed(8).toString())
+                   .concat((display_price).toFixed(8).toString())
                    .concat(" "));
         } else {
+            console.log(display_price);
+            console.log(collateral);
         return(ticker
                .concat(" - ")
                .concat(date)
                .concat(" - collateral limit price: ")
-               .concat(Max2.toFixed(8).toString())
+               //.concat(Max2.toFixed(8).toString())
+               .concat((display_price / collateral).toFixed(8).toString())
                .concat(""));
         };
     };
