@@ -306,8 +306,8 @@ var tabs = (function(){
                .concat(" - ")
                .concat(date)
                .concat(" - collateral limit price: ")
-               //.concat(Max2.toFixed(8).toString())
-               .concat((display_price / collateral).toFixed(8).toString())
+               .concat(Max2.toFixed(8).toString())
+               //.concat((display_price / collateral).toFixed(8).toString())
                .concat(""));
         };
     };
