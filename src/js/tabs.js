@@ -296,11 +296,17 @@ var tabs = (function(){
                                         .concat(ticker);
                                 } else {
                                     s = s.concat("oracle text: ")
-                                        .concat(ot1);
+                                        .concat(ot1)
+                                        .concat("contract: ")
+                                        .concat(sub.cid);
                                 };
+                            } else {
+                                s = s
+                                    .concat("contract: ")
+                                    .concat(sub.cid);
                             };
-                            s = s.concat("contract: ")
-                                .concat(sub.cid)
+                            s = s//.concat("contract: ")
+                                //.concat(sub.cid)
                                 .concat(" balance: ")
                                 .concat((balance/token_units()).toString());
                             balances_db[sk].string = s;
@@ -426,6 +432,7 @@ var tabs = (function(){
         return(MaxVal / scale);
     };
     function symbol(x) {
+        console.log(x);
         var l = x.split(";");
         var ticker = l[2].split("= ")[1];
         return(ticker);

@@ -107,31 +107,41 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
             if(!(oracle_text == 0)) {
                 var type = oracle_text[0];
                 var text = atob(oracle_text[1]);
+                var text0 = text;
                 //console.log(text);
                 //console.log(JSON.stringify(oracle_text));
                 var ticker_bool =
                     tabs.is_ticker_format(text);
-                if(ticker_bool){
-                    console.log("about to decode");
-                    text = tabs.decode_ticker(text, p_est);
-                };
-                console.log(hide_non_standard);
+                //console.log(hide_non_standard);
                 if((!(hide_non_standard)) || ticker_bool){
+                    var button1_text = " contract ";
+                    var button2_text = " inverse contract ";
+                    if(ticker_bool){
+                        //console.log("about to decode");
+                        text = tabs.decode_ticker(text, p_est);
+                        var ticker = tabs.symbol(text0);
+                        var button1_text = ticker;
+                        var button2_text =
+                            " i".concat(ticker);
+                    };
+                    button_text = ""
+                        .concat("<button onclick=\"tabs.swap.cid('")
+                        .concat(cid)
+                        .concat("'); tabs.swap.type(1);\"> buy ")
+                        .concat(button1_text)
+                        .concat(" </button>")
+                        .concat("<button onclick=\"tabs.swap.cid('")
+                        .concat(cid)
+                        .concat("'); tabs.swap.type(2);\"> buy ")
+                        .concat(button2_text)
+                        .concat(" </button>");
                     s = s
-//                    .concat("id: ")
-//                    .concat(cid)
-                    //.concat("oracle question: \"")
                         .concat("\"")
                         .concat(text)
                         .concat("\"~ ")
                         .concat("; volume: ")
                         .concat((contracts[0][11] / token_units()).toString())
-                        .concat("<button onclick=\"tabs.swap.cid('")
-                        .concat(cid)
-                        .concat("'); tabs.swap.type(1);\"> buy contract </button>")
-                        .concat("<button onclick=\"tabs.swap.cid('")
-                        .concat(cid)
-                        .concat("'); tabs.swap.type(2);\"> buy inverse contract </button>")
+                        .concat(button_text)
                         .concat("<br>")
                         .concat("");
                 };
