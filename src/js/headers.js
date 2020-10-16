@@ -351,6 +351,7 @@ function headers_main() {
     }
     function absorb_headers(h) {
 	//console.log(JSON.stringify(h[1]));
+        console.log("absorbing headers");
         var get_more = false;
         for (var i = 1; i < h.length; i++ ) {
             var bl = check_pow(h[i]);
