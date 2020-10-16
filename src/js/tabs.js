@@ -292,7 +292,7 @@ var tabs = (function(){
                                 var ot1 = atob(oracle_text[1]);
                                 if(is_ticker_format(ot1)){
                                     var ticker = decode_ticker(ot1);
-                                    s = s.concat("ticker: ")
+                                    s = s.concat("ticker: v")
                                         .concat(ticker);
                                 } else {
                                     s = s.concat("oracle text: ")
@@ -456,7 +456,8 @@ var tabs = (function(){
         //var collateral = 1 + ((price/(1-price)));
         var display_price = Max2 / ((price));
         if(price){
-            return(ticker
+            return("v"
+                   .concat(ticker)
                    .concat(" - ")
                    .concat(date)
                    .concat(" - collateral: ")

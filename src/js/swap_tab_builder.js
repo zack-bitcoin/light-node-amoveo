@@ -119,7 +119,7 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                     if(ticker_bool){
                         //console.log("about to decode");
                         text = tabs.decode_ticker(text, p_est);
-                        var ticker = tabs.symbol(text0);
+                        var ticker = "v".concat(tabs.symbol(text0));
                         var button1_text = ticker;
                         var button2_text =
                             " i".concat(ticker);
