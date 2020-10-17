@@ -336,15 +336,15 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
     function improve_guess(average, guess, grad, amount){
         var r = [];
         for(var i = 0; i<guess.length; i++){
+            //var n = guess[i]*(1/(1+(Math.pow(Math.E, (grad[i]-average)/average))));
+
             //var n = guess[i] - 0.9*guess[i]*((grad[i]-average)/average);
-            //var n = (guess[i]) - 0.5*guess[i]*((grad[i]-average)/average);
-            //var n = guess[i] - (0.6*guess[i]*((grad[i] - average) / average));
+            var n = (guess[i]) - 0.1*guess[i]*((grad[i]-average)/average);
             //var n = (0.9*guess[i] * (1 + average) / (1 + grad[i])) + (0.1*guess[i]);
             //var n = guess[i]*(1/(1+(Math.pow(Math.E, 1/grad[i]))));
             //var n = guess[i]*(1/(1+(Math.pow(Math.E, -1/grad[i]))));
 
   //            var prev = guess[i];
-               var n = guess[i]*(1/(1+(Math.pow(Math.E, (grad[i]-average)/average))));
             //var n =guess[i]+((average - grad[i])/2);
                //var n = (n + prev)/2;
                //var n = Math.min(n, prev*10);
