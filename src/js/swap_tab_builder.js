@@ -271,7 +271,7 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
         //Paths = Paths.slice(2);
         //console.log(JSON.stringify(Paths[1]));
         //Paths = [Paths[0]].concat(Paths.slice(2));
-        //console.log(JSON.stringify(Paths));
+        console.log(JSON.stringify(Paths));
         var L = Paths.length;
         if(L == 0){
             display.innerHTML = "error. there is no way to transform the input currency into the output currency.";
@@ -291,7 +291,8 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
         //console.log(guess);
         return(swap_price_loop(Paths, amount33, guess, db, markets, callback, loop_limit));
     }
-    function swap_price_loop(Paths0, amount, guess0, db, markets, callback, N) {
+    function swap_price_loop(Paths, amount, guess, db, markets, callback, N) {
+        /*
         var guess = [];
         var Paths = [];
         for(var i = 0; i<guess0.length; i++){
@@ -300,6 +301,9 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                 Paths = Paths.concat([Paths0[i]]);
             };
         };
+        */
+        Paths = Paths.reverse();
+        guess = guess.reverse();
 
         var db20 = make_trades(guess, Paths, db);
         var db2 = db20[0]
@@ -403,6 +407,7 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
             if(x[1] == Infinity){
                 x[1] = 10;
             };
+            //r = r.concat([x[1]]);//bigger is worse
             r = r.concat([x[1]]);//bigger is worse
             //db4 = x[0];
             //r = r.concat([-1/x[1]]);//bigger is better
@@ -779,8 +784,9 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
         var Paths3 = contract_extentions(Paths2, contracts, markets, cid2, type2);
         var Paths4 = remove_cycles(Paths3);
         var Paths5 = remove_repeats(Paths4);
-        var Paths6 = remove_repeats2(Paths5);
-        return(all_paths(Paths6, cid2, type2, contracts, markets, Steps-1));
+        var Paths7 = remove_repeats2(Paths5);
+        //var Paths7 = remove_repeats3(Paths6);
+        return(all_paths(Paths7, cid2, type2, contracts, markets, Steps-1));
     };
     function contract_to_cid(Contract) {
         var Source = Contract[8];
@@ -1053,6 +1059,9 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                             var market2 = get_market(mid2, markets);
                             var market3 = get_market(mid3, markets);
                             var P = price_estimate(market1, market2, market3);//value of a stablecoin in veo. between 0 and 1, 1 means the margin is used up.
+                            if(gain_currency[1] === 2){
+                                P = 1-P;
+                            };
                             
                             //console.log([P, Limit, W_total]);
                             //console.log(P*Limit);
@@ -1080,26 +1089,34 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                                 + (slippage * loss)//slippage loss
                                 + trading_fees;
                             //console.log(total_fees);
-                               
+                            var gain_ticker_direction = " v";
+                            if(gain_currency[1] === 2){
+                                gain_ticker_direction = " iv";
+                            };
+                            console.log(gain_currency);
+                            var show_price =
+                                (price_a).toFixed(8).toString()
+                                .concat(gain_ticker_direction)
+                                .concat(ticker)
+                                .concat(" per X");
                             to_display = "you can sell "
                                 .concat((loss / token_units()).toString())
-                        .concat(" X<br> price is ")
-                                //.concat((1/price).toFixed(8).toString())
+                                .concat(" X<br> price is ")
+                                .concat(show_price)
+                            //.concat((1/price).toFixed(8).toString())
+                            /*
                                 .concat((price_a).toFixed(8).toString())
-                                //.concat("<br>starting price of this stablecoin: ")
-                                //.concat(((Limit*P).toFixed(8)).toString())
-                                //.concat("<br> limit is: ")
-                                //.concat((Limit).toString())//  veo/bitcoin
-                            //do something with gain/ token_units()
                                 .concat(" v")
                                 .concat(ticker)
                                 .concat(" per X")
+                            */
                                 .concat("<br> slippage is ")
                             //.concat(((1/price)-(P*Limit)).toFixed(8).toString())
                                 .concat((slippage * 100).toFixed(3).toString())
                                 .concat("% <br> you receive ")
                                 .concat((Limit * gain / token_units()).toFixed(8).toString())
-                                .concat(" v")
+                                .concat(gain_ticker_direction)
+                                //.concat(" v")
                                 .concat(ticker)
                                 .concat("<br>veo fees: ")
                                 .concat(((trading_fees + tx[3])/token_units()).toFixed(8).toString())
@@ -1328,7 +1345,7 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
         console.log(JSON.stringify([start_c, end_c]));
         for(var i = 1; i<L.length; i += 2){
             if(L[i][0] == "market"){
-                console.log("in has repeats");
+                //console.log("in has repeats");
                 //return(true);
             } else {
                 var market = L[i][1];
@@ -1357,6 +1374,32 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
             };
         };
         return(false);
+    };
+    function has_repeats3(Path){
+        var markets = {};
+        for(var i = 1; i < Path.length; i+=2){
+            var id;
+            if(Path[i][0] === "market"){
+                id = Path[i][1];
+            } else {
+                id = Path[i][1][1];
+            };
+            if(markets[id]){
+                return(true);
+            } else {
+                markets[id] = [];
+            };
+        };
+        return(false);
+    };
+    function remove_repeats3(L){
+        var r = [];
+        for(var i = 0; i < L.length; i++){
+            if(!(has_repeats3(L[i]))){
+                r = r.concat([L[i]]);
+            };
+        };
+        return(r);
     };
     function remove_repeats2(L){
         var r = [];

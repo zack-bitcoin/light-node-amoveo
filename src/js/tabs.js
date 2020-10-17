@@ -292,23 +292,40 @@ var tabs = (function(){
                                 var ot1 = atob(oracle_text[1]);
                                 if(is_ticker_format(ot1)){
                                     var ticker = decode_ticker(ot1);
+                                    var limit = coll_limit(ot1);
+                                    var ticker_symbol = symbol(ot1);
                                     s = s.concat("ticker: v")
                                         .concat(ticker);
+                                    if(sub.type === 1){
+                                        s = s
+                                            .concat(" balance: ")
+                                            .concat((balance * limit / token_units()).toString())
+                                            .concat(" v")
+                                            .concat(ticker_symbol);
+                                    } else {
+                                        s = s
+                                            .concat(" balance: ")
+                                            .concat((balance/token_units()).toString());
+                                    };
                                 } else {
                                     s = s.concat("oracle text: ")
                                         .concat(ot1)
                                         .concat("contract: ")
-                                        .concat(sub.cid);
+                                        .concat(sub.cid)
+                                        .concat(" balance: ")
+                                        .concat((balance/token_units()).toString());
                                 };
                             } else {
                                 s = s
                                     .concat("contract: ")
-                                    .concat(sub.cid);
+                                    .concat(sub.cid)
+                                    .concat(" balance: ")
+                                    .concat((balance/token_units()).toString());
                             };
-                            s = s//.concat("contract: ")
+                            //s = s//.concat("contract: ")
                                 //.concat(sub.cid)
-                                .concat(" balance: ")
-                                .concat((balance/token_units()).toString());
+                             //   .concat(" balance: ")
+                              //  .concat((balance/token_units()).toString());
                             balances_db[sk].string = s;
                             show_balances();
                             setTimeout(function(){
