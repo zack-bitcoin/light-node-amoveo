@@ -472,7 +472,8 @@ IA = B*(2PA-1)
         multi_tx.make(full_txs, function(tx){
             console.log(JSON.stringify(tx));
             //calculate loss/gain info, and display it.
-            var markets = db;
+            //var markets = db;
+            var markets = [market1, market2, market3];
             var loss = tabs.swap.calculate_loss(SpentCurrency, full_txs, markets) - tabs.swap.calculate_gain(SpentCurrency, full_txs, markets);
             var loss1 = tabs.swap.calculate_loss([cid, 1], full_txs, markets) - tabs.swap.calculate_gain([cid, 1], full_txs, markets);
             var loss2 = tabs.swap.calculate_loss([cid, 2], full_txs, markets) - tabs.swap.calculate_gain([cid, 2], full_txs, markets);
