@@ -305,6 +305,9 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
         Paths = Paths.reverse();
         guess = guess.reverse();
 
+        //Paths = (Paths.concat([Paths[0]])).slice(1);
+        //guess = (guess.concat([guess[0]])).slice(1);
+
         var db20 = make_trades(guess, Paths, db);
         var db2 = db20[0]
         if(N < 1) {
@@ -339,12 +342,14 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
             //var n = guess[i]*(1/(1+(Math.pow(Math.E, (grad[i]-average)/average))));
 
             //var n = guess[i] - 0.9*guess[i]*((grad[i]-average)/average);
-            var n = (guess[i]) - 0.1*guess[i]*((grad[i]-average)/average);
+            //var n = (guess[i]) - 0.1*guess[i]*((grad[i]-average)/average);
             //var n = (0.9*guess[i] * (1 + average) / (1 + grad[i])) + (0.1*guess[i]);
             //var n = guess[i]*(1/(1+(Math.pow(Math.E, 1/grad[i]))));
             //var n = guess[i]*(1/(1+(Math.pow(Math.E, -1/grad[i]))));
+            var n = (guess[i])*(1 + 0.5*((average - grad[i])/average));
+            //var prev = guess[i];
+            //var n = (n + prev)/2;
 
-  //            var prev = guess[i];
             //var n =guess[i]+((average - grad[i])/2);
                //var n = (n + prev)/2;
                //var n = Math.min(n, prev*10);
@@ -1007,6 +1012,7 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                              max_contract_needs[id]);
             }
         };
+        console.log(JSON.stringify(max_contract_needs));
         var to_buy = Object.keys(max_contract_needs);
         for(var i = 0; i<to_buy.length; i++){
             var cid = to_buy[i];
@@ -1093,7 +1099,7 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                             if(gain_currency[1] === 2){
                                 gain_ticker_direction = " iv";
                             };
-                            console.log(gain_currency);
+                            //console.log(gain_currency);
                             var show_price =
                                 (price_a).toFixed(8).toString()
                                 .concat(gain_ticker_direction)
