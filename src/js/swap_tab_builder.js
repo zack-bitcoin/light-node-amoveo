@@ -493,6 +493,20 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
             var mtype1 = m[3];
             var mcid2 = m[5];
             var mtype2 = m[6];
+            console.log(JSON.stringify(
+                [[mcid1, mtype1],
+                 [mcid2, mtype2]]));
+            /*
+            if([string_to_array(atob(mcid1)), mtype1]
+               < [string_to_array(atob(mcid2)), mtype2]){
+                temp_cid = mcid1;
+                temp_type = mtype1;
+                mcid1 = mcid2;
+                mtype1 = mtype2;
+                mcid2 = temp_cid;
+                mtype2 = temp_type;
+            };
+            */
             var K = m[4] * m[7];
             var start_currency = path[0];
             var end_currency = path[2];
@@ -549,7 +563,7 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                            console.log("error");
                            return(0);
                        };
-                m = clean_market(m, K);
+                       m = clean_market(m, K);
                        Amount = Amount + (G * trading_fee);
                        db[mid] = m;
                        return(process_path(Amount, path, price*StartAmount/Amount, db));
@@ -645,7 +659,14 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                         // a = 1;
                         // b = (m[7] + m[4] - Amount);
                         // c = ((m[7] * (m[4] - Amount)) - K)
-                        // B = (-b +- sqrt(b*b - (4*a*c)))/ 2
+                       // B = (-b +- sqrt(b*b - (4*a*c)))/ 2
+
+
+                       //testing
+                       //var temp = m[4];
+                       //m[4] = m[7];
+                       //m[7] = temp;
+
                        var K = m[4] * m[7];
                        var a = 1;
                        var b = m[7] + m[4] - Amount;
@@ -660,6 +681,12 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                        var gain = old - m[4];
                        m = clean_market(m, K);
                        Amount = (gain * trading_fee);
+
+                       //testing
+                       //temp = m[4];
+                       //m[4] = m[7];
+                       //m[7] = temp;
+
                        db[mid] = m;
                        return(process_path(Amount, path, price*StartAmount/Amount, db));
                            
@@ -732,7 +759,7 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                        m[7] = m[7] + Amount + G;
                        m[4] = m[4] - G;
                        //m[4] = K / m[7];
-                       if(!(Math.pow((((m[4] * m[7])/K) - 1), 2)<0.00001)){
+                       if(!(Math.pow((((m[4] * m[7])/K) - 1), 2)<0.0001)){
                            console.log(b*b - (4*a*c));
                            console.log(G0);
                            console.log([m[4], m[7], Amount, G, K]);
@@ -944,6 +971,10 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
         var first_cid = Paths[0][0][0];
         var first_type = Paths[0][0][1];
         currencies_add(first_cid, first_type, amount, currencies);
+        console.log(JSON.stringify(Paths));
+        console.log(JSON.stringify(currencies));
+        console.log(JSON.stringify(db));
+        console.log(JSON.stringify(db2));
         var txs = [];
         var mids = [];
         for(var i = 0; i<guess.length; i++){
@@ -989,26 +1020,37 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
         };
         //if any subcurrency balances are negative, buy enough complete sets to make it positive.
         var Accs = Object.keys(currencies);
+        console.log(JSON.stringify(currencies));
         var potential_use_contracts = [];
         for(var i = 0; i<Accs.length; i++){
             var Acc = currencies[Accs[i]];
-            if(Acc < 0){
+            //if(Acc < 0){
                 if(!(Accs[i] == [ZERO,0])){
                     potential_use_contracts =
                         potential_use_contracts.concat([[Accs[i], Acc]]);
                 };
-            };
+            //};
         };
         var max_contract_needs = {};// cid -> amount
         for(var i = 0; i<potential_use_contracts.length; i++){
             var puc = potential_use_contracts[i];
             var id = puc[0];
             var id = id.slice(0, id.search(","));
+            var spend_currency = Paths[0][0];
+            //console.log(spend_currency);
+            //console.log((spend_currency).toString());
+            //console.log(puc);
+            //console.log(puc[0]);
+            //var x = 0;
+            //if ((spend_currency).toString() ===
+            //    puc[0]) {
+                //x = amount; 
+            //};
             if(!(max_contract_needs[id])){
-                max_contract_needs[id] = puc[1];
+                max_contract_needs[id] = puc[1];//+x;
             } else {
                 max_contract_needs[id] =
-                    Math.max(puc[1],
+                    Math.min(puc[1],//+x,
                              max_contract_needs[id]);
             }
         };
@@ -1480,6 +1522,25 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
         };
     };
     function test(){
+        var Paths = [[["G8dXI4RVHv75cOtLXX+fOZwfFMmPaZwjnnNj9LZz4l4=",1],[["contract","y3VnWqg/NKB2OThyueZDhqYwmBMUcDhjBBNaJ2Upk2Y=",2,0,0,0,0,"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",0,"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",322517842],["market","ecbQ7aj9+60TuBJqEIFUftHXQOkVfz0JkSYZXrt4ylk=","G8dXI4RVHv75cOtLXX+fOZwfFMmPaZwjnnNj9LZz4l4=",1,169579958,"G8dXI4RVHv75cOtLXX+fOZwfFMmPaZwjnnNj9LZz4l4=",2,59331334,99999000]],["AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",0]]];
+        var db = build_paths_db(Paths, {});
+        var gradient = get_gradient(Paths, db);
+        var L = Paths.length;
+        var amount = 100000000;
+        var a = amount / L;
+        var guess = array_of(a, L);
+        var db2 = make_trades(guess, Paths, db)[0];
+        console.log(JSON.stringify(db));
+        console.log(JSON.stringify(db2));
+        //var gradient1 = get_gradient(Paths, db2);
+        //var average = average_fun(gradient1, guess);
+        var markets = 
+            [["market","ecbQ7aj9+60TuBJqEIFUftHXQOkVfz0JkSYZXrt4ylk=","G8dXI4RVHv75cOtLXX+fOZwfFMmPaZwjnnNj9LZz4l4=",1,169579958,"G8dXI4RVHv75cOtLXX+fOZwfFMmPaZwjnnNj9LZz4l4=",2,59331334,99999000]];
+        return(make_tx(guess, amount, Paths, db, db2, markets, function(txs, markets){
+            console.log(JSON.stringify([txs, markets]));
+        }));
+    };
+    function test0(){
         var Paths = [[["AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",0],["market","rsElNHBtnaGnMGRYdcNm5nUVE8FSMvQsIvJFuM4AYkI=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",0,2,"Jif9Cg1v6na1hy1HZ6EbKkeVvH0KqUQ9Ghr1MYphdfw=",1,9094,100],["Jif9Cg1v6na1hy1HZ6EbKkeVvH0KqUQ9Ghr1MYphdfw=",1]],
                      [["AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",0],[["contract","Wx2YcdRvaTE0R9PRbGKUj9X9QrcfPq4h4btyCrkjCz4=",2,0,0,0,0,"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",0,"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",6874237],["market","rsElNHBtnaGnMGRYdcNm5nUVE8FSMvQsIvJFuM4AYkI=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",0,2,"Jif9Cg1v6na1hy1HZ6EbKkeVvH0KqUQ9Ghr1MYphdfw=",1,9094,100]],["Jif9Cg1v6na1hy1HZ6EbKkeVvH0KqUQ9Ghr1MYphdfw=",2],["market","FZLd0BqjMKGt2UwU97m++LWuebV5T0TRPC5q4wu2Jrw=","Jif9Cg1v6na1hy1HZ6EbKkeVvH0KqUQ9Ghr1MYphdfw=",1,5955367,"Jif9Cg1v6na1hy1HZ6EbKkeVvH0KqUQ9Ghr1MYphdfw=",2,3032666,4249635],["Jif9Cg1v6na1hy1HZ6EbKkeVvH0KqUQ9Ghr1MYphdfw=",1]],
                      [["AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",0],[["contract","Wx2YcdRvaTE0R9PRbGKUj9X9QrcfPq4h4btyCrkjCz4=",2,0,0,0,0,"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",0,"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",6874237],["market","rsElNHBtnaGnMGRYdcNm5nUVE8FSMvQsIvJFuM4AYkI=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",0,2,"Jif9Cg1v6na1hy1HZ6EbKkeVvH0KqUQ9Ghr1MYphdfw=",1,9094,100]],["Jif9Cg1v6na1hy1HZ6EbKkeVvH0KqUQ9Ghr1MYphdfw=",2],[["contract","Wx2YcdRvaTE0R9PRbGKUj9X9QrcfPq4h4btyCrkjCz4=",2,0,0,0,0,"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",0,"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",6874237],["market","ySFXS28nO1/DqD+RmKIKRLfyCNBADqLtpMFg+BGInXg=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",0,3227097,"Jif9Cg1v6na1hy1HZ6EbKkeVvH0KqUQ9Ghr1MYphdfw=",2,3841571,3520283]],["Jif9Cg1v6na1hy1HZ6EbKkeVvH0KqUQ9Ghr1MYphdfw=",1]],
