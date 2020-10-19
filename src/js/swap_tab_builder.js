@@ -641,8 +641,10 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                        db[mid] = m;
                        return(process_path(Amount, path, price*StartAmount/Amount, db));
                        
-                   } else if((mcid1 == start_currency[0]) &&
-                             (mtype1 == start_currency[1])) {
+                   //} else if((mcid1 == start_currency[0]) &&
+                    //         (mtype1 == start_currency[1])) {
+                   } else if((mcid2 == start_currency[0]) &&
+                             (mtype2 == start_currency[1])) {
                        //contract-buy source, market spend subcurrency to buy other subcurrency
                        //sell just enough to have equal amounts of bot
                         //buying m[5].
@@ -690,8 +692,10 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                        db[mid] = m;
                        return(process_path(Amount, path, price*StartAmount/Amount, db));
                            
-                   } else if ((mcid2 == start_currency[0]) &&
-                              (mtype2 == start_currency[1])) {
+                   //} else if ((mcid2 == start_currency[0]) &&
+                    //          (mtype2 == start_currency[1])) {
+                   } else if ((mcid1 == start_currency[0]) &&
+                              (mtype1 == start_currency[1])) {
                        var a = 1;
                        var b = m[7] + m[4] - Amount;
                        var c = ((m[4] * (m[7] - Amount)) - K);
@@ -1147,6 +1151,12 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                                 .concat(gain_ticker_direction)
                                 .concat(ticker)
                                 .concat(" per X");
+                            var to_receive = 
+                                (Limit * gain / token_units()).toFixed(8).toString();
+                            if(gain_currency[1] === 2){
+                                to_receive = (gain / token_units()).toFixed(8).toString();
+                            };
+                            
                             to_display = "you can sell "
                                 .concat((loss / token_units()).toString())
                                 .concat(" X<br> price is ")
@@ -1162,7 +1172,8 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                             //.concat(((1/price)-(P*Limit)).toFixed(8).toString())
                                 .concat((slippage * 100).toFixed(3).toString())
                                 .concat("% <br> you receive ")
-                                .concat((Limit * gain / token_units()).toFixed(8).toString())
+                            //.concat((Limit * gain / token_units()).toFixed(8).toString())
+                                .concat(to_receive)
                                 .concat(gain_ticker_direction)
                                 //.concat(" v")
                                 .concat(ticker)
