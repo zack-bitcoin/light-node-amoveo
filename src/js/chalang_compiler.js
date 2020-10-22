@@ -101,7 +101,21 @@ var chalang_compiler = (function() {
         var vars = {};
         var n = 1;
         //grab between "var" and ";"
-        page.match(vars_regex)[0]
+        var p2 = page.match(vars_regex);
+        if(p2){
+            p2.map(function(p3){
+                p3
+                    .match(/[^\s]+/g)
+        //remove "var" and ";" from the ends
+                    .slice(1, -1)
+                    .map(function(x){
+                        vars[x] = n;
+                        n += 1;
+                    });
+            });
+        };
+
+/*            p2[0]
         //convert to list of words
             .match(/[^\s]+/g)
         //remove "var" and ";" from the ends
@@ -110,6 +124,7 @@ var chalang_compiler = (function() {
                 vars[x] = n;
                 n += 1;
             });
+*/
         return(vars);
     };
     function remove_vars(page){
@@ -117,15 +132,23 @@ var chalang_compiler = (function() {
     };
     function doit(s){
         var page0 = remove_comments(s);
+        console.log(page0);
         var page1 = add_spaces(page0);
+        console.log(page1);
         var vars = get_vars(page1);
+        console.log(JSON.stringify(vars));
         var page2 = remove_vars(page1);
+        console.log(page2);
         var page3 = clean_whitespace(page2);
+        console.log(page3);
         var page4 = do_macros(page3);
+        console.log(page4);
         var db = {vars:vars,funs:{}};
         var fv = get_funs(page4, db);
         var page5 = remove_functions(page4);
+        console.log(page5);
         var ops = to_opcodes(page5, fv);
+        console.log(ops.code);
         return(ops.code);
     };
     function remove_functions(page){
@@ -244,12 +267,21 @@ var chalang_compiler = (function() {
             return(page);
         };
     };
+    function test1(){
+        var code = `
+100 >r
+var square ;
+def r@ ! r@ 0 + @ r@ 0 + @ * ; 
+square ! 4 square @ r@ 1 + >r call r> drop
+`
+        return(test(code));
+    };
     function test0(){
         var map_code = `
 ( a b c 
 multiline comment
 )
-var foo bar 4; %variable declaration
+var foo bar ; %variable declaration
 foo 4 ! %storing a value in the variable
 macro [ nil ; forth style comment
 macro , swap cons ;
@@ -286,8 +318,10 @@ test
         return(x.stack);
     };
     return({
+        test1: test1,
         test0: test0,
         test: test,
-        doit: doit
+        doit: doit,
+        ops: w2o
     });
 })();
