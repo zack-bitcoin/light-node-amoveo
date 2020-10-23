@@ -478,8 +478,10 @@ var tabs = (function(){
                    .concat(" - ")
                    .concat(date)
                    .concat(" - collateral: ")
-                   .concat((100*collateral).toFixed(2).toString())//is 150, should be 200
-                   .concat("% - price: ")
+                   .concat((100*collateral).toFixed(2).toString())
+                   .concat("% - leverage: ")
+                   .concat((1/(collateral-1)).toFixed(2).toString())
+                   .concat(" - price: ")
                    .concat((display_price).toFixed(8).toString())
                    .concat(" "));
         } else {

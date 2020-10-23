@@ -44,14 +44,14 @@ function create_tab_builder(div, selector){
     var option_qtrade = document.createElement("option");
     option_qtrade.innerHTML = "qtrade.io";
     option_qtrade.value = "qtrade.io";
-    var option_cmc = document.createElement("option");
-    option_cmc.innerHTML = "coinmarketcap.com";
-    option_cmc.value = "coinmarketcap.com";
+    //var option_cmc = document.createElement("option");
+    //option_cmc.innerHTML = "coinmarketcap.com";
+    //option_cmc.value = "coinmarketcap.com";
     var option_cp = document.createElement("option");
     option_cp.innerHTML = "coinpaprika.com";
     option_cp.value = "coinpaprika.com";
     website_text.appendChild(option_qtrade);
-    website_text.appendChild(option_cmc);
+    //website_text.appendChild(option_cmc);
     website_text.appendChild(option_cp);
     website_label = document.createElement("span");
     website_label.innerHTML = "website to get the price info";

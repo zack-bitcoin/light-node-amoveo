@@ -191,7 +191,7 @@ var lisp_compiler = (function(){
         return(vars_db);
     };
     function lisp2forth(s, vars, funs, depth){
-        console.log(s);
+        //console.log(s);
         if(!(depth)){depth = 0};
         if(!(funs)){funs = {}};
         if(s.length < 1){return([])};
@@ -225,7 +225,7 @@ var lisp_compiler = (function(){
                 var l1 = lisp2forth(code, vars, funs, lv);
                 var x2 = load_inputs(lv, 0)
                     .concat(l1);
-                console.log(load_inputs(lv, 0));
+                //console.log(load_inputs(lv, 0));
                 //console.log(JSON.stringify(s[0]));
                 //console.log(JSON.stringify(s[1]));
                 var l2  = lisp2forth(s.slice(1), vars, funs, depth);
@@ -290,8 +290,8 @@ var lisp_compiler = (function(){
                       (s.length === 3)){
                 var l1 = lisp2forth(s[1], vars, funs, depth);
                 var l2 = lisp2forth(s[2], vars, funs, depth);
-                console.log(JSON.stringify(s[1]));
-                console.log(JSON.stringify(l1));
+                //console.log(JSON.stringify(s[1]));
+                //console.log(JSON.stringify(l1));
                 return(l1
                        .concat(l2)
                        .concat(["==", "tuck", "drop", "drop"]));
@@ -449,10 +449,10 @@ var lisp_compiler = (function(){
         s = parse_integers(s);
         //console.log(JSON.stringify(s));
         s = to_lists(s);
-        console.log(JSON.stringify(s));
+        //console.log(JSON.stringify(s));
         s = lisp2forth(s, vars);
-        console.log(JSON.stringify(s));
         s = s.join(" ");
+        //console.log(s);
         s = " 100 >r ".concat(s);
         s = s.replaceAll(";", ";\n");
         var more_vars = x.vars.map(
