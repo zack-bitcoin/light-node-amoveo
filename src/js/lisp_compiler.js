@@ -1,6 +1,8 @@
 var lisp_compiler = (function(){
     var ops = {
-        print: {code: ["print"], ins:0},
+        "true": {code: ["1"], ins:0},
+        "false": {code: ["0"], ins:0},
+        print: {code: ["print"], ins:"any"},
         "return": {code: ["return"], ins: 3},
         nop: {code: ["nop"], ins: 0},
         fail: {code: ["fail"], ins: 0},
@@ -47,9 +49,10 @@ var lisp_compiler = (function(){
         ":": {code: [":"], ins: 3},
         def: {code: ["def"], ins: 3},
         ";": {code: [";"], ins: 0},
-        recurse: {code: ["recurse"], ins: "any"},
+        recurse: {code: ["recurse", "call"], ins: "any"},
         call: {code: ["call"], ins: 1},
         "!":{code:["!"], ins: 2},
+        "set!":{code:["swap", "!"], ins: 2},
         "@": {code: ["@"], ins: 1},
         cons: {code: ["cons"], ins: 2},
         "car@": {code: ["car"], ins: 2},
@@ -188,12 +191,15 @@ var lisp_compiler = (function(){
         return(vars_db);
     };
     function lisp2forth(s, vars, funs, depth){
+        console.log(s);
         if(!(depth)){depth = 0};
         if(!(funs)){funs = {}};
         if(s.length < 1){return([])};
         if(!(isNaN(s))){return([s])};
         if(vars[s]){return(vars[s])};
-        if(funs[s]){return([s])};
+        if(funs[s]){
+            //console.log("is fun 1");
+            return([s])};
         if(is_64(s)){return([s])};
         if(is_op(s)){return([s])};
 
@@ -219,6 +225,7 @@ var lisp_compiler = (function(){
                 var l1 = lisp2forth(code, vars, funs, lv);
                 var x2 = load_inputs(lv, 0)
                     .concat(l1);
+                console.log(load_inputs(lv, 0));
                 //console.log(JSON.stringify(s[0]));
                 //console.log(JSON.stringify(s[1]));
                 var l2  = lisp2forth(s.slice(1), vars, funs, depth);
@@ -256,12 +263,14 @@ var lisp_compiler = (function(){
                 //var l2 = let_setup_env(pairs, code, vars, funs, depth);
                 //return(L1 + L2);
                 var r = [];
+                var depth0 = depth;
                 for(var i = 0; i < pairs.length; i++){
                     var v = pairs[i][0];
                     var c = pairs[i][1];
                     if(!Array.isArray(v)){
                         var l1 = lisp2forth(c, vars, funs, depth+1);
                         var l3 = ["r@", depth, "+", "!"];
+                        depth += 1;
                         r = r.concat(l1)
                             .concat(l3);
                     } else {
@@ -272,7 +281,7 @@ var lisp_compiler = (function(){
                         //var l1 = let_setup_inputs(
                     }
                 };
-                return(r);
+                return(r.concat(lisp2forth(code, vars, funs, depth)));
                 //return(let_internal(pairs, code, vars, funs, depth));
             } else if((word === "let")){
                 errors = errors.concat([{type: "badly formed let statement"}]);
@@ -312,16 +321,17 @@ var lisp_compiler = (function(){
                     }
                 };
                 return(r.concat(r2));
+            } else if((word === "apply")){
+                var f = lisp2forth(s[1], vars, funs, depth);
+                var rand = s.slice(2);
+                return(do_fun(f, depth, rand, vars, funs));
             } else if(funs[word]) {
                 var rand = s.slice(1);
                 var ins = funs[word];
                 if(ins === rand.length){
-                    var m = [word, "@", "call"];
-                    if(depth > 0) {
-                        m = [word, "@", "r@", depth, "+", ">r", "call", "r>", "drop"];
-                    };
-                    var l1 = lisp2forth(rand, vars, funs, depth);
-                    return(l1.concat(m));
+                    //var m = [word, "@", "call"];
+                    //if(depth > 0) {
+                    return(do_fun([word, "@"], depth, rand, vars, funs));
                 } else {
                     errors = errors.concat([{type: "wrong number of inputs to function"}]);
                     return("error");
@@ -356,6 +366,16 @@ var lisp_compiler = (function(){
             };
         };
     };
+    function do_fun(word, depth, rand, vars, funs) {
+        var m = word.concat(["r@", depth, "+", ">r", "call", "r>", "drop"]);
+        var l1 = rand.map(function(r){
+            return(lisp2forth(r, vars, funs, depth));
+        });
+        l1 = l1.reduce(function(a, b){
+            return(a.concat(b));
+        }, []);
+        return(l1.concat(m));
+    };
     function is_op(word) {
         //if(chalang_compiler.ops[word]){
         if(ops[word]){
@@ -378,6 +398,9 @@ var lisp_compiler = (function(){
         var many = many0;
         var depth = depth0;
         var r = [];
+        if(many === 0){
+            return([]);
+        };
         if(depth === 0){
             r = ["r@", "!"];
             many -= 1;
@@ -416,7 +439,7 @@ var lisp_compiler = (function(){
         var s = remove_comments(page);
         s = add_spaces(s);
         var vars = get_vars(s);
-        console.log(vars);
+        console.log(JSON.stringify(vars));
         //console.log(JSON.stringify(s));
         x = remove_vars(s);
         s = x.s;
@@ -428,7 +451,7 @@ var lisp_compiler = (function(){
         s = to_lists(s);
         console.log(JSON.stringify(s));
         s = lisp2forth(s, vars);
-        //console.log(JSON.stringify(s));
+        console.log(JSON.stringify(s));
         s = s.join(" ");
         s = " 100 >r ".concat(s);
         s = s.replaceAll(";", ";\n");
@@ -457,12 +480,15 @@ var lisp_compiler = (function(){
     };
     function run(page){
         page = doit(page);
+        return(run2(page));
+    }
+    function run2(page){
         if(page === "error"){
             return(0);
         };
         var bytecode =
             chalang_compiler.doit(page);
-        var d = chalang_object.data_maker(1000, 1000, 50, 1000, [], [], chalang_object.new_state(0, 0));
+        var d = chalang_object.data_maker(10000, 10000, 50, 1000, [], [], chalang_object.new_state(0, 0));
         var x = chalang_object.run5(bytecode, d);
         return(x.stack);
         
@@ -487,25 +513,96 @@ var lisp_compiler = (function(){
       (@ foo ) 
       (square (@ foo)) )
 `;
-        console.log(run(s));
         var s = `
-(define (map f l)
-  (cond ((= l nil) nil)
-        (true (cons ((car l)
-                     (call (@ f)))
-                    (recurse f (cdr l))))))
 (define (square x) (* x x))
-(map (@ square) (cons nil 2))
+(define (quad x) (square (square x)))
+(quad 3)
 `;
-//        var s = `
-//(define (two y) (+ 2 y))
-//(define (one x) (+ 1 x))
-//(list one two (@ two) )
-//`;
-//(map 'square (tree 1 2 3 4))
-//; (map square (tree 1 2 3 4))
-        console.log(JSON.stringify(doit(s)));
+        //console.log(run(s));
+        var s = `
+; factorial with a global variable to store the intermediate value.
+(var sum)
+(define (f x)
+  (cond ((= x 0) (@ sum))
+        (true (list 
+           (! (* (@ sum) x) sum)
+           (drop (@ sum))
+           (recurse (- x 1))))))
+
+; purely functional factorial that stores intermediate values in the callstack.
+(define (f2 x)
+  (cond ((= x 0) 1)
+        (true 
+          (* x (recurse (- x 1))))))
+
+; factorial with tail-call optimization
+(define (f32 x a)
+  (cond ((= x 0) a)
+        (true
+          (recurse (- x 1) (* a x)))))
+(define (f3 x) (f32 x 1))
+
+
+(list
+ (! 1 sum)
+ (f 4)
+ (f2 4) 
+ (f3 4)
+ (print)
+)
+`;
+        var s = `
+(define (square x) (* x x))
+(define (sum a b) (+ a b))
+(define (odd? x) (rem x 2))
+(define (map f l)
+  (cond 
+    ((= l nil) nil)
+    (true 
+      (cons 
+       (apply f (car l))
+       (recurse f (cdr l))))))
+
+(define (fold f a l)
+  (cond ((= l nil) a)
+        (true (recurse f 
+                       (apply f (car l) a) 
+                       (cdr l)))))
+(define (filter f l)
+  (cond ((= l nil) nil)
+        ((apply f (car l))
+         (cons (car l)
+               (recurse f (cdr l))))
+        (true (filter f (cdr l)))))
+
+
+(list
+  (fold (@ sum) 0 (cons 5 (cons 4 (cons 3 nil))))
+  (map (@ square) (cons 4 (cons 3 (cons 2 nil))))
+  (filter (@ odd?) (cons 7 (cons 3 (cons 2 nil))))
+;  (apply (print (@ square)) 4)
+;  (odd? 4)
+)
+`;
+/*        
+        var s =`
+(define (one x) (+ x 1))
+(define (two f)
+  (list (car (cons 4 nil)) (call f)))
+(two (@ one))
+`;
+*/
+
+        //var unoptimized = doit(s);
+        //var optimized = chalang_jit.doit(unoptimized);
+        //console.log(unoptimized);
+        //console.log(optimized);
+        //run2(unoptimized);
+        //run2(optimized);
         console.log(JSON.stringify(run(s)));
+        //console.log(JSON.stringify(chalang_jit.doit(doit(s))));
+        //console.log(JSON.stringify(run(s)));
+        //console.log(JSON.stringify(run2(chalang_jit.doit(doit(s)))));
         return("ok");
     };
     return({

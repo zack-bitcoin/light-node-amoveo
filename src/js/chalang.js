@@ -314,7 +314,7 @@ function chalang_main() {
         return {i: i, d: d, g: (s + 30), s: "define op", r: (s+s)};
     }
     op_code[ops.print] = function(i, code, d) {
-        //console.log(JSON.stringify(d.stack));
+        console.log(JSON.stringify(d.stack));
         return {i: i, d: d, g: 0, s: "print op"};
     };
     op_code[ops.drop] = function(i, code, d) {
