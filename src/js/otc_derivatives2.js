@@ -771,15 +771,6 @@ function showSportEventFields(){
             */
         });
     }
-    /*
-    function propose_contract(db, callback) {
-        console.log("propose contract");
-        status.innerHTML = "status: <font color=\"green\">checking if you have enough credits, possibly puchasing more.</font>";
-        glossary.link(status, "messenger_credits");
-        return messenger_object.min_bal(1000000, function(){
-            return propose_contract2(db, callback)});
-    }
-    */
     function make_contract_proposal(db) {
         var period = default_period();//10000000;//only one period because there is only one bet.
         var maxprice = Math.floor((10000 * (db.our_amount_val)) / (db.their_amount_val + db.our_amount_val));
