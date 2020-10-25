@@ -60,13 +60,15 @@ function spend_tab_builder(div, selector){
                 var cid = V[0];
                 var type = parseInt(V[1]);
                 var sk = sub_accounts.key(keys.pub(), cid, type);
+                var sk = btoa(array_to_string(sk));
                 var balances_db = tabs.balances_db;
                 console.log(sk);
                 console.log(balances_db);
                 if(balances_db[sk] &&
                    balances_db[sk].limit){
-                    amount = amount *
-                        balances_db[sk].limit;
+                    amount = Math.floor(
+                        amount /
+                            balances_db[sk].limit);
                 };
                 var Nonce = ma[2] + 1;
                 var fee = 152050;
