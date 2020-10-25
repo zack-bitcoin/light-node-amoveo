@@ -25,9 +25,13 @@ function spend_tab_builder(div, selector){
 
     function calculate_max(){
         if(selector.value == "veo"){
-            merkle.request_proof("accounts", keys.pub(), function(x) {
-                amount_text.value = (x[1] / token_units()).toString();
+            var to = parse_address(recipient_text.value);
+            spend_tx.max_send_amount(keys.pub(), to, function(m, tx_type){
+                amount_text.value = (m / token_units()).toString();
             });
+            //merkle.request_proof("accounts", keys.pub(), function(x) {
+            //    amount_text.value = (x[1] / token_units()).toString();
+            //});
         } else {
             var V = JSON.parse(selector.value);
             var cid = V[0];
@@ -40,6 +44,48 @@ function spend_tab_builder(div, selector){
         };
     };
     function send(){
+        var to = parse_address(recipient_text.value);
+        var from = keys.pub();
+        var amount = Math.round(parseFloat(amount_text.value, 10)* token_units());
+        if(selector.value == "veo"){
+            spend_tx.make_tx(to, from, amount, function(tx){
+                var stx = keys.sign(tx);
+                post_txs([stx], function(msg){
+                    display.innerHTML = msg;
+                });
+            });
+        } else {
+            rpc.post(["account", keys.pub()], function(ma) {
+                var V = JSON.parse(selector.value);
+                var cid = V[0];
+                var type = parseInt(V[1]);
+                var sk = sub_accounts.key(keys.pub(), cid, type);
+                var balances_db = tabs.balances_db;
+                console.log(sk);
+                console.log(balances_db);
+                if(balances_db[sk] &&
+                   balances_db[sk].limit){
+                    amount = amount *
+                        balances_db[sk].limit;
+                };
+                var Nonce = ma[2] + 1;
+                var fee = 152050;
+                var tx = ["sub_spend_tx",
+                          keys.pub(),
+                      Nonce,
+                      fee, to, amount,
+                      cid, type];
+                console.log(JSON.stringify(tx));
+                return(0);
+                var stx = keys.sign(tx);
+                post_txs([stx], function(msg){
+                    display.innerHTML = msg;
+                });
+            });
+        };
+    };
+    /*
+    function send_old(){
         rpc.post(["account", keys.pub()], function(ma) {
         //merkle.request_proof("accounts", keys.pub(), function(ma) {
             var Nonce = ma[2] + 1;
@@ -83,4 +129,5 @@ function spend_tab_builder(div, selector){
             };
         });
     };
+    */
 };

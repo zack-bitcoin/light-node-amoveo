@@ -1,7 +1,9 @@
 
-var spend_tx = (function spend_1() {
+var spend_tx = (function () {
     var div = document.createElement("div");
-    document.body.appendChild(div);
+    if(!(configure["spend_tx_interface"] === false)){
+        document.body.appendChild(div);
+    };
     div.appendChild(document.createElement("br"));
     var spend_amount = document.createElement("INPUT");
     spend_amount.setAttribute("type", "text");
@@ -19,6 +21,17 @@ var spend_tx = (function spend_1() {
     raw_button = button_maker2("print unsigned transaction to screen", print_tx);
     var error_msg = document.createElement("div");
     var calculate_max_send_button = button_maker2("calculate max send amount", function() {
+	var to = parse_address(spend_address.value);
+        var Amount = parseFloat(spend_amount.value, 10);
+	if (to == 0) {
+	    error_msg.innerHTML = "please input the recipient's address";
+            return(0);
+	};
+        max_send_amount(keys.pub(), to, function(A2, tx_type){
+	    //var A2 = Amount - fee - 1;
+	    spend_amount.value = (A2 / token_units()).toString();
+        });
+                        /*
 	keys.check_balance(function(Amount) {
             var to0 = spend_address.value;
 	    var to = parse_address(to0);
@@ -33,6 +46,7 @@ var spend_tx = (function spend_1() {
 
             });
 	});
+                        */
     });
     div.appendChild(calculate_max_send_button);
     div.appendChild(document.createElement("br"));
@@ -100,7 +114,6 @@ var spend_tx = (function spend_1() {
             };
         });
     };
-
     function spend_tokens() {
         parse_inputs(function(tx){
             var stx = keys.sign(tx);
@@ -109,8 +122,18 @@ var spend_tx = (function spend_1() {
             });
         });
     };
+    function max_send_amount(pub, to, callback){
+        rpc.post(["account", pub], function(acc){
+            var bal = acc[1];
+            fee_lookup(to, function(fee, tx_type){
+                callback(bal-fee-1, tx_type);
+            });
+            //return(fee_lookup(to, callback));//callback takes 2 inputs, fee and tx_type.
+        });
+    };
     return({
-        make_tx:make_tx
+        make_tx:make_tx,
+        max_send_amount: max_send_amount
     });
 })();
 

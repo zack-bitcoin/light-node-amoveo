@@ -18,6 +18,10 @@ var tabs = (function(){
     var create_selector = document.createElement("select");
     var pool_selector = document.createElement("select");
     var spend_selector = document.createElement("select");
+        load_selector_options(swap_selector, ["veo"]);
+        load_selector_options(spend_selector, ["veo"]);
+        load_selector_options(create_selector, ["veo"]);
+        load_selector_options(pool_selector, ["veo"]);
     
     div.appendChild(balances);
     div.appendChild(display);
@@ -180,37 +184,45 @@ var tabs = (function(){
     };
     var balances_db = {};
     var update_frequency = 0;//1000 * 60 * 10;//by default don't re-check the same balance if it has been less than 10 minutes.
+    var loaded_into_selector = {};
     function show_balances() {
         var sub_keys = Object.keys(balances_db);
         var s = "";
         balances.innerHTML = "";
-        swap_selector.innerHTML = "";
-        spend_selector.innerHTML = "";
-        create_selector.innerHTML = "";
-        pool_selector.innerHTML = "";
-        load_selector_options(swap_selector, ["veo"]);
-        load_selector_options(spend_selector, ["veo"]);
-        load_selector_options(create_selector, ["veo"]);
-        load_selector_options(pool_selector, ["veo"]);
+        //swap_selector.innerHTML = "";
+        //spend_selector.innerHTML = "";
+        //create_selector.innerHTML = "";
+        //pool_selector.innerHTML = "";
+        
+        //load_selector_options(swap_selector, ["veo"]);
+        //load_selector_options(spend_selector, ["veo"]);
+        //load_selector_options(create_selector, ["veo"]);
+        //load_selector_options(pool_selector, ["veo"]);
         for(var i = 0; i<sub_keys.length; i++){
             //console.log(sub_keys[i]);
             //console.log(balances_db[sub_keys[i]]);
             var sa = balances_db[sub_keys[i]];
             if(sa &&
                sa.string){
+                //(!(loaded_into_selector[sub_keys[i]]))){
+                 //  loaded_into_selector[sub_keys[i]] = true;
                 var temp = document.createElement("span");
                 var s = sa.string;
                 temp.innerHTML = s.concat("<br>");
                 balances.appendChild(temp);
-                var option = document.createElement("option");
-                option.innerHTML = s;
-                option.value = JSON.stringify([sa.cid, sa.type]);
-                if(sa.type !== 0){
-                    swap_selector.appendChild(option);
+                if(!(loaded_into_selector[sub_keys[i]])){
+                    loaded_into_selector[sub_keys[i]] = true;
+
+                    var option = document.createElement("option");
+                    option.innerHTML = s;
+                    option.value = JSON.stringify([sa.cid, sa.type]);
+                    if(sa.type !== 0){
+                        swap_selector.appendChild(option);
+                    };
+                    spend_selector.appendChild(option.cloneNode(true));
+                    create_selector.appendChild(option.cloneNode(true));
+                    pool_selector.appendChild(option.cloneNode(true));
                 };
-                spend_selector.appendChild(option.cloneNode(true));
-                create_selector.appendChild(option.cloneNode(true));
-                pool_selector.appendChild(option.cloneNode(true));
             };
         };
     };
@@ -293,6 +305,7 @@ var tabs = (function(){
                                 if(is_ticker_format(ot1)){
                                     var ticker = decode_ticker(ot1);
                                     var limit = coll_limit(ot1);
+                                    balances_db[sk].limit = limit;
                                     var ticker_symbol = symbol(ot1);
                                     s = s.concat("ticker: v")
                                         .concat(ticker);
@@ -345,6 +358,7 @@ var tabs = (function(){
          //   }, 100);
         //};
     };
+    /*
     function load_balances_old(accs, ls, s, callback) {
         //console.log("load balances");
         //console.log(accs);
@@ -430,6 +444,7 @@ var tabs = (function(){
             return(load_balances(accs.slice(1), ls, s, callback));
         });
     };
+    */
     function change_tab(To) {
         return(function(){
             current_tab.innerHTML = "";
