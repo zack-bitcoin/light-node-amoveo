@@ -1124,6 +1124,11 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                             //var price_a = Limit * loss / gain;
                             var price_a = Limit * gain / loss;
                             var price_b = Limit / P;
+                            if(gain_currency[1] === 2){
+                                price_a = gain/loss;
+                                price_b = 1/P;
+                                gain_ticker_direction = " iv";
+                            };
                             //var price_b = Limit * P;
                             console.log(JSON.stringify([price_a, price_b, Limit, P]));
                             var slippage = (Math.abs(price_a - price_b))/price_b;
@@ -1142,9 +1147,6 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                                 + trading_fees;
                             //console.log(total_fees);
                             var gain_ticker_direction = " v";
-                            if(gain_currency[1] === 2){
-                                gain_ticker_direction = " iv";
-                            };
                             //console.log(gain_currency);
                             var show_price =
                                 (price_a).toFixed(8).toString()
@@ -1187,6 +1189,7 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                     };
                     display.innerHTML = to_display;
                     console.log(JSON.stringify(tx));
+                    //return(0);
                     var stx = keys.sign(tx);
                     publish_tx_button.onclick = function(){
                         post_txs([stx], function(msg){

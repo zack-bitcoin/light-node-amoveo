@@ -77,8 +77,8 @@ function spend_tab_builder(div, selector){
                       Nonce,
                       fee, to, amount,
                       cid, type];
-                console.log(JSON.stringify(tx));
-                return(0);
+                //console.log(JSON.stringify(tx));
+                //return(0);
                 var stx = keys.sign(tx);
                 post_txs([stx], function(msg){
                     display.innerHTML = msg;
