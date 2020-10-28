@@ -63,7 +63,7 @@ function create_tab_builder(div, selector){
     stablecoin_div.appendChild(br());
     var coll_text = text_input("collateralization", stablecoin_div);
     stablecoin_div.appendChild(br());
-    var starting_price_text = text_input("starting price on website", stablecoin_div);
+    var starting_price_text = text_input("starting price of veo in your target currency", stablecoin_div);
     stablecoin_div.appendChild(br());
     var ticker_text = text_input("the name of the thing being measured. for example: 'BTC' ", stablecoin_div);
     stablecoin_div.appendChild(br());
