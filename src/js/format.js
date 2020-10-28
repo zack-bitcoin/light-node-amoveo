@@ -247,21 +247,6 @@ function read_veo(X) {
     return Math.floor(parseFloat(X.value, 10) * token_units());
 }
 
-function fee_checker(address, Callback1, Callback2) {
-    rpc.post(["account", address],
-			function(result) {
-			    if ((result == 0) || (result == "empty")) {
-				merkle.request_proof("governance", 14, function(gov_fee) {
-				    var fee = tree_number_to_value(gov_fee[2]) + 50;
-				    Callback1(fee);
-				   });
-			    } else {
-				merkle.request_proof("governance", 15, function(gov_fee) {
-				    var fee = tree_number_to_value(gov_fee[2]) + 50;
-				    Callback2(fee);
-				});
-			    }});
-};
 
 function send_encrypted_message(imsg, to, callback) {
     var emsg = keys.encrypt(imsg, to);

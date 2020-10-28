@@ -38,7 +38,11 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                 if(!(acc == "empty")){
                     balance = acc[1];
                 };
-                amount_input.value = (balance / token_units()).toFixed(8);
+                var limit = 1;
+                if(currency[1] === 1){
+                    limit = tabs.balances_db[trie_key].limit;
+                };
+                amount_input.value = (balance * limit / token_units()).toFixed(8);
                 
             });
         };
@@ -180,7 +184,14 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
             display.innerHTML = "cannot trade something for itself.";
             return(0);
         };
-        var A = Math.round(parseFloat(amount_input.value) * token_units());
+        var A = parseFloat(amount_input.value) * token_units();
+        if(Type1 === 1){
+            var trie_key = sub_accounts.key(keys.pub(), CID1, Type1);
+            trie_key = btoa(array_to_string(trie_key));
+            limit = tabs.balances_db[trie_key].limit;
+            A = A / limit;
+        };
+        A = Math.round(A);
         return(txs_maker(A, CID1, Type1, CID2, Type2,
                          function(txs, markets){
                             return(make_tx2(

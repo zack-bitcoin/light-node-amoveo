@@ -62,9 +62,12 @@ function pool_tab_builder(pool_tab, selector, hide_non_standard) {
                             var key2 = mid2key(mid2);
                             var key3 = mid2key(mid3);
                             var txs = [];
-                            merkle.request_proof("sub_accounts", key1, function(sa1) {
-                                merkle.request_proof("sub_accounts", key2, function(sa2) {
-                                    merkle.request_proof("sub_accounts", key3, function(sa3) {
+                            rpc.post(["sub_accounts", key1], function(sa1) {
+                                rpc.post(["sub_accounts", key2], function(sa2) {
+                                    rpc.post(["sub_accounts", key3], function(sa3) {
+                            //merkle.request_proof("sub_accounts", key1, function(sa1) {
+                             //   merkle.request_proof("sub_accounts", key2, function(sa2) {
+                              //      merkle.request_proof("sub_accounts", key3, function(sa3) {
                                         console.log(JSON.stringify([CID, sa1, sa2, sa3, key1, key2, key3]));
                                         var make_tx = function(mid, sa, market){
                                             if(sa == "empty"){
@@ -391,6 +394,16 @@ So we only need to check the 2 limits of the range, and go with whichever price 
                              CID, 1,
                              CID, 2]]);
                     };
+                    var spendmax = 0;
+                    txs2.map(function(tx){
+                        spendmax = Math.max(spendmax, tx[5]);
+                        spendmax = Math.max(spendmax, tx[6]);
+                    });
+                    txs2 = txs2.concat([
+                        ["contract_use_tx",0,0,0,
+                         CID, spendmax*2, 2, SourceCID, SourceType]
+                    ]);
+                    
                     return(lookup_price3(swap_txs, txs2, Amount, (A01/A11), mid1, mid2, mid3, CID, SourceCID, SourceType, market1, market2, market3, SpentCurrency, db));
                 });
             });
