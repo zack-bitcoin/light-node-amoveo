@@ -1163,9 +1163,10 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                                 (Limit * gain / token_units()).toFixed(8).toString();
                             if(gain_currency[1] === 2){
                                 to_receive = (gain / token_units()).toFixed(8).toString();
-                                price_a = (Limit/(1 - (price_a / Limit)));
-                                price_b = Limit / (1 - P);
-                                slippage = (Math.abs(price_a - price_b))/price_b;
+                                gain_ticker_direction = " iv";
+                                //price_a = (Limit/(1 - (price_a / Limit)));
+                                //price_b = Limit / (1 - P);
+                                //slippage = (Math.abs(price_a - price_b))/price_b;
                             };
                             var show_price =
                                 (price_a).toFixed(8).toString()
