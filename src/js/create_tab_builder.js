@@ -61,16 +61,16 @@ function create_tab_builder(div, selector){
 
     var time_text = text_input("the date and time when the value is measured, in China Standard Time zone. GMT + 8. example: '12:00 25-12-2020'", stablecoin_div);
     stablecoin_div.appendChild(br());
-    var coll_text = text_input("collateralization", stablecoin_div);
+    var coll_text = text_input("collateralization (i.e. \"2\" means 200%)", stablecoin_div);
     stablecoin_div.appendChild(br());
-    var starting_price_text = text_input("starting price of veo in your target currency", stablecoin_div);
+    var starting_price_text = text_input("starting price of veo in your target currency (example: 0.002 would be for 0.002 BTC per VEO)", stablecoin_div);
     stablecoin_div.appendChild(br());
     var ticker_text = text_input("the name of the thing being measured. for example: 'BTC' ", stablecoin_div);
     stablecoin_div.appendChild(br());
 
     //var max_price_text = text_input("maximum value we can measure with this oracle", div);
     //div.appendChild(br());
-    var amount_text = text_input("amount to invest in liquidity shares", div);
+    var amount_text = text_input("amount of source currency to invest in liquidity shares", div);
     div.appendChild(br());
     div.appendChild(current_div);
 /*
