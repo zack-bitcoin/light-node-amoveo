@@ -1159,16 +1159,19 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                             //console.log(total_fees);
                             var gain_ticker_direction = " v";
                             //console.log(gain_currency);
+                            var to_receive = 
+                                (Limit * gain / token_units()).toFixed(8).toString();
+                            if(gain_currency[1] === 2){
+                                to_receive = (gain / token_units()).toFixed(8).toString();
+                                price_a = (Limit/(1 - (price_a / Limit)));
+                                price_b = Limit / (1 - P);
+                                slippage = (Math.abs(price_a - price_b))/price_b;
+                            };
                             var show_price =
                                 (price_a).toFixed(8).toString()
                                 .concat(gain_ticker_direction)
                                 .concat(ticker)
                                 .concat(" per X");
-                            var to_receive = 
-                                (Limit * gain / token_units()).toFixed(8).toString();
-                            if(gain_currency[1] === 2){
-                                to_receive = (gain / token_units()).toFixed(8).toString();
-                            };
                             
                             to_display = "you can sell "
                                 .concat((loss / token_units()).toString())

@@ -270,7 +270,7 @@ So we only need to check the 2 limits of the range, and go with whichever price 
                     C = K3;
                     var P_upper_limit = (1/(Math.pow(A, 4) + 2*A*A*C + C*C))*(Math.pow(A, 4) - A*A*B + A*A*C + B*C - 2*Math.sqrt(Math.pow(A, 4)*B*C - A*A*B*B*C + A*A*B*C*C));
 
-                    if(P_lower_limit > (0.001 + P_upper_limit)) {
+                    if(P_lower_limit > (0.003 + P_upper_limit)) {
                         console.log(P_lower_limit);
                         console.log(P_upper_limit);
                         console.log("impossible error");
