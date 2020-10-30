@@ -507,15 +507,32 @@ IA = B*(2PA-1)
             sub2_worth += gain2*market2[7]/market2[8];
             sub1_worth += gain3*market3[4]/market3[8];
             sub2_worth += gain3*market3[7]/market3[8];
-            
 
+            var sk = sub_accounts.key(keys.pub(), cid, 1);
+            sk = btoa(array_to_string(sk));
+            console.log(cid);
+            console.log(sk);
+            console.log(JSON.stringify(tabs.balances_db[sk]));
+            var type1string = ""
+                .concat((sub1_worth / token_units()).toString())
+                .concat(" of subcurrency type 1. <br>");
+            if(tabs.balances_db[sk].ticker_symbol){
+                var limit = tabs.balances_db[sk].limit;
+                type1string = ""
+                    .concat((limit * sub1_worth / token_units()).toString())
+                    .concat(" of ")
+                    .concat(tabs.balances_db[sk].ticker_symbol)
+                    .concat(" <br>");
+            };
+            
             display.innerHTML = "you can sell "
                 .concat((loss / token_units()).toString())
-                .concat(" to gain liquidity shares that are currently worth: <br>")
+                .concat(" of the source currency to gain liquidity shares that are currently worth: <br>")
                 .concat((source_worth / token_units()).toString())
                 .concat(" of source currency. <br>")
-                .concat((sub1_worth / token_units()).toString())
-                .concat(" of subcurrency type 1. <br>")
+                .concat(type1string)
+                //.concat((sub1_worth / token_units()).toString())
+                //.concat(" of subcurrency type 1. <br>")
                 .concat((sub2_worth / token_units()).toString())
                 .concat(" of subcurrency type 2. <br>")
                 .concat("");

@@ -307,6 +307,7 @@ var tabs = (function(){
                                     var limit = coll_limit(ot1);
                                     balances_db[sk].limit = limit;
                                     var ticker_symbol = symbol(ot1);
+                                    balances_db[sk].ticker_symbol = "v".concat(ticker_symbol);
                                     s = s.concat("ticker: v")
                                         .concat(ticker);
                                     if(sub.type === 1){

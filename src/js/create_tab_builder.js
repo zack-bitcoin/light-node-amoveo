@@ -3,7 +3,7 @@ function create_tab_builder(div, selector){
     var ZERO = btoa(array_to_string(integer_to_array(0, 32)));
     var display = document.createElement("div");
     var title = document.createElement("h3");
-    title.innerHTML = "Create a new smart contract and market";
+    title.innerHTML = "Create a new synthetic asset and a market for it ";
     div.appendChild(title);
     div.appendChild(br());
     div.appendChild(display);
@@ -20,7 +20,7 @@ function create_tab_builder(div, selector){
     //div.appendChild(stablecoin_button);
     //div.appendChild(br());
     var selector_label = document.createElement("span");
-    selector_label.innerHTML = "source currency: ";
+    selector_label.innerHTML = "source currency (i.e. the collateral backing the synthetic asset): ";
     div.appendChild(selector_label);
     div.appendChild(selector);
     div.appendChild(br());
@@ -53,6 +53,8 @@ function create_tab_builder(div, selector){
     website_text.appendChild(option_qtrade);
     website_text.appendChild(option_cmc);
     website_text.appendChild(option_cp);
+    var ticker_text = text_input("Ticker of Synthetic Asset (i.e. BTC)", stablecoin_div);
+    stablecoin_div.appendChild(br());
     website_label = document.createElement("span");
     website_label.innerHTML = "website to get the price info";
     stablecoin_div.appendChild(website_label);
@@ -63,14 +65,14 @@ function create_tab_builder(div, selector){
     stablecoin_div.appendChild(br());
     var coll_text = text_input("collateralization (i.e. \"2\" means 200%)", stablecoin_div);
     stablecoin_div.appendChild(br());
-    var starting_price_text = text_input("starting price of veo in your target currency (example: 0.002 would be for 0.002 BTC per VEO)", stablecoin_div);
+    var starting_price_text = text_input("starting price of veo in your target currency (i.e. 0.002 BTC per VEO)", stablecoin_div);
     stablecoin_div.appendChild(br());
-    var ticker_text = text_input("the name of the thing being measured. for example: 'BTC' ", stablecoin_div);
-    stablecoin_div.appendChild(br());
+//    var ticker_text = text_input("the name of the thing being measured. for example: 'BTC' ", stablecoin_div);
+//    stablecoin_div.appendChild(br());
 
     //var max_price_text = text_input("maximum value we can measure with this oracle", div);
     //div.appendChild(br());
-    var amount_text = text_input("amount of source currency to invest in liquidity shares", div);
+    var amount_text = text_input("amount of source currency to put into the market as liquidity", div);
     div.appendChild(br());
     div.appendChild(current_div);
 /*
