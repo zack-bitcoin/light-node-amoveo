@@ -1088,6 +1088,114 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
         //return(make_tx2(txs, Paths[0][0], Paths[0][Paths[0].length - 1]));
     };
     function make_tx2(txs, markets, spend_currency, gain_currency) {
+        var trading_fees = 0;
+        for(var i = 0; i<txs.length; i++){
+            if(txs[i][0] == "market_swap_tx"){
+                trading_fees += txs[i][5] * 0.002;//hard coded governance fee
+            }
+        };
+        var loss = calculate_loss(spend_currency, txs, markets) - calculate_gain(spend_currency, txs, markets);
+        var gain = calculate_gain(gain_currency, txs, markets) - calculate_loss(gain_currency, txs, markets);
+        var tx_price = loss/gain;
+        get_oracle_text(gain_currency[0], function(gain_oracle_text){
+            get_contract(gain_currency[0], function(gain_contract){
+                get_oracle_text(spend_currency[0], function(spend_oracle_text){
+                    get_contract(spend_currency[0], function(spend_contract){
+                        console.log(gain_contract);
+                        console.log(spend_contract);
+                        
+                        multi_tx.make(txs, function(tx){
+                            var gain_db = decode_oracle(gain_oracle_text, gain_contract, gain_currency, markets);
+                            var spend_db = decode_oracle(spend_oracle_text, spend_contract, spend_currency, markets);
+                            //var slippage = gain_db.slippage + spend_db.slippage;
+                            var total_fees =
+                                tx[3]//mining fee
+                                + (slippage * loss)//slippage loss
+                                + trading_fees;
+                            var price = gain * gain_db.limit / loss / spend_db.limit;
+                            var price_old = gain_db.price_b / spend_db.price_b;
+                            var slippage = Math.abs(price - price_old)/price_old;
+                            //console.log(JSON.stringify([slippage, price, price_old, gain, loss, gain_db.limit, spend_db.limit, gain_db.price_b, spend_db.price_b]));
+                            var show_price = price.toFixed(8).toString()
+                                .concat(gain_db.ticker)
+                                .concat(" per ")
+                                .concat(spend_db.ticker);
+                            var to_display = "you can sell "
+                                .concat(((loss * spend_db.limit)/ token_units()).toString())
+                                .concat(spend_db.ticker)
+                                .concat(" <br>to receive ")
+                                .concat(((gain * gain_db.limit)/ token_units()).toString())
+                                .concat(gain_db.ticker)
+                                .concat(" <br>at a price of: ")
+                                .concat(show_price)
+                                .concat(" <br>slippage: ")
+                                .concat((slippage).toFixed(4).toString())
+                                .concat(" <br>veo fees: ")
+                                .concat(((trading_fees + tx[3])/token_units()).toFixed(8).toString());
+                            display.innerHTML = to_display;
+                            var stx = keys.sign(tx);
+                            publish_tx_button.onclick = function(){
+                                post_txs([stx], function(msg){
+                                    display.innerHTML = msg;
+                                    keys.update_balance();
+                                });
+                            };
+                        });
+                    });
+                });
+            });
+        });
+    };
+    function decode_oracle(text, contract, currency, markets){
+        if(contract === 0){
+            return({
+                price_b: 1,
+                limit: 1,
+                slippage: 0,
+                ticker: " veo"
+            });
+        };
+        var source = [contract[8], contract[9]];
+        console.log(JSON.stringify([source, currency]));
+        var mid1 = new_market.mid(source[0], currency[0], 0, 1);
+        var mid2 = new_market.mid(source[0], currency[0], 0, 2);
+        var mid3 = new_market.mid(currency[0], currency[0], 1, 2);
+        var market1 = get_market(mid1, markets);
+        var market2 = get_market(mid2, markets);
+        var market3 = get_market(mid3, markets);
+        var P = price_estimate(market1, market2, market3);//value of a stablecoin in veo. between 0 and 1, 1 means the margin is used up.
+        if(currency[1] === 2){
+            P = 1-P;
+        };
+        var r = {
+            ticker: "?",
+            price_b: 1/P,
+            limit: 1,
+            slippage: 0
+        };
+        if(text && (!(text === 0))){
+            text = atob(text[1]);
+            if(tabs.is_ticker_format(text)){
+                var limit = tabs.coll_limit(text);
+                //var ticker = tabs.symbol(text);
+                var front = " iv";
+                if(currency[1] === 1){
+                    //r.price = limit * gain / loss;
+                    r.limit = limit;
+                    r.price_b = limit / P;
+                    front = " v";
+                }
+                r.ticker = front
+                    .concat(tabs.symbol(text));
+                //r.to_receive = limit * gain;
+                //r.slippage = Math.abs(r.price - r.price_b)/r.price_b;
+            };
+        };
+        return(r);
+    };
+
+     /*   
+    function make_tx2_old(txs, markets, spend_currency, gain_currency) {
         //look up oracle text
         multi_tx.make(txs, function(tx){
             //var maximized = read_max(currencies, apply(T, M), cid2, type2);
@@ -1131,7 +1239,7 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                             //var price = loss / Limit / gain;
                             //var price_a = 1/price;
                             console.log(JSON.stringify([gain, loss, Limit, P]));
-                            var price = gain / Limit / loss;
+                            //var price = gain / Limit / loss;
                             //var price_a = Limit * loss / gain;
                             var price_a = Limit * gain / loss;
                             var price_b = Limit / P;
@@ -1164,9 +1272,6 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                             if(gain_currency[1] === 2){
                                 to_receive = (gain / token_units()).toFixed(8).toString();
                                 gain_ticker_direction = " iv";
-                                //price_a = (Limit/(1 - (price_a / Limit)));
-                                //price_b = Limit / (1 - P);
-                                //slippage = (Math.abs(price_a - price_b))/price_b;
                             };
                             var show_price =
                                 (price_a).toFixed(8).toString()
@@ -1178,33 +1283,19 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                                 .concat((loss / token_units()).toString())
                                 .concat(" X<br> price is ")
                                 .concat(show_price)
-                            //.concat((1/price).toFixed(8).toString())
-                            /*
-                                .concat((price_a).toFixed(8).toString())
-                                .concat(" v")
-                                .concat(ticker)
-                                .concat(" per X")
-                            */
                                 .concat("<br> slippage is ")
-                            //.concat(((1/price)-(P*Limit)).toFixed(8).toString())
                                 .concat((slippage * 100).toFixed(3).toString())
                                 .concat("% <br> you receive ")
-                            //.concat((Limit * gain / token_units()).toFixed(8).toString())
                                 .concat(to_receive)
                                 .concat(gain_ticker_direction)
-                                //.concat(" v")
                                 .concat(ticker)
                                 .concat("<br>veo fees: ")
                                 .concat(((trading_fees + tx[3])/token_units()).toFixed(8).toString())
-//                                .concat("<br>portion fee: ")
-//                                .concat((slippage*100).toFixed(2).toString())
-//                                .concat("%")
                                 .concat("");
                         };
                     };
                     display.innerHTML = to_display;
                     console.log(JSON.stringify(tx));
-                    //return(0);
                     var stx = keys.sign(tx);
                     publish_tx_button.onclick = function(){
                         post_txs([stx], function(msg){
@@ -1216,6 +1307,21 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
             }, get_ip(), 8090);
         });
     };
+    */
+    function get_oracle_text(cid, callback){
+        if(cid === ZERO){ return(callback(0)); }
+        rpc.post(["read", 3, cid], function(x) {
+            return(callback(x));
+        }, get_ip(), 8090);
+    };
+    function get_contract(cid, callback){
+        if(cid === ZERO){ return(callback(0)); }
+        rpc.post(["contracts", cid], function(x){
+            return(callback(x));
+        });
+    };
+                        
+            
     function price_estimate(market1, market2, market3) {
         var K1 = market1[4] * market1[7];
         var K2 = market2[4] * market2[7];
