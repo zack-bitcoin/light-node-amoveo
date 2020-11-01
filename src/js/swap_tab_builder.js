@@ -122,12 +122,36 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                     var button2_text = " inverse contract ";
                     if(ticker_bool){
                         //console.log("about to decode");
-                        text = tabs.decode_ticker(text, p_est);
+                        stable_text = tabs.decode_ticker(text, p_est, "stablecoin");
+                        long_text = tabs.decode_ticker(text, p_est, "long-veo");
                         var ticker = "v".concat(tabs.symbol(text0));
                         var button1_text = ticker;
                         var button2_text =
                             " i".concat(ticker);
-                    };
+                        s = s
+                        .concat("\"")
+                        .concat(stable_text)
+                            .concat("\"~ ")
+                            .concat("; volume: ")
+                            .concat((contracts[0][11] / token_units()).toFixed(2).toString())
+                            .concat("<button onclick=\"tabs.swap.cid('")
+                            .concat(cid)
+                            .concat("'); tabs.swap.type(1);\"> buy ")
+                            .concat(button1_text)
+                            .concat(" </button><br>")
+                            .concat("");
+                        s = s
+                            .concat("\"")
+                            .concat(long_text)
+                            .concat("\"~ ")
+                            .concat("<button onclick=\"tabs.swap.cid('")
+                            .concat(cid)
+                            .concat("'); tabs.swap.type(2);\"> buy ")
+                            .concat(button2_text)
+                            .concat(" </button><br>")
+                            .concat("");
+                        
+                    } else {
                     button_text = ""
                         .concat("<button onclick=\"tabs.swap.cid('")
                         .concat(cid)
@@ -147,12 +171,13 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                         .concat((contracts[0][11] / token_units()).toString())
                         .concat(button_text)
                         .concat("<br>")
-                        .concat("");
+                            .concat("");
+                    };
                 };
             }
-                    display_contracts2(div, contracts.slice(1), s);
+                        display_contracts2(div, contracts.slice(1), s);
+                    });
                 });
-            });
             });
         }, get_ip(), 8090);//p2p derivatives server
     };
@@ -1129,8 +1154,8 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                                 .concat(" <br>at a price of: ")
                                 .concat(show_price)
                                 .concat(" <br>slippage: ")
-                                .concat((slippage).toFixed(4).toString())
-                                .concat(" <br>veo fees: ")
+                                .concat((slippage*100).toFixed(2).toString())
+                                .concat("% <br>veo fees: ")
                                 .concat(((trading_fees + tx[3])/token_units()).toFixed(8).toString());
                             display.innerHTML = to_display;
                             var stx = keys.sign(tx);

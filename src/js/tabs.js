@@ -470,7 +470,7 @@ var tabs = (function(){
         var ticker = l[2].split("= ")[1];
         return(ticker);
     };
-    function decode_ticker(x, price) {
+    function decode_ticker(x, price, kind) {
         var l = x.split(";");
         //var ticker = l[2].split("= ")[1];
         var ticker = symbol(x);
@@ -488,17 +488,30 @@ var tabs = (function(){
         var collateral = 1 + (((1-price)/price));
         //var collateral = 1 + ((price/(1-price)));
         var display_price = Max2 / ((price));
+        var coll_string = ""
+            .concat(" - collateral: ")
+            .concat((100*collateral).toFixed(2).toString())
+            .concat("%");
+        var lev_string = ""
+            .concat(" - leverage: ")
+            .concat((1/(collateral-1)).toFixed(2).toString());
+        var coll_lev_string =
+            coll_string
+            .concat(lev_string);
+        if(kind === "stablecoin"){
+            coll_lev_string = coll_string;
+        } else if(kind === "long-veo"){
+            coll_lev_string = lev_string;
+            display_price = 1-price;
+        };
         if(price){
             return("v"
                    .concat(ticker)
                    .concat(" - ")
                    .concat(date)
-                   .concat(" - collateral: ")
-                   .concat((100*collateral).toFixed(2).toString())
-                   .concat("% - leverage: ")
-                   .concat((1/(collateral-1)).toFixed(2).toString())
+                   .concat(coll_lev_string)
                    .concat(" - price: ")
-                   .concat((display_price).toFixed(8).toString())
+                   .concat((display_price).toFixed(3).toString())
                    .concat(" "));
         } else {
             //console.log(display_price);
