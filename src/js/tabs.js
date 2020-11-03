@@ -494,7 +494,8 @@ var tabs = (function(){
             .concat("%");
         var lev_string = ""
             .concat(" - leverage: ")
-            .concat((1/(collateral-1)).toFixed(2).toString());
+            .concat((1/(collateral-1)).toFixed(2).toString())
+            .concat("x");
         var coll_lev_string =
             coll_string
             .concat(lev_string);
