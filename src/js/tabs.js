@@ -504,8 +504,12 @@ var tabs = (function(){
             coll_lev_string = lev_string;
             display_price = 1-price;
         };
+        var ticker_front = "v";
+        if(kind === "long-veo"){
+            ticker_front = "iv";
+        };
         if(price){
-            return("v"
+            return(ticker_front
                    .concat(ticker)
                    .concat(" - ")
                    .concat(date)
