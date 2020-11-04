@@ -4,7 +4,8 @@ function headers_main() {
     //console.log(mode);
     if (mode == "test") {
         mode = "test";
-        server_port.value = "3010";
+        //server_port.value = "3010";
+        server_port.value = "8080";
         console.log(server_ip.value);
         if (server_ip.value == "") {
             server_ip.value = "127.0.0.1";
@@ -31,7 +32,7 @@ function headers_main() {
     var headers_db = {};//store valid headers by hash
     var INITIAL_DIFFICULTY;
     var headers_batch = 5000;
-    if (mode == "test") {
+    if(false) {//(mode == "test") {
 	//INITIAL_DIFFICULTY = 2500;
 	INITIAL_DIFFICULTY = 10;
 	retarget_frequency = 12;

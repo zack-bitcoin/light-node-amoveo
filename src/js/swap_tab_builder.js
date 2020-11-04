@@ -30,7 +30,7 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
             });
         } else {
             currency = JSON.parse(currency);
-            console.log(currency);
+            //console.log(currency);
             var trie_key = sub_accounts.key(keys.pub(), currency[0], currency[1]);
             trie_key = btoa(array_to_string(trie_key));
             rpc.post(["sub_accounts", trie_key], function(acc) {
@@ -104,8 +104,8 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                 rpc.post(["markets", mid2], function(market2){
                     rpc.post(["markets", mid3], function(market3){
                         var p_est = price_estimate(market1, market2, market3);
-                        console.log(p_est);
-                        console.log(JSON.stringify([cid, mid3]));
+                        //console.log(p_est);
+                        //console.log(JSON.stringify([cid, mid3]));
             //console.log(contracts[0]);
             //console.log(cid);
             if(!(oracle_text == 0)) {
@@ -307,7 +307,7 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
         //Paths = Paths.slice(2);
         //console.log(JSON.stringify(Paths[1]));
         //Paths = [Paths[0]].concat(Paths.slice(2));
-        console.log(JSON.stringify(Paths));
+        //console.log(JSON.stringify(Paths));
         var L = Paths.length;
         if(L == 0){
             display.innerHTML = "error. there is no way to transform the input currency into the output currency.";
@@ -359,9 +359,9 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                            
         //console.log(JSON.stringify(Paths[0]));
         var average = average_fun(gradient, guess);
-        console.log(guess);
-        console.log(JSON.stringify(gradient));
-        console.log(JSON.stringify(average));
+        //console.log(guess);
+        //console.log(JSON.stringify(gradient));
+        //console.log(JSON.stringify(average));
         if(good_enough(gradient, guess, average)){
             console.log("done!");
             console.log(guess);
@@ -988,6 +988,7 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
     function make_tx(guess, amount, Paths, db, db2, markets, callback) {
         console.log("make tx guess is ");
         console.log(JSON.stringify(guess));
+        var get_currency = Paths[0][Paths[0].length - 1];
         //remove paths where the guess is less than a tx fee.
         //guess = normalize(guess);
         var maxGuess = 0;
@@ -1011,10 +1012,10 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
         var first_cid = Paths[0][0][0];
         var first_type = Paths[0][0][1];
         currencies_add(first_cid, first_type, amount, currencies);
-        console.log(JSON.stringify(Paths));
-        console.log(JSON.stringify(currencies));
-        console.log(JSON.stringify(db));
-        console.log(JSON.stringify(db2));
+        //console.log(JSON.stringify(Paths));
+        //console.log(JSON.stringify(currencies));
+        //console.log(JSON.stringify(db));
+        //console.log(JSON.stringify(db2));
         var txs = [];
         var mids = [];
         for(var i = 0; i<guess.length; i++){
@@ -1062,39 +1063,24 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
         var Accs = Object.keys(currencies);
         console.log(JSON.stringify(currencies));
         var potential_use_contracts = [];
+        var max_contract_needs = {};// cid -> amount
         for(var i = 0; i<Accs.length; i++){
             var Acc = currencies[Accs[i]];
-            //if(Acc < 0){
-                if(!(Accs[i] == [ZERO,0])){
-                    potential_use_contracts =
-                        potential_use_contracts.concat([[Accs[i], Acc]]);
-                };
-            //};
+            if((!(Accs[i] == [ZERO,0])) &&
+               (!(Accs[i] == get_currency))){
+                var puc = [Accs[i], Acc];
+                var id = Accs[i];
+                var id = id.slice(0, id.search(","));
+                if(!(max_contract_needs[id])){
+                    max_contract_needs[id] = puc[1];//+x;
+                } else {
+                    max_contract_needs[id] =
+                        Math.min(puc[1],//+x,
+                                 max_contract_needs[id]);
+                }
+            };
         };
-        var max_contract_needs = {};// cid -> amount
-        for(var i = 0; i<potential_use_contracts.length; i++){
-            var puc = potential_use_contracts[i];
-            var id = puc[0];
-            var id = id.slice(0, id.search(","));
-            var spend_currency = Paths[0][0];
-            //console.log(spend_currency);
-            //console.log((spend_currency).toString());
-            //console.log(puc);
-            //console.log(puc[0]);
-            //var x = 0;
-            //if ((spend_currency).toString() ===
-            //    puc[0]) {
-                //x = amount; 
-            //};
-            if(!(max_contract_needs[id])){
-                max_contract_needs[id] = puc[1];//+x;
-            } else {
-                max_contract_needs[id] =
-                    Math.min(puc[1],//+x,
-                             max_contract_needs[id]);
-            }
-        };
-        console.log(JSON.stringify(max_contract_needs));
+        //console.log(JSON.stringify(max_contract_needs));
         var to_buy = Object.keys(max_contract_needs);
         for(var i = 0; i<to_buy.length; i++){
             var cid = to_buy[i];
@@ -1126,8 +1112,8 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
             get_contract(gain_currency[0], function(gain_contract){
                 get_oracle_text(spend_currency[0], function(spend_oracle_text){
                     get_contract(spend_currency[0], function(spend_contract){
-                        console.log(gain_contract);
-                        console.log(spend_contract);
+                        //console.log(gain_contract);
+                        //console.log(spend_contract);
                         
                         multi_tx.make(txs, function(tx){
                             var gain_db = decode_oracle(gain_oracle_text, gain_contract, gain_currency, markets);
@@ -1181,7 +1167,7 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
             });
         };
         var source = [contract[8], contract[9]];
-        console.log(JSON.stringify([source, currency]));
+        //console.log(JSON.stringify([source, currency]));
         var mid1 = new_market.mid(source[0], currency[0], 0, 1);
         var mid2 = new_market.mid(source[0], currency[0], 0, 2);
         var mid3 = new_market.mid(currency[0], currency[0], 1, 2);
@@ -1362,10 +1348,10 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
         var W2 = Math.sqrt(K2);
         var W3 = Math.sqrt(K3);
         var Ps = [P1, P2, P3];
-        console.log([market1[4], market1[7]]);
-        console.log(Ps);
+        //console.log([market1[4], market1[7]]);
+        //console.log(Ps);
         var Ws = [W1, W2, W3];
-        console.log(Ws);
+        //console.log(Ws);
         var W_total = 0;
         var P = 0;
         for(var i = 0; i<Ps.length; i++) {
@@ -1375,7 +1361,7 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
             };
         };
         P = P / W_total;
-        console.log(P);
+        //console.log(P);
         return(P);
     };
     function contract_extentions(Paths, contracts, markets, cid2, type2) {
@@ -1550,7 +1536,7 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
         var currency_list = path2clist(L);
         var start_c = currency_list[0];
         var end_c = currency_list.reverse()[0];
-        console.log(JSON.stringify([start_c, end_c]));
+        //console.log(JSON.stringify([start_c, end_c]));
         for(var i = 1; i<L.length; i += 2){
             if(L[i][0] == "market"){
                 //console.log("in has repeats");
@@ -1690,8 +1676,8 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
         var a = amount / L;
         var guess = array_of(a, L);
         var db2 = make_trades(guess, Paths, db)[0];
-        console.log(JSON.stringify(db));
-        console.log(JSON.stringify(db2));
+        //console.log(JSON.stringify(db));
+        //console.log(JSON.stringify(db2));
         //var gradient1 = get_gradient(Paths, db2);
         //var average = average_fun(gradient1, guess);
         var markets = 
