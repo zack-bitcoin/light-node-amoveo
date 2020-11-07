@@ -32,7 +32,8 @@ var subcurrency_balance = (function(){
         };
         var trie_key = sub_accounts.key(keys.pub(), cid, type);
         trie_key = btoa(array_to_string(trie_key));
-        merkle.request_proof("sub_accounts", trie_key, function(x) {
+        //merkle.request_proof("sub_accounts", trie_key, function(x) {
+        rpc.post(["sub_accounts", trie_key], function(x) {
             var amount = 0;
             if(x[0] == "sub_acc"){
                 amount = x[1];

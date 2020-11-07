@@ -26,7 +26,7 @@ var tabs = (function(){
     div.appendChild(balances);
     div.appendChild(display);
     div.appendChild(br());
-    current_tab.appendChild(swap_tab);
+    current_tab.appendChild(swap_tab);//default starts in swap tab.
 
     keys.update_balance_callback(load);
 
@@ -447,9 +447,13 @@ var tabs = (function(){
     };
     */
     function change_tab(To) {
-        return(function(){
+        return(function(button){
+            buttons.map(function(x){
+                x.style.backgroundColor = "";
+            });
             current_tab.innerHTML = "";
             current_tab.appendChild(To);
+            button.style.backgroundColor = "red";
         });
     };
     //const ticker_regex = RegExp("^W = [(a-z)(A-Z)]*\.[(a-z)(A-Z)]*; T = [\\d|:|\\-| ]*China Standard Time \\(GMT\\+8\\); ticker = [(a-z)(A-Z)]*; return\\(the price of ticker at time T according to website W\\) \\* \\d*$");
@@ -536,13 +540,15 @@ var tabs = (function(){
         console.log(ticker_regex.test(x));
     };
     var swap_mode =
-        button_maker2("swap", change_tab(swap_tab));
+        button_maker3("swap", change_tab(swap_tab));
     var pool_mode =
-        button_maker2("pool", change_tab(pool_tab));
+        button_maker3("pool", change_tab(pool_tab));
     var create_mode =
-        button_maker2("create", change_tab(create_tab));
+        button_maker3("create", change_tab(create_tab));
     var spend_mode =
-        button_maker2("send", change_tab(spend_tab));
+        button_maker3("send", change_tab(spend_tab));
+    var buttons = [swap_mode, pool_mode, create_mode, spend_mode];
+    swap_mode.style.backgroundColor = "red";//default starts in swap tab.
     div.appendChild(swap_mode);
     div.appendChild(pool_mode);
     div.appendChild(create_mode);

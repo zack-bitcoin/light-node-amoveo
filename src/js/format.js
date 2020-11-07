@@ -167,6 +167,13 @@ function newhash2integer(h) {
     
     return hash2integer2(h.concat([255]), 0, 0);
 }
+function button_maker3(val, fun) {
+    var button = document.createElement("input");
+    button.type = "button";
+    button.value = val;
+    button.onclick = function(){return(fun(button))};
+    return button;
+};
 function button_maker2(val, fun) {
     var button = document.createElement("input");
     button.type = "button";

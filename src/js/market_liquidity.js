@@ -12,7 +12,8 @@ var market_liquidity = (function(){
     div.appendChild(button);
     function doit(){
         var Fee = 152050;
-        merkle.request_proof("accounts", keys.pub(), function(Acc){
+        //merkle.request_proof("accounts", keys.pub(), function(Acc){
+        rpc.post(["accounts", keys.pub()], function(Acc){
             if(Acc == "empty") {
                 display.innerHTML = "load an account first";
                 return(0);
