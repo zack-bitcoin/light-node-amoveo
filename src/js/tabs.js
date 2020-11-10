@@ -273,6 +273,7 @@ var tabs = (function(){
                     balance = sa[1];
                 };
                 if(balance < 10001){
+                    //do we need to erase it, if it exists?
                     balances_db[sk].time = Date.now()*2;
                     return(lb2(subs.slice(1), callback));
                 };
@@ -350,135 +351,72 @@ var tabs = (function(){
                 };
             });
         };
-        //if(subs.length == 1){
-        //    console.log(JSON.stringify(balances_db));
-        //    return(callback());
-        //} else {
-        //setTimeout(function(){
-         //       return(lb2(subs.slice(1), callback));
-         //   }, 100);
-        //};
     };
-    /*
-    function load_balances_old(accs, ls, s, callback) {
-        //console.log("load balances");
-        //console.log(accs);
-        if(accs.length < 1){
-            return load_balances2(ls, s, callback);
-        };
-        var acc = accs[0];
-        var sk = sub_accounts.key(keys.pub(), acc[0], acc[1]);
-        var sk = btoa(array_to_string(sk));
-        rpc.post(["sub_accounts", sk], function(sa){
-            var balance = 0;
-            if(!(sa == "empty")){
-                balance = sa[1];
-            };
-            if(balance > 10000){
-                //console.log(accs[0][0]);
-                rpc.post(["read", 3, accs[0][0]], function(oracle_text) {
-                    //console.log(oracle_text);
-                    var option = document.createElement("option");
-                    var option_type;
-                    if(acc[1] == 1){
-                        option_type = "";
-                    } else if (acc[1] == 2){
-                        option_type = "inverse ";
-                    } else {
-                        console.log("bad subcurrency type error");
-                        return(0);
-                    };
-
-                    var text;
-                    if(!(oracle_text == 0)) {
-                        var ot1 = atob(oracle_text[1]);
-                        //console.log(ot1);
-                        if(is_ticker_format(ot1)){
-                            var ticker =
-                                decode_ticker(ot1);
-                            text = ("ticker: ")
-                                .concat(ticker)
-                                .concat(" contract id: ")
-                                .concat(accs[0][0]);
-                            option.innerHTML =
-                                option_type
-                                .concat(ticker);
-                        } else {
-                            text = ("oracle text: ")
-                                .concat(ot1)
-                                .concat(" contract id: ")
-                                .concat(accs[0][0]);
-                            option.innerHTML = option_type
-                                .concat((ot1).slice(0, 60));
-                        }
-                    } else {
-                        var text = "contract: "
-                            .concat(accs[0][0]);
-                        option.innerHTML = JSON.stringify([acc[0], acc[1]]);
-                    }
-                    option.value = JSON.stringify([acc[0], acc[1]]);
-                    if(!(acc[1] == 0)) {
-                        swap_selector.appendChild(option);
-                    };
-                    spend_selector.appendChild(option.cloneNode(true));
-                    create_selector.appendChild(option.cloneNode(true));
-                    pool_selector.appendChild(option.cloneNode(true));
-                    var temp_span = document.createElement("span");
-                    
-                    
-                    // s = s
-                    temp_span.innerHTML = ""
-                        .concat(text)
-//                        .concat("contract: ")
- //                       .concat(accs[0][0])
-                        .concat(" type: ")
-                        .concat(accs[0][1])
-                        .concat(" balance: ")
-                        .concat((balance / token_units()).toString())
-                        .concat("<br>");
-                    balances.appendChild(temp_span);
-                    //return(load_balances(accs.slice(1), ls, s, callback));
-                }, get_ip(), 8090);
-            } else {
-                //return(load_balances(accs.slice(1), ls, s, callback));
-            };
-            return(load_balances(accs.slice(1), ls, s, callback));
-        });
-    };
-    */
     function change_tab(To) {
         return(function(button){
-            buttons.map(function(x){
-                x.style.backgroundColor = "";
+            buttons.map(function(aa){
+                aa.style.backgroundColor = "";
             });
+            button.style.backgroundColor = "red";
             current_tab.innerHTML = "";
             current_tab.appendChild(To);
-            button.style.backgroundColor = "red";
         });
     };
     //const ticker_regex = RegExp("^W = [(a-z)(A-Z)]*\.[(a-z)(A-Z)]*; T = [\\d|:|\\-| ]*China Standard Time \\(GMT\\+8\\); ticker = [(a-z)(A-Z)]*; return\\(the price of ticker at time T according to website W\\) \\* \\d*$");
     const ticker_regex = RegExp("^W = (qtrade\.io)|(coinmarketcap\.com)|(coinpaprika\.com); T = [\\d|:|\\-| ]*China Standard Time \\(GMT\\+8\\); ticker = [(a-z)(A-Z)]*; return\\(the price of ticker at time T according to website W\\) \\* \\d*");
+    const stablecoin_0 = /standard\s+stablecoin\s+0\s*;\s*ticker_path\s*=\s*\[(\w+\s*,\s*)*\w+\s*\]\s*;\s*website_path\s*=\s*\[([^,\]]+,\s*)[^,\]]+\]\s*;\s*time\s*=[^;]+;\s*price\s*=\s*1\s*;\s*for\(i=0; i<website_path\.length; i\+\+\)\{ price \*= \(the price of ticker_path\[i\] in ticker_path\[i\+1\] according to website\[i\]\) \};\s*scale\s*=\s*\d+\s*;\s*return\(price\s*\*\s*scale\);/;
     function is_ticker_format(x) {
-        return(ticker_regex.test(x));
+        return(ticker_regex.test(x) ||
+               stablecoin_0.test(x));
     };
+    const get_scale = /;\s*scale\s*=\s*\d+;/
     function coll_limit(x) {
-        var l = x.split(";");
-        var scale = parseInt(l[3].split(" * ")[1]);
         var MaxVal = 4294967295;
+        var scale;
+        if(ticker_regex.test(x)){
+            var l = x.split(";");
+            scale = l[3].split(" * ")[1];
+        } else if (stablecoin_0.test(x)){
+            var scale = x.match(get_scale)[0]
+                .match(/\d+/)[0];
+        };
+        scale = parseInt(scale, 10);
         console.log(scale);
         return(MaxVal / scale);
     };
+    const get_ticker_path = /;\s*ticker_path\s*=\s*[^;]+;/
     function symbol(x) {
-        console.log(x);
-        var l = x.split(";");
-        var ticker = l[2].split("= ")[1];
-        return(ticker);
+        if(ticker_regex.test(x)){
+            console.log(x);
+            var l = x.split(";");
+            var ticker = l[2].split("= ")[1];
+            return(ticker);
+        } else if (stablecoin_0.test(x)){
+            return(
+                x.match(get_ticker_path)[0]
+                    .match(/,\s*\w+\]/)[0]//last in list
+                    .match(/\w+/)[0]);//grab ticker
+        }
+    };
+    const get_time = /;\s*time\s*=[^;]+;/
+    function decode_date(x) {
+        if(ticker_regex.test(x)){
+            var l = x.split(";");
+            var date = l[1].split("= ")[1].split(" China")[0];
+            return(date);
+        } else if(stablecoin_0.test(x)){
+            return(
+                x.match(get_time)[0]
+                    .match(/=[^;];/)
+                    .match(/[^=\s][^;]*/));
+        };
     };
     function decode_ticker(x, price, kind) {
-        var l = x.split(";");
         //var ticker = l[2].split("= ")[1];
         var ticker = symbol(x);
-        var date = l[1].split("= ")[1].split(" China")[0];
+        //var l = x.split(";");
+        //var date = l[1].split("= ")[1].split(" China")[0];
+        var date = decode_date(x);
         //var scale = parseInt(l[3].split(" * ")[1]);
         //var MaxVal = 4294967295;
         //var Max2 = MaxVal / scale;
@@ -537,7 +475,9 @@ var tabs = (function(){
     };
     function test() {
         var x = "W = qtrade.io; T = 12:00 20-9-2020 China Standard Time (GMT+8); ticker = BTC; return(the price of ticker at time T according to website W) * 810371187736";
-        console.log(ticker_regex.test(x));
+        //console.log(ticker_regex.test(x));
+        x = "standard stablecoin 0; ticker_path = [veo, btc, usd]; website_path = [qtrade.io, coinpaprika.com]; time = 12:00 10-29-2020 China Standard Time (GMT+8); price = 1; for(i=0; i<website_path.length; i++){ price *= (the price of ticker_path[i] in ticker_path[i+1] according to website[i]) }; scale = 157903209; return(price * scale);";
+        console.log(stablecoin_0.test(x));
     };
     var swap_mode =
         button_maker3("swap", change_tab(swap_tab));
