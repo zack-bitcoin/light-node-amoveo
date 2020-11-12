@@ -363,11 +363,16 @@ var tabs = (function(){
         });
     };
     //const ticker_regex = RegExp("^W = [(a-z)(A-Z)]*\.[(a-z)(A-Z)]*; T = [\\d|:|\\-| ]*China Standard Time \\(GMT\\+8\\); ticker = [(a-z)(A-Z)]*; return\\(the price of ticker at time T according to website W\\) \\* \\d*$");
-    const ticker_regex = RegExp("^W = (qtrade\.io)|(coinmarketcap\.com)|(coinpaprika\.com); T = [\\d|:|\\-| ]*China Standard Time \\(GMT\\+8\\); ticker = [(a-z)(A-Z)]*; return\\(the price of ticker at time T according to website W\\) \\* \\d*");
-    const stablecoin_0 = /standard\s+stablecoin\s+0\s*;\s*ticker_path\s*=\s*\[(\w+\s*,\s*)*\w+\s*\]\s*;\s*website_path\s*=\s*\[([^,\]]+,\s*)[^,\]]+\]\s*;\s*time\s*=[^;]+;\s*price\s*=\s*1\s*;\s*for\(i=0; i<website_path\.length; i\+\+\)\{ price \*= \(the price of ticker_path\[i\] in ticker_path\[i\+1\] according to website\[i\]\) \};\s*scale\s*=\s*\d+\s*;\s*return\(price\s*\*\s*scale\);/;
+    //const ticker_regex = RegExp("^W = (qtrade\.io)|(coinmarketcap\.com)|(coinpaprika\.com); T = [\\d|:|\\-| ]*China Standard Time \\(GMT\\+8\\); ticker = [(a-z)(A-Z)]*; return\\(the price of ticker at time T according to website W\\) \\* \\d*");
+    const ticker_regex = /W = ((qtrade\.io)|(coinmarketcap\.com)|(coinpaprika\.com)); T = [\d|:|\-| ]*China Standard Time \(GMT\+8\); ticker = [(a-z)(A-Z)]*; return\(the price of ticker at time T according to website W\) \* \d*/;
+    const stablecoin_0 = /standard\s+stablecoin\s+0\s*;\s*ticker_path\s*=\s*\[(\w+\s*,\s*)*\w+\s*\]\s*;\s*website_path\s*=\s*\[([^,\]]+,\s*)[^,\]]+\]\s*;\s*time\s*=[^;]+;\s*price\s*=\s*\d+\s*;\s*for\(i=0; i<website_path\.length; i\+\+\)\{\s*price \*= \(the price of ticker_path\[i\] in ticker_path\[i\+1\] according to website\[i\]\)\s*\};\s*scale\s*=\s*\d+\s*;\s*return\(price\s*\*\s*scale\);/;
     function is_ticker_format(x) {
-        return(ticker_regex.test(x) ||
-               stablecoin_0.test(x));
+        var b = (ticker_regex.test(x) ||
+                 stablecoin_0.test(x));
+        if(!(b)){
+            console.log(x);
+        };
+        return(b);
     };
     const get_scale = /;\s*scale\s*=\s*\d+;/
     function coll_limit(x) {
@@ -388,6 +393,7 @@ var tabs = (function(){
     function symbol(x) {
         if(ticker_regex.test(x)){
             console.log(x);
+            console.log(ticker_regex.test(x));
             var l = x.split(";");
             var ticker = l[2].split("= ")[1];
             return(ticker);
@@ -398,18 +404,57 @@ var tabs = (function(){
                     .match(/\w+/)[0]);//grab ticker
         }
     };
+    var months = {1:"jan",
+                  2:"feb",
+                  3:"mar",
+                  4:"apr",
+                  5:"may",
+                  6:"jun",
+                  7:"jul",
+                  8:"aug",
+                  9:"sep",
+                  10:"oct",
+                  11:"nov",
+                  12:"dec"};
     const get_time = /;\s*time\s*=[^;]+;/
     function decode_date(x) {
+        var date;
         if(ticker_regex.test(x)){
             var l = x.split(";");
-            var date = l[1].split("= ")[1].split(" China")[0];
-            return(date);
+            date = l[1].split("= ")[1].split(" China")[0];
+            //return(date);
         } else if(stablecoin_0.test(x)){
-            return(
-                x.match(get_time)[0]
-                    .match(/=[^;];/)
-                    .match(/[^=\s][^;]*/));
-        };
+            console.log(x.match(get_time)[0]);
+            console.log(x.match(get_time)[0]
+                        .match(/=[^;]*;/));
+            date = x.match(get_time)[0]
+                .match(/=[^;]*;/)[0]
+                .match(/[^=\s][^;]*/)[0]
+                .split(" China")[0]
+        }
+        var d = new Date();
+        var year = d.getFullYear();
+        var month = d.getMonth()+1;
+        console.log(date);
+        return(
+            date
+                .replace("12:00 ", "")
+                .replace(/-\d\d?-/,
+                         function(s){
+                             n = Math.abs(parseInt(s));
+                             if(n === month){
+                                 return(s);
+                             };
+                             var m = months[n];
+                             if(!(m)){
+                                 m = n;
+                             };
+                             return("-".concat(m).concat("-"))
+                         })
+                .replace("-".concat(month.toString()).concat("-"), "-")
+                .replace("-".concat(year.toString()), "")
+        );
+            
     };
     function decode_ticker(x, price, kind) {
         //var ticker = l[2].split("= ")[1];
@@ -477,6 +522,7 @@ var tabs = (function(){
         var x = "W = qtrade.io; T = 12:00 20-9-2020 China Standard Time (GMT+8); ticker = BTC; return(the price of ticker at time T according to website W) * 810371187736";
         //console.log(ticker_regex.test(x));
         x = "standard stablecoin 0; ticker_path = [veo, btc, usd]; website_path = [qtrade.io, coinpaprika.com]; time = 12:00 10-29-2020 China Standard Time (GMT+8); price = 1; for(i=0; i<website_path.length; i++){ price *= (the price of ticker_path[i] in ticker_path[i+1] according to website[i]) }; scale = 157903209; return(price * scale);";
+        x = "standard stablecoin 0; ticker_path = [VEO, BTC, USD]; website_path = [qtrade.io, coinmarketcap.com]; time = 12:00 19-11-2020 China Standard Time (GMT+8); price = 1; for(i=0; i<website_path.length; i++){price *= (the price of ticker_path[i] in ticker_path[i+1] according to website[i])}; scale = 238609294; return(price * scale);";
         console.log(stablecoin_0.test(x));
     };
     var swap_mode =

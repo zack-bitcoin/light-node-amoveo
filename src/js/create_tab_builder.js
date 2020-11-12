@@ -56,13 +56,24 @@ function create_tab_builder(div, selector){
     var ticker_text = text_input("Ticker of Synthetic Asset (i.e. BTC)", stablecoin_div);
     stablecoin_div.appendChild(br());
     website_label = document.createElement("span");
-    website_label.innerHTML = "website to get the price info";
+    website_label.innerHTML = "website to convert the BTC price to the price of your stablecoin.";
     stablecoin_div.appendChild(website_label);
     stablecoin_div.appendChild(website_text);
     stablecoin_div.appendChild(br());
 
-    var time_text = text_input("the date and time when the value is measured, in China Standard Time zone. GMT + 8. example: '12:00 25-12-2020'", stablecoin_div);
+    //var time_text = text_input("the date and time when the value is measured, in China Standard Time zone. GMT + 8. example: '12:00 25-12-2020'", stablecoin_div);
+    //stablecoin_div.appendChild(br());
+
+    var day_text = text_input("the day of the month when the value is measured.", stablecoin_div);
     stablecoin_div.appendChild(br());
+    var month_text = text_input("the month when the value is measured. example, for Febuary, '2'", stablecoin_div);
+    var d = new Date();
+    month_text.value = (1 + d.getMonth()).toString();
+    stablecoin_div.appendChild(br());
+    var year_text = text_input("year when the value is measured.", stablecoin_div);
+    year_text.value = "2020";
+    stablecoin_div.appendChild(br());
+
     var coll_text = text_input("collateralization (i.e. \"2\" means 200%)", stablecoin_div);
     stablecoin_div.appendChild(br());
     var starting_price_text = text_input("starting price of veo in your target currency (i.e. 0.002 BTC per VEO)", stablecoin_div);
@@ -106,8 +117,14 @@ function create_tab_builder(div, selector){
     }
     function make_stablecoin_contract(){
         var website = website_text.value;
-        var time = time_text.value;
-        var ticker = ticker_text.value;
+    //var time = time_text.value;
+        var time = "12:00 "
+            .concat(day_text.value)
+            .concat("-")
+            .concat(month_text.value)
+            .concat("-")
+            .concat(year_text.value);
+        var ticker = ticker_text.value.trim().toUpperCase();
         var coll = parseFloat(coll_text.value);
         var starting_price = parseFloat(starting_price_text.value);
         console.log([coll, starting_price]);
@@ -115,7 +132,7 @@ function create_tab_builder(div, selector){
         var MaxVal = 4294967295;
         var Scale = Math.round(MaxVal / starting_price * coll);
         //var MP = MaxVal;
-        var Text = "W = "
+        var Text_old = "W = "
             .concat(website)
             .concat("; T = ")
             .concat(time)
@@ -123,6 +140,23 @@ function create_tab_builder(div, selector){
             .concat(ticker)
             .concat("; return(the price of ticker at time T according to website W) * ")
             .concat(Scale);
+        if(ticker === "BTC") {
+            var Text = "standard stablecoin 0; ticker_path = [VEO, BTC]; website_path = [qtrade.io]; time = "
+                .concat(time)
+                .concat(" China Standard Time (GMT+8); price = 1; for(i=0; i<website_path.length; i++){price *= (the price of ticker_path[i] in ticker_path[i+1] according to website[i])}; scale = ")
+                .concat(Scale)
+                .concat("; return(price * scale);");
+        } else {
+            var Text = "standard stablecoin 0; ticker_path = [VEO, BTC, "
+                .concat(ticker)
+                .concat("]; website_path = [qtrade.io, ")
+                .concat(website)
+                .concat("]; time = ")
+                .concat(time)
+                .concat(" China Standard Time (GMT+8); price = 1; for(i=0; i<website_path.length; i++){price *= (the price of ticker_path[i] in ticker_path[i+1] according to website[i])}; scale = ")
+                .concat(Scale)
+                .concat("; return(price * scale);");
+        }
         //var price = 1/(1 + coll);
         var price = 1/(coll);
         return(make_contract2(Text, MaxVal, price));
@@ -295,7 +329,7 @@ function create_tab_builder(div, selector){
     };
     return({
         website:(function(x){website_text.value = x}),
-        time:(function(x){time_text.value = x}),
+        //time:(function(x){time_text.value = x}),
         coll:(function(x){coll_text.value = x}),
         starting_price:(function(x){starting_price_text.value = x}),
         ticker:(function(x){ticker_text.value = x}),
