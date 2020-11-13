@@ -61,26 +61,6 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
     veo_option.value = "veo";
     contract_to_buy.appendChild(veo_option);
     
-    //var contract_id = text_input("contract id to be paid in (leave blank for veo): ", swap_tab);
-    //swap_tab.appendChild(br());
-    //    var contract_type = text_input("contract type to be paid in (leave blank for veo): ", swap_tab);
-    //var contract_type = document.createElement("select");
-   // var type_label = document.createElement("span");
-    //type_label.innerHTML = "kind to buy: ";
-    var true_option = document.createElement("option");
-    true_option.innerHTML = "contract";
-    true_option.value = 1;
-    var false_option = document.createElement("option");
-    false_option.innerHTML = "inverse contract";
-    false_option.value = 2;
-    var pool_option = document.createElement("option");
-    pool_option.innerHTML = "pool";
-    pool_option.value = 0;
-    //contract_type.appendChild(true_option);
-    //contract_type.appendChild(false_option);
-    //contract_type.appendChild(pool_option);
-    //swap_tab.appendChild(type_label);
-    //swap_tab.appendChild(contract_type);
     swap_tab.appendChild(br());
     var swap_price_button =
         button_maker2("lookup price", swap_price);
@@ -94,7 +74,8 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
 
     function display_contracts(div) {
         rpc.post(["contracts"], function(contracts){
-            var s = "<h4>existing contracts</h4>";
+            //var s = "<h4>existing contracts</h4>";
+            var s = "";
             return(display_contracts2(div, contracts.slice(1), s, []));
         }, get_ip(), 8091);//8091 is explorer
     };
@@ -132,17 +113,14 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                 if((!(hide_non_standard)) || ticker_bool){
                     var button1_text = " contract ";
                     var button2_text = " inverse contract ";
-                    if(ticker_bool){
-                        //console.log("about to decode");
-
-                        var option = document.createElement("option");
-                        option.innerHTML = "";
-                        option.value = JSON.stringify([cid, 1]);
-                        var option2 = document.createElement("option");
-                        option2.innerHTML = "";
-                        option2.value = JSON.stringify([cid, 2]);
-                        contract_to_buy.appendChild(option);
-                        contract_to_buy.appendChild(option2);
+                    var option = document.createElement("option");
+                    option.innerHTML = "";
+                    option.value = JSON.stringify([cid, 1]);
+                    var option2 = document.createElement("option");
+                    option2.innerHTML = "";
+                    option2.value = JSON.stringify([cid, 2]);
+                    contract_to_buy.appendChild(option);
+                    contract_to_buy.appendChild(option2);
 
 
 
@@ -153,8 +131,11 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                         var button2_text =
                             " i".concat(ticker);
                         var s1 = ""
-                        .concat("\"")
-                        .concat(stable_text)
+                    if(ticker_bool){
+                        //console.log("about to decode");
+                        var s1 = ""
+                            .concat("\"")
+                            .concat(stable_text)
                             .concat("\"~ ")
                             .concat("; volume: ")
                             .concat((contracts[0][11] / token_units()).toFixed(2).toString())
@@ -164,7 +145,7 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                             .concat(button1_text)
                             .concat(" </button><br>")
                             .concat("");
-                        s = s.concat(s1);
+                        //s = s.concat(s1);
                         var s2 = ""
                             .concat("\"")
                             .concat(long_text)
@@ -179,9 +160,26 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                             .concat("");
                         option.innerHTML = s1;
                         option2.innerHTML = s2;
-                        s = s.concat(s2);
+                        //s = s.concat(s2);
                         
                     } else {
+                        option.innerHTML =
+                            "buy "
+                            .concat(button1_text)
+                            .concat(" ")
+                            .concat(text)
+                            .concat("; volume: ")
+                            .concat((contracts[0][11] / token_units()).toString())
+                            .concat("");
+                        option2.innerHTML =
+                            "buy "
+                            .concat(button2_text)
+                            .concat(" ")
+                            .concat(text)
+                            .concat("; volume: ")
+                            .concat((contracts[0][11] / token_units()).toString())
+                            .concat("");
+                        /*
                     button_text = ""
                         .concat("<button onclick=\"tabs.swap.cid('")
                         .concat(cid)
@@ -202,6 +200,7 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                         .concat(button_text)
                         .concat("<br>")
                             .concat("");
+                        */
                     };
                 };
             }
@@ -228,19 +227,14 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
             Type1 = C1[1];
         };
         console.log(contract_to_buy.value);
-        if(//(contract_id.value === "")||
-           (contract_to_buy.value === "veo")
-          ){
+        if(contract_to_buy.value === "veo"){
             //selling something for veo
             CID2 = ZERO;
             Type2 = 0;
         } else {
             var to_buy = JSON.parse(contract_to_buy.value);
-            console.log(to_buy[0]);
             CID2 = to_buy[0];
             Type2 = to_buy[1];
-            //CID2 = contract_id.value;
-            //Type2 = parseInt(contract_type.value);
         };
         if((CID1 == CID2) && (Type1 == Type2)){
             display.innerHTML = "cannot trade something for itself.";
@@ -1778,8 +1772,6 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
         return(r);
     };
     return({
-        //cid: function(x){ contract_id.value = x },
-        //type: function(x){ contract_type.value = x },
         txs_maker: txs_maker,
         contract_to_cid: contract_to_cid,
         calculate_gain: calculate_gain,
