@@ -49,12 +49,24 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
     });
     swap_tab.appendChild(sell_all_button);
     swap_tab.appendChild(br());
-    var contract_id = text_input("contract id to be paid in (leave blank for veo): ", swap_tab);
+    var buy_label = document.createElement("span");
+    buy_label.innerHTML = "which currency to buy: ";
+    swap_tab.appendChild(buy_label);
+    var contract_to_buy = document.createElement("select");
+    swap_tab.appendChild(contract_to_buy);
     swap_tab.appendChild(br());
+
+    var veo_option = document.createElement("option");
+    veo_option.innerHTML = "veo";
+    veo_option.value = "veo";
+    contract_to_buy.appendChild(veo_option);
+    
+    //var contract_id = text_input("contract id to be paid in (leave blank for veo): ", swap_tab);
+    //swap_tab.appendChild(br());
     //    var contract_type = text_input("contract type to be paid in (leave blank for veo): ", swap_tab);
-    var contract_type = document.createElement("select");
-    var type_label = document.createElement("span");
-    type_label.innerHTML = "kind to buy: ";
+    //var contract_type = document.createElement("select");
+   // var type_label = document.createElement("span");
+    //type_label.innerHTML = "kind to buy: ";
     var true_option = document.createElement("option");
     true_option.innerHTML = "contract";
     true_option.value = 1;
@@ -64,11 +76,11 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
     var pool_option = document.createElement("option");
     pool_option.innerHTML = "pool";
     pool_option.value = 0;
-    contract_type.appendChild(true_option);
-    contract_type.appendChild(false_option);
+    //contract_type.appendChild(true_option);
+    //contract_type.appendChild(false_option);
     //contract_type.appendChild(pool_option);
-    swap_tab.appendChild(type_label);
-    swap_tab.appendChild(contract_type);
+    //swap_tab.appendChild(type_label);
+    //swap_tab.appendChild(contract_type);
     swap_tab.appendChild(br());
     var swap_price_button =
         button_maker2("lookup price", swap_price);
@@ -83,14 +95,14 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
     function display_contracts(div) {
         rpc.post(["contracts"], function(contracts){
             var s = "<h4>existing contracts</h4>";
-            return(display_contracts2(div, contracts.slice(1), s));
+            return(display_contracts2(div, contracts.slice(1), s, []));
         }, get_ip(), 8091);//8091 is explorer
     };
-    function display_contracts2(div, contracts, s) {
+    function display_contracts2(div, contracts, s, pairs) {
         //console.log(JSON.stringify(contracts));
         if(contracts.length < 1) {
             //console.log(s);
-            div.innerHTML = s;
+            //div.innerHTML = s;
             return(0);
         }
         //var cid = contracts[0][1];
@@ -122,13 +134,25 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                     var button2_text = " inverse contract ";
                     if(ticker_bool){
                         //console.log("about to decode");
+
+                        var option = document.createElement("option");
+                        option.innerHTML = "";
+                        option.value = JSON.stringify([cid, 1]);
+                        var option2 = document.createElement("option");
+                        option2.innerHTML = "";
+                        option2.value = JSON.stringify([cid, 2]);
+                        contract_to_buy.appendChild(option);
+                        contract_to_buy.appendChild(option2);
+
+
+
                         stable_text = tabs.decode_ticker(text, p_est, "stablecoin");
                         long_text = tabs.decode_ticker(text, p_est, "long-veo");
                         var ticker = "v".concat(tabs.symbol(text0));
                         var button1_text = ticker;
                         var button2_text =
                             " i".concat(ticker);
-                        s = s
+                        var s1 = ""
                         .concat("\"")
                         .concat(stable_text)
                             .concat("\"~ ")
@@ -140,16 +164,22 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                             .concat(button1_text)
                             .concat(" </button><br>")
                             .concat("");
-                        s = s
+                        s = s.concat(s1);
+                        var s2 = ""
                             .concat("\"")
                             .concat(long_text)
                             .concat("\"~ ")
+                            .concat("; volume: ")
+                            .concat((contracts[0][11] / token_units()).toFixed(2).toString())
                             .concat("<button onclick=\"tabs.swap.cid('")
                             .concat(cid)
                             .concat("'); tabs.swap.type(2);\"> buy ")
                             .concat(button2_text)
                             .concat(" </button><br>")
                             .concat("");
+                        option.innerHTML = s1;
+                        option2.innerHTML = s2;
+                        s = s.concat(s2);
                         
                     } else {
                     button_text = ""
@@ -175,7 +205,7 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                     };
                 };
             }
-                        display_contracts2(div, contracts.slice(1), s);
+                        display_contracts2(div, contracts.slice(1), s, pairs);
                     });
                 });
             });
@@ -197,13 +227,20 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
             CID1 = C1[0];
             Type1 = C1[1];
         };
-        if(contract_id.value == "") {
+        console.log(contract_to_buy.value);
+        if(//(contract_id.value === "")||
+           (contract_to_buy.value === "veo")
+          ){
             //selling something for veo
             CID2 = ZERO;
             Type2 = 0;
         } else {
-            CID2 = contract_id.value;
-            Type2 = parseInt(contract_type.value);
+            var to_buy = JSON.parse(contract_to_buy.value);
+            console.log(to_buy[0]);
+            CID2 = to_buy[0];
+            Type2 = to_buy[1];
+            //CID2 = contract_id.value;
+            //Type2 = parseInt(contract_type.value);
         };
         if((CID1 == CID2) && (Type1 == Type2)){
             display.innerHTML = "cannot trade something for itself.";
@@ -1741,8 +1778,8 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
         return(r);
     };
     return({
-        cid: function(x){ contract_id.value = x },
-        type: function(x){ contract_type.value = x },
+        //cid: function(x){ contract_id.value = x },
+        //type: function(x){ contract_type.value = x },
         txs_maker: txs_maker,
         contract_to_cid: contract_to_cid,
         calculate_gain: calculate_gain,
