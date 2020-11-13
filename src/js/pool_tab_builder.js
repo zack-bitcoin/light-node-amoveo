@@ -559,8 +559,10 @@ IA = B*(2PA-1)
             return(0);
         }
         //var cid = contracts[0][1];
-        var cid = tabs.swap.contract_to_cid(contracts[0]); 
+        var cid = tabs.swap.contract_to_cid(contracts[0]);
+        var source = contracts[0][8];
         rpc.post(["read", 3, cid], function(oracle_text) {
+            tabs.swap.price_estimate_read(cid, source, function(p_est){
             //console.log(contracts[0]);
             //console.log(cid);
             if(!(oracle_text == 0)) {
@@ -571,36 +573,29 @@ IA = B*(2PA-1)
                 var TickerBool =
                     tabs.is_ticker_format(text);
                 if(TickerBool){
-                    text = tabs.decode_ticker(text);
+                    text = tabs.decode_ticker(text, p_est, "stablecoin");
                 } else {
                     //text = atob(oracle_text[1]);
                 }
+
+
                 if((!(hide_non_standard)) || TickerBool){
                     var mid = new_market.mid(cid, cid, 1, 2);
                     s = s
-//                    .concat("id: ")
-//                    .concat(cid)
-                    //.concat("oracle question: \"")
                         .concat("\"")
                         .concat(text)
                         .concat("\"~ ")
-                    //                    .concat(type)
                         .concat("; volume: ")
                         .concat((contracts[0][11] / token_units()).toString())
                         .concat("<button onclick=\"tabs.pool.cid('")
                         .concat(cid)
                         .concat("');\"> pool</button>")
-//                        .concat("<button onclick=\"tabs.swap.cid('")
-//                        .concat(cid)
-//                        .concat("'); tabs.swap.type(2);\"> short</button>")
-//                        .concat("<button onclick=\"tabs.swap.cid('")
-//                        .concat(mid)
-//                        .concat("'); tabs.swap.type(0);\"> pool</button>")
                         .concat("<br>")
                         .concat("");
                 };
             }
-            display_contracts2(div, contracts.slice(1), s);
+                display_contracts2(div, contracts.slice(1), s);
+            });
         }, get_ip(), 8090);
     };
     
