@@ -21,6 +21,7 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
 //    var selector = document.createElement("select");
     swap_tab.appendChild(selector);
     swap_tab.appendChild(br());
+
     var amount_input = text_input("amount to sell: ", swap_tab);
     var sell_all_button = button_maker2("sell all", function(){
         var currency = selector.value;

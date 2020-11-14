@@ -64,15 +64,47 @@ function create_tab_builder(div, selector){
     //var time_text = text_input("the date and time when the value is measured, in China Standard Time zone. GMT + 8. example: '12:00 25-12-2020'", stablecoin_div);
     //stablecoin_div.appendChild(br());
 
-    var day_text = text_input("the day of the month when the value is measured.", stablecoin_div);
-    stablecoin_div.appendChild(br());
-    var month_text = text_input("the month when the value is measured. example, for Febuary, '2'", stablecoin_div);
+    var day_label = document.createElement("span");
+    day_label.innerHTML = "day of the month when the value is measured";
+    stablecoin_div.appendChild(day_label);
+    var select_day = document.createElement("select");
+    add_days(select_day, 1, 34);
     var d = new Date();
-    month_text.value = (1 + d.getMonth()).toString();
+    select_day.value = d.getDate();
+    stablecoin_div.appendChild(select_day);
     stablecoin_div.appendChild(br());
-    var year_text = text_input("year when the value is measured.", stablecoin_div);
-    year_text.value = "2020";
+    
+    //var day_text = text_input("the day of the month when the value is measured.", stablecoin_div);
+    //stablecoin_div.appendChild(br());
+    var month_label = document.createElement("span");
+    month_label.innerHTML = "month when the value is measured";
+    stablecoin_div.appendChild(month_label);
+    var select_month = document.createElement("select");
+    add_months(select_month);
+    var d = new Date();
+    select_month.value = (1 + d.getMonth()).toString();
+    stablecoin_div.appendChild(select_month);
     stablecoin_div.appendChild(br());
+    
+    //var month_text = text_input("the month when the value is measured. example, for Febuary, '2'", stablecoin_div);
+    //var d = new Date();
+    //month_text.value = (1 + d.getMonth()).toString();
+    //stablecoin_div.appendChild(br());
+
+    
+    var year_label = document.createElement("span");
+    year_label.innerHTML = "year when the value is measured";
+    stablecoin_div.appendChild(year_label);
+    var select_year = document.createElement("select");
+    add_days(select_year, 2020, 2022);
+    var d = new Date();
+    select_year.value = d.getFullYear().toString();
+    stablecoin_div.appendChild(select_year);
+    stablecoin_div.appendChild(br());
+
+    //var year_text = text_input("year when the value is measured.", stablecoin_div);
+    //year_text.value = "2020";
+    //stablecoin_div.appendChild(br());
 
     var coll_text = text_input("collateralization (i.e. \"2\" means 200%)", stablecoin_div);
     stablecoin_div.appendChild(br());
@@ -100,7 +132,36 @@ function create_tab_builder(div, selector){
     stablecoin_div.appendChild(stablecoin_button);
     div.appendChild(br());
 
-
+    function add_months(select_month) {
+        var x =
+            [["january", 1],
+             ["febuary", 2],
+             ["march", 3],
+             ["april", 4],
+             ["may", 5],
+             ["june", 6],
+             ["july", 7],
+             ["august", 8],
+             ["september", 9],
+             ["october", 10],
+             ["november", 11],
+             ["december", 12]];
+        for(var i = 0; i< x.length; i++){
+            var option = document.createElement("option");
+            option.innerHTML = x[i][0];
+            option.value = x[i][1];
+            select_month.appendChild(option);
+        };
+             
+    };
+    function add_days(select_day, N, Limit){
+        for(var i = N; i<Limit; i++){
+            var option = document.createElement("option");
+            option.innerHTML = i;
+            option.value = i;
+            select_day.appendChild(option);
+        };
+    };
     function make_contract(){
         var Text = oracle_text.value;
         var MP = parseFloat(max_price_text.value);
@@ -119,11 +180,13 @@ function create_tab_builder(div, selector){
         var website = website_text.value;
     //var time = time_text.value;
         var time = "12:00 "
-            .concat(day_text.value)
+            //.concat(day_text.value)
+            .concat(select_day.value.toString())
             .concat("-")
-            .concat(month_text.value)
+            .concat(select_month.value)
             .concat("-")
-            .concat(year_text.value);
+            //.concat(year_text.value);
+            .concat(select_year.value);
         var ticker = ticker_text.value.trim().toUpperCase();
         var coll = parseFloat(coll_text.value);
         var starting_price = parseFloat(starting_price_text.value);
@@ -304,7 +367,7 @@ function create_tab_builder(div, selector){
         };
         console.log(JSON.stringify(txs));
         multi_tx.make(txs, function(tx){
-            //return(0);
+            return(0);
             var stx = keys.sign(tx);
             //publish_tx_button.onclick = function(){
             post_txs([stx], function(msg){
