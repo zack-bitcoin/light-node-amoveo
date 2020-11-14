@@ -22,9 +22,19 @@ function pool_tab_builder(pool_tab, selector, hide_non_standard) {
     pool_tab.appendChild(selector_label);
     pool_tab.appendChild(selector);
     pool_tab.appendChild(br());
-    var amount_input = text_input("amount to use to buy liquidity shares: ", pool_tab);
+
+
+    var buy_label = document.createElement("span");
+    buy_label.innerHTML = "which contract to buy liquidity shares in: ";
+    pool_tab.appendChild(buy_label);
+    var contract_to_buy = document.createElement("select");
+    pool_tab.appendChild(contract_to_buy);
     pool_tab.appendChild(br());
-    var contract_id = text_input("contract id: ", pool_tab);
+
+    var amount_input = text_input("amount to spend: ", pool_tab);
+    pool_tab.appendChild(br());
+
+    //var contract_id = text_input("contract id: ", pool_tab);
     pool_tab.appendChild(br());
     var pool_price_button =
         button_maker2("lookup price to buy liquidity shares", lookup_price);
@@ -41,7 +51,8 @@ function pool_tab_builder(pool_tab, selector, hide_non_standard) {
 
     function sell_all(){
         console.log("sell all");
-        var GoalCID = contract_id.value;
+        //var GoalCID = contract_id.value;
+        var GoalCID = contract_to_buy.value;
         rpc.post(
             ["contracts", GoalCID],
             function(contract){
@@ -162,7 +173,8 @@ function pool_tab_builder(pool_tab, selector, hide_non_standard) {
             CID1 = C1[0];
             Type1 = C1[1];
         };
-        var GoalCID = contract_id.value;
+        //var GoalCID = contract_id.value;
+        var GoalCID = contract_to_buy.value;
         rpc.post(
             ["contracts", GoalCID],
             function(contract){
@@ -516,6 +528,7 @@ IA = B*(2PA-1)
             var type1string = ""
                 .concat((sub1_worth / token_units()).toString())
                 .concat(" of subcurrency type 1. <br>");
+            
             if(tabs.balances_db[sk].ticker_symbol){
                 var limit = tabs.balances_db[sk].limit;
                 type1string = ""
@@ -555,7 +568,7 @@ IA = B*(2PA-1)
         //console.log(JSON.stringify(contracts));
         if(contracts.length < 1) {
             //console.log(s);
-            div.innerHTML = s;
+            //div.innerHTML = s;
             return(0);
         }
         //var cid = contracts[0][1];
@@ -581,6 +594,15 @@ IA = B*(2PA-1)
 
                 if((!(hide_non_standard)) || TickerBool){
                     var mid = new_market.mid(cid, cid, 1, 2);
+                    var option = document.createElement("option");
+                    option.value = cid;
+                    contract_to_buy.appendChild(option);
+                    option.innerHTML = ""
+                        .concat("\"")
+                        .concat(text)
+                        .concat("\"~ ")
+                        .concat("; volume: ")
+                        .concat((contracts[0][11] / token_units()).toString());
                     s = s
                         .concat("\"")
                         .concat(text)
@@ -600,7 +622,7 @@ IA = B*(2PA-1)
     };
     
     return({
-        cid: function(x){ contract_id.value = x}
+        //cid: function(x){ contract_id.value = x}
     });
 };
 

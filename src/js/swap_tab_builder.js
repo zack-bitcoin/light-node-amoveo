@@ -159,6 +159,10 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
     function swap_price() {
         var C1 = selector.value;
         var CID1, CID2, Type1, Type2;
+        console.log("cid to sell:");
+        console.log(CID1);
+        console.log("cid to buy:");
+        console.log(CID2);
         if(C1 == "veo") {
             //buying something with veo
             CID1 = ZERO;
