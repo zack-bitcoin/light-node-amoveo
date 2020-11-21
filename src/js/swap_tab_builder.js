@@ -103,9 +103,9 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                     var option2 = document.createElement("option");
                     option2.innerHTML = "";
                     option2.value = JSON.stringify([cid, 2]);
-                    contract_to_buy.appendChild(option);
-                    contract_to_buy.appendChild(option2);
                     if(ticker_bool){
+                        contract_to_buy.appendChild(option);
+                        contract_to_buy.appendChild(option2);
                         var button1_text = " contract ";
                         var button2_text = " inverse contract ";
                         stable_text = tabs.decode_ticker(text, p_est, "stablecoin");
@@ -133,6 +133,8 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                             option.innerHTML = s1;
                             option2.innerHTML = s2;
                     } else if (!(hide_non_standard)){
+                        contract_to_buy.appendChild(option);
+                        contract_to_buy.appendChild(option2);
                         var short_text = text.slice(0, 64);
                         if (text.length > short_text.length){
                             short_text = short_text.concat("...");
