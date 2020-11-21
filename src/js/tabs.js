@@ -12,15 +12,18 @@ var tabs = (function(){
     var pool_tab = document.createElement("div");
     var spend_tab = document.createElement("div");
     var create_tab = document.createElement("div");
+    var create_binary_tab = document.createElement("div");
     var sub_accs = [];
     var liquidity_shares = [];
     var swap_selector = document.createElement("select");
     var create_selector = document.createElement("select");
+    var create_binary_selector = document.createElement("select");
     var pool_selector = document.createElement("select");
     var spend_selector = document.createElement("select");
         load_selector_options(swap_selector, ["veo"]);
         load_selector_options(spend_selector, ["veo"]);
         load_selector_options(create_selector, ["veo"]);
+        load_selector_options(create_binary_selector, ["veo"]);
         load_selector_options(pool_selector, ["veo"]);
     
     div.appendChild(balances);
@@ -43,21 +46,6 @@ var tabs = (function(){
                     //liquidity_shares = [];
                     display.innerHTML = "";
                 }
-                //swap_mode_f();
-                /*
-                swap_selector.innerHTML = "";
-                create_selector.innerHTML = "";
-                pool_selector.innerHTML = "";
-                spend_selector.innerHTML = "";
-                load_selector_options(
-                    spend_selector, ["veo"]);
-                load_selector_options(
-                    swap_selector, ["veo"]);
-                load_selector_options(
-                    create_selector, ["veo"]);
-                load_selector_options(
-                    pool_selector, ["veo"]);
-*/
                     //market_selector.innerHTML = "";
                     //TODO figure out which subcurrencies we own in each contract. each subcurrency goes into the selector seperately.
                 contracts_to_subs(sub_accs, [], function(sub_accs2){
@@ -66,21 +54,6 @@ var tabs = (function(){
                         sub_accs2, liquidity_shares, "<h4>your balances in each subcurrency</h4>",
                         function(){
                             show_balances();
-                            /*
-                            sub_accs2 = sub_accs2.map(function(x) {
-                                return(JSON.stringify(x));
-                            });
-                            liquidity_shares = liquidity_shares.map(function(x){return(JSON.stringify([x, 0]));});
-                            var Options = liquidity_shares;
-                            load_selector_options(
-                                spend_selector, Options);
-                            load_selector_options(
-                                swap_selector, Options);
-                            load_selector_options(
-                                create_selector, Options);
-                            load_selector_options(
-                                pool_selector, Options);
-                            */
                         });
                 });
                 
@@ -189,15 +162,6 @@ var tabs = (function(){
         var sub_keys = Object.keys(balances_db);
         var s = "";
         balances.innerHTML = "";
-        //swap_selector.innerHTML = "";
-        //spend_selector.innerHTML = "";
-        //create_selector.innerHTML = "";
-        //pool_selector.innerHTML = "";
-        
-        //load_selector_options(swap_selector, ["veo"]);
-        //load_selector_options(spend_selector, ["veo"]);
-        //load_selector_options(create_selector, ["veo"]);
-        //load_selector_options(pool_selector, ["veo"]);
         for(var i = 0; i<sub_keys.length; i++){
             //console.log(sub_keys[i]);
             //console.log(balances_db[sub_keys[i]]);
@@ -221,6 +185,7 @@ var tabs = (function(){
                     };
                     spend_selector.appendChild(option.cloneNode(true));
                     create_selector.appendChild(option.cloneNode(true));
+                    create_binary_selector.appendChild(option.cloneNode(true));
                     pool_selector.appendChild(option.cloneNode(true));
                 };
             };
@@ -457,6 +422,7 @@ var tabs = (function(){
             
     };
     function decode_ticker(x, price, kind) {
+        console.log(x);
         //var ticker = l[2].split("= ")[1];
         var ticker = symbol(x);
         //var l = x.split(";");
@@ -530,15 +496,18 @@ var tabs = (function(){
     var pool_mode =
         button_maker3("pool", change_tab(pool_tab));
     var create_mode =
-        button_maker3("create", change_tab(create_tab));
+        button_maker3("create scalar", change_tab(create_tab));
+    var create_binary_mode =
+        button_maker3("create binary", change_tab(create_binary_tab));
     var spend_mode =
         button_maker3("send", change_tab(spend_tab));
-    var buttons = [swap_mode, pool_mode, create_mode, spend_mode];
+    var buttons = [swap_mode, pool_mode, create_mode, create_binary_mode, spend_mode];
     swap_mode.style.backgroundColor = "red";//default starts in swap tab.
     div.appendChild(swap_mode);
     div.appendChild(pool_mode);
-    div.appendChild(create_mode);
     div.appendChild(spend_mode);
+    div.appendChild(create_mode);
+    div.appendChild(create_binary_mode);
     div.appendChild(br());
     div.appendChild(current_tab);
 
@@ -547,12 +516,14 @@ var tabs = (function(){
     var swap = swap_tab_builder(swap_tab, swap_selector, hide_non_standard);
     //var swap = swap_tab_builder(swap_tab, spend_selector.cloneNode(true));
     var create = create_tab_builder(create_tab, create_selector, hide_non_standard);
+    var create_binary = create_binary_tab_builder(create_binary_tab, create_binary_selector, hide_non_standard);
     //var create = create_tab_builder(create_tab, spend_selector.cloneNode(true));
 
     return({pool: pool,
             swap: swap,
             spend: spend,
             create: create,
+            create_binary: create_binary,
             is_ticker_format: is_ticker_format,
             decode_ticker: decode_ticker,
             coll_limit: coll_limit,

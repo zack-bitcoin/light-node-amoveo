@@ -97,17 +97,17 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                     var ticker_bool =
                         tabs.is_ticker_format(text);
                 //console.log(hide_non_standard);
-                    if((!(hide_non_standard)) || ticker_bool){
+                    var option = document.createElement("option");
+                    option.innerHTML = "";
+                    option.value = JSON.stringify([cid, 1]);
+                    var option2 = document.createElement("option");
+                    option2.innerHTML = "";
+                    option2.value = JSON.stringify([cid, 2]);
+                    contract_to_buy.appendChild(option);
+                    contract_to_buy.appendChild(option2);
+                    if(ticker_bool){
                         var button1_text = " contract ";
                         var button2_text = " inverse contract ";
-                        var option = document.createElement("option");
-                        option.innerHTML = "";
-                        option.value = JSON.stringify([cid, 1]);
-                        var option2 = document.createElement("option");
-                        option2.innerHTML = "";
-                        option2.value = JSON.stringify([cid, 2]);
-                        contract_to_buy.appendChild(option);
-                        contract_to_buy.appendChild(option2);
                         stable_text = tabs.decode_ticker(text, p_est, "stablecoin");
                         long_text = tabs.decode_ticker(text, p_est, "long-veo");
                         var ticker = "v".concat(tabs.symbol(text0));
@@ -115,7 +115,7 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                         var button2_text =
                             " i".concat(ticker);
                         var s1 = ""
-                        if(ticker_bool){
+                        //if(ticker_bool){
                             var s1 = ""
                                 .concat("\"")
                                 .concat(stable_text)
@@ -132,24 +132,28 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                                 .concat("");
                             option.innerHTML = s1;
                             option2.innerHTML = s2;
-                        } else {
-                            option.innerHTML =
-                                "buy "
-                                .concat(button1_text)
-                                .concat(" ")
-                                .concat(text)
-                                .concat("; open interest: ")
-                                .concat((contracts[0][11] / token_units()).toString())
-                                .concat("");
-                            option2.innerHTML =
-                                "buy "
-                                .concat(button2_text)
-                                .concat(" ")
-                                .concat(text)
-                                .concat("; open interest: ")
-                                .concat((contracts[0][11] / token_units()).toString())
-                                .concat("");
+                    } else if (!(hide_non_standard)){
+                        var short_text = text.slice(0, 64);
+                        if (text.length > short_text.length){
+                            short_text = short_text.concat("...");
                         };
+                        option.innerHTML =
+                            "buy "
+                            .concat(button1_text)
+                            .concat(" ")
+                            .concat(short_text)
+                            .concat("; open interest: ")
+                            .concat((contracts[0][11] / token_units()).toString())
+                            .concat("");
+                        option2.innerHTML =
+                            "buy "
+                            .concat(button2_text)
+                            .concat(" ")
+                            .concat(short_text)
+                            .concat("; open interest: ")
+                            .concat((contracts[0][11] / token_units()).toString())
+                            .concat("");
+                        //};
                     };
                 }
                 display_contracts2(div, contracts.slice(1), pairs);
@@ -1151,7 +1155,7 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
             P = 1-P;
         };
         var r = {
-            ticker: "?",
+            ticker: " shares ",
             price_b: 1/P,
             limit: 1,
             slippage: 0
