@@ -87,7 +87,7 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
         var cid = contract_to_cid(contracts[0]);
         var source = contracts[0][8];
         rpc.post(["read", 3, cid], function(oracle_text) {
-            price_estimate_read(cid, source, function(p_est){
+            price_estimate_read(cid, source, function(p_est, liquidity){
                 if(!(oracle_text == 0)) {
                     var type = oracle_text[0];
                     var text = atob(oracle_text[1]);
@@ -103,6 +103,9 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                     var option2 = document.createElement("option");
                     option2.innerHTML = "";
                     option2.value = JSON.stringify([cid, 2]);
+                    var open_interest = (contracts[0][11] / token_units()).toFixed(2).toString();
+                    var liquidity = (liquidity/100000000).toFixed(2).toString();
+                    if(liquidity > 0.009){
                     if(ticker_bool){
                         contract_to_buy.appendChild(option);
                         contract_to_buy.appendChild(option2);
@@ -115,23 +118,27 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                         var button2_text =
                             " i".concat(ticker);
                         var s1 = ""
-                        //if(ticker_bool){
-                            var s1 = ""
-                                .concat("\"")
-                                .concat(stable_text)
-                                .concat("\"~ ")
-                                .concat("; open interest: ")
-                                .concat((contracts[0][11] / token_units()).toFixed(2).toString())
-                                .concat("");
-                            var s2 = ""
-                                .concat("\"")
-                                .concat(long_text)
-                                .concat("\"~ ")
-                                .concat("; open interest: ")
-                                .concat((contracts[0][11] / token_units()).toFixed(2).toString())
-                                .concat("");
-                            option.innerHTML = s1;
-                            option2.innerHTML = s2;
+                            .concat("\"")
+                            .concat(stable_text)
+                            .concat("\"~ ")
+                            //.concat("; open interest: ")
+                            //.concat(open_interest)
+                            .concat("; liquidity: ")
+                            .concat(liquidity)
+                            //.concat((contracts[0][11] / token_units()).toFixed(2).toString())
+                            .concat("");
+                        var s2 = ""
+                            .concat("\"")
+                            .concat(long_text)
+                            .concat("\"~ ")
+                            //.concat("; open interest: ")
+                            //.concat(open_interest)
+                            .concat("; liquidity: ")
+                            .concat(liquidity)
+                            //.concat((contracts[0][11] / token_units()).toFixed(2).toString())
+                            .concat("");
+                        option.innerHTML = s1;
+                        option2.innerHTML = s2;
                     } else if (!(hide_non_standard)){
                         contract_to_buy.appendChild(option);
                         contract_to_buy.appendChild(option2);
@@ -140,22 +147,30 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                             short_text = short_text.concat("...");
                         };
                         option.innerHTML =
-                            "buy "
-                            .concat(button1_text)
-                            .concat(" ")
+                            ""
+                            //.concat(button1_text)
+                            .concat("TRUE: ")
                             .concat(short_text)
-                            .concat("; open interest: ")
-                            .concat((contracts[0][11] / token_units()).toString())
+                            //.concat("; open interest: ")
+                            //.concat(open_interest)
+                            .concat("; price: ")
+                            .concat(p_est.toFixed(2))
+                            .concat("; liquidity: ")
+                            .concat(liquidity)
                             .concat("");
                         option2.innerHTML =
-                            "buy "
-                            .concat(button2_text)
-                            .concat(" ")
+                            ""
+                            //.concat(button2_text)
+                            .concat("FALSE: ")
                             .concat(short_text)
-                            .concat("; open interest: ")
-                            .concat((contracts[0][11] / token_units()).toString())
+                            //.concat("; open interest: ")
+                            //.concat(open_interest)
+                            .concat("; price: ")
+                            .concat((1-p_est).toFixed(2))
+                            .concat("; liquidity: ")
+                            .concat(liquidity)
                             .concat("");
-                        //};
+                    };
                     };
                 }
                 display_contracts2(div, contracts.slice(1), pairs);
@@ -1068,7 +1083,8 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
             rpc.post(["markets", mid2], function(market2){
                 rpc.post(["markets", mid3], function(market3){
                     var p_est = price_estimate(market1, market2, market3);
-                    return(callback(p_est));
+                    var liq = total_liquidity(market1, market2, market3);
+                    return(callback(p_est, liq));
                 });
             });
         });
@@ -1110,7 +1126,7 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                                 .concat(((loss * spend_db.limit)/ token_units()).toString())
                                 .concat(spend_db.ticker)
                                 .concat(" <br>to receive ")
-                                .concat(((gain * gain_db.limit)/ token_units()).toString())
+                                .concat(((gain * gain_db.limit)/ token_units()).toFixed(8).toString())
                                 .concat(gain_db.ticker)
                                 .concat(" <br>at a price of: ")
                                 .concat(show_price)
@@ -1195,7 +1211,15 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
             return(callback(x));
         });
     };
-            
+    function total_liquidity(market1, market2, market3) {
+        var K1 = market1[4] * market1[7];
+        var K2 = market2[4] * market2[7];
+        var K3 = market3[4] * market3[7];
+        var W1 = Math.sqrt(K1);
+        var W2 = Math.sqrt(K2);
+        var W3 = Math.sqrt(K3);
+        return(W1+W2+W3);
+    };
     function price_estimate(market1, market2, market3) {
         var K1 = market1[4] * market1[7];
         var K2 = market2[4] * market2[7];
