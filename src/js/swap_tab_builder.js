@@ -1135,6 +1135,20 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                                 .concat("% <br>veo fees: ")
                                 .concat(((trading_fees + tx[3])/token_units()).toFixed(8).toString());
                             display.innerHTML = to_display;
+                            if(gain_db.link){
+                                display.appendChild(br());
+                                var gain_span = document.createElement("span");
+                                gain_span.innerHTML = "gain ";
+                                display.appendChild(gain_span);
+                                display.appendChild(gain_db.link);
+                            }
+                            if(spend_db.link){
+                                display.appendChild(br());
+                                var spend_span = document.createElement("span");
+                                spend_span.innerHTML = "spend ";
+                                display.appendChild(spend_span);
+                                display.appendChild(spend_db.link);
+                            }
                             var stx = keys.sign(tx);
                             publish_tx_button.onclick = function(){
                                 post_txs([stx], function(msg){
@@ -1159,8 +1173,6 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
         };
         var source = [contract[8], contract[9]];
         //console.log(JSON.stringify([source, currency]));
-
-
 
         var mid1 = new_market.mid(source[0], currency[0], 0, 1);
         var mid2 = new_market.mid(source[0], currency[0], 0, 2);
@@ -1196,6 +1208,11 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                 //r.slippage = Math.abs(r.price - r.price_b)/r.price_b;
             };
         };
+        var cid_link = document.createElement("a");
+        cid_link.href = "contract_explorer.html?cid="
+            .concat(currency[0]);
+        cid_link.innerHTML = "currency info";//" shares ";
+        r.link = cid_link;
         return(r);
     };
 

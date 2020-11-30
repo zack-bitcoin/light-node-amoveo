@@ -23,7 +23,10 @@
         id_div.innerHTML = "market "
             .concat(mid)
             .concat(" liquidity: ")
-            .concat(volume);
+            .concat(volume)
+            .concat(" price: ")
+            .concat((amount1 / (amount1 + amount2)).toFixed(4))
+            .concat("");
         div.appendChild(id_div);
         var cid1_link = document.createElement("a");
         cid1_link.href = "contract_explorer.html?cid="
