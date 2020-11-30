@@ -34,7 +34,7 @@
             .concat(" type: ")
             .concat(type1)
             .concat(" amount: ")
-            .concat(amount1)
+            .concat((amount1 / 100000000).toFixed(8))
         div.appendChild(cid1_link);
         div.appendChild(br());
         var cid2_link = document.createElement("a");
@@ -46,7 +46,7 @@
             .concat(" type: ")
             .concat(type2)
             .concat(" amount: ")
-            .concat(amount2)
+            .concat((amount2 / 100000000).toFixed(8))
         div.appendChild(cid2_link);
         div.appendChild(br());
     });
