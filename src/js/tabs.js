@@ -266,7 +266,8 @@ var tabs = (function(){
                                 s = s.concat("inverse ");
                             };
                             if(oracle_text &&(!(oracle_text == 0))){
-                                console.log(oracle_text);
+                                console.log(JSON.stringify(oracle_text));
+                                console.log(atob(oracle_text[1]));
                                 var ot1 = atob(oracle_text[1]);
                                 if(is_ticker_format(ot1)){
                                     var ticker = decode_ticker(ot1);

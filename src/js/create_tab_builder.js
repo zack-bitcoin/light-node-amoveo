@@ -50,9 +50,13 @@ function create_tab_builder(div, selector){
     var option_cp = document.createElement("option");
     option_cp.innerHTML = "coinpaprika.com";
     option_cp.value = "coinpaprika.com";
+    var option_ed = document.createElement("option");
+    option_ed.innerHTML = "euromomo.eu/graphs-and-maps";
+    option_ed.value = "euromomo.eu/graphs-and-maps";
     website_text.appendChild(option_qtrade);
     website_text.appendChild(option_cmc);
     website_text.appendChild(option_cp);
+    website_text.appendChild(option_ed);
     var ticker_text = text_input("Ticker of Synthetic Asset (i.e. BTC)", stablecoin_div);
     stablecoin_div.appendChild(br());
     website_label = document.createElement("span");
