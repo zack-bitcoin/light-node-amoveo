@@ -369,10 +369,11 @@ function make_contract(){
                  V, A1]
             ]);
         };
-        console.log(JSON.stringify(txs));
+        //console.log(JSON.stringify(txs));
         multi_tx.make(txs, function(tx){
             //return(0);
             var stx = keys.sign(tx);
+            console.log(JSON.stringify(stx));
             //publish_tx_button.onclick = function(){
             post_txs([stx], function(msg){
                 display2.innerHTML = msg;

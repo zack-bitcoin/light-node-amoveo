@@ -35,7 +35,8 @@ function create_binary_tab_builder(div, selector){
             return(0);
         };
         var amount = Math.round(parseFloat(amount_text.value)*token_units());
-        return(tabs.create.make_contract2(Text, MP, price, amount, display));
+        //return(tabs.create.make_contract2(Text, MP, price, amount, display));
+        return(tabs.tabs.create.tab.make_contract2(Text, MP, price, amount, display));
     };
     return({
         oracle:(function(x){oracle_text.value = x}),

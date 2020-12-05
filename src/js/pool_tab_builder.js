@@ -121,7 +121,7 @@ function pool_tab_builder(pool_tab, selector, hide_non_standard) {
             var id = txs[i][4];
             var loss = -txs[i][5];
             var market =
-                tabs.swap.get_market(id, markets);
+                tabs.tabs.swap.tab.get_market(id, markets);
             var key1 = [market[2], market[3]];
             var key2 = [market[5], market[6]];
             if(!(currencies[key1])){
@@ -184,8 +184,8 @@ function pool_tab_builder(pool_tab, selector, hide_non_standard) {
                 if((CID1 == SourceCID) && (Type1 == SourceType)){
                     return(lookup_price2(A, [], SourceCID, SourceType, GoalCID, [CID1, Type1]));
                 };
-                tabs.swap.txs_maker(A, CID1, Type1, SourceCID, SourceType, function(swap_txs){
-                    var A2 = tabs.swap.calculate_gain([SourceCID, SourceType], swap_txs, []);
+                tabs.tabs.swap.tab.txs_maker(A, CID1, Type1, SourceCID, SourceType, function(swap_txs){
+                    var A2 = tabs.tabs.swap.tab.calculate_gain([SourceCID, SourceType], swap_txs, []);
                     return(lookup_price2(A2, swap_txs, SourceCID, SourceType, GoalCID, [CID1, Type1]));
                 });
             });
@@ -499,13 +499,13 @@ IA = B*(2PA-1)
             //calculate loss/gain info, and display it.
             //var markets = db;
             var markets = [market1, market2, market3];
-            var loss = tabs.swap.calculate_loss(SpentCurrency, full_txs, markets) - tabs.swap.calculate_gain(SpentCurrency, full_txs, markets);
-            var loss1 = tabs.swap.calculate_loss([cid, 1], full_txs, markets) - tabs.swap.calculate_gain([cid, 1], full_txs, markets);
-            var loss2 = tabs.swap.calculate_loss([cid, 2], full_txs, markets) - tabs.swap.calculate_gain([cid, 2], full_txs, markets);
+            var loss = tabs.tabs.swap.tab.calculate_loss(SpentCurrency, full_txs, markets) - tabs.tabs.swap.tab.calculate_gain(SpentCurrency, full_txs, markets);
+            var loss1 = tabs.tabs.swap.tab.calculate_loss([cid, 1], full_txs, markets) - tabs.tabs.swap.tab.calculate_gain([cid, 1], full_txs, markets);
+            var loss2 = tabs.tabs.swap.tab.calculate_loss([cid, 2], full_txs, markets) - tabs.tabs.swap.tab.calculate_gain([cid, 2], full_txs, markets);
 
-            var gain1 = tabs.swap.calculate_gain([mid1, 0], full_txs, markets);
-            var gain2 = tabs.swap.calculate_gain([mid2, 0], full_txs, markets);
-            var gain3 = tabs.swap.calculate_gain([mid3, 0], full_txs, markets);
+            var gain1 = tabs.tabs.swap.tab.calculate_gain([mid1, 0], full_txs, markets);
+            var gain2 = tabs.tabs.swap.tab.calculate_gain([mid2, 0], full_txs, markets);
+            var gain3 = tabs.tabs.swap.tab.calculate_gain([mid3, 0], full_txs, markets);
             console.log(JSON.stringify([loss, loss1, loss2//,
                                         //gain1, gain2, gain3
                                        ]));
@@ -524,12 +524,15 @@ IA = B*(2PA-1)
             sk = btoa(array_to_string(sk));
             console.log(cid);
             console.log(sk);
+            console.log(JSON.stringify(Object.keys(tabs.balances_db)));
             console.log(JSON.stringify(tabs.balances_db[sk]));
             var type1string = ""
                 .concat((sub1_worth / token_units()).toString())
                 .concat(" of subcurrency type 1. <br>");
             
-            if(tabs.balances_db[sk].ticker_symbol){
+            if((tabs.balances_db[sk] &&
+                tabs.balances_db[sk].ticker_symbol))
+            {
                 var limit = tabs.balances_db[sk].limit;
                 type1string = ""
                     .concat((limit * sub1_worth / token_units()).toString())
@@ -572,10 +575,12 @@ IA = B*(2PA-1)
             return(0);
         }
         //var cid = contracts[0][1];
-        var cid = tabs.swap.contract_to_cid(contracts[0]);
+        //var cid = tabs.swap.contract_to_cid(contracts[0]);
+        var cid = tabs.tabs.swap.tab.contract_to_cid(contracts[0]);
         var source = contracts[0][8];
         rpc.post(["read", 3, cid], function(oracle_text) {
-            tabs.swap.price_estimate_read(cid, source, function(p_est){
+            //tabs.swap.price_estimate_read(cid, source, function(p_est){
+            tabs.tabs.swap.tab.price_estimate_read(cid, source, function(p_est){
             //console.log(contracts[0]);
             //console.log(cid);
             if(!(oracle_text == 0)) {
@@ -609,7 +614,8 @@ IA = B*(2PA-1)
                         .concat("\"~ ")
                         .concat("; volume: ")
                         .concat((contracts[0][11] / token_units()).toString())
-                        .concat("<button onclick=\"tabs.pool.cid('")
+                        //.concat("<button onclick=\"tabs.pool.cid('")
+                        .concat("<button onclick=\"tabs.tabs.pool.tab.cid('")
                         .concat(cid)
                         .concat("');\"> pool</button>")
                         .concat("<br>")
