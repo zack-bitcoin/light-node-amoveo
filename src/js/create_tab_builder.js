@@ -231,7 +231,7 @@ function make_contract(){
         var amount = Math.round(parseFloat(amount_text.value)*token_units());
         return(make_contract2(Text, MaxVal, price, amount, display));
     }
-    function make_contract2(Text, MP, price, amount, display2) {
+    function make_contract2(Text, MP, price, amount, display2, selector2) {
         //console.log(MP);
         var amount1 = amount*price;
         var amount2 = amount*(1-price);
@@ -243,11 +243,11 @@ function make_contract(){
             return(0);
         }
         var Source, SourceType;
-        if(selector.value == "veo"){
+        if(selector2.value == "veo"){
             Source = ZERO;
             SourceType = 0;
         } else {
-            var V = JSON.parse(selector.value);
+            var V = JSON.parse(selector2.value);
             Source = V[0];
             SourceType = V[1];
         }

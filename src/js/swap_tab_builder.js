@@ -40,9 +40,13 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                     balance = acc[1];
                 };
                 var limit = 1;
-                if(currency[1] === 1){
+                if((currency[1] === 1) &&
+                  tabs.balances_db[trie_key].limit){
                     limit = tabs.balances_db[trie_key].limit;
                 };
+                console.log(JSON.stringify(currency));
+                console.log(JSON.stringify(tabs.balances_db[trie_key]));
+                console.log(JSON.stringify([balance, limit, token_units()]));
                 amount_input.value = (balance * limit / token_units()).toFixed(8);
                 
             });
@@ -181,10 +185,6 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
     function swap_price() {
         var C1 = selector.value;
         var CID1, CID2, Type1, Type2;
-        console.log("cid to sell:");
-        console.log(CID1);
-        console.log("cid to buy:");
-        console.log(CID2);
         if(C1 == "veo") {
             //buying something with veo
             CID1 = ZERO;
@@ -194,7 +194,6 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
             CID1 = C1[0];
             Type1 = C1[1];
         };
-        console.log(contract_to_buy.value);
         if(contract_to_buy.value === "veo"){
             //selling something for veo
             CID2 = ZERO;

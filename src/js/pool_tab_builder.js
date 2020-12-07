@@ -93,6 +93,13 @@ function pool_tab_builder(pool_tab, selector, hide_non_standard) {
                                         txs = txs.concat(make_tx(mid2, sa2, market2));
                                         txs = txs.concat(make_tx(mid3, sa3, market3));
                                         display.innerHTML = sell_ls_msg(txs, markets);
+        var cid_link = document.createElement("a");
+        cid_link.href = "contract_explorer.html?cid="
+            .concat(txs[0][8]);
+        cid_link.innerHTML = "lookup contract";
+                                        display.appendChild(cid_link);
+
+                                        
                                         console.log(JSON.stringify(txs));
                                         multi_tx.make(txs, function(tx){
                                             var stx = keys.sign(tx);
@@ -134,6 +141,7 @@ function pool_tab_builder(pool_tab, selector, hide_non_standard) {
             currencies[key2] += loss*market[7]/market[8];
         };
         r = ("you can sell all your liquidity shares to receive: <br>");
+        //r = r.concat(cid_link);
         for(var k in currencies){
             r = r.concat((currencies[k] / token_units()).toString())
                 .concat(" of currency type ")

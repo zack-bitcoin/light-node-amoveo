@@ -34,6 +34,7 @@
     });
     rpc.post(["read", 3, cid], function(contract){
         //from p2p derivatives explorer
+        console.log(get_ip());
         console.log(contract);
         var text = atob(contract[1]);
         text_div.innerHTML = "oracle text: "

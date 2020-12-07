@@ -13,7 +13,8 @@ var tabs = (function(){
          ["pool", pool_tab_builder, "pool"],
          ["spend", spend_tab_builder, "spend"],
          ["create", create_tab_builder, "create stablecoin"],
-         ["create_binary", create_binary_tab_builder, "create binary"]];
+         ["create_binary", create_binary_tab_builder, "create binary"],
+         ["create_scalar", create_scalar_tab_builder, "create scalar"]];
     var tabs = {};
     for (var i = 0; i<tab_builder.length; i++){
         var d = document.createElement("div");
@@ -102,6 +103,7 @@ var tabs = (function(){
             var sa = balances_db[sub_keys[i]];
             if(sa && sa.string){
                 var s = sa.string;
+                console.log(s);
                 if(!(loaded_into_selector[sub_keys[i]])){
                     loaded_into_selector[sub_keys[i]] = true;
 
