@@ -1,6 +1,7 @@
 var swap_offer = (function(){
     var div = document.getElementById("swap_offer");
     var display = document.createElement("p");
+    var ZERO = btoa(array_to_string(integer_to_array(0, 32)));
     div.appendChild(display);
     var fee = 152050;
 
@@ -34,13 +35,21 @@ var swap_offer = (function(){
             offer.amount2 = parseInt(amount2.value);
             offer.cid1 = cid1.value;
             offer.cid2 = cid2.value;
-            offer.type1 = parseInt(type1.value);
-            offer.type2 = parseInt(type2.value);
+            if("" === offer.cid1){
+                offer.cid1 = ZERO;
+            }
+            if("" === offer.cid2){
+                offer.cid2 = ZERO;
+            }
+            offer.type1 = (parseInt(type1.value) || 0);
+            offer.type2 = (parseInt(type2.value) || 0);
+            
             offer.fee1 = fee;
             offer.fee2 = fee;
             offer.acc1 = keys.pub();
+            var signed_offer;
 
-            if((offer.type1 == 0) || !(offer.type1)){
+            if(offer.type1 == 0){
                 var bal = my_acc[1];
                 if(my_acc == "empty"){
                     display.innerHTML = "not enough veo to make this offer. (possibly no key loaded?) ";
@@ -50,8 +59,9 @@ var swap_offer = (function(){
                     display.innerHTML = "not enough veo to make this offer";
                     return(0);
                 } else {
-                    var signed_offer = swaps.pack(offer);
+                    signed_offer = swaps.pack(offer);
                     display.innerHTML = JSON.stringify(signed_offer);
+                    publish_swap_offer.offer(JSON.stringify(signed_offer));
                 }
             } else {
                 var key = btoa(array_to_string(sub_accounts.key(keys.pub(), offer.cid1, offer.type1)));
@@ -66,12 +76,14 @@ var swap_offer = (function(){
                         return(0);
                     } else {
                         
-                        var signed_offer = swaps.pack(offer);
+                        signed_offer = swaps.pack(offer);
                         display.innerHTML = JSON.stringify(signed_offer);
+                        publish_swap_offer.offer(JSON.stringify(signed_offer));
                     };
                 }));
             };
-            publish_swap_offer.offer(JSON.stringify(signed_offer));
+            //console.log("about to publish");
+            //publish_swap_offer.offer(JSON.stringify(signed_offer));
 
 //            var signed_offer = swaps.pack(offer);
  //           display.innerHTML = JSON.stringify(signed_offer);

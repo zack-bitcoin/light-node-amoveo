@@ -25,7 +25,9 @@ var publish_swap_offer = (function() {
         var cid1 = x[1][6];
         var zero = btoa(array_to_string(integer_to_array(0,32)));
         if(!(cid1 == zero)){
+            console.log("about to post");
             rpc.post(["read", 3, cid1], function(first){
+            console.log("just posted");
                 if(first == 0){
                     display.innerHTML = "contract "
                         .concat(cid1)
@@ -43,7 +45,9 @@ var publish_swap_offer = (function() {
         var cid2 = x[1][9];
         var second_offer = 0;
         if(!(cid2 == zero)){
+            console.log("about to post");
             rpc.post(["read", 3, cid2], function(second){
+            console.log("just posted");
                 if(second == 0) {
                     display.innerHTML = "contract "
                         .concat(cid2)

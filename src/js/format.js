@@ -585,7 +585,7 @@ function post_txs(txs, callback) {
                  if(x == "ZXJyb3I="){
                      callback("server rejected the tx");
                  }else{
-                     callback("accepted trade offer and published tx. the tx id is ".concat(x));
+                     callback("published tx. the tx id is ".concat(x));
                  }
              });
 };

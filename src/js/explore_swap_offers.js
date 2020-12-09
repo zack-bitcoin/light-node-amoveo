@@ -40,12 +40,22 @@ var explore_swap_offer = (function() {
         if(type1 == 0) {
             name = name.concat("they sell veo and ");
         } else {
-            name = name.concat("they sell subcurrency id ").concat(cid1).concat(" with type ").concat(type1);
+            name = name
+                .concat("they sell subcurrency id ")
+                .concat(cid1)
+                .concat(" with type ")
+                .concat(type1)
+                .concat(" ");
         }
         if(type2 == 0) {
             name = name.concat("they buy veo.");
         } else {
-            name = name.concat("they buy subcurrency id ").concat(cid2).concat(" with type ").concat(type2);
+            name = name
+                .concat("they buy subcurrency id ")
+                .concat(cid2)
+                .concat(" with type ")
+                .concat(type2)
+                .concat(" ");
         }
         var button = button_maker2(name, function(){
             rpc.post(["read", m[2]],

@@ -571,6 +571,7 @@ IA = B*(2PA-1)
     };
     function display_contracts(div) {
         rpc.post(["contracts"], function(contracts){
+            //console.log(JSON.stringify(contracts));
             var s = "<h4>existing contracts</h4>";
             return(display_contracts2(div, contracts.slice(1), s));
         }, get_ip(), 8091);//8091 is explorer
