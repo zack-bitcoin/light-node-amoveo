@@ -5,6 +5,8 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
     //var trading_fee = 0.98;
     var slippage = 1;
     var display = document.createElement("div");
+
+    var final_price;
     
     var contracts_div = document.createElement("div");
     display_contracts(contracts_div);
@@ -357,9 +359,8 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                            
         //console.log(JSON.stringify(Paths[0]));
         var average = average_fun(gradient, guess);
-        //console.log(guess);
-        //console.log(JSON.stringify(gradient));
-        //console.log(JSON.stringify(average));
+        final_price = 1/average;
+        
         if(good_enough(gradient, guess, average)){
             console.log("done!");
             console.log(guess);
@@ -1106,6 +1107,7 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                         //console.log(spend_contract);
                         
                         multi_tx.make(txs, function(tx){
+                            console.log(JSON.stringify(txs));
                             var gain_db = decode_oracle(gain_oracle_text, gain_contract, gain_currency, markets);
                             var spend_db = decode_oracle(spend_oracle_text, spend_contract, spend_currency, markets);
                             //var slippage = gain_db.slippage + spend_db.slippage;
@@ -1117,7 +1119,7 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                             var price_old = gain_db.price_b / spend_db.price_b;
                             var slippage = Math.abs(price - price_old)/price_old;
                             //console.log(JSON.stringify([slippage, price, price_old, gain, loss, gain_db.limit, spend_db.limit, gain_db.price_b, spend_db.price_b]));
-                            var show_price = price.toFixed(8).toString()
+                            var show_price = price.toFixed(4).toString()
                                 .concat(gain_db.ticker)
                                 .concat(" per ")
                                 .concat(spend_db.ticker);
@@ -1127,8 +1129,13 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                                 .concat(" <br>to receive ")
                                 .concat(((gain * gain_db.limit)/ token_units()).toFixed(8).toString())
                                 .concat(gain_db.ticker)
-                                .concat(" <br>at a price of: ")
+                                .concat(" <br>trading at a price of: ")
                                 .concat(show_price)
+                                .concat(" <br>leaving the market at a price of: ")
+                                .concat(final_price.toFixed(4).toString())
+                                .concat(gain_db.ticker)
+                                .concat(" per ")
+                                .concat(spend_db.ticker)
                                 .concat(" <br>slippage: ")
                                 .concat((slippage*100).toFixed(2).toString())
                                 .concat("% <br>veo fees: ")
