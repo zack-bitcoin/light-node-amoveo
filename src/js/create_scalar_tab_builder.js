@@ -1,3 +1,4 @@
+
 function create_scalar_tab_builder(div, selector){
     var ZERO = btoa(array_to_string(integer_to_array(0, 32)));
     var display = document.createElement("div");
