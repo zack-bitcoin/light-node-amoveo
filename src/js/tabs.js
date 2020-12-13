@@ -4,6 +4,15 @@ var tabs = (function(){
     if(hide_non_standard == "true"){
         hide_non_standard = true;
     };
+    var swap_cid = urlParams.get('swap_cid');
+    var swap_type = urlParams.get('swap_type');
+    if(swap_cid && swap_type){
+        swap_cid = swap_cid.replace(/\ /g, "+");
+        var preload_swap =
+            JSON.stringify(
+                [swap_cid, swap_type]);
+    }
+
     var display = document.createElement("div");
     var balances = document.createElement("div");
     var div = document.getElementById("main");
@@ -212,6 +221,10 @@ var tabs = (function(){
                                             .concat((balance/token_units()).toString());
                                     };
                                 } else {
+                                    if(ot1.length > 64){
+                                        ot1 = ot1.slice(0, 64)
+                                            .concat("...");
+                                    };
                                     s = s.concat("oracle text: ")
                                         .concat(ot1)
                                         .concat("contract: ")

@@ -258,7 +258,8 @@ function make_contract(){
             new_scalar_contract.make_tx(
                 Text, MP, Source, SourceType);
         var CH = new_contract_tx[2];
-        var cid = binary_derivative.id_maker(CH, 2);
+        //var cid = binary_derivative.id_maker(CH, 2);
+        var cid = binary_derivative.id_maker(CH, 2, Source, SourceType);
         var txs = [new_contract_tx];
         
         if (amount1 == amount2) {

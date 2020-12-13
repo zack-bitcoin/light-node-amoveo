@@ -91,9 +91,14 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
         }
         //var cid = contracts[0][1];
         var cid = contract_to_cid(contracts[0]);
+        //console.log(cid);
         var source = contracts[0][8];
+        var source_type = contracts[0][9];
         rpc.post(["read", 3, cid], function(oracle_text) {
-            price_estimate_read(cid, source, function(p_est, liquidity){
+            //console.log([cid, JSON.stringify(oracle_text)]);
+            //console.log(cid, source_type);
+            price_estimate_read(cid, source, source_type, function(p_est, liquidity){
+                //console.log([cid, p_est, liquidity]);
                 if(!(oracle_text == 0)) {
                     var type = oracle_text[0];
                     var text = atob(oracle_text[1]);
@@ -1075,14 +1080,15 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
         return(callback(txs, markets));
         //return(make_tx2(txs, Paths[0][0], Paths[0][Paths[0].length - 1]));
     };
-    function price_estimate_read(cid, source, callback){
-        var mid1 = new_market.mid(source, cid, 0, 1);
-        var mid2 = new_market.mid(source, cid, 0, 2);
+    function price_estimate_read(cid, source, source_type, callback){
+        var mid1 = new_market.mid(source, cid, source_type, 1);
+        var mid2 = new_market.mid(source, cid, source_type, 2);
         var mid3 = new_market.mid(cid, cid, 1, 2);
         rpc.post(["markets", mid1], function(market1){
             rpc.post(["markets", mid2], function(market2){
                 rpc.post(["markets", mid3], function(market3){
                     var p_est = price_estimate(market1, market2, market3);
+                    console.log(JSON.stringify([cid, source_type, market1, market2]));
                     var liq = total_liquidity(market1, market2, market3);
                     return(callback(p_est, liq));
                 });
@@ -1241,7 +1247,11 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
         var W1 = Math.sqrt(K1);
         var W2 = Math.sqrt(K2);
         var W3 = Math.sqrt(K3);
-        return(W1+W2+W3);
+        var total = 0;
+        if(W1){ total += W1 };
+        if(W2){ total += W2 };
+        if(W3){ total += W3 };
+        return(total);
     };
     function price_estimate(market1, market2, market3) {
         var K1 = market1[4] * market1[7];
