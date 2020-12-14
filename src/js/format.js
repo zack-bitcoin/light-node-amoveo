@@ -649,7 +649,7 @@ configure["channel_view"] = true;
             rpc.post(["markets", mid2], function(market2){
                 rpc.post(["markets", mid3], function(market3){
                     var p_est = price_estimate(market1, market2, market3);
-                    console.log(JSON.stringify([cid, source_type, market1, market2]));
+                    //console.log(JSON.stringify([cid, source_type, market1, market2]));
                     var liq = total_liquidity(market1, market2, market3);
                     return(callback(p_est, liq));
                 });

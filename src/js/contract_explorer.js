@@ -31,19 +31,19 @@
         contract[11];
         volume_div.innerHTML = "total money invested in this contract: "
             .concat((contract[11] / 100000000).toFixed(8).toString());
-        console.log(contract);
+    console.log(contract);
     });
     */
     rpc.post(["read", 3, cid], function(contract){
         //from p2p derivatives explorer
-        console.log(get_ip());
-        console.log(contract);
+        //console.log(get_ip());
+        //console.log(contract);
         var text = atob(contract[1]);
         text_div.innerHTML = "oracle text: "
             .concat(text);
         var max_price = contract[3];
-        console.log(text);
-        console.log(max_price);
+        //console.log(text);
+        //console.log(max_price);
     }, get_ip(), 8090); 
 
     rpc.post(["contract", cid], function(contract){
@@ -79,12 +79,13 @@
             var link = document.createElement("a");
             link.href = "?cid=".concat(source);
             link.innerHTML = "source contract";
-            source_text = "collateral: "
+            link.innerHTML = "collateral: "
                 .concat(source)
                 .concat(" type: ")
                 .concat(source_type);
-            source_div.innerHTML = source_text;
-            div.appendChild(link);
+            source_div.appendChild(link);
+            //source_div.appendChild(source_text);
+            //div.appendChild(link);
         };
         var many_types = contract[3];
         var markets = contract[4];
@@ -97,11 +98,11 @@
             //return(display_contracts2(div, contracts.slice(1), []));
     }, get_ip(), 8091);//8091 is explorer
     function make_market_links(markets){
-        console.log(markets);
+        //console.log(markets);
         if(markets.length === 0){
             return(0);
         };
-        console.log(markets[0]);
+        //console.log(markets[0]);
         //rpc.post(["market", markets[0]], function(market){
         rpc.post(["markets", markets[0]], function(market){
             //market = market[1];
@@ -126,7 +127,7 @@
             var cid2 = market[7];
             var type2 = market[8];
             */
-            console.log(market);
+            //console.log(market);
 
             if(cid1 === cid){
                 cid1 = "this";
