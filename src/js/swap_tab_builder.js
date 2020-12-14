@@ -1,4 +1,10 @@
 function swap_tab_builder(swap_tab, selector, hide_non_standard){
+    if(!(swap_tab)){
+        swap_tab = document.createElement("div");
+    };
+    if(!(selector)){
+        selector = document.createElement("select");
+    };
     var ZERO = btoa(array_to_string(integer_to_array(0, 32)));
     var trading_fee = 0.9979995;
     var loop_limit = 90;
@@ -1080,21 +1086,6 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
         return(callback(txs, markets));
         //return(make_tx2(txs, Paths[0][0], Paths[0][Paths[0].length - 1]));
     };
-    function price_estimate_read(cid, source, source_type, callback){
-        var mid1 = new_market.mid(source, cid, source_type, 1);
-        var mid2 = new_market.mid(source, cid, source_type, 2);
-        var mid3 = new_market.mid(cid, cid, 1, 2);
-        rpc.post(["markets", mid1], function(market1){
-            rpc.post(["markets", mid2], function(market2){
-                rpc.post(["markets", mid3], function(market3){
-                    var p_est = price_estimate(market1, market2, market3);
-                    console.log(JSON.stringify([cid, source_type, market1, market2]));
-                    var liq = total_liquidity(market1, market2, market3);
-                    return(callback(p_est, liq));
-                });
-            });
-        });
-    };
     function make_tx2(txs, markets, spend_currency, gain_currency) {
         var trading_fees = 0;
         for(var i = 0; i<txs.length; i++){
@@ -1239,50 +1230,6 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
         rpc.post(["contracts", cid], function(x){
             return(callback(x));
         });
-    };
-    function total_liquidity(market1, market2, market3) {
-        var K1 = market1[4] * market1[7];
-        var K2 = market2[4] * market2[7];
-        var K3 = market3[4] * market3[7];
-        var W1 = Math.sqrt(K1);
-        var W2 = Math.sqrt(K2);
-        var W3 = Math.sqrt(K3);
-        var total = 0;
-        if(W1){ total += W1 };
-        if(W2){ total += W2 };
-        if(W3){ total += W3 };
-        return(total);
-    };
-    function price_estimate(market1, market2, market3) {
-        var K1 = market1[4] * market1[7];
-        var K2 = market2[4] * market2[7];
-        var K3 = market3[4] * market3[7];
-        var P1 = market1[4] / market1[7];
-        var P2 = 1 - (market2[4]/market2[7]);
-        //R = (1-P)/P
-        //PR = 1-P
-        //P(R+1) = 1
-        //P = 1/(R+1)
-        var P3 = 1/(1 + (market3[4]/market3[7]));
-        var W1 = Math.sqrt(K1);
-        var W2 = Math.sqrt(K2);
-        var W3 = Math.sqrt(K3);
-        var Ps = [P1, P2, P3];
-        //console.log([market1[4], market1[7]]);
-        //console.log(Ps);
-        var Ws = [W1, W2, W3];
-        //console.log(Ws);
-        var W_total = 0;
-        var P = 0;
-        for(var i = 0; i<Ps.length; i++) {
-            if(!(Number.isNaN(Ps[i]))){
-                P += Ps[i]*Ws[i];
-                W_total += Ws[i];
-            };
-        };
-        P = P / W_total;
-        //console.log(P);
-        return(P);
     };
     function contract_extentions(Paths, contracts, markets, cid2, type2) {
         var Paths2 = [];
@@ -1666,7 +1613,7 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
         calculate_gain: calculate_gain,
         calculate_loss: calculate_loss,
         get_market: get_market,
-        price_estimate_read: price_estimate_read,
+//        price_estimate_read: price_estimate_read,
         test: test
     });
 };

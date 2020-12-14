@@ -590,7 +590,8 @@ IA = B*(2PA-1)
         var source_type = contracts[0][9];
         rpc.post(["read", 3, cid], function(oracle_text) {
             //tabs.swap.price_estimate_read(cid, source, source_type, function(p_est){
-            tabs.tabs.swap.tab.price_estimate_read(cid, source, source_type, function(p_est){
+            //tabs.tabs.swap.tab.price_estimate_read(cid, source, source_type, function(p_est){
+            price_estimate_read(cid, source, source_type, function(p_est){
             //console.log(contracts[0]);
             //console.log(cid);
             if(!(oracle_text == 0)) {

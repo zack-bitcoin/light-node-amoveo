@@ -24,7 +24,8 @@
         .concat(cid);
     div.appendChild(cid_text);
     div.appendChild(text_div);
-    var volume_div = document.createElement("div");
+    //var volume_div = document.createElement("div");
+    /*
     rpc.post(["contracts", cid], function(contract){
         //from the full node
         contract[11];
@@ -32,6 +33,7 @@
             .concat((contract[11] / 100000000).toFixed(8).toString());
         console.log(contract);
     });
+    */
     rpc.post(["read", 3, cid], function(contract){
         //from p2p derivatives explorer
         console.log(get_ip());
@@ -50,9 +52,24 @@
         //console.log(JSON.stringify(contract));
         var source = contract[2];
         var source_type = contract[6];
+        //var swap_tab = swap_tab_builder();
+
+        setTimeout(function(){
+            price_estimate_read(
+                cid, source, source_type,
+                function(price, liquidity){
+                    price_div.innerHTML = "current price: "
+                        .concat(price.toFixed(3).toString())
+                        .concat("<br> liquidity: ")
+                        .concat((liquidity/100000000).toFixed(8).toString());
+                });
+        }, 0);
+
         var source_div = document.createElement("div");
         div.appendChild(source_div);
-        div.appendChild(volume_div);
+        //div.appendChild(volume_div);
+        var price_div = document.createElement("div");
+        div.appendChild(price_div);
         //console.log(source);
 
         if(source === ZERO) {
