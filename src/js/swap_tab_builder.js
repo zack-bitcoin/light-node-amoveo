@@ -190,7 +190,9 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                     };
                     };
                 }
-                display_contracts2(div, contracts.slice(1), pairs);
+                setTimeout(function(){
+                    display_contracts2(div, contracts.slice(1), pairs);
+                }, 100);
             });
         }, get_ip(), 8090);//p2p derivatives server
     };

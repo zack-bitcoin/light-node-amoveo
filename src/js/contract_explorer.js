@@ -73,7 +73,7 @@
         //console.log(source);
 
         if(source === ZERO) {
-            source_text = "collaterol currency: veo";
+            source_text = "collateral currency: veo";
             source_div.innerHTML = source_text;
         } else {
             var link = document.createElement("a");
