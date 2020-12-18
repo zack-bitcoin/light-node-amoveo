@@ -194,6 +194,7 @@ var tabs = (function(){
                         return(lb2(subs.slice(1), callback));
                     } else {//a subcurrency then
                         rpc.post(["read", 3, sub.cid], function(oracle_text){
+                            console.log(oracle_text);
                             //build the string. load it in balances_db.
                             var s = "";
                             if(sub.type == 2){

@@ -101,7 +101,9 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
         var source = contracts[0][8];
         var source_type = contracts[0][9];
         rpc.post(["read", 3, cid], function(oracle_text) {
-            //console.log([cid, JSON.stringify(oracle_text)]);
+            if(oracle_text[1] && (atob(oracle_text[1]))){
+                //console.log(atob(oracle_text[1]));
+            };
             //console.log(cid, source_type);
             price_estimate_read(cid, source, source_type, function(p_est, liquidity){
                 //console.log([cid, p_est, liquidity]);

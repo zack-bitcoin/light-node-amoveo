@@ -38,6 +38,8 @@ function create_scalar_tab_builder(div, selector){
         var Text = oracle_text.value
             .concat(" minus ")
             .concat(min);
+            //.concat("; in the range from 0 to ")
+            //.concat(MP);
         var price = guess / MP;
         var amount = Math.round(parseFloat(amount_text.value)*token_units());
         if(price<0){

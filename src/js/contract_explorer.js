@@ -1,6 +1,8 @@
 (function(){
     var ZERO = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=";
     var div = document.createElement("div");
+    var lower_limit;
+    var max_range = 1;
     document.body.appendChild(div);
     server_port.value = "8080";
     if (server_ip.value == "") {
@@ -39,31 +41,51 @@
         //console.log(get_ip());
         //console.log(contract);
         var text = atob(contract[1]);
+        max_range = contract[3];
+        
+        lower_limit = text.match(/minus -?\d+/g);
+        //console.log(lower_limit);
+        if(lower_limit){
+            lower_limit = lower_limit
+                .reverse()[0];
+            lower_limit = lower_limit.match(/-?\d+/g);
+            lower_limit = parseInt(lower_limit, 10);
+        } else {
+            lower_limit = 0;
+        };
+        
         text_div.innerHTML = "oracle text: "
-            .concat(text);
-        var max_price = contract[3];
+            .concat(text)
+            .concat("; in the range from ")
+            .concat(lower_limit)
+            .concat(" to ")
+            .concat(max_range + lower_limit);
+        }, get_ip(), 8090); 
+
+
         //console.log(text);
         //console.log(max_price);
-    }, get_ip(), 8090); 
 
-    rpc.post(["contract", cid], function(contract){
+        rpc.post(["contract", cid], function(contract){
         //from the explorer
-        contract = contract[1];
+            contract = contract[1];
         //console.log(JSON.stringify(contract));
-        var source = contract[2];
-        var source_type = contract[6];
+            var source = contract[2];
+            var source_type = contract[6];
         //var swap_tab = swap_tab_builder();
 
-        setTimeout(function(){
-            price_estimate_read(
-                cid, source, source_type,
-                function(price, liquidity){
-                    price_div.innerHTML = "current price: "
-                        .concat(price.toFixed(3).toString())
-                        .concat("<br> liquidity: ")
-                        .concat((liquidity/100000000).toFixed(8).toString());
-                });
-        }, 0);
+            setTimeout(function(){
+                price_estimate_read(
+                    cid, source, source_type,
+                    function(price, liquidity){
+                        price_div.innerHTML = "current price: "
+                            .concat(price.toFixed(3).toString())
+                            .concat("<br> estimated result of: ")
+                            .concat(((price * max_range) + lower_limit).toFixed(2).toString())
+                            .concat("<br> liquidity: ")
+                            .concat((liquidity/100000000).toFixed(8).toString());
+                    });
+            }, 0);
 
         var source_div = document.createElement("div");
         div.appendChild(source_div);
