@@ -56,7 +56,7 @@
         
         text_div.innerHTML = "oracle text: "
             .concat(text)
-            .concat("; in the range from ")
+            .concat("<br> in the range from ")
             .concat(lower_limit)
             .concat(" to ")
             .concat(max_range + lower_limit);
