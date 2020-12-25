@@ -23,7 +23,9 @@ var tabs = (function(){
          ["spend", spend_tab_builder, "spend"],
          ["create", create_tab_builder, "create stablecoin"],
          ["create_binary", create_binary_tab_builder, "create binary"],
-         ["create_scalar", create_scalar_tab_builder, "create scalar"]];
+         ["create_scalar", create_scalar_tab_builder, "create scalar"],
+         ["create_futarchy", create_futarchy_tab_builder, "create futarchy"]
+        ];
     var tabs = {};
     for (var i = 0; i<tab_builder.length; i++){
         var d = document.createElement("div");

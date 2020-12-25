@@ -82,6 +82,14 @@
     market_liquidity.mid(mid);
     market_liquidity.amount(100000);
 
-
+    create_futarchy_tab_builder.oracle_text("Amoveo's block reward is above 0.2 VEO on January 1st 2021.");
+    create_futarchy_tab_builder.probability_text("0.1");
+    create_futarchy_tab_builder.amount_text("1");
+    create_futarchy_tab_builder.scalar_amounts_text("1");
+    create_futarchy_tab_builder.scalar_oracle_text("The price of VEO in USD");
+    create_futarchy_tab_builder.true_guess_text("20");
+    create_futarchy_tab_builder.false_guess_text("30");
+    create_futarchy_tab_builder.min_text("10");
+    create_futarchy_tab_builder.max_text("50");
 
 })();

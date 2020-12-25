@@ -230,8 +230,10 @@ function make_contract(){
         var price = 1/(coll);
         var amount = Math.round(parseFloat(amount_text.value)*token_units());
         return(make_contract2(Text, MaxVal, price, amount, display));
-    }
-    function make_contract2(Text, MP, price, amount, display2, selector2) {
+    };
+    function make_txs(Text, MP, price, amount, display2, selector2_value) {
+    
+        //function make_contract2(Text, MP, price, amount, display2, selector2) {
         //console.log(MP);
         var amount1 = amount*price;
         var amount2 = amount*(1-price);
@@ -243,11 +245,11 @@ function make_contract(){
             return(0);
         }
         var Source, SourceType;
-        if(selector2.value == "veo"){
+        if(selector2_value == "veo"){
             Source = ZERO;
             SourceType = 0;
         } else {
-            var V = JSON.parse(selector2.value);
+            var V = JSON.parse(selector2_value);
             Source = V[0];
             SourceType = V[1];
         }
@@ -370,31 +372,34 @@ function make_contract(){
                  V, A1]
             ]);
         };
+        setTimeout(function(){
+            var msg =
+                ["add", 3, btoa(Text),
+                 0, MP, Source,
+                 SourceType];
+            //console.log(msg);
+            rpc.post(msg, function(x){
+                console.log(x);
+                console.log("taught a scalar contract.");
+                return(0);
+            }, get_ip(), 8090);
+        }, 0);
+        return(txs);
+    };
+        
+    function make_contract2(Text, MP, price, amount, display2, selector2) {
+        var txs = make_txs(Text, MP, Price, amount, display2, selector2.value);
         //console.log(JSON.stringify(txs));
         multi_tx.make(txs, function(tx){
-            //return(0);
             var stx = keys.sign(tx);
             console.log(JSON.stringify(stx));
-            //publish_tx_button.onclick = function(){
             post_txs([stx], function(msg){
                 display2.innerHTML = msg;
                 if(!(msg == "server rejected the tx")){
-                    setTimeout(function(){
-                        var msg =
-                            ["add", 3, btoa(Text),
-                             0, MP, Source,
-                             SourceType];
-                        console.log(msg);
-                        rpc.post(msg, function(x){
-                            console.log(x);
-                            console.log("taught a scalar contract.");
-                            return(0);
-                        }, get_ip(), 8090);
-                    }, 0);
                     keys.update_balance();
                 };
             });
-        })
+        });
     };
     return({
         website:(function(x){website_text.value = x}),
@@ -403,6 +408,7 @@ function make_contract(){
         starting_price:(function(x){starting_price_text.value = x}),
         ticker:(function(x){ticker_text.value = x}),
         amount:(function(x){amount_text.value = x}),
-        make_contract2: make_contract2
+        make_contract2: make_contract2,
+        make_txs: make_txs
     });
 };
