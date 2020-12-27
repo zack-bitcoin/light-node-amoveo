@@ -353,6 +353,8 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
             };
         };
         */
+
+        //REVERSE HERE
         Paths = Paths.reverse();
         guess = guess.reverse();
 
@@ -362,17 +364,19 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
         var db20 = make_trades(guess, Paths, db);
         var db2 = db20[0]
         if(N < 1) {
-            //var gradient = get_gradient(Paths, db2);
             return(make_tx(guess, amount, Paths, db, db2, markets, callback));
         };
         //make a database of the markets and contracts that can be updated with trades.
 
         //update the database based on our current guess of the distribution.
         //calculate the final price on every path to buy a bit more. this is the gradient vector.
-        var gradient = get_gradient(Paths, db2);
-        //var gradient = db20[1];
-                           
-        //console.log(JSON.stringify(Paths[0]));
+        var gradient = get_gradient(Paths, db2, 1);
+        
+        var laplacian = get_laplacian(Paths, db2, gradient);
+        //console.log(gradient);
+        //console.log(laplacian);
+        //console.log(guess);
+        
         var average = average_fun(gradient, guess);
         final_price = 1/average;
         
@@ -381,49 +385,42 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
             console.log(guess);
             return(make_tx(guess, amount, Paths, db, db2, markets, callback));
         } else {
-            var nextGuess = improve_guess(average, guess, gradient, amount);
+            var nextGuess = improve_guess(average, guess, gradient, amount, laplacian);
             return(swap_price_loop(Paths, amount, nextGuess, db, markets, callback, N-1));
         };
         //for the paths that are more expensive than average, buy less in the next iteration. for the paths that are less expensive, buy more in the next iteration.
     };
-    function improve_guess(average, guess, grad, amount){
+    function improve_guess(average, guess, grad, amount, laplacian){
         var r = [];
         for(var i = 0; i<guess.length; i++){
-            //var n = guess[i]*(1/(1+(Math.pow(Math.E, (grad[i]-average)/average))));
-
-            //var n = guess[i] - 0.9*guess[i]*((grad[i]-average)/average);
-            //var n = (guess[i]) - 0.1*guess[i]*((grad[i]-average)/average);
-            //var n = (0.9*guess[i] * (1 + average) / (1 + grad[i])) + (0.1*guess[i]);
-            //var n = guess[i]*(1/(1+(Math.pow(Math.E, 1/grad[i]))));
-            //var n = guess[i]*(1/(1+(Math.pow(Math.E, -1/grad[i]))));
             var n = (guess[i])*(1 + 0.5*((average - grad[i])/average));
-            //var prev = guess[i];
-            //var n = (n + prev)/2;
-
-            //var n =guess[i]+((average - grad[i])/2);
-               //var n = (n + prev)/2;
-               //var n = Math.min(n, prev*10);
-               //var n = Math.max(n, prev/10);
-            //var n = guess[i]*((grad[i]-average)/average);
-            //var n = guess[i]*((grad[i]-average)/average);
-            //var n = (0.9*guess[i]) + (0.1*guess[i]*((grad[i]-average)/average));
-            //var n = (0.9*guess[i]) - (0.1*guess[i]*((grad[i]-average)/average));
-            //var n = (guess[i]*0.9) - (grad[i]*0.1);
-            var n = Math.max(n, 0);
+            n = Math.max(n, 0);
             r = r.concat([n]);
         };
         //we also need to normalize, to make sure the sum of how much we are buying on each path is still equal to how much we want to spend.
-        var total = 0;
-        for(var i = 0; i<r.length; i++){
-            total = total + r[i];
+        var t = normalize(r).map(function(x){
+            return(x*amount);
+        });
+        //laplace strategy
+        var r2 = [];
+        for(var i = 0; i<guess.length; i++){
+//X = (S-P)/A
+//(updated guess on how much to spend on this path) = ((current price on this path)-(target price))/(inverse-liquidity value calculated for this path)
+            var n = (grad[i] - average) / laplacian[i];
+            n = guess[i] - n;
+            n = Math.max(n, 0);
+            r2 = r2.concat([n]);
         };
-        var t = [];
-        for(var i = 0; i<r.length; i++){
-            t = t.concat([amount * r[i] / total]);
-        };
-        return(t);
+        var t2 = normalize(r2).map(function(x){
+            return(x*amount);
+        });
+
+        //to change back from the laplace strategy to the original strategy, change this t2 to a t.
+        return(t2);
     };
+    
     function average_fun(grad, guess) {
+        //weighted average price paid on paths
         var guess_total = guess.reduce(function(a, b) {
             return(a+b);
         });
@@ -445,13 +442,13 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
         };
         return(true);
     };
-    function get_gradient(Paths, db3) {
+    function get_gradient(Paths, db3, Step) {
         //var db4;
         var db4 = JSON.parse(JSON.stringify(db3));
         var r = [];
         for(var i = 0; i<Paths.length; i++){
             db4 = JSON.parse(JSON.stringify(db3));
-            var x = process_path(1, Paths[i], 1, db4);
+            var x = process_path(Step, Paths[i], 1, db4);
             if(!x[1]){
                 console.log(JSON.stringify(x[0]));
                 console.log(JSON.stringify(Paths[i]));
@@ -468,6 +465,20 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
             //r = r.concat([-1/x[1]]);//bigger is better
         };
         return(r);
+    };
+    function get_laplacian(Paths, db, gradient1){
+        var gradient2 = get_gradient(Paths, db, 2);
+        var laplacian = [];
+        for(var i = 0; i<gradient1.length; i++){
+            laplacian[i] =
+                (gradient2[i] - gradient1[i])*2;
+            laplacian[i] = Math.max(
+                0.00000000000000000000000001,
+                laplacian[i]);
+        };
+        //console.log(laplacian);
+        return(laplacian);
+
     };
     function make_trades(guess, paths, db) {
         var db2 = JSON.parse(JSON.stringify(db));
@@ -496,6 +507,7 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
             return([db, price]);
         };
         var type = path[1][0];
+        var price1;
         if(type == "market") {
             var mid = path[1][1];
             var m = db[mid];
@@ -507,31 +519,32 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                (m[3] == currency[1])){
                 //console.log("here");
                 //console.log([Amount, m[4], m[7]]);
+                price1 = m[4]/m[7];
                 m[4] = m[4] + Amount;
                 var old = m[7];
                 m[7] = K/m[4];
                 //console.log(Amount);
                 m = clean_market(m, K);
                 Amount = (old - m[7]) * trading_fee;
+                //console.log([StartAmount/Amount, price1]);
                 db[mid] = m;
-                return(process_path(Amount, path, price*StartAmount/Amount, db));
             } else if ((m[5] == currency[0]) &&
                        (m[6] == currency[1])){
+                price1 = m[7]/m[4];
                 m[7] = m[7] + Amount;
                 var old = m[4];
                 m[4] = K/m[7];
                 m = clean_market(m, K);
                 Amount = (old - m[4]) * trading_fee;
                 db[mid] = m;
-                return(process_path(Amount, path, price*StartAmount/Amount, db));
+                //console.log([StartAmount/Amount, price1]);
             } else {
                 console.log("process path bad error");
                 console.log(currency);
                 console.log(JSON.stringify(m));
                 return(0);
             };
-        };
-        if(type[0] == "contract"){
+        } else if(type[0] == "contract"){
             var contract = path[1][0];
             var cid = contract_to_cid(contract);;
             var mid = path[1][1][1];
@@ -543,9 +556,11 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
             var mtype1 = m[3];
             var mcid2 = m[5];
             var mtype2 = m[6];
+            /*
             console.log(JSON.stringify(
                 [[mcid1, mtype1],
                  [mcid2, mtype2]]));
+            */
             var K = m[4] * m[7];
             var start_currency = path[0];
             var end_currency = path[2];
@@ -574,6 +589,7 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                        var G1 = (-b + G0)/ 2;
                        var G2 = (-b - G0)/ 2;
                        var G = Math.max(G1, G2);
+                       price1 = m[4]/m[7];
                        m[7] = m[7] - G;
                        m[4] = m[4] + Amount + G;
                        //m[7] = K / m[4];
@@ -585,7 +601,6 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                        m = clean_market(m, K);
                        Amount = Amount + (G * trading_fee);
                        db[mid] = m;
-                       return(process_path(Amount, path, price*StartAmount/Amount, db));
                    } else if((mcid1 == source) && (mtype1 == source_type)){
                        var a = 1;
                        var b = m[7] + Amount - m[4];
@@ -594,6 +609,7 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                        var G1 = (-b + G0)/ 2;
                        var G2 = (-b - G0)/ 2;
                        var G = Math.max(G1, G2);
+                       price1 = m[7]/m[4];
                        m[4] = m[4] - G;
                        m[7] = m[7] + Amount + G;
                        if(!(Math.pow((((m[4] * m[7])/K) - 1), 2)<0.00001)){
@@ -605,11 +621,11 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                        m = clean_market(m, K);
                        Amount = Amount + (G * trading_fee);
                        db[mid] = m;
-                       return(process_path(Amount, path, price*StartAmount/Amount, db));
                    } else {
                        //starts at source. the market is between the subcurrencies.
                        if((end_currency[0] == mcid1) &&
                           (end_currency[1] == mtype1)){
+                           price1 = m[7]/m[4];
                            m[7] = m[7] + Amount;
                            var old = m[4];
                            m[4] = K / m[7];
@@ -617,9 +633,9 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                            m = clean_market(m, K);
                            Amount = Amount + (gain * trading_fee);
                            db[mid] = m;
-                           return(process_path(Amount, path, price*StartAmount/Amount, db));
                        } else if ((end_currency[0] == mcid2) &&
                                   (end_currency[1] == mtype2)){
+                           price1 = m[4]/m[7];
                            m[4] = m[4] + Amount;
                            var old = m[7];
                            m[7] = K / m[4];
@@ -627,7 +643,6 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                            m = clean_market(m, K);
                            Amount = Amount + (gain * trading_fee);
                            db[mid] = m;
-                           return(process_path(Amount, path, price*StartAmount/Amount, db));
                        } else {
                            console.log("bad error");
                            return(0);
@@ -661,6 +676,7 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                        //A1*A2 = (A1 + ?)(A2 + -Amount)
                        //(A1*A2/(A2-Amount))-A1 = G
 
+                       price1 = m[4]/m[7];
                        m[7] = m[7] - Amount;
                        var old = m[4];
                        m[4] = K/m[7];
@@ -669,8 +685,8 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                        m = clean_market(m, K);
                        Amount = Amount - G;
                        db[mid] = m;
-                       return(process_path(Amount, path, price*StartAmount/Amount, db));
                    } else if((mcid2 == source)&&(mtype2 == source_type)){
+                       price1 = m[7]/m[4];
                        m[4] = m[4] - Amount;
                        var old = m[7];
                        m[7] = K/m[4];
@@ -678,7 +694,6 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                        m = clean_market(m, K);
                        Amount = Amount - G;
                        db[mid] = m;
-                       return(process_path(Amount, path, price*StartAmount/Amount, db));
                    } else if((mcid2 == start_currency[0]) &&
                              (mtype2 == start_currency[1])) {
                        //contract-buy source, market spend subcurrency to buy other subcurrency
@@ -713,6 +728,7 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                        var B1 = (-b + B0)/ 2;
                        var B2 = (-b - B0)/ 2;
                        var B = Math.max(B1, B2);
+                       price1 = m[7]/m[4];
                        m[7] = m[7] + B;
                        var old = m[4];
                        m[4] = K/m[7];
@@ -720,7 +736,6 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                        m = clean_market(m, K);
                        Amount = (gain * trading_fee);
                        db[mid] = m;
-                       return(process_path(Amount, path, price*StartAmount/Amount, db));
                            
                    } else if ((mcid1 == start_currency[0]) &&
                               (mtype1 == start_currency[1])) {
@@ -731,6 +746,7 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                        var B1 = (-b + B0)/ 2;
                        var B2 = (-b - B0)/ 2;
                        var B = Math.max(B1, B2);
+                       price1 = m[4]/m[7];
                        m[4] = m[4] + B;
                        var old = m[7];
                        m[7] = K/m[4];
@@ -738,11 +754,10 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                        m = clean_market(m, K);
                        Amount = (gain * trading_fee);//also = Amount - B
                        db[mid] = m;
-                       return(process_path(Amount, path, price*StartAmount/Amount, db));
-                   };
+                   } else {
                        console.log("bad error");
                        return(0);
-               //};
+                   };
                } else {
                 //now we only consider cases of selling one subcurrency to get another.
                 //we know that one end of the market is the source.
@@ -762,6 +777,7 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                        var G1 = (-b + G0)/ 2;
                        var G2 = (-b - G0)/ 2;
                        var G = Math.max(G1, G2);
+                       price1 = m[4]/m[7];
                        m[4] = m[4] + Amount + G;
                        m[7] = m[7] - G;
                        //m[7] = K / m[4];
@@ -772,7 +788,6 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                        m = clean_market(m, K);
                        Amount = (G * trading_fee);
                        db[mid] = m;
-                       return(process_path(Amount, path, price*StartAmount/Amount, db));
                    } else if ((mcid2 == start_currency[0]) &&
                               (mtype2 == start_currency[1])){
                        //a1*a2 = (a1+amount+g)(a2-g)
@@ -788,6 +803,7 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                        //var G = Math.max(G1, G2);
                        var G = Math.max(G1, G2);
                        var m0 = JSON.parse(JSON.stringify(m));
+                       price1 = m[7]/m[4];
                        m[7] = m[7] + Amount + G;
                        m[4] = m[4] - G;
                        //m[4] = K / m[7];
@@ -802,7 +818,6 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                        m = clean_market(m, K);
                        Amount = (G * trading_fee);
                        db[mid] = m;
-                       return(process_path(Amount, path, price*StartAmount/Amount, db));
                    } else if ((mcid1 == end_currency[0]) &&
                               (mtype1 == end_currency[1])){
                        //K = A1 * A2;
@@ -810,6 +825,7 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                        //G-A2 = -K/(A1 + Amount)
                        //G = A2 -(K/(A1+Amount));
                        //var G = m[7] - (K/(m[4] + Amount));
+                       price1 = m[4]/m[7];
                        m[4] = m[4] + Amount;
                        var old = m[7];
                        m[7] = K/m[4];
@@ -817,9 +833,9 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                        m = clean_market(m, K);
                        Amount = (G * trading_fee) - Amount;
                        db[mid] = m;
-                       return(process_path(Amount, path, price*StartAmount/Amount, db));
                    } else if ((mcid2 == end_currency[0])&&
                               (mtype2 == end_currency[1])){
+                       price1 = m[7]/m[4];
                        m[7] = m[7] + Amount;
                        var old = m[4];
                        m[4] = K/m[7];
@@ -827,18 +843,18 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                        m = clean_market(m, K);
                        Amount = (G * trading_fee) - Amount;
                        db[mid] = m;
-                       return(process_path(Amount, path, price*StartAmount/Amount, db));
                    } else {
                        console.log("bad error");
                        return(0);
                    };
                };
-            console.log("bad error");
+        } else {
+            console.log("process path bad error");
+            console.log(type);
             return(0);
-        };
-        console.log("process path bad error");
-        console.log(type);
-        return(0);
+        }
+        //console.log([price1, StartAmount/Amount]);
+        return(process_path(Amount, path, price*StartAmount/Amount, db));
     };
     function all_paths(Paths, cid2, type2, contracts, markets, Steps) {
         if(Steps < 1) {
@@ -970,31 +986,27 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
     function normalize(L) {
         var total = 0;
         for(var i = 0; i<L.length; i++){
-            total += L[i];
+            total = total + L[i];
         };
+        var t = [];
         for(var i = 0; i<L.length; i++){
-            L[0] = L[0] / i;
+            t = t.concat([L[i] / total]);
         };
-        return(L);
+        return(t);
     };
     function make_tx(guess, amount, Paths, db, db2, markets, callback) {
-        console.log("make tx guess is ");
-        console.log(JSON.stringify(guess));
         var get_currency = Paths[0][Paths[0].length - 1];
-        //remove paths where the guess is less than a tx fee.
-        //guess = normalize(guess);
-        var maxGuess = 0;
+        var maxGuess = 0;//the amount of money we are putting on the path we are putting the most money on.
         var tx_price;
         for(var i = 0; i<guess.length; i++){
-            maxGuess = Math.max(maxGuess, guess[i]);
+            maxGuess = Math.max(
+                maxGuess, guess[i]);
         };
-        //console.log(maxGuess);
+        //getting the tx price on the maxGuess path.
         for(var i = 0; i<guess.length; i++){
             var db3 = JSON.parse(JSON.stringify(db2));
             var x = process_path(1, Paths[i], 1, db3);
-            //console.log(x[1]);
             if(guess[i] == maxGuess){
-                //console.log("max");
                 tx_price = x[1];
             };
         };
@@ -1541,7 +1553,7 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
     function test(){
         var Paths = [[["G8dXI4RVHv75cOtLXX+fOZwfFMmPaZwjnnNj9LZz4l4=",1],[["contract","y3VnWqg/NKB2OThyueZDhqYwmBMUcDhjBBNaJ2Upk2Y=",2,0,0,0,0,"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",0,"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",322517842],["market","ecbQ7aj9+60TuBJqEIFUftHXQOkVfz0JkSYZXrt4ylk=","G8dXI4RVHv75cOtLXX+fOZwfFMmPaZwjnnNj9LZz4l4=",1,169579958,"G8dXI4RVHv75cOtLXX+fOZwfFMmPaZwjnnNj9LZz4l4=",2,59331334,99999000]],["AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",0]]];
         var db = build_paths_db(Paths, {});
-        var gradient = get_gradient(Paths, db);
+        var gradient = get_gradient(Paths, db, 1);
         var L = Paths.length;
         var amount = 100000000;
         var a = amount / L;
@@ -1565,7 +1577,7 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
         //Paths = Paths.reverse();
         Paths2 = [];//JSON.parse(JSON.stringify(Paths));
         var db = build_paths_db(Paths, {});
-        var gradient0 = get_gradient(Paths, db);
+        var gradient0 = get_gradient(Paths, db, 1);
         console.log(JSON.stringify(gradient0));
         for(var i = 0; i<Paths.length; i++){
             if(//true){//
@@ -1584,9 +1596,10 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
         guess[0] = amount;
         var db2 = make_trades(guess, Paths, db)[0];
        // var gradient0 = get_gradient(Paths, db);
-        var gradient1 = get_gradient(Paths, db2);
+        var gradient1 = get_gradient(Paths, db2, 1);
+        var laplacian = get_laplacian(Paths, db2, gradient1);
         var average = average_fun(gradient1, guess);
-        var nextGuess = improve_guess(average, guess, gradient1, amount);
+        var nextGuess = improve_guess(average, guess, gradient1, amount, laplacian);
         var db3 = make_trades(nextGuess, Paths, db)[0];
 //        var gradient2 = get_gradient(Paths, db3);
         return(
