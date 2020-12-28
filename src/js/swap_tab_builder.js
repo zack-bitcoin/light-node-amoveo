@@ -1231,6 +1231,7 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
         cid_link.href = "contract_explorer.html?cid="
             .concat(currency[0]);
         cid_link.innerHTML = "currency info";//" shares ";
+        cid_link.target = "_blank";
         r.link = cid_link;
         return(r);
     };
