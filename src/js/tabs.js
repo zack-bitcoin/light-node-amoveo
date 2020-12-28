@@ -17,15 +17,18 @@ var tabs = (function(){
     var balances = document.createElement("div");
     var div = document.getElementById("main");
     var current_tab = document.createElement("div");
-    var tab_builder =
-        [["swap", swap_tab_builder, "swap"],
-         ["pool", pool_tab_builder, "pool"],
-         ["spend", spend_tab_builder, "spend"],
-         ["create", create_tab_builder, "create stablecoin"],
-         ["create_binary", create_binary_tab_builder, "create binary"],
-         ["create_scalar", create_scalar_tab_builder, "create scalar"],
-         ["create_futarchy", create_futarchy_tab_builder, "create futarchy"]
-        ];
+    var tab_builder = [];
+    if(typeof swap_tab_builder === "function"){
+        tab_builder =
+            [["swap", swap_tab_builder, "swap"],
+             ["pool", pool_tab_builder, "pool"],
+             ["spend", spend_tab_builder, "spend"],
+             ["create", create_tab_builder, "create stablecoin"],
+             ["create_binary", create_binary_tab_builder, "create binary"],
+             ["create_scalar", create_scalar_tab_builder, "create scalar"],
+             ["create_futarchy", create_futarchy_tab_builder, "create futarchy"]
+            ];
+    }
     var tabs = {};
     for (var i = 0; i<tab_builder.length; i++){
         var d = document.createElement("div");
@@ -42,8 +45,12 @@ var tabs = (function(){
     var liquidity_shares = [];
     div.appendChild(display);
     div.appendChild(br());
-    current_tab.appendChild(tabs["swap"].div);//default starts in swap tab.
-    keys.update_balance_callback(load);
+    if(tabs["swap"]){
+        current_tab.appendChild(tabs["swap"].div);//default starts in swap tab.
+    };
+    if(!(typeof(keys) === "undefined")){
+        keys.update_balance_callback(load);
+    }
 
     function load() {
         display.innerHTML = "looking up which currencies you own.";
@@ -410,7 +417,9 @@ var tabs = (function(){
     for (var i = 0; i<tab_builder.length; i++){
         buttons = buttons.concat([(tabs[tab_builder[i][0]].button)]);
     };
-    tabs["swap"].button.style.backgroundColor = "red";
+    if(tabs["swap"]){
+        tabs["swap"].button.style.backgroundColor = "red";
+    }
     for(var i = 0; i<tab_builder.length; i++){
            
         div.appendChild(tabs[tab_builder[i][0]].button);

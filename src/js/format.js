@@ -656,3 +656,11 @@ configure["channel_view"] = true;
             });
         });
     };
+    function contract_to_cid(Contract) {
+        var Source = Contract[8];
+        var SourceType = Contract[9];
+        var MT = Contract[2];
+        var CH = Contract[1];
+        var cid = merkle.contract_id_maker(CH, MT, Source, SourceType);
+        return(cid);
+    };

@@ -868,14 +868,6 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
         //var Paths7 = remove_repeats3(Paths6);
         return(all_paths(Paths7, cid2, type2, contracts, markets, Steps-1));
     };
-    function contract_to_cid(Contract) {
-        var Source = Contract[8];
-        var SourceType = Contract[9];
-        var MT = Contract[2];
-        var CH = Contract[1];
-        var cid = merkle.contract_id_maker(CH, MT, Source, SourceType);
-        return(cid);
-    };
     function path2mids(L) {
         if(L.length < 1){
             return([]);
