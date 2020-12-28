@@ -7,6 +7,7 @@
     server_port.value = "8080";
     if (server_ip.value == "") {
         server_ip.value = "159.89.87.58";
+        //server_ip.value = "0.0.0.0";
     };
     //const urlParams = new URLSearchParams(window.location.search);
     console.log(get_ip());
@@ -31,8 +32,8 @@
                 var oracle_text_2;
                 console.log(oracle_text);
                 if(oracle_text === 0){
-                    s = s
-                    oracle_text_2 = "unknown oracle text";
+                    return(display_contracts(contracts.slice(1)));
+                    //oracle_text_2 = "unknown oracle text";
                 } else {
                     oracle_text_2 = atob(oracle_text[1]);
                 };
