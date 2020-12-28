@@ -25,15 +25,18 @@
         var source = contract[8];
         var source_type = contract[9];
         var cid = contract_to_cid(contract);
-        console.log("here");
         rpc.post(["read", 3, cid], function(oracle_text) {
             console.log([cid, source, source_type]);
             price_estimate_read(cid, source, source_type, function(p_est, liquidity){
                 var oracle_text_2;
                 console.log(oracle_text);
-                if(oracle_text === 0){
+                if(liquidity < 1000000) {
                     return(display_contracts(contracts.slice(1)));
-                    //oracle_text_2 = "unknown oracle text";
+                };
+                if(oracle_text === 0){
+                    oracle_text_2 = "unknown oracle text; contract_id: "
+                        .concat(cid);
+
                 } else {
                     oracle_text_2 = atob(oracle_text[1]);
                 };
@@ -58,7 +61,9 @@
                     contracts_div.appendChild(br());
                     var price_info = document.createElement("span");
                     price_info.innerHTML = "price = "
-                        .concat((p_est).toFixed(8));
+                        .concat((p_est).toFixed(8))
+                        .concat("<br>liquidity: ")
+                        .concat((liquidity/100000000).toFixed(8));
                     contracts_div.appendChild(price_info);
                     contracts_div.appendChild(br());
                 };
