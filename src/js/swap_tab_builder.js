@@ -20,7 +20,14 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
     
     var swap_title = document.createElement("h3");
     swap_title.innerHTML = "Swap Currencies";
+    var contracts_list_link = document.createElement("a");
+    contracts_list_link.href = "./contracts_list.html";
+    contracts_list_link.innerHTML = "a list of Amoveo contracts";
+    contracts_list_link.target = "_blank";
+    swap_tab.appendChild(br());
+    swap_tab.appendChild(contracts_list_link);
     swap_tab.appendChild(swap_title);
+    swap_tab.appendChild(br());
     swap_tab.appendChild(display);
     var selector_label = document.createElement("span");
     selector_label.innerHTML = "which currency to sell: ";
