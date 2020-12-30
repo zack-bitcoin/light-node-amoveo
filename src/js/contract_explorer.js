@@ -26,6 +26,7 @@
         .concat(cid);
     div.appendChild(cid_text);
     div.appendChild(text_div);
+    var open_interest_div = document.createElement("div");
     //var volume_div = document.createElement("div");
     /*
     rpc.post(["contracts", cid], function(contract){
@@ -36,6 +37,13 @@
     console.log(contract);
     });
     */
+    rpc.post(["contracts", cid], function(main_contract){
+        console.log(main_contract[11]);
+        var x = main_contract[11]/100000000;
+        open_interest_div.innerHTML =
+            "open interest: "
+            .concat(x.toFixed(8));
+    });
     rpc.post(["read", 3, cid], function(contract){
         //from p2p derivatives explorer
         //console.log(get_ip());
@@ -89,6 +97,7 @@
 
         var source_div = document.createElement("div");
         div.appendChild(source_div);
+            div.appendChild(open_interest_div);
         //div.appendChild(volume_div);
         var price_div = document.createElement("div");
         div.appendChild(price_div);

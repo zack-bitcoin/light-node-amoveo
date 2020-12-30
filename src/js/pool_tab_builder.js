@@ -59,9 +59,12 @@ function pool_tab_builder(pool_tab, selector, hide_non_standard) {
                 var SourceCID = contract[8];
                 var SourceType = contract[9];
                 var CID = GoalCID;
+                console.log(SourceCID);
+                console.log(SourceType);
                 var mid1 = new_market.mid(SourceCID, CID, SourceType, 1);
                 var mid2 = new_market.mid(SourceCID, CID, SourceType, 2);
                 var mid3 = new_market.mid(CID, CID, 1, 2);
+                console.log(JSON.stringify([mid1, mid2, mid3]));
                 merkle.request_proof("markets", mid1, function(market1){
                     merkle.request_proof("markets", mid2, function(market2){
                         merkle.request_proof("markets", mid3, function(market3){
@@ -81,8 +84,10 @@ function pool_tab_builder(pool_tab, selector, hide_non_standard) {
                               //      merkle.request_proof("sub_accounts", key3, function(sa3) {
                                         console.log(JSON.stringify([CID, sa1, sa2, sa3, key1, key2, key3]));
                                         var make_tx = function(mid, sa, market){
-                                            if(sa == "empty"){
+                                            if(sa === "empty"){
                                                 return([]);
+                                            //} else if(market === "empty"){
+                                            //    return([]);
                                             } else {
                                                 return([["market_liquidity_tx", 0,0,0,
                                                          mid, 1-sa[1], market[2], market[3],
@@ -104,6 +109,7 @@ function pool_tab_builder(pool_tab, selector, hide_non_standard) {
                                         
                                         console.log(JSON.stringify(txs));
                                         multi_tx.make(txs, function(tx){
+                                            console.log(JSON.stringify(tx));
                                             var stx = keys.sign(tx);
                                             publish_tx_button.onclick = function(){
                                                 post_txs([stx], function(msg){
@@ -205,7 +211,8 @@ function pool_tab_builder(pool_tab, selector, hide_non_standard) {
         //console.log(SourceCID);
         //console.log(SourceType);
         //console.log(CID);
-        var mid1 = new_market.mid(SourceCID, CID, SourceType, 1);
+        //var mid1 = new_market.mid(SourceCID, CID, SourceType, 1);
+        var mid1 = new_market.mid(CID, SourceCID, 1, SourceType);
         var mid2 = new_market.mid(SourceCID, CID, SourceType, 2);
         var mid3 = new_market.mid(CID, CID, 1, 2);
         rpc.post(["markets", mid1], function(market1){
