@@ -53,20 +53,9 @@ var new_market = (function(){
     function mid(CID1, CID2, Type1, Type2){
         var V1 = array_to_int(string_to_array(atob(CID1)));
         var V2 = array_to_int(string_to_array(atob(CID2)));
-        console.log(V1);
-        console.log(V2);
         if((V1 < V2) || ((V1 === V2) && (Type1 < Type2))){
-            //[CID1, Type1] <= [CID2, Type2]){
         } else {
             return(mid(CID2, CID1, Type2, Type1));
-            /*
-              var CID3 = CID1;
-            var Type3 = Type1;
-            Type1 = Type2;
-            CID1 = CID2;
-            CID2 = CID3;
-            Type2 = Type3;
-            */
         }
         var MID = btoa(array_to_string(
             hash(string_to_array(atob(CID1))

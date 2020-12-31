@@ -273,10 +273,10 @@ function make_contract(){
                  cid, cid, 1, 2,
                  amount-1000, amount-1000],
                 ["market_new_tx",0,0,0,
-                 ZERO,cid,0,1,
+                 Source,cid,SourceType,1,
                  1000, 1000],
                 ["market_new_tx",0,0,0,
-                 ZERO,cid,0,2,
+                 Source,cid,SourceType,2,
                  1000, 1000]
             ]);
         } else if (amount1 > amount2){
@@ -339,10 +339,10 @@ function make_contract(){
                  cid,cid,1,2,
                  A2, B-1000],
                 ["market_new_tx",0,0,0,
-                 ZERO,cid,0,1,
+                 Source,cid,SourceType,1,
                  V, A1],
                 ["market_new_tx",0,0,0,
-                 ZERO,cid,0,2,
+                 Source,cid,SourceType,2,
                  1000, 1000]
             ]);
         } else if (amount2 > amount1){
@@ -365,10 +365,10 @@ function make_contract(){
                  cid,cid,2,1,
                  A2, B-1000],
                 ["market_new_tx",0,0,0,
-                 ZERO,cid,0,1,
+                 Source,cid,SourceType,1,
                  1000, 1000],
                 ["market_new_tx",0,0,0,
-                 ZERO,cid,0,2,
+                 Source,cid,SourceType,2,
                  V, A1]
             ]);
         };
