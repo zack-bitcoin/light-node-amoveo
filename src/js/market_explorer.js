@@ -88,11 +88,13 @@
         var br = end_height - sh;
         var block_height;
         var price;
-        var prev_block = sh;
-        var prev_price = prices[0][2];
+        prices = prices.reverse();
         prices = ([[-7, end_height, prices[0][2]]])
             .concat(prices);
-        prices = prices.reverse();
+        console.log(JSON.stringify(prices));
+        //var prev_block = sh;
+        var prev_block = prices[0][1];
+        var prev_price = prices[0][2];
         for(var i = 1; i<prices.length; i++){
         //for(var i = 1; i<3; i++){
             block_height = prices[i][1];
