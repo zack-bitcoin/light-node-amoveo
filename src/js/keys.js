@@ -187,7 +187,7 @@ function keys_function1() {
 	entropy_txt.innerHTML = "put random text here to make keys from";
 	var entropy = document.createElement("input");
 	entropy.type = "text";
-        append_children(new_pubkey_div, [warning, button, br(), button2, entropy_txt, entropy]);
+        append_children(new_pubkey_div, [entropy_txt, entropy, warning, button, br(), button2]);
 	// add interface for optional entropy 
         function cancel() {
             new_pubkey_div.innerHTML = "";
