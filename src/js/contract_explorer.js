@@ -7,6 +7,7 @@
     server_port.value = "8080";
     if (server_ip.value == "") {
         server_ip.value = "159.89.87.58";
+        //server_ip.value = "0.0.0.0";
     };
     const urlParams = new URLSearchParams(window.location.search);
     var cid = urlParams.get('cid');
@@ -68,7 +69,7 @@
             .concat(lower_limit)
             .concat(" to ")
             .concat(max_range + lower_limit);
-        }, get_ip(), 8090); 
+    }, get_ip(), 8090); 
 
 
         //console.log(text);
@@ -77,7 +78,7 @@
         rpc.post(["contract", cid], function(contract){
         //from the explorer
             contract = contract[1];
-        //console.log(JSON.stringify(contract));
+            //console.log(JSON.stringify(contract));
             var source = contract[2];
             var source_type = contract[6];
         //var swap_tab = swap_tab_builder();
@@ -94,40 +95,49 @@
                             .concat((liquidity/100000000).toFixed(8).toString());
                     });
             }, 0);
-
-        var source_div = document.createElement("div");
-        div.appendChild(source_div);
+            
+            var source_div = document.createElement("div");
+            div.appendChild(source_div);
             div.appendChild(open_interest_div);
-        //div.appendChild(volume_div);
-        var price_div = document.createElement("div");
-        div.appendChild(price_div);
-        //console.log(source);
-
-        if(source === ZERO) {
-            source_text = "collateral currency: veo";
-            source_div.innerHTML = source_text;
-        } else {
-            var link = document.createElement("a");
-            link.href = "?cid=".concat(source);
-            link.innerHTML = "source contract";
-            link.innerHTML = "collateral: "
-                .concat(source)
-                .concat(" type: ")
-                .concat(source_type);
-            source_div.appendChild(link);
-            //source_div.appendChild(source_text);
-            //div.appendChild(link);
-        };
-        var many_types = contract[3];
-        var markets = contract[4];
-        var markets_title = document.createElement("h4");
-        markets_title.innerHTML = "Markets that involve this contract";
-        div.appendChild(markets_title);
-        make_market_links(markets.slice(1));
-        var txs = contract[5];
+            //div.appendChild(volume_div);
+            var price_div = document.createElement("div");
+            div.appendChild(price_div);
+            //console.log(source);
+            
+            if(source === ZERO) {
+                source_text = "collateral currency: veo";
+                source_div.innerHTML = source_text;
+            } else {
+                var link = document.createElement("a");
+                link.href = "?cid=".concat(source);
+                link.innerHTML = "source contract";
+                link.innerHTML = "collateral: "
+                    .concat(source)
+                    .concat(" type: ")
+                    .concat(source_type);
+                source_div.appendChild(link);
+                //source_div.appendChild(source_text);
+                //div.appendChild(link);
+            };
+            var many_types = contract[3];
+            var markets = contract[4];
+            var markets_title = document.createElement("h4");
+            markets_title.innerHTML = "Markets that involve this contract";
+            div.appendChild(markets_title);
+            make_market_links(markets.slice(1));
+            //var txids = contract[5].slice(1);
+            //console.log(JSON.stringify(txids));
+            //var txs = [];
+            /*
+            for(var i = 0; i<txids.length; i++){
+                rpc.post(["txs", txids[i]], function(tx){
+                    console.log(JSON.stringify(tx));
+                }, get_ip(), 8091);
+            };
+            */
             //-record(contract, {cid, source = <<0:256>>, types, markets = [], txs = []}).
             //return(display_contracts2(div, contracts.slice(1), []));
-    }, get_ip(), 8091);//8091 is explorer
+        }, get_ip(), 8091);//8091 is explorer
     function make_market_links(markets){
         //console.log(markets);
         if(markets.length === 0){
