@@ -94,6 +94,7 @@ var tabs = (function(){
         };
                 return(contracts_to_subs2(CID, N+1, L, R.concat([[CID, N]]), callback));
     };
+    /*
     function load_balances2(ls, s, callback){
         if(ls.length < 1){
             return(callback());
@@ -110,6 +111,7 @@ var tabs = (function(){
             });
         };
     };
+    */
     var balances_db = {};
     var update_frequency = 0;//1000 * 60 * 10;//by default don't re-check the same balance if it has been less than 10 minutes.
     var loaded_into_selector = {};
@@ -170,7 +172,7 @@ var tabs = (function(){
            balances_db[sk].time &&
            ((Date.now() - balances_db[sk].time) <
                 update_frequency)){
-            return(lb2(subs.slice(1), callback));
+            //return(lb2(subs.slice(1), callback));
             //don't update.
         } else {
             if(!balances_db[sk]){
@@ -185,7 +187,7 @@ var tabs = (function(){
                 if(balance < 10001){
                     //do we need to erase it, if it exists?
                     balances_db[sk].time = Date.now()*2;
-                    return(lb2(subs.slice(1), callback));
+                    //return(lb2(subs.slice(1), callback));
                 };
                 if(balance > 10000){
                     balances_db[sk].bal = balance;
@@ -200,7 +202,7 @@ var tabs = (function(){
                             .concat((balance / token_units()).toString());
                         balances_db[sk].string = s;
                         show_balances();
-                        return(lb2(subs.slice(1), callback));
+                        //return(lb2(subs.slice(1), callback));
                     } else {//a subcurrency then
                         rpc.post(["read", 3, sub.cid], function(oracle_text){
                             console.log(oracle_text);
@@ -251,14 +253,18 @@ var tabs = (function(){
                             };
                             balances_db[sk].string = s;
                             show_balances();
-                            setTimeout(function(){
-                                return(lb2(subs.slice(1), callback));
-                            }, 0);
+                            //setTimeout(function(){
+                            //    return(lb2(subs.slice(1), callback));
+                            //}, 0);
                         }, get_ip(), 8090);
                     };
                 };
             });
         };
+        setTimeout(function(){
+            return(lb2(subs.slice(1), callback));
+        }, 100);
+        
     };
     function change_tab(To) {
         return(function(button){
