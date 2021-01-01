@@ -387,7 +387,8 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
         var average = average_fun(gradient, guess);
         final_price = 1/average;
         
-        if(good_enough(gradient, guess, average)){
+        //if(good_enough(gradient, guess, average)){
+        if(false){
             console.log("done!");
             console.log(guess);
             return(make_tx(guess, amount, Paths, db, db2, markets, callback));
