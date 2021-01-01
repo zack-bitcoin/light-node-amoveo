@@ -22,7 +22,8 @@ var market_explorer = (function(){
                 console.log(JSON.stringify(market2));
                 });
         
-            draw(market, canvas.width, canvas.height, function(temp_canvas){
+            var liquidities = market[11].slice(1);
+            draw(market, liquidities, canvas.width, canvas.height, function(temp_canvas){
                 main_ctx.drawImage(temp_canvas, 0, 0, canvas.width, canvas.height);
             });
         }, get_ip(), 8091);
@@ -72,7 +73,7 @@ var market_explorer = (function(){
         div.appendChild(br());
     };
     
-    function draw(e_market, width, height, callback){
+    function draw(e_market, liquidities, width, height, callback){
         //draw returns a temporary canvas in a callback function, so we can store an image for later use.
         //rpc.post(["markets", mid], function(market){
         //full node
@@ -116,7 +117,6 @@ var market_explorer = (function(){
                     console.log("unhandled price");
                 }
             };
-            var liquidities = e_market[11].slice(1);
             var start_height = Math.min(prices.reverse()[0][1], liquidities.reverse()[0][1]);
             var end_height = height;
             var max_prob = 1;

@@ -73,8 +73,9 @@
 
         //console.log(text);
         //console.log(max_price);
-
-        rpc.post(["contract", cid], function(contract){
+   
+    var e_market_mirror;
+    rpc.post(["contract", cid], function(contract){
         //from the explorer
             contract = contract[1];
             //console.log(JSON.stringify(contract));
@@ -122,8 +123,33 @@
             var markets = contract[4];
             var markets_title = document.createElement("h4");
             markets_title.innerHTML = "Markets that involve this contract";
-            div.appendChild(markets_title);
-            make_market_links(markets.slice(1));
+        div.appendChild(markets_title);
+        //console.log(JSON.stringify(markets));
+            make_market_links(
+                markets.slice(1),
+                [],
+                function(liquidity_lists){
+                    var canvas = document.getElementById("theCanvas");
+                    var ctx = canvas.getContext("2d");
+                    var liquidities =
+                        combine_liquidities(
+                            liquidity_lists.map(function(x){
+                                return(x.reverse())
+                            })
+                        );
+                    liquidities = liquidities.reverse();
+                    //console.log(JSON.stringify(liquidities));
+                    //console.log(JSON.stringify(liquidity_lists));
+                    market_explorer.draw(e_market_mirror, liquidities, canvas.width, canvas.height, function(
+                        temp_canvas){
+                        ctx.drawImage(
+                            temp_canvas, 0, 0,
+                            canvas.width, canvas.height
+                        );
+                    });
+                    //console.log(JSON.stringify(
+                    //    liquidity_lists));
+                });
             //var txids = contract[5].slice(1);
             //console.log(JSON.stringify(txids));
             //var txs = [];
@@ -137,10 +163,10 @@
             //-record(contract, {cid, source = <<0:256>>, types, markets = [], txs = []}).
             //return(display_contracts2(div, contracts.slice(1), []));
         }, get_ip(), 8091);//8091 is explorer
-    function make_market_links(markets){
+    function make_market_links(markets, LLs, callback){
         //console.log(markets);
         if(markets.length === 0){
-            return(0);
+            return(callback(LLs));
         };
         //console.log(markets[0]);
         //rpc.post(["market", markets[0]], function(market){
@@ -157,21 +183,28 @@
             var amount2 = market[7];
             var volume = (Math.sqrt(amount1*amount2) / 100000000).toFixed(8).toString();
 
-            if(cid1===cid2){
-                var canvas = document.getElementById("theCanvas");
-                var ctx = canvas.getContext("2d");
-                rpc.post(["market", mid], function(market){
-                    market = market[1];
-                    market_explorer.draw(market, canvas.width, canvas.height, function(
+            //if(cid1===cid2){
+             //   var canvas = document.getElementById("theCanvas");
+              //  var ctx = canvas.getContext("2d");
+            rpc.post(["market", mid], function(e_market){
+                e_market = e_market[1];
+                var liquidities = e_market[11].slice(1);
+                if(cid1===cid2){
+                    console.log("cid match");
+                    e_market_mirror = e_market;
+                };
+                /*
+                    market_explorer.draw(e_market, liquidities, canvas.width, canvas.height, function(
                         temp_canvas){
                         ctx.drawImage(
                             temp_canvas, 0, 0,
                             canvas.width, canvas.height
                         );
                     });
-                }, get_ip(), 8091);
+                */
+        //    }, get_ip(), 8091);
 
-            };
+        //};
             
             //-record(market, {mid, height, volume = 0, txs = [], cid1, type1, cid2, type2, amount1, amount2}).
             /*
@@ -222,8 +255,72 @@
                 .concat("");
             div.appendChild(link);
             div.appendChild(br());
-
-            make_market_links(markets.slice(1));
-        });//, get_ip(), 8091);
+                
+                return(make_market_links(
+                    markets.slice(1),
+                    LLs.concat([liquidities]),
+                    callback));
+            }, get_ip(), 8091);
+        });
+    };//, get_ip(), 8091);
+    function combine_liquidity_end(
+        l, p, total, r
+    ){
+        if(l.length === 0){
+            return(r);
+        };
+        total += (l[0][2] - p);
+        p = l[0][2];
+        r = r.concat([[-7, l[0][1], total]]);
+        l = l.slice(1);
+        return(combine_liquidity_end(
+            l, p, total, r));
+    };
+    function combine_liquidity_pair(
+        as, bs, pa, pb, total, r
+    ){
+        if(as.length === 0){
+            return(combine_liquidity_end(
+                bs, pb, total, r));
+        };
+        if(bs.length === 0){
+            return(combine_liquidity_end(
+                as, pa, total, r))
+        };
+        if(as[0][1] < bs[0][1]){
+            total += (as[0][2] - pa);
+            pa = as[0][2];
+            r = r.concat([[-7, as[0][1], total]]);
+            as = as.slice(1);
+        } else {//if (bs[0][1] < as[0][1]) {
+            //console.log(JSON.stringify([as[0], bs[0]]));
+            total += (bs[0][2] - pb);
+            pb = bs[0][2];
+            r = r.concat([[-7, bs[0][1], total]]);
+            bs = bs.slice(1);
+        };
+        return(combine_liquidity_pair(
+            as, bs, pa, pb, total, r));
+    };
+    function combine_liquidities(LLs){
+        //needs to be rewritten.
+        //console.log(JSON.stringify(LLs));
+        if(LLs.length === 1){
+            return(LLs[0]);
+        };
+        var next_head = combine_liquidity_pair(
+            LLs[0], LLs[1], 0, 0, 0, []
+        );
+        /*
+        var next_head;
+        if(LLs[0].length > LLs[1].length){
+            next_head = LLs[0];
+        } else {
+            next_head = LLs[1];
+        };
+        */
+        return(combine_liquidities(
+            [next_head].concat(LLs.slice(2))
+        ));
     };
 })();
