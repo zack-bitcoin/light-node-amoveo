@@ -4,15 +4,15 @@
     document.body.appendChild(div);
     server_port.value = "8080";
     if (server_ip.value == "") {
-        server_ip.value = "159.89.87.58";
-        //server_ip.value = "0.0.0.0";
+        //server_ip.value = "159.89.87.58";
+        server_ip.value = "0.0.0.0";
     };
     const urlParams = new URLSearchParams(window.location.search);
     var mid = urlParams.get('mid');
     mid = mid.replace(/\ /g, "+");
     rpc.post(["markets", mid], function(market){
         //full node
-        //console.log(JSON.stringify(market));
+        console.log(JSON.stringify(market));
         //-record(market, {id, cid1, type1, amount1, cid2, type2, amount2, shares}).
         var cid1 = market[2];
         var type1 = market[3];
@@ -60,9 +60,30 @@
         market = market[1];
         //console.log(get_ip());
         //console.log(JSON.stringify(market[10]));
+        //console.log(JSON.stringify(market));
         rpc.post(["height"], function(height){
-            draw_graph(market[10].slice(1),
-                       height);
+            var prices = market[10].slice(1);
+            var liquidities = market[11].slice(1);
+            var start_height = Math.min(prices.reverse()[0][1], liquidities.reverse()[0][1]);
+            var end_height = height;
+            console.log(JSON.stringify(prices));
+            draw_graph(prices,
+                       start_height,
+                       end_height,
+                       1,
+                       colors[4]);
+            var max_liquidity = liquidities
+                .reduce(function(a, b){
+                    return(Math.max(a, b[2]));
+                }, 0);
+            console.log(JSON.stringify(liquidities));
+            //console.log(max_liquidity);
+            draw_graph(liquidities,
+                       start_height-Math.round(0.005*(end_height - start_height)),
+                       end_height,
+                       max_liquidity*1.01,
+                       colors[0]);
+            draw_grid(6, 4, start_height, height);
         });
     //};
     }, get_ip(), 8091);
@@ -73,64 +94,84 @@
     var colors = ["#880000",//red
                   "#000000",//black
                   "#008800",//green
-                  "#000088",//blue
-                  "#0088FF",//blue claro
+                  "#0033BB",//blue
+                  "#0088FF",//light blue
                   "#FF0088",//pink
                   "#88FF00",//lime
                   "#FF8800",//neon orange
                   "#00FF88",//green3
                   "#FF0000",//bright red
+                  "#555555",//grey
                  ];
-    function draw_graph(prices, end_height){
+    function draw_graph(prices, sh, end_height, price_scale, color){
         var w = canvas.width;
         var h = canvas.height;
-        var sh = prices.reverse()[0][1];//start height
-        var br = end_height - sh;
+        var b_range = end_height - sh;
+        var ws = w/b_range;//width scale
         var block_height;
         var price;
         prices = prices.reverse();
         prices = ([[-7, end_height, prices[0][2]]])
             .concat(prices);
-        console.log(JSON.stringify(prices));
-        //var prev_block = sh;
         var prev_block = prices[0][1];
         var prev_price = prices[0][2];
+        var lw = h/100;
+        ctx.lineWidth = lw;
+        var hlw = lw/2.5;
         for(var i = 1; i<prices.length; i++){
-        //for(var i = 1; i<3; i++){
             block_height = prices[i][1];
             price = prices[i][2];
-            ctx.moveTo(w*(prev_block - sh)/br, h);
-            ctx.lineTo(w*(block_height - sh)/br, h);
-            ctx.lineTo(w*(block_height - sh)/br, h*(1-prev_price));
-            ctx.lineTo(w*(prev_block - sh)/br, h*(1-prev_price));
-            ctx.fillStyle = colors[4];
-            ctx.fill();
+
+            ctx.beginPath();
+            ctx.moveTo(ws*(prev_block - sh)+hlw, h*(1-prev_price/price_scale));
+            ctx.lineTo(ws*(prev_block - sh)+hlw, h*(1-price/price_scale));
+            ctx.lineTo(ws*(block_height - sh), h*(1-price/price_scale));
+            ctx.strokeStyle = color;
+            ctx.stroke();
             
             prev_block = block_height;
             prev_price = price;
         };
-        for(var i = 1; i<6; i++){
+    };
+    function draw_grid(rows, columns, time_start, time_end){
+        var time_range = time_end - time_start;
+        var w = canvas.width;
+        var h = canvas.height;
+
+        ctx.font = (Math.round(h/10)).toString()
+            .concat("px Georgia");
+        ctx.fillStyle = colors[3];
+
+        var lw = h/300;
+        ctx.lineWidth = lw;
+        var s;
+        for(var i = 1; i<rows; i++){
+            s = (1-(i/rows)).toFixed(2).toString();
+            ctx.fillText(s, 0, i*h/rows - 2*lw);
             ctx.beginPath();
-            ctx.moveTo(0, i*h/6);
-            ctx.lineTo(w, i*h/6);
-            ctx.fillStyle = colors[1];
-            ctx.stroke();
-        };
-        for(var i = 1; i<4; i++){
-            ctx.beginPath();
-            ctx.moveTo(i*w/4, 0);
-            ctx.lineTo(i*w/4, h);
-            ctx.fillStyle = colors[1];
+            ctx.moveTo(0, i*h/rows);
+            ctx.lineTo(w, i*h/rows);
+            ctx.strokeStyle = colors[10];
             ctx.stroke();
         };
         
-        /*
-        ctx.moveTo(10, 10);
-        ctx.lineTo(10, 30);
-        ctx.lineTo(20, 20);
-        ctx.lineTo(20, 10);
         ctx.fillStyle = colors[1];
-        ctx.fill();
-        */
+        ctx.font = (Math.round(h/15)).toString()
+            .concat("px Georgia");
+        s = time_start
+            .toFixed(0).toString();
+        ctx.fillText(s, 0, h);
+        for(var i = 1; i<columns; i++){
+            s = (time_start +
+                 (time_range *
+                  (1-(i/columns))))
+                .toFixed(0).toString();
+            ctx.fillText(s, (columns - i)*w/columns, h);
+            ctx.beginPath();
+            ctx.moveTo(i*w/columns, 0);
+            ctx.lineTo(i*w/columns, h);
+            ctx.strokeStyle = colors[10];
+            ctx.stroke();
+        };
     };
 })();
