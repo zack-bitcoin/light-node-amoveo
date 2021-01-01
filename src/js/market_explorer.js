@@ -139,8 +139,9 @@ var market_explorer = (function(){
                        colors[9],
                        temp_canvas,
                        ctx);
-            draw_grid(6, 4, start_height, height, max_prob, max_liquidity, temp_canvas, ctx);
-            callback(temp_canvas);
+            draw_grid(6, 4, start_height, height, max_prob, max_liquidity, temp_canvas, ctx, function(){
+                callback(temp_canvas);
+            });
         });
         //}, get_ip(), 8091);
     };
@@ -189,7 +190,7 @@ var market_explorer = (function(){
             prev_price = price;
         };
     };
-    function draw_grid(rows, columns, time_start, time_end, max_prob, max_liquidity, temp_canvas, ctx){
+    function draw_grid(rows, columns, time_start, time_end, max_prob, max_liquidity, temp_canvas, ctx, callback){
         var time_range = time_end - time_start;
         var w = temp_canvas.width;
         var h = temp_canvas.height;
@@ -226,8 +227,28 @@ var market_explorer = (function(){
             .concat("px Georgia");
         s = time_start
             .toFixed(0).toString();
-        ctx.fillText(s, 0, h);
+        //ctx.fillText(s, 0, h);
         for(var i = 1; i<columns; i++){
+        //    var blockheight =
+         //       Math.round(
+          //          time_start +
+           //             (time_range *
+            //             (1 - (i/columns))));
+            //console.log(blockheight);
+            ctx.beginPath();
+            /*block_to_date(
+                blockheight,
+                function(s){
+                    console.log("success");
+                    ctx.fillText(s, (columns - i)*w/columns, h);
+                }
+            );*/
+            ctx.moveTo(i*w/columns, 0);
+            ctx.lineTo(i*w/columns, h);
+            ctx.strokeStyle = colors[10];
+            ctx.stroke();
+            console.log(i);
+            /*
             s = (time_start +
                  (time_range *
                   (1-(i/columns))))
@@ -238,8 +259,62 @@ var market_explorer = (function(){
             ctx.lineTo(i*w/columns, h);
             ctx.strokeStyle = colors[10];
             ctx.stroke();
+            */
         };
+        return(draw_dates(time_start, time_range, 0, columns, w, h, ctx, callback));
     };
+    function draw_dates(time_start, time_range, i, columns, w, h, ctx, callback){
+        if(i === columns){
+            return(callback());
+        };
+        var blockheight =
+            Math.round(
+                time_start +
+                    (time_range *
+                     (1 - (i/columns))));
+        console.log(ctx);
+        //ctx.fillText("hello", 0, h);
+        block_to_date(
+            blockheight,
+            function(s){
+                //ctx.fillText("EEE", 0, h);
+                console.log(s);
+                console.log((columns - i)*w/columns);
+                console.log(h);
+                
+                ctx.font = (Math.round(h/15)).toString()
+                    .concat("px Georgia");
+                ctx.fillStyle = colors[1];
+                ctx.fillText(s, (columns-i-1)*w/columns, h);
+                //ctx.stroke();
+                return(draw_dates(time_start, time_range, i+1, columns, w, h, ctx, callback));
+            });
+    }; 
+    function block_to_date(N, callback){
+        rpc.post(["block", N], function(block){
+            var time = block[4];
+            console.log(time);
+            var start_time = 15192951759;
+            var n = (time + start_time);//10 * seconds since jan 1 1970
+            console.log(n);
+            var curdate = new Date(null);
+            curdate.setTime(n*100);
+            //var final_now = curdate.toLocaleString();
+            var final_now = curdate.toGMTString();
+            //curdate.toGMTString();
+            //"Sun, 26 Apr 1970 17:46:40 GMT"
+            console.log(final_now);
+            final_now = final_now.match(/\d\d? \w\w\w /g)[0].trim().split(" ").reverse().reduce(function(a, b){return(a.concat(b))}, "");
+            console.log(final_now);
+            return(callback(final_now));
+        });
+    };
+    //block_to_date(100000, function(date){
+    //    return(0);
+    //});
+
+
+
     return({
         draw: draw
     });
