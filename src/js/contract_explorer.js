@@ -6,8 +6,8 @@
     document.body.appendChild(div);
     server_port.value = "8080";
     if (server_ip.value == "") {
-        server_ip.value = "159.89.87.58";
-        //server_ip.value = "0.0.0.0";
+        //server_ip.value = "159.89.87.58";
+        server_ip.value = "0.0.0.0";
     };
     const urlParams = new URLSearchParams(window.location.search);
     var cid = urlParams.get('cid');
@@ -39,7 +39,6 @@
     });
     */
     rpc.post(["contracts", cid], function(main_contract){
-        console.log(main_contract[11]);
         var x = main_contract[11]/100000000;
         open_interest_div.innerHTML =
             "open interest: "
@@ -157,6 +156,22 @@
             var type2 = market[6];
             var amount2 = market[7];
             var volume = (Math.sqrt(amount1*amount2) / 100000000).toFixed(8).toString();
+
+            if(cid1===cid2){
+                var canvas = document.getElementById("theCanvas");
+                var ctx = canvas.getContext("2d");
+                rpc.post(["market", mid], function(market){
+                    market = market[1];
+                    market_explorer.draw(market, canvas.width, canvas.height, function(
+                        temp_canvas){
+                        ctx.drawImage(
+                            temp_canvas, 0, 0,
+                            canvas.width, canvas.height
+                        );
+                    });
+                }, get_ip(), 8091);
+
+            };
             
             //-record(market, {mid, height, volume = 0, txs = [], cid1, type1, cid2, type2, amount1, amount2}).
             /*

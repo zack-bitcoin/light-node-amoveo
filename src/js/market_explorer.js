@@ -1,4 +1,4 @@
-(function(){
+var market_explorer = (function(){
     var ZERO = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=";
     var div = document.createElement("div");
     document.body.appendChild(div);
@@ -7,18 +7,34 @@
         //server_ip.value = "159.89.87.58";
         server_ip.value = "0.0.0.0";
     };
-    const urlParams = new URLSearchParams(window.location.search);
-    var mid = urlParams.get('mid');
-    mid = mid.replace(/\ /g, "+");
-    rpc.post(["markets", mid], function(market){
-        //full node
-        console.log(JSON.stringify(market));
-        //-record(market, {id, cid1, type1, amount1, cid2, type2, amount2, shares}).
+
+    if(auto_draw_config === true){
+        const urlParams = new URLSearchParams(window.location.search);
+        var mid = urlParams.get('mid');
+        mid = mid.replace(/\ /g, "+");
+        var canvas = document.getElementById("myCanvas");
+        var main_ctx = canvas.getContext("2d");
+        rpc.post(["market", mid], function(market){
+            market = market[1];
+            console.log(JSON.stringify(market));
+            rpc.post(["markets", mid], function(market2){
+                draw_internal(mid, market2);
+                console.log(JSON.stringify(market2));
+                });
+        
+            draw(market, canvas.width, canvas.height, function(temp_canvas){
+                main_ctx.drawImage(temp_canvas, 0, 0, canvas.width, canvas.height);
+            });
+        }, get_ip(), 8091);
+    };
+
+    function draw_internal(mid, market){
         var cid1 = market[2];
-        var type1 = market[3];
-        var amount1 = market[4];
+        console.log(cid1);
         var cid2 = market[5];
         var type2 = market[6];
+        var type1 = market[3];
+        var amount1 = market[4];
         var amount2 = market[7];
         var volume = (Math.sqrt(amount1*amount2) / 100000000).toFixed(3).toString();
         var id_div = document.createElement("div");
@@ -54,43 +70,83 @@
             .concat((amount2 / 100000000).toFixed(8))
         div.appendChild(cid2_link);
         div.appendChild(br());
-    });
-    //to get the market from the explorer
-    rpc.post(["market", mid], function(market){
-        market = market[1];
-        //console.log(get_ip());
-        //console.log(JSON.stringify(market[10]));
+    };
+    
+    function draw(e_market, width, height, callback){
+        //draw returns a temporary canvas in a callback function, so we can store an image for later use.
+        //rpc.post(["markets", mid], function(market){
+        //full node
         //console.log(JSON.stringify(market));
+        //console.log(JSON.stringify(e_market));
+        //-record(market, {id, cid1, type1, amount1, cid2, type2, amount2, shares}).
+        //var cid1 = market[2];
+        //var cid2 = market[5];
+        //var type2 = market[6];
+        //e market -record(market, {mid, height, txs = [], cid1, type1, cid2, type2, amount1, amount2, prices = [], liquidities = []}).
+        var cid1 = e_market[4];
+        var type1 = e_market[5];
+        var cid2 = e_market[6];
+        var type2 = e_market[7];
+
+        //making a seperate function to clean up the namespace a bit.
+        //to get the market from the explorer
+        //rpc.post(["market", mid], function(e_market){
+        var temp_canvas = document.createElement("canvas");
+        //var temp_canvas.getContext('2d');
+        temp_canvas.width = width;
+        temp_canvas.height = height;
+        var ctx = temp_canvas.getContext("2d");
+            
+        //market = market[1];
+        //console.log(get_ip());
+        //console.log(JSON.stringify(e_market[10]));
         rpc.post(["height"], function(height){
-            var prices = market[10].slice(1);
-            var liquidities = market[11].slice(1);
+            var prices = e_market[10].slice(1);
+            for(var i = 0; i<prices.length; i++){
+                var n = prices[i][2];
+                if(cid1 === cid2){
+                    prices[i][2] = n/(1+n);
+                } else if((cid1 === ZERO) &&
+                          (type2 === 1)){
+                    prices[i][2] = 1/n;
+                } else if((cid1 === ZERO) &&
+                          (type2 === 2)){
+                    prices[i][2] = 1 - (1/n);
+                } else {
+                    console.log("unhandled price");
+                }
+            };
+            var liquidities = e_market[11].slice(1);
             var start_height = Math.min(prices.reverse()[0][1], liquidities.reverse()[0][1]);
             var end_height = height;
-            console.log(JSON.stringify(prices));
+            var max_prob = 1;
             draw_graph(prices,
                        start_height,
                        end_height,
-                       1,
-                       colors[4]);
+                       max_prob,
+                       colors[4],
+                       temp_canvas,
+                       ctx);
             var max_liquidity = liquidities
                 .reduce(function(a, b){
                     return(Math.max(a, b[2]));
                 }, 0);
-            console.log(JSON.stringify(liquidities));
             //console.log(max_liquidity);
             draw_graph(liquidities,
                        start_height-Math.round(0.005*(end_height - start_height)),
                        end_height,
                        max_liquidity*1.01,
-                       colors[0]);
-            draw_grid(6, 4, start_height, height);
+                       colors[9],
+                       temp_canvas,
+                       ctx);
+            draw_grid(6, 4, start_height, height, max_prob, max_liquidity, temp_canvas, ctx);
+            callback(temp_canvas);
         });
-    //};
-    }, get_ip(), 8091);
+        //}, get_ip(), 8091);
+    };
+    //});
 
 
-    var canvas = document.getElementById("myCanvas");
-    var ctx = canvas.getContext("2d");
     var colors = ["#880000",//red
                   "#000000",//black
                   "#008800",//green
@@ -103,9 +159,9 @@
                   "#FF0000",//bright red
                   "#555555",//grey
                  ];
-    function draw_graph(prices, sh, end_height, price_scale, color){
-        var w = canvas.width;
-        var h = canvas.height;
+    function draw_graph(prices, sh, end_height, price_scale, color, temp_canvas, ctx){
+        var w = temp_canvas.width;
+        var h = temp_canvas.height;
         var b_range = end_height - sh;
         var ws = w/b_range;//width scale
         var block_height;
@@ -133,10 +189,10 @@
             prev_price = price;
         };
     };
-    function draw_grid(rows, columns, time_start, time_end){
+    function draw_grid(rows, columns, time_start, time_end, max_prob, max_liquidity, temp_canvas, ctx){
         var time_range = time_end - time_start;
-        var w = canvas.width;
-        var h = canvas.height;
+        var w = temp_canvas.width;
+        var h = temp_canvas.height;
 
         ctx.font = (Math.round(h/10)).toString()
             .concat("px Georgia");
@@ -146,8 +202,18 @@
         ctx.lineWidth = lw;
         var s;
         for(var i = 1; i<rows; i++){
-            s = (1-(i/rows)).toFixed(2).toString();
+            s = (max_prob * (1-(i/rows))).toFixed(2).toString();
             ctx.fillText(s, 0, i*h/rows - 2*lw);
+            ctx.beginPath();
+            ctx.moveTo(0, i*h/rows);
+            ctx.lineTo(w, i*h/rows);
+            ctx.strokeStyle = colors[10];
+            ctx.stroke();
+        };
+        for(var i = 1; i<rows; i++){
+        ctx.fillStyle = colors[0];
+            s = (max_liquidity * (1-(i/rows)) / 100000000).toFixed(2).toString();
+            ctx.fillText(s, 4*w/5, i*h/rows - 2*lw);
             ctx.beginPath();
             ctx.moveTo(0, i*h/rows);
             ctx.lineTo(w, i*h/rows);
@@ -174,4 +240,7 @@
             ctx.stroke();
         };
     };
+    return({
+        draw: draw
+    });
 })();
