@@ -642,7 +642,9 @@ IA = B*(2PA-1)
                         .concat("");
                 };
             }
-                display_contracts2(div, contracts.slice(1), s);
+                setTimeout(function(){
+                    display_contracts2(div, contracts.slice(1), s);
+                }, 100);
             });
         }, get_ip(), 8090);
     };
