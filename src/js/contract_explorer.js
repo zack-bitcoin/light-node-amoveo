@@ -1,13 +1,14 @@
 (function(){
     var ZERO = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=";
-    var div = document.createElement("div");
+    //var div = document.createElement("div");
+    var div = document.getElementById("contract_div");
     var lower_limit;
     var max_range = 1;
-    document.body.appendChild(div);
+    //document.body.appendChild(div);
     server_port.value = "8080";
     if (server_ip.value == "") {
-        //server_ip.value = "159.89.87.58";
-        server_ip.value = "0.0.0.0";
+        server_ip.value = "159.89.87.58";
+        //server_ip.value = "0.0.0.0";
     };
     const urlParams = new URLSearchParams(window.location.search);
     var cid = urlParams.get('cid');
@@ -323,27 +324,5 @@
             [next_head].concat(LLs.slice(2))
         ));
     };
-    function block_to_date(N, callback){
-        rpc.post(["block", N], function(block){
-            var time = block[4];
-            console.log(time);
-            var start_time = 15192951759;
-            var n = (time + start_time);//10 * seconds since jan 1 1970
-            console.log(n);
-            var curdate = new Date(null);
-            curdate.setTime(n*100);
-            //var final_now = curdate.toLocaleString();
-            var final_now = curdate.toGMTString();
-            //curdate.toGMTString();
-            //"Sun, 26 Apr 1970 17:46:40 GMT"
-            console.log(final_now);
-            final_now = final_now.match(/\d\d? \w\w\w /g)[0].trim();
-            console.log(final_now);
-            return(callback(final_now));
-        });
-    };
-    block_to_date(100000, function(date){
-        return(0);
-    });
 
 })();

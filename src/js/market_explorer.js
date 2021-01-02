@@ -1,11 +1,12 @@
 var market_explorer = (function(){
     var ZERO = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=";
-    var div = document.createElement("div");
-    document.body.appendChild(div);
+    //var div = document.createElement("div");
+    var div = document.getElementById("market");
+    //document.body.appendChild(div);
     server_port.value = "8080";
     if (server_ip.value == "") {
-        //server_ip.value = "159.89.87.58";
-        server_ip.value = "0.0.0.0";
+        server_ip.value = "159.89.87.58";
+        //server_ip.value = "0.0.0.0";
     };
 
     if(auto_draw_config === true){
@@ -41,9 +42,9 @@ var market_explorer = (function(){
         var id_div = document.createElement("div");
         id_div.innerHTML = "market "
             .concat(mid)
-            .concat(" liquidity: ")
+            .concat("<br> liquidity: ")
             .concat(volume)
-            .concat(" price: ")
+            .concat("<br> price: ")
             .concat((amount2 / (amount1 + amount2)).toFixed(4))
             .concat("");
         div.appendChild(id_div);
@@ -119,6 +120,15 @@ var market_explorer = (function(){
             };
             var start_height = Math.min(prices.reverse()[0][1], liquidities.reverse()[0][1]);
             var end_height = height;
+            console.log(JSON.stringify(liquidities));
+            for(var i = 0; i<liquidities.length; i++){
+                var l = liquidities[i][2];
+                if(l < 1000000){//0.01 veo
+                    end_height =
+                        Math.min(end_height,
+                                 liquidities[i][1]+10);
+                };
+            };
             var max_prob = 1;
             draw_graph(prices,
                        start_height,
@@ -139,7 +149,7 @@ var market_explorer = (function(){
                        colors[9],
                        temp_canvas,
                        ctx);
-            draw_grid(6, 4, start_height, height, max_prob, max_liquidity, temp_canvas, ctx, function(){
+            draw_grid(6, 4, start_height, end_height, max_prob, max_liquidity, temp_canvas, ctx, function(){
                 callback(temp_canvas);
             });
         });
@@ -272,7 +282,7 @@ var market_explorer = (function(){
                 time_start +
                     (time_range *
                      (1 - (i/columns))));
-        console.log(ctx);
+        //console.log(ctx);
         //ctx.fillText("hello", 0, h);
         block_to_date(
             blockheight,
@@ -304,6 +314,10 @@ var market_explorer = (function(){
             //curdate.toGMTString();
             //"Sun, 26 Apr 1970 17:46:40 GMT"
             console.log(final_now);
+            //time_now = final_now.split(" ");
+            //time_now = time_now[1]
+            //    .concat(time_now[2])
+            //    .concat(time_now[4].slice(0, -3));
             final_now = final_now.match(/\d\d? \w\w\w /g)[0].trim().split(" ").reverse().reduce(function(a, b){return(a.concat(b))}, "");
             console.log(final_now);
             return(callback(final_now));
