@@ -128,6 +128,9 @@ var market_explorer = (function(){
                         Math.min(end_height,
                                  liquidities[i][1]+10);
                 };
+                if(l > 1000000){
+                    end_height = height;
+                };
             };
             var max_prob = 1;
             draw_graph(prices,
