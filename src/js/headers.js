@@ -56,14 +56,17 @@ function headers_main() {
 	retarget_frequency = 2000;
 	forks = {two: 9000, four: 26900, seven:28135, twenty_nine:104600};
 	//top_header = 0;
-        //top_header = ["header",75963,"Hlp6dHOmI8MLSKoszxuU840fqrlm/5yuqJR92Idg9oU=","hudw3ucSvaEsFwH+zlxOUZ7KC0MNdnTimhWk6OPfQN8=","KJc9pvOIj7867XK/u7WL71gNQLNMn5pA+dUATaGrxuw=",453614702,13227,3,"AAAAAAAAAAAAp97vT1xPju+8EwiRULi0U/gliqEAAAA=",1656017740603758477312,5982];
         //top_header = ["header", 115963, "eMIChQ5lvwYTBsmuU+PSGfJ+yk7JHmUiDmJ05PWlUiY=", "rGvO+mDwjUMXhuM2SVZjhEoEBg8mhYcooUAHWgHG/TY=", "87WiCyA+8TwizOcBK1A543qwcjJ/REG8A449miIMDio=", 709357581, 13175, 3, "AAAAAAAAAAAAE+LxcAx88O3ofi2qtCeQshzdqA0AAAA=", 2.3261311366047874e+21, 5982];
-        top_header = ["header", 130700, "yClicPvrQ4Ul5sk4hbsrJ62drzli1tue/mf8TYW2dZU=", "Dq6o8Xg3qiUVzMpzXkKijFtlhFd66KQlw2qiN8x37KI=", "bZM+MzTkULo4gzZ8hBlZLqTfWDmvxCnSL684GZSFCn8=", 803559907, 13378, 3, "AAAAAAAAAAAAB4P1tQgLilI01L0VFKSUOcygSIIAAAA=", 2.3808044578490653e+21, 5982];
-
-        //write_header(top_header, 656722944829204);
+        var ls_check = localStorage.getItem("ls_top_header");
+        if(ls_check){
+            var ls_check2 = JSON.parse(ls_check);
+            top_header = ls_check2[0];
+            write_header(top_header, ls_check2[1]);
+        } else {
+            top_header = ["header", 130700, "yClicPvrQ4Ul5sk4hbsrJ62drzli1tue/mf8TYW2dZU=", "Dq6o8Xg3qiUVzMpzXkKijFtlhFd66KQlw2qiN8x37KI=", "bZM+MzTkULo4gzZ8hBlZLqTfWDmvxCnSL684GZSFCn8=", 803559907, 13378, 3, "AAAAAAAAAAAAB4P1tQgLilI01L0VFKSUOcygSIIAAAA=", 2.3808044578490653e+21, 5982];
         //write_header(top_header, 670203372402906);
-        write_header(top_header, 781489233254590);
-
+            write_header(top_header, 781489233254590);
+        };
 
 //to find the ewah headers_object.read_ewah(hash(headers_object.serialize(headers_object.top())));
     }
@@ -100,6 +103,7 @@ function headers_main() {
         }
         h = hash(serialize_header(header));
         headers_db[h] = [header, ewah];
+        localStorage.setItem("ls_top_header", JSON.stringify([header, ewah]));
     }
     function read_ewah(hash) {
 	if (headers_db[hash]) {
