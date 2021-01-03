@@ -1,5 +1,5 @@
 function create_tab_builder(div, selector){
-    //create the contract, buy subcurrency, create the market, teach oracle text TODO
+    //create the contract, buy subcurrency, create the market, teach oracle text 
     var ZERO = btoa(array_to_string(integer_to_array(0, 32)));
     var display = document.createElement("div");
     var title = document.createElement("h3");
@@ -229,9 +229,9 @@ function make_contract(){
         //var price = 1/(1 + coll);
         var price = 1/(coll);
         var amount = Math.round(parseFloat(amount_text.value)*token_units());
-        return(make_contract2(Text, MaxVal, price, amount, display));
+        return(make_contract2(Text, MaxVal, price, amount, display, selector));
     };
-    function make_txs(Text, MP, price, amount, display2, selector2_value) {
+    function make_txs(Text, MP, price, amount, display2, selector2_value, callback) {
     
         //function make_contract2(Text, MP, price, amount, display2, selector2) {
         //console.log(MP);
@@ -372,32 +372,35 @@ function make_contract(){
                  V, A1]
             ]);
         };
-        setTimeout(function(){
-            var msg =
-                ["add", 3, btoa(Text),
-                 0, MP, Source,
-                 SourceType];
+        //setTimeout(function(){
+        var msg =
+            ["add", 3, btoa(Text),
+             0, MP, Source,
+             SourceType];
             //console.log(msg);
-            rpc.post(msg, function(x){
-                console.log(x);
-                console.log("taught a scalar contract.");
-                return(0);
-            }, get_ip(), 8090);
-        }, 0);
-        return(txs);
+        rpc.post(msg, function(x){
+            console.log(x);
+            console.log("taught a scalar contract.");
+            return(callback(txs));
+        }, get_ip(), 8090);
+       // }, 0);
+        //return(txs);
     };
         
     function make_contract2(Text, MP, price, amount, display2, selector2) {
-        var txs = make_txs(Text, MP, price, amount, display2, selector2.value);
+        //var txs = make_txs(Text, MP, price, amount, display2, selector2.value);
+        make_txs(Text, MP, price, amount, display2, selector2.value, function(txs){
+
         //console.log(JSON.stringify(txs));
-        multi_tx.make(txs, function(tx){
-            var stx = keys.sign(tx);
-            console.log(JSON.stringify(stx));
-            post_txs([stx], function(msg){
-                display2.innerHTML = msg;
-                if(!(msg == "server rejected the tx")){
-                    keys.update_balance();
-                };
+            multi_tx.make(txs, function(tx){
+                var stx = keys.sign(tx);
+                console.log(JSON.stringify(stx));
+                post_txs([stx], function(msg){
+                    display2.innerHTML = msg;
+                    if(!(msg == "server rejected the tx")){
+                        keys.update_balance();
+                    };
+                });
             });
         });
     };

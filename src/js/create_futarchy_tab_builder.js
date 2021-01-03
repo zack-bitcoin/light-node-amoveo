@@ -100,41 +100,50 @@ function create_futarchy_tab_builder(div, selector){
             SourceType = V[1];
         };
         var bin_cid = binary_derivative.id_maker(bin_ch, 2, Source, SourceType);
-        var bin_txs =
-            tabs.tabs.create.tab.make_txs(
-                binary_text, 1, binary_price, amount,
-                display, selector.value);
-        var contract_buy_tx =
-            ["contract_use_tx", 0, 0, 0, bin_cid,
-             scalar_amount, 2, Source, SourceType];
-        console.log([true_price, scalar_amount]);
-        console.log([false_price, scalar_amount]);
-        var scalar_true_txs =
-            tabs.tabs.create.tab.make_txs(
-                scalar_text, MaxVal, true_price, scalar_amount,
-                display, JSON.stringify([bin_cid, 1]));
-        var scalar_false_txs =
-            tabs.tabs.create.tab.make_txs(
-                scalar_text, MaxVal, false_price, scalar_amount,
-                display, JSON.stringify([bin_cid, 2]));
-        var txs = bin_txs
-            .concat([contract_buy_tx])
-            .concat(scalar_true_txs)
-            .concat(scalar_false_txs);
-        console.log(JSON.stringify(txs));
-        var details = generate_message(txs);
+        //var bin_txs =
+        tabs.tabs.create.tab.make_txs(
+            binary_text, 1, binary_price, amount,
+            display, selector.value,
+            function(bin_txs){
+
+                var contract_buy_tx =
+                    ["contract_use_tx", 0, 0, 0, bin_cid,
+                     scalar_amount, 2, Source, SourceType];
+                console.log([true_price, scalar_amount]);
+                console.log([false_price, scalar_amount]);
+        //var scalar_true_txs =
+                tabs.tabs.create.tab.make_txs(
+                    scalar_text, MaxVal, true_price, scalar_amount,
+                    display, JSON.stringify([bin_cid, 1]),
+                    function(scalar_true_txs){
+                    
+                    //var scalar_false_txs =
+                        tabs.tabs.create.tab.make_txs(
+                            scalar_text, MaxVal, false_price, scalar_amount,
+                            display, JSON.stringify([bin_cid, 2]),
+                            function(scalar_false_txs){
+
+                                var txs = bin_txs
+                                    .concat([contract_buy_tx])
+                                    .concat(scalar_true_txs)
+                                    .concat(scalar_false_txs);
+                                console.log(JSON.stringify(txs));
+                                var details = generate_message(txs);
         //return(0);
-        multi_tx.make(txs, function(tx){
-            var stx = keys.sign(tx);
-            console.log(JSON.stringify(stx));
-            post_txs([stx], function(msg){
-                display.innerHTML = msg
-                    .concat(details);
-                if(!(msg == "server rejected the tx")){
-                    keys.update_balance();
-                };
+                                multi_tx.make(txs, function(tx){
+                                    var stx = keys.sign(tx);
+                                    console.log(JSON.stringify(stx));
+                                    post_txs([stx], function(msg){
+                                        display.innerHTML = msg
+                                            .concat(details);
+                                        if(!(msg == "server rejected the tx")){
+                                            keys.update_balance();
+                                        };
+                                    });
+                                });
+                            });
+                    });
             });
-        });
     };
     function generate_message(txs){
         if(txs.length === 0){
