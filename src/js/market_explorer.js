@@ -123,12 +123,12 @@ var market_explorer = (function(){
             console.log(JSON.stringify(liquidities));
             for(var i = 0; i<liquidities.length; i++){
                 var l = liquidities[i][2];
-                if(l < 1000000){//0.01 veo
+                if(l < 10000000){//0.1 veo
                     end_height =
                         Math.min(end_height,
                                  liquidities[i][1]+10);
                 };
-                if(l > 1000000){
+                if(l > 10000000){
                     end_height = height;
                 };
             };
