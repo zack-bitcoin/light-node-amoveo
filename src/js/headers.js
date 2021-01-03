@@ -80,11 +80,20 @@ function headers_main() {
 
         
         var button = button_maker2("sync with network", function() {
-            wallet_text.innerHTML = "Downloading blockchain data";
+            //wallet_text.innerHTML = "Downloading blockchain data";
             return more_headers();
         });
         document.body.appendChild(button);
     }
+    function auto_sync_headers(){
+        setTimeout(function(){
+            more_headers();
+        }, 1000);
+        setTimeout(function(){
+            auto_sync_headers()
+        }, 10000);
+    };
+    auto_sync_headers();
         /*
     wallet_text = document.createElement("p");
     wallet_text.innerHTML = JSON.stringify([["height", 0], ["total work", 0]]);
@@ -133,8 +142,8 @@ function headers_main() {
         if ( header == undefined ) {
             //console.log(headers_db);
             //console.log(hash);
-            console.log(header);
-            console.log("received an orphan header");
+            //console.log(header);
+            //console.log("received an orphan header");
             return "unknown parent";
         } else {
             var Diff = header[6];
@@ -356,7 +365,7 @@ function headers_main() {
     }
     function absorb_headers(h) {
 	//console.log(JSON.stringify(h[1]));
-        console.log("absorbing headers");
+        //console.log("absorbing headers");
         var get_more = false;
         for (var i = 1; i < h.length; i++ ) {
             var bl = check_pow(h[i]);
@@ -393,6 +402,7 @@ function headers_main() {
         }
     }
     function more_headers() {
+        //console.log("more headers");
         var n;
         if ( top_header == 0 ) {
             n = 0;
@@ -471,4 +481,4 @@ function headers_main() {
 }
 var headers_object = headers_main();
 
-headers_object.more_headers();
+//headers_object.more_headers();
