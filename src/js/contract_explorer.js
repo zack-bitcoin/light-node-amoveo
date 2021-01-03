@@ -126,31 +126,32 @@
             markets_title.innerHTML = "Markets that involve this contract";
         div.appendChild(markets_title);
         //console.log(JSON.stringify(markets));
-            make_market_links(
-                markets.slice(1),
-                [],
-                function(liquidity_lists){
-                    var canvas = document.getElementById("theCanvas");
-                    var ctx = canvas.getContext("2d");
-                    var liquidities =
-                        combine_liquidities(
-                            liquidity_lists.map(function(x){
-                                return(x.reverse())
-                            })
-                        );
-                    liquidities = liquidities.reverse();
-                    //console.log(JSON.stringify(liquidities));
-                    //console.log(JSON.stringify(liquidity_lists));
-                    market_explorer.draw(e_market_mirror, liquidities, canvas.width, canvas.height, function(
-                        temp_canvas){
-                        ctx.drawImage(
-                            temp_canvas, 0, 0,
-                            canvas.width, canvas.height
-                        );
-                    });
-                    //console.log(JSON.stringify(
-                    //    liquidity_lists));
+        make_market_links(
+            markets.slice(1),
+            [],
+            function(liquidity_lists){
+                make_bet_links(div, cid);
+                var canvas = document.getElementById("theCanvas");
+                var ctx = canvas.getContext("2d");
+                var liquidities =
+                    combine_liquidities(
+                        liquidity_lists.map(function(x){
+                            return(x.reverse())
+                        })
+                    );
+                liquidities = liquidities.reverse();
+                //console.log(JSON.stringify(liquidities));
+                //console.log(JSON.stringify(liquidity_lists));
+                market_explorer.draw(e_market_mirror, liquidities, canvas.width, canvas.height, function(
+                    temp_canvas){
+                    ctx.drawImage(
+                        temp_canvas, 0, 0,
+                        canvas.width, canvas.height
+                    );
                 });
+                //console.log(JSON.stringify(
+                    //    liquidity_lists));
+            });
             //var txids = contract[5].slice(1);
             //console.log(JSON.stringify(txids));
             //var txs = [];
@@ -264,6 +265,33 @@
             }, get_ip(), 8091);
         });
     };//, get_ip(), 8091);
+    function make_bet_links(div){
+
+        var bet_links_title = document.createElement("h4");
+        bet_links_title.innerHTML = "Bet on this contract";
+        div.appendChild(bet_links_title);
+        //div.appendChild(br());
+
+        var true_link = document.createElement("a");
+        true_link.href = "wallet.html?cid_to_buy="
+            .concat(cid)
+            .concat("&type_to_buy=1");
+        true_link.innerHTML = "bet true";
+        true_link.target = "_blank";
+        div.appendChild(true_link);
+        div.appendChild(br());
+        var false_link = document.createElement("a");
+        false_link.href = "wallet.html?cid_to_buy="
+            .concat(cid)
+            .concat("&type_to_buy=2");
+
+        false_link.innerHTML = "bet false";
+        false_link.target = "_blank";
+        div.appendChild(false_link);
+        div.appendChild(br());
+        div.appendChild(br());
+
+    };
     function combine_liquidity_end(
         l, p, total, r
     ){

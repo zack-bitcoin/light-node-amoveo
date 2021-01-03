@@ -53,7 +53,7 @@ var tabs = (function(){
     }
 
     function load() {
-        display.innerHTML = "looking up which currencies you own.";
+        display.innerHTML = "<h3>looking up which currencies you own.</h3>";
         setTimeout(function(){
             rpc.post(["account", keys.pub()], function(response){
                 if(response == "error") {
