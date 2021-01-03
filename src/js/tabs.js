@@ -53,11 +53,11 @@ var tabs = (function(){
     }
 
     function load() {
-        display.innerHTML = "<h3>looking up which currencies you own.</h3>";
+        //display.innerHTML = "<h3>looking up which currencies you own.</h3>";
         setTimeout(function(){
             rpc.post(["account", keys.pub()], function(response){
                 if(response == "error") {
-                    display.innerHTML = "<h3>load a key with funds.</h3>";
+                    //display.innerHTML = "<h3>load a key with funds.</h3>";
                 } else {
                     sub_accs = response[1][3].slice(1);
                     liquidity_shares = response[1][4].slice(1);
