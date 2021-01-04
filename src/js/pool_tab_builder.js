@@ -430,7 +430,8 @@ So we only need to check the 2 limits of the range, and go with whichever price 
                     });
                     txs2 = txs2.concat([
                         ["contract_use_tx",0,0,0,
-                         CID, spendmax*2, 2, SourceCID, SourceType]
+                         //CID, spendmax*2, 2, SourceCID, SourceType]
+                         CID, spendmax, 2, SourceCID, SourceType]
                     ]);
                     
                     return(lookup_price3(swap_txs, txs2, Amount, (A01/A11), mid1, mid2, mid3, CID, SourceCID, SourceType, market1, market2, market3, SpentCurrency, db));
@@ -570,6 +571,8 @@ IA = B*(2PA-1)
                 .concat(" of subcurrency type 2. <br>")
                 .concat("");
             var stx = keys.sign(tx);
+            console.log(tx);
+            //return(0);
             publish_tx_button.onclick = function(){
                 post_txs([stx], function(msg){
                     display.innerHTML = msg;

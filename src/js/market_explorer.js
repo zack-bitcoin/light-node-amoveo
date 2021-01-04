@@ -104,6 +104,7 @@ var market_explorer = (function(){
         //console.log(JSON.stringify(e_market[10]));
         rpc.post(["height"], function(height){
             var prices = e_market[10].slice(1);
+            console.log(JSON.stringify(prices));
             for(var i = 0; i<prices.length; i++){
                 var n = prices[i][2];
                 if(cid1 === cid2){
@@ -121,17 +122,21 @@ var market_explorer = (function(){
             var start_height = Math.min(prices.reverse()[0][1], liquidities.reverse()[0][1]);
             var end_height = height;
             console.log(JSON.stringify(liquidities));
+            console.log(JSON.stringify(height));
             for(var i = 0; i<liquidities.length; i++){
-                var l = liquidities[i][2];
+                console.log(JSON.stringify(i - liquidities.length - 1));
+                var liq = liquidities[i];
+                var l = liq[2];
                 if(l < 10000000){//0.1 veo
                     end_height =
                         Math.min(end_height,
-                                 liquidities[i][1]+10);
+                                 liq[1]+10);
                 };
                 if(l > 10000000){
                     end_height = height;
                 };
             };
+            console.log(JSON.stringify(end_height));
             var max_prob = 1;
             draw_graph(prices,
                        start_height,
