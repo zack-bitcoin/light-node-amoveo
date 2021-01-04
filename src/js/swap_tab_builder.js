@@ -1161,7 +1161,6 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                     get_contract(spend_currency[0], function(spend_contract){
                         //console.log(gain_contract);
                         //console.log(spend_contract);
-                        
                         multi_tx.make(txs, function(tx){
                             console.log(JSON.stringify(txs));
                             var gain_db = decode_oracle(gain_oracle_text, gain_contract, gain_currency, markets);
@@ -1212,6 +1211,9 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                                 display.appendChild(spend_db.link);
                             }
                             var stx = keys.sign(tx);
+                            console.log(JSON.stringify(tx));
+                            console.log(JSON.stringify(txs));
+                            //return(0);
                             publish_tx_button.onclick = function(){
                                 post_txs([stx], function(msg){
                                     display.innerHTML = msg;

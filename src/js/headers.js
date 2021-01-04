@@ -91,7 +91,7 @@ function headers_main() {
         }, 1000);
         setTimeout(function(){
             auto_sync_headers()
-        }, 10000);
+        }, 60000);
     };
     auto_sync_headers();
         /*

@@ -391,7 +391,8 @@ function make_contract(){
         //var txs = make_txs(Text, MP, price, amount, display2, selector2.value);
         make_txs(Text, MP, price, amount, display2, selector2.value, function(txs){
 
-        //console.log(JSON.stringify(txs));
+            console.log(JSON.stringify(txs));
+            //return(0);
             multi_tx.make(txs, function(tx){
                 var stx = keys.sign(tx);
                 console.log(JSON.stringify(stx));

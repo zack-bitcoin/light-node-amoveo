@@ -40,12 +40,26 @@ var market_explorer = (function(){
         var amount2 = market[7];
         var volume = (Math.sqrt(amount1*amount2) / 100000000).toFixed(3).toString();
         var id_div = document.createElement("div");
+        var display_price;
+        if(cid1 == cid2){
+            display_price =
+                amount2 / (amount1 + amount2);
+        } else if((cid1 === ZERO) &&
+                  (type2 === 1)){
+            display_price = amount1 / amount2;
+        } else if ((cid1 === ZERO) &&
+                   (type2 === 2)){
+            display_price = 1 - (amount1 / amount2);
+        } else {
+            display_price = amount1 / amount2;
+        };
         id_div.innerHTML = "market "
             .concat(mid)
             .concat("<br> liquidity: ")
             .concat(volume)
             .concat("<br> price: ")
-            .concat((amount2 / (amount1 + amount2)).toFixed(4))
+            //.concat((amount2 / (amount1 + amount2)).toFixed(4))
+            .concat(display_price.toFixed(4))
             .concat("");
         div.appendChild(id_div);
         var cid1_link = document.createElement("a");
