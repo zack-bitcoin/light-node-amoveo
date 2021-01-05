@@ -539,6 +539,7 @@ function record_channel_state(sspk2, db, acc2, callback) {
 
 
 function id_maker(start, gov1, gov2, question) {
+    //for oracle ids.
     if (question.length > 999) {
         console.log("question is too long");
         return "question too long";
@@ -549,6 +550,7 @@ function id_maker(start, gov1, gov2, question) {
     (hash(string_to_array(question)));
     return(btoa(array_to_string(hash(x))));//is array
 };
+/*
 function question_maker(id, bit) {
     if (bit < 1) {return 0;}
     if (bit > 9) {return 0;}
@@ -578,6 +580,7 @@ function scalar_keys1(id, callback) {
         return callback(scalar_keys(id, starts));
     });
 };
+*/
 
 function post_txs(txs, callback) {
     rpc.post(["txs", [-6].concat(txs)],

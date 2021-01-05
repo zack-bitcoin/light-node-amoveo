@@ -44,7 +44,7 @@
 	    oracleOutput.appendChild(br());
             var scalar_price_div = document.createElement("div");
             oracleOutput.appendChild(scalar_price_div);
-            try_get_scalar_price(v, scalar_price_div);
+            //try_get_scalar_price(v, scalar_price_div);
             var gov_div = document.createElement("div");
             oracleOutput.appendChild(gov_div);
 	    if (governance == 0) {
@@ -52,14 +52,22 @@
 		gov_div.appendChild(br());
 		//var asks_txt = "asks: ".concat(btoa(btoa(question_hash)));
                 console.log(v);
-                rpc.post(["oracle", v], function(x) {
+                rpc.post(["oracles", v], function(x) {
+                    //this fails
+                    
                     //public_get["oracle, OID]
                     //we should verify that hash(q) == v;
                     console.log(x);
-                    var q = atob(x[2]);
-                    var question = q.slice(0, q.length);
-		    var asks_txt = "asks: ".concat(question);
-		    gov_div.appendChild(text(asks_txt));
+                    var question_hash = x[3];
+                    rpc.post(["oracle", 2, question_hash], function(t){
+                        var q = "asks: "
+                            .concat(atob(t));
+                        //var q = atob(x[2]);
+                    //var question = q.slice(0, q.length);
+		    //var asks_txt = "asks: ".concat(question);
+		        //   gov_div.appendChild(text(asks_txt));
+                        gov_div.appendChild(text(q));
+                    });
                 });
 	    } else {
 		oracleOutput.appendChild(text("this is a governance oracle"));
@@ -93,7 +101,7 @@
             console.log(orders_hash);//is 0, should be 1.
             //if (result == 0) {
             var root = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAE=";
-            return lookup_unmatched_head(root, v, oracleOutput);
+            //return lookup_unmatched_head(root, v, oracleOutput);
         });
     };
     function lookup_unmatched_head(root, oid, div) {
