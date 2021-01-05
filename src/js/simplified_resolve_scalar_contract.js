@@ -1,8 +1,42 @@
-var resolve_scalar_contract = (function(){
-    var div = document.getElementById("resolve_scalar_contract");
+var simplified_resolve_scalar_contract = (function(){
+    var div = document.getElementById("simplified_resolve_scalar_contract");
     var display = document.createElement("p");
     div.appendChild(display);
 
+    
+    var cid_input = text_input("contract id: ", div);
+    cid_input.value = "PX/VkaUaTJfHk7VWm0jordTlJ1MTZQJ2jczoyrXf5LY=";
+    div.appendChild(br());
+    
+    var oid_input = text_input("oracle id: ", div);
+    oid_input.value = "f42a/1Q9+y/F9IY6xyjA1ER+38K7tBPPA9KMsrfDnHY=";
+    div.appendChild(br());
+
+    var button = button_maker2("resolve", doit);
+    div.appendChild(button);
+    div.appendChild(br());
+    function doit(){
+        var cid = cid_input.value;
+        var oid = oid_input.value;
+        rpc.post(["read", 3, cid], function(contract){
+            var oracle_question = atob(contract[1]);
+            var max_price = contract[3];
+            rpc.post(["oracles", oid], function(oracle){
+                var oracle_height = oracle[4];
+                var question_hash = oracle[3];
+                rpc.post(["oracle", 2, question_hash], function(text){
+                    var is = atob(text).match(/max.0, min.MaxVal, .B . MaxVal . MaxPrice.. is \d*/)[0].match(/\d\d\d*/)[0];
+                    var final_price = parseInt(is, 10);
+                    return(resolve(
+                        oracle_question, oracle_height,
+                        max_price, final_price));
+                });
+            });
+        }, get_ip(), 8090);
+        return(0);
+    }
+
+    /*
     var oracle_height = text_input("oracle height: ", div);
     div.appendChild(br());
     
@@ -12,23 +46,20 @@ var resolve_scalar_contract = (function(){
     div.appendChild(br());
     var final_price = text_input("result price: ", div);
     div.appendChild(br());
+    */
 
-    var button = button_maker2("resolve", resolve);
-    div.appendChild(button);
-    div.appendChild(br());
-
-    function resolve(){
-        var Start = parseInt(oracle_height.value);
-        var Text = oracle_question.value;
-        var MP = parseInt(max_price.value);
-        var FinalPrice = parseInt(final_price.value, 10);
-        
+    function resolve(Text, Start, MP, FP){
+        //var Start = parseInt(oracle_height.value);
+        //var Text = oracle_question.value;
+        //var MP = parseInt(max_price.value);
         //        var FP = parseInt(final_price.value);
         var FullText =
             scalar_oracle_creation.fulltext(
-                final_price.value,
-                max_price.value,
-                oracle_question.value);
+                //final_price.value,
+                FP.toString(),
+                MP.toString(),
+                //max_price.value,
+                Text);
 //        var FullText = scalar_derivative.oracle_text(max_price.value, Text)
 //            .concat(final_price.value);
         var oid = id_maker(Start,
@@ -44,14 +75,17 @@ var resolve_scalar_contract = (function(){
         //AgAAAIhNYXhQcmljZSA9IDUwMDA7IE1heFZhbCA9IDQyOTQ5NjcyOTU7IEIgPSBidGMgcHJpY2UgaW4gVVNEIC0gMTAwMDAgZnJvbSAkMCB0byAkTWF4UHJpY2U7IG1heCgwLCBtaW4oTWF4VmFsLCAoQiAqIE1heFZhbCAvIE1heFByaWNlKSkgaXMgAAAAAAVulhk1FzkDMDKPhxQYhhaMOkYUFEcUcHFIbwAAAAABeAAAAAACeBYAAAAAA3iDFIMWFIMWFIMUrIcAAAAAAXmMFYaGAAAAAAJ5AAAAAAN5jDpGFBQCAAAAATBHFJCMhxYUFgIAAAAgZG5qf8R1IqSFsCnQ4QXpxAO/3H2WLW/Hk7q+o0ybcqVxSIYohig7RkcNSI2HFhQCAAAAAQE7RkcNSIQAAAAAA3kWggD/////AAAAAAN5MxaCiIwEA+g="
         var CH = scalar_derivative.hash(contract);
         console.log(JSON.stringify(CH));
-        console.log(JSON.stringify([oracle_question.value, parseInt(max_price.value), parseInt(oracle_height.value)]));
+        //console.log(JSON.stringify([oracle_question.value, parseInt(max_price.value), Start]));
         var cid = binary_derivative.id_maker(CH, 2);
+        console.log(JSON.stringify(cid));
         merkle.request_proof("contracts", cid, function(c){
+            console.log("contract");
             if(c=="empty"){
                 display.innerHTML = "that contract does not exist ".concat(cid);
                 return(0);
             };
             merkle.request_proof("oracles", oid, function(oracle){
+                console.log("oracle");
                 if(oracle == "empty"){
                     display.innerHTML = "oracle does not exist";
                     console.log(oid);
@@ -64,14 +98,14 @@ var resolve_scalar_contract = (function(){
                 }
                 console.log(JSON.stringify(oracle));
 //" int 4294967295 int1 3 / ">>), 
-                merkle.request_proof("accounts", keys.pub(), function(Acc){
+                rpc.post(["account", keys.pub()], function(Acc){
                     var Nonce = Acc[2] + 1;
                     var fee = 152050;
 
                     var evidence =
                         //string_to_array(atob("AJmZmZk="))
                         ([0])
-                        .concat(integer_to_array(FinalPrice, 4))
+                        .concat(integer_to_array(FP, 4))
                         .concat([0])
                         .concat(integer_to_array(Start, 4));
                     var evidence = btoa(array_to_string(evidence));
@@ -86,6 +120,8 @@ var resolve_scalar_contract = (function(){
                                keys.pub(), Nonce+1, fee,
                                cid, 0, 0, 0];
                     var stx2 = keys.sign(tx2);
+                    console.log(JSON.stringify(tx2));
+                    //return(0);
                     post_txs([stx1], function(msg){
                         display.innerHTML = msg;
                         post_txs([stx2], function(msg2){
@@ -98,12 +134,9 @@ var resolve_scalar_contract = (function(){
             });
         });
     };
-
+    
     return({
-        height: function(x){oracle_height.value = x},
-        oracle: function(x){oracle_question.value = x},
-        price: function(x){max_price.value = x},
-        final_price: function(x){final_price.value = x},
-        resolve: resolve
+        cid: function(x){cid_input.value = x},
+        oid: function(x){oid_input.value = x}
     });
 })();

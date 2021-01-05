@@ -37,6 +37,8 @@ var simplified_scalar_oracle_creation = (function(){
                     more_options.appendChild(info);
                     var make_oracle_button = button_maker2("make_oracle", function(){
                         var price = parseInt(price_text.value, 10);
+                        console.log(max_price);
+                        console.log(price);
                         var FullText = scalar_oracle_creation.fulltext(
                             price, max_price,
                             oracle_text);
@@ -48,6 +50,7 @@ var simplified_scalar_oracle_creation = (function(){
                         var bet_amount = 2220000;
                         var tx2 = ["oracle_bet", 0, 0, 0,
                                    oid, 1, bet_amount];
+                        return(0);
                         multi_tx.make([tx1, tx2], function(tx){
                             console.log(tx);
                             var stx = keys.sign(tx);

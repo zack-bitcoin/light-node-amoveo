@@ -26,10 +26,10 @@
         var source_type = contract[9];
         var cid = contract_to_cid(contract);
         rpc.post(["read", 3, cid], function(oracle_text) {
-            console.log([cid, source, source_type]);
+            //console.log([cid, source, source_type]);
             price_estimate_read(cid, source, source_type, function(p_est, liquidity){
                 var oracle_text_2;
-                console.log(oracle_text);
+                //console.log(oracle_text);
                 if(liquidity < 1000000) {
                     return(display_contracts(contracts.slice(1)));
                 };

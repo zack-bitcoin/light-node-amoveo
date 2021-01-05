@@ -133,6 +133,7 @@ var market_explorer = (function(){
                     console.log("unhandled price");
                 }
             };
+            console.log(JSON.stringify(prices));
             var start_height = Math.min(prices.reverse()[0][1], liquidities.reverse()[0][1]);
             var end_height = height;
             console.log(JSON.stringify(liquidities));

@@ -221,14 +221,14 @@
             //console.log(market);
 
             if(cid1 === cid){
-                cid1 = "this";
+                cid1 = "type";
             };
             if(cid1 === ZERO){
                 cid1 = "veo";
                 type1 = "";
             };
             if(cid2 === cid){
-                cid2 = "this";
+                cid2 = "type";
             };
             if(cid2 === ZERO){
                 cid2 = "veo";
@@ -246,13 +246,13 @@
                 .concat(" ")
                 //.concat(" type1: ")
                 .concat(type1)
-                .concat(" ")
+                .concat(", ")
                 //.concat(" cid2: ")
                 .concat(cid2)
                 .concat(" ")
                 //.concat(" type2: ")
                 .concat(type2)
-                .concat(" liquidity: ")
+                .concat(", liquidity: ")
                 .concat(volume)
                 .concat("");
             div.appendChild(link);

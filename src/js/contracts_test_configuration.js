@@ -41,10 +41,12 @@
     scalar_oracle_creation.max(max_price);
     scalar_oracle_creation.price(match_price);
 
+    /*
     resolve_scalar_contract.height(start_height);
     resolve_scalar_contract.oracle(scalar_question);
     resolve_scalar_contract.price(max_price);
     resolve_scalar_contract.final_price(match_price);
+    */
 
     teach_scalar_contract.oracle_text(scalar_question);
     //teach_scalar_contract.oracle_height(start_height);
