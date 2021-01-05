@@ -23,7 +23,7 @@ function headers_main() {
             server_ip.value = "159.89.87.58";
         }
     }
-    console.log(mode);
+    //console.log(mode);
     //var mode = "test";
     //var mode = "testnet";
     var forks;
@@ -319,9 +319,9 @@ function headers_main() {
 		}
                 return [I > diff, EWAH];
             } else {
-                console.log("bad diff");
-                console.log(diff);//from server
-                console.log(diff0);
+                //console.log("bad diff");
+                //console.log(diff);//from server
+                //console.log(diff0);
                 return [false, 0];
             }
         }
@@ -392,8 +392,9 @@ function headers_main() {
                 }
                 write_header(header, ewah);}
             else {
-                console.log("bad header");
-                console.log(JSON.stringify(h[i])); }
+                //console.log("bad header");
+                //console.log(JSON.stringify(h[i]));
+            }
         }
         if (get_more) { more_headers(); }
         else {
