@@ -41,9 +41,9 @@ var scalar_contract_winnings = (function(){
                         return 0;
                     }
                     var question_hash = oracle[3];
-                    rpc.post(["oracle", oid], function(x){
-                        var text = atob(x[2]);
-                        var price = parseInt(text.slice(-20).split(" is ")[1]);
+                    rpc.post(["oracle", 2, question_hash], function(text){
+                        var is = atob(text).match(/max.0, min.MaxVal, .B . MaxVal . MaxPrice.. is \d*/)[0].match(/\d\d\d*/)[0];
+                        var price = parseInt(is, 10);
                         var maximum =  4294967295; 
                         payout_vector =
                             [-6,

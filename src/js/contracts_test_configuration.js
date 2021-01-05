@@ -52,8 +52,8 @@
     //teach_scalar_contract.oracle_height(start_height);
     teach_scalar_contract.max_val(max_price);
 
-    scalar_contract_winnings.contract_id("JU3vK39D8VIVEpIgXINL2a90mlugPD2WphTdyzRvVso=");
-    scalar_contract_winnings.oracle_id("7CPONVKUE5i8FMFiVgqG5Z4HNUUyWPhdx4Y72FmZnn4=");
+    scalar_contract_winnings.contract_id("PX/VkaUaTJfHk7VWm0jordTlJ1MTZQJ2jczoyrXf5LY=");
+    scalar_contract_winnings.oracle_id("f42a/1Q9+y/F9IY6xyjA1ER+38K7tBPPA9KMsrfDnHY=");
 
     subcurrency_set_buy.contract_id(cid);
     subcurrency_set_buy.amount("100000000");
