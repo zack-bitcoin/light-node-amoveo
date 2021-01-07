@@ -384,9 +384,28 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
         var guess = array_of(a, L);
         //console.log("swap price 3");
         //console.log(guess);
+
+        /*
+        var maxes = [];
+        for(var i = 0; i<Paths.length; i++){
+            var db2 = JSON.parse(JSON.stringify(db));
+            var a = 100000000000000;
+            var x = process_path(
+                a, Paths[i], 1, db2
+            );
+            console.log(x[1]);
+            maxes[i] = a/x[1];
+        };
+        console.log("maxes");
+        console.log(JSON.stringify(maxes));
+        */
         return(swap_price_loop(Paths, amount33, guess, db, markets, callback, loop_limit));
     }
     function swap_price_loop(Paths, amount, guess, db, markets, callback, N) {
+        console.log("guess");
+        console.log(guess);
+        console.log("amount");
+        console.log(amount);
         /*
         var guess = [];
         var Paths = [];
@@ -402,6 +421,14 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
         Paths = Paths.reverse();
         guess = guess.reverse();
 
+        //with reverse. buying 1 and 10 veo worth
+        //2.0998
+        //14.487
+
+        //without is worse.
+        //2.1035
+        //14.473
+
         //Paths = (Paths.concat([Paths[0]])).slice(1);
         //guess = (guess.concat([guess[0]])).slice(1);
 
@@ -415,8 +442,8 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
         //update the database based on our current guess of the distribution.
         //calculate the final price on every path to buy a bit more. this is the gradient vector.
         var gradient = get_gradient(Paths, db2, 1);
-        
         var laplacian = get_laplacian(Paths, db2, gradient);
+
         //console.log(gradient);
         //console.log(laplacian);
         //console.log(guess);
@@ -436,6 +463,7 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
         //for the paths that are more expensive than average, buy less in the next iteration. for the paths that are less expensive, buy more in the next iteration.
     };
     function improve_guess(average, guess, grad, amount, laplacian){
+        console.log("improve guess");
         var r = [];
         for(var i = 0; i<guess.length; i++){
             var n = (guess[i])*(1 + 0.5*((average - grad[i])/average));
@@ -453,7 +481,11 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
 //(updated guess on how much to spend on this path) = ((current price on this path)-(target price))/(inverse-liquidity value calculated for this path)
             var n = (grad[i] - average) / laplacian[i];
             n = guess[i] - n;
-            n = Math.max(n, 0);
+            if(amount > 0) {
+                n = Math.max(n, 0);
+            } else {
+                n = Math.min(n, 0);
+            };
             r2 = r2.concat([n]);
         };
         var t2 = normalize(r2).map(function(x){
@@ -488,6 +520,7 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
         return(true);
     };
     function get_gradient(Paths, db3, Step) {
+        console.log("get gradient");
         //var db4;
         var db4 = JSON.parse(JSON.stringify(db3));
         var r = [];
@@ -543,6 +576,7 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
         return(m);
     };
     function process_path(Amount, path, price, db){
+        //console.log(JSON.stringify([Amount, price]));
         if(Amount == 0){
             return([db, 10]);
         }
@@ -650,7 +684,17 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                        var a = 1;
                        var b = m[7] + Amount - m[4];
                        var c = -Amount * m[4];
-                       var G0 = Math.sqrt(b*b - (4*a*c));
+                       var G0;
+                       if((4*a*c) > (b*b)){
+                           //G0 = -Math.sqrt(b*b - (4*a*c));
+                           //G0 = 0;
+                           //price1 = 1.1;
+                           //Amount = 0;
+                           console.log("error");
+                           return(0)
+                       } else {
+                           G0 = Math.sqrt(b*b - (4*a*c));
+                       };
                        var G1 = (-b + G0)/ 2;
                        var G2 = (-b - G0)/ 2;
                        var G = Math.max(G1, G2);
@@ -658,6 +702,7 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                        m[4] = m[4] - G;
                        m[7] = m[7] + Amount + G;
                        if(!(Math.pow((((m[4] * m[7])/K) - 1), 2)<0.00001)){
+                           console.log(b*b - (4*a*c));
                            console.log(K);
                            console.log(m[4] * m[7]);
                            console.log("error");
@@ -666,6 +711,7 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                        m = clean_market(m, K);
                        Amount = Amount + (G * trading_fee);
                        db[mid] = m;
+                       //}
                    } else {
                        //starts at source. the market is between the subcurrencies.
                        if((end_currency[0] == mcid1) &&
@@ -842,7 +888,18 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                        var a = 1;
                        var b = Amount + m[7] - m[4];
                        var c = -m[4]*Amount;
-                       var G0 = Math.sqrt(b*b - (4*a*c));
+                       var G0;
+                       if((4*a*c)>(b*b)){
+                           //G0 = -Math.sqrt(b*b - (4*a*c));
+                           //G0 = 0;
+                           //price1 = 1.1;
+                           //Amount = 0;
+                           //console.log(JSON.stringify([4*a*c, b*b]));
+                           console.log("error");
+                           return(0);
+                       } else {
+                           G0 = Math.sqrt(b*b - (4*a*c));
+                       };
                        var G1 = (-b + G0)/ 2;
                        var G2 = (-b - G0)/ 2;
                        //var G = Math.max(G1, G2);
@@ -853,6 +910,7 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                        m[4] = m[4] - G;
                        //m[4] = K / m[7];
                        if(!(Math.pow((((m[4] * m[7])/K) - 1), 2)<0.0001)){
+                           console.log([a, b, c]);
                            console.log(b*b - (4*a*c));
                            console.log(G0);
                            console.log([m[4], m[7], Amount, G, K]);
@@ -1032,13 +1090,21 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
         return(t);
     };
     function make_tx(guess, amount, Paths, db, db2, markets, callback) {
+        console.log("make tx");
         var get_currency = Paths[0][Paths[0].length - 1];
         var maxGuess = 0;//the amount of money we are putting on the path we are putting the most money on.
         var tx_price;
         for(var i = 0; i<guess.length; i++){
+            if(amount > 0){
             maxGuess = Math.max(
                 maxGuess, guess[i]);
+            } else {
+            maxGuess = Math.min(
+                maxGuess, guess[i]);
+            }
         };
+        console.log("maxGuess");
+        console.log(maxGuess);
         //getting the tx price on the maxGuess path.
         for(var i = 0; i<guess.length; i++){
             var db3 = JSON.parse(JSON.stringify(db2));
@@ -1047,12 +1113,16 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                 tx_price = x[1];
             };
         };
+        console.log("tx price");
+        console.log(tx_price);
         //tx_price = median(tx_prices);
 //        console.log(tx_price);
         var currencies = {};
         var first_cid = Paths[0][0][0];
         var first_type = Paths[0][0][1];
         currencies_add(first_cid, first_type, amount, currencies);
+        console.log("currencies 0 ");
+        console.log(JSON.stringify(currencies));
         //console.log(JSON.stringify(Paths));
         //console.log(JSON.stringify(currencies));
         //console.log(JSON.stringify(db));
@@ -1060,12 +1130,15 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
         var txs = [];
         var mids = [];
         for(var i = 0; i<guess.length; i++){
-            if(guess[i] > 10){
+            if(((amount > 0) && (guess[i] > 10)) ||
+               (amount < 0) && (guess[i] < -10)) {
                 var p = Paths[i];
                 mids = mids.concat(path2mids(p));
             };
         };
         mids = remove_repeats(mids);
+        console.log("mids");
+        console.log(mids);
         for(var i = 0; i<mids.length; i++){
             var id = mids[i];
             var m1 = db[id];
@@ -1136,6 +1209,8 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                       source, source_type];
             txs = [tx].concat(txs);
         };
+        console.log("made txs");
+        console.log(JSON.stringify(txs));
         return(callback(txs, markets));
         //return(make_tx2(txs, Paths[0][0], Paths[0][Paths[0].length - 1]));
     };
@@ -1605,7 +1680,7 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
             return(callback(x));
         } else {
             rpc.post(["contracts", cid], function(contract){
-                console.log("memoize contract slow");
+                //console.log("memoize contract slow");
                 memoized_contracts[cid] = contract;
                 return(callback(contract));
             });
@@ -1618,7 +1693,7 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
             return(callback(x));
         } else {
             rpc.post(["sub_accounts", id], function(acc){
-                console.log("memoize sub account slow");
+                //console.log("memoize sub account slow");
                 memoized_sub_accounts[id] = acc;
                 return(callback(acc));
             });
@@ -1631,7 +1706,7 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
             return(callback(x));
         } else {
             rpc.post(["r", cid1, cid2], function(r){
-                console.log("memoize r path slow");
+                //console.log("memoize r path slow");
                 memoized_r_paths[[cid1, cid2]] = r;
                 return(callback(r));
             }, get_ip(), 8091);
@@ -1644,7 +1719,7 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
             return(callback(x));
         } else {
             rpc.post(["read", 3, cid], function(x){
-                console.log("oracle text slow");
+                //console.log("oracle text slow");
                 memoized_oracle_text[cid] = x;
                 return(callback(x));
             }, get_ip(), 8090);
@@ -1657,7 +1732,7 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
             return(callback(x));
         } else {
             rpc.post(["markets", mid], function(x){
-                console.log("memoized markets slow");
+                //console.log("memoized markets slow");
                 memoized_markets[mid] = x;
                 return(callback(x));
             });
