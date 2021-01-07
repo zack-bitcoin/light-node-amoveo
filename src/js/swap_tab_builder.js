@@ -10,7 +10,8 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
     var ZERO = btoa(array_to_string(integer_to_array(0, 32)));
     var trading_fee = 0.9979995;
     //var loop_limit = 90;
-    var loop_limit = 30;
+    var loop_limit = 5;
+    //spend 20, get 25.4128
     //var trading_fee = 0.98;
     var slippage = 1;
     var display = document.createElement("div");
@@ -320,7 +321,20 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                 var Paths2 = end_goal(cid2, type2, Paths);
                 //Paths2 = Paths2.reverse();
                 //Paths2 = Paths.slice(1);
-                return(swap_price3(Paths2, amount234, markets, callback));
+                if(Paths2.length == 0){
+                    display.innerHTML = "error. there is no way to transform the input currency into the output currency.";
+                    return(0);
+                };
+                if(amount234 > 0){
+                    return(swap_price3(
+                        Paths2, amount234,
+                        markets, callback));
+                } else {
+                    return(reverse_swap_price3(
+                        Paths2, -amount234,
+                        markets, [cid2, type2],
+                        callback));
+                }
             }));
         }));
     };
@@ -368,9 +382,6 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
         //Paths = [Paths[0]].concat(Paths.slice(2));
         //console.log(JSON.stringify(Paths));
         var L = Paths.length;
-        if(L == 0){
-            display.innerHTML = "error. there is no way to transform the input currency into the output currency.";
-        };
         var db = build_paths_db(Paths, {});
         //console.log(JSON.stringify(db));
         if(L == 1){
@@ -385,27 +396,45 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
         //console.log("swap price 3");
         //console.log(guess);
 
-        /*
-        var maxes = [];
-        for(var i = 0; i<Paths.length; i++){
-            var db2 = JSON.parse(JSON.stringify(db));
-            var a = 100000000000000;
-            var x = process_path(
-                a, Paths[i], 1, db2
-            );
-            console.log(x[1]);
-            maxes[i] = a/x[1];
-        };
-        console.log("maxes");
-        console.log(JSON.stringify(maxes));
-        */
         return(swap_price_loop(Paths, amount33, guess, db, markets, callback, loop_limit));
     }
+    function reverse_swap_price3(Paths, amount, markets, gain_currency, callback){
+        //This time "amount" is how much we want to receive, not how much we want to spend.
+        swap_price3(Paths, amount*1000, markets, function(txs){
+            var gain =
+                calculate_gain(gain_currency, txs, markets) -
+                calculate_loss(gain_currency, txs, markets);
+            return(reverse_swap_binary_search([0,0], [amount*1000, gain], Paths, amount, markets, gain_currency, callback, 12));
+        });
+    };
+    function reverse_swap_binary_search(low, high, Paths, amount, markets, gain_currency, callback, N){
+        if(N < 1){
+            //console.log(JSON.stringify([
+            //    low, high
+            //]));
+            var average_amount = (low[0] + high[0])/2;
+            return(swap_price3(
+                Paths, average_amount, markets,
+                callback));
+        };
+        var portion =
+            (amount - low[1]) / (high[1] - low[1]);
+        var next_guess = ((high[0] - low[0]) * portion) + low[0];
+        swap_price3(Paths, next_guess, markets, function(txs){
+            var gain =
+                calculate_gain(gain_currency, txs, markets) -
+                calculate_loss(gain_currency, txs, markets);
+            //console.log(amount);
+            //console.log(next_guess);
+            //console.log(gain);
+            if(gain > amount){
+                return(reverse_swap_binary_search(low, [next_guess, gain], Paths, amount, markets, gain_currency, callback, N-1));
+            } else {
+                return(reverse_swap_binary_search([next_guess, gain], high, Paths, amount, markets, gain_currency, callback, N-1));
+            };
+        });
+    };
     function swap_price_loop(Paths, amount, guess, db, markets, callback, N) {
-        console.log("guess");
-        console.log(guess);
-        console.log("amount");
-        console.log(amount);
         /*
         var guess = [];
         var Paths = [];
@@ -452,18 +481,18 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
         final_price = 1/average;
         
         //if(good_enough(gradient, guess, average)){
-        if(false){
-            console.log("done!");
-            console.log(guess);
-            return(make_tx(guess, amount, Paths, db, db2, markets, callback));
-        } else {
-            var nextGuess = improve_guess(average, guess, gradient, amount, laplacian);
-            return(swap_price_loop(Paths, amount, nextGuess, db, markets, callback, N-1));
-        };
+        //if(false){
+        //    console.log("done!");
+        //    console.log(guess);
+        //    return(make_tx(guess, amount, Paths, db, db2, markets, callback));
+        //} else {
+        var nextGuess = improve_guess(average, guess, gradient, amount, laplacian);
+        return(swap_price_loop(Paths, amount, nextGuess, db, markets, callback, N-1));
+        //};
         //for the paths that are more expensive than average, buy less in the next iteration. for the paths that are less expensive, buy more in the next iteration.
     };
     function improve_guess(average, guess, grad, amount, laplacian){
-        console.log("improve guess");
+        //console.log("improve guess");
         var r = [];
         for(var i = 0; i<guess.length; i++){
             var n = (guess[i])*(1 + 0.5*((average - grad[i])/average));
@@ -520,7 +549,7 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
         return(true);
     };
     function get_gradient(Paths, db3, Step) {
-        console.log("get gradient");
+        //console.log("get gradient");
         //var db4;
         var db4 = JSON.parse(JSON.stringify(db3));
         var r = [];
@@ -1090,7 +1119,7 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
         return(t);
     };
     function make_tx(guess, amount, Paths, db, db2, markets, callback) {
-        console.log("make tx");
+        //console.log("make tx");
         var get_currency = Paths[0][Paths[0].length - 1];
         var maxGuess = 0;//the amount of money we are putting on the path we are putting the most money on.
         var tx_price;
@@ -1103,8 +1132,8 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                 maxGuess, guess[i]);
             }
         };
-        console.log("maxGuess");
-        console.log(maxGuess);
+        //console.log("maxGuess");
+        //console.log(maxGuess);
         //getting the tx price on the maxGuess path.
         for(var i = 0; i<guess.length; i++){
             var db3 = JSON.parse(JSON.stringify(db2));
@@ -1113,16 +1142,16 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                 tx_price = x[1];
             };
         };
-        console.log("tx price");
-        console.log(tx_price);
+        //console.log("tx price");
+        //console.log(tx_price);
         //tx_price = median(tx_prices);
 //        console.log(tx_price);
         var currencies = {};
         var first_cid = Paths[0][0][0];
         var first_type = Paths[0][0][1];
         currencies_add(first_cid, first_type, amount, currencies);
-        console.log("currencies 0 ");
-        console.log(JSON.stringify(currencies));
+        //console.log("currencies 0 ");
+        //console.log(JSON.stringify(currencies));
         //console.log(JSON.stringify(Paths));
         //console.log(JSON.stringify(currencies));
         //console.log(JSON.stringify(db));
@@ -1137,8 +1166,8 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
             };
         };
         mids = remove_repeats(mids);
-        console.log("mids");
-        console.log(mids);
+        //console.log("mids");
+        //console.log(mids);
         for(var i = 0; i<mids.length; i++){
             var id = mids[i];
             var m1 = db[id];
@@ -1209,8 +1238,8 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                       source, source_type];
             txs = [tx].concat(txs);
         };
-        console.log("made txs");
-        console.log(JSON.stringify(txs));
+        //console.log("made txs");
+        //console.log(JSON.stringify(txs));
         return(callback(txs, markets));
         //return(make_tx2(txs, Paths[0][0], Paths[0][Paths[0].length - 1]));
     };
