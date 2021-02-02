@@ -29,7 +29,7 @@ var swap_viewer = (function(){
         var contract1, contract2;
         console.log(offer.value);
         console.log(Y);
-        var original_limit_order_size = Y.parts - Y.nonce;
+        var original_limit_order_size = Y.parts;
         var available_to_match;
         //var TID = hash.doit(65 bytes of pubkey, then 32 bytes of salt)
         var TID = btoa(array_to_string(hash(
@@ -151,11 +151,13 @@ var swap_viewer = (function(){
         };
     };
     function update_display(Y, now, contract1, contract2, available_to_match, original_limit_order_size){
+        console.log(JSON.stringify([available_to_match, original_limit_order_size]));
         var A1 = Math.round(Y.amount1 * available_to_match / original_limit_order_size);
         var A2 = Math.round(Y.amount2 * available_to_match / original_limit_order_size);
         var warning = "";
         if(original_limit_order_size === 1){
             warning = "<p>You must either match all of this limit order, or none of it. It cannot be partially matched.</p>";
+            amount_to_match_input.value = A1.toString();
         } else if (original_limit_order_size < 100000){
             warning = "<p>Warning: this limit order can only be matched in unusually large chunks. This may be a trick to get you to trade at a bad price.</p>";
         }

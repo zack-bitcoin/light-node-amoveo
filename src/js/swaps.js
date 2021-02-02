@@ -61,7 +61,7 @@ var swaps = (function(){
              C.end_limit,
              C.cid1, C.type1, C.amount1,
              C.cid2, C.type2, C.amount2,
-             salt, 0, pm];
+             salt, 1, pm];
         /*
         var serialized_offer =
             ["swap_offer", C.acc1,
