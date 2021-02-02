@@ -1302,6 +1302,7 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                             display.appendChild(spend_db.link);
                         };
                             
+                        console.log(JSON.stringify(txs));
                         multi_tx.make(txs, function(tx){
                             var fee_span = document.createElement("span");
                             fee_span.innerHTML = "<br>veo fees: "

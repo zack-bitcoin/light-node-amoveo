@@ -123,7 +123,7 @@ var tabs = (function(){
             var sa = balances_db[sub_keys[i]];
             if(sa && sa.string){
                 var s = sa.string;
-                console.log(s);
+                //console.log(s);
                 if(!(loaded_into_selector[sub_keys[i]])){
                     loaded_into_selector[sub_keys[i]] = true;
 

@@ -15,14 +15,15 @@
 //    new_contract.oracle_text(binary_question);
     new_contract.start_height(start_height);
     subcurrency_combiner.contract_id(cid);
-    
-    swap_offer.timelimit("100");
-    swap_offer.amount1("1000000");
-    swap_offer.amount2("950000");
+
+    /*
+    swap_offer.timelimit("10");
+    swap_offer.amount1("10000000");
+    swap_offer.amount2("10000000");
     //swap_offer.cid2(cid);
-    swap_offer.cid1("de01XJM9elbsxRgvHp5ELLTqgWHEHguvibeq5zXFTNs=");
-    swap_offer.type1("2");
-    
+    swap_offer.cid2("dD76riHgEABZxODlZHgy74/3V8In7gk+xoPjUieUB2M=");
+    swap_offer.type2("1");
+    */ 
 //    resolve_binary_contract.oracle_height(start_height);
 //    resolve_binary_contract.oracle_text(binary_question);
 
@@ -36,10 +37,10 @@
 //    new_scalar_contract.text(scalar_question);
 //    new_scalar_contract.max(max_price);
 
-    scalar_oracle_creation.height(start_height);
-    scalar_oracle_creation.text(scalar_question);
-    scalar_oracle_creation.max(max_price);
-    scalar_oracle_creation.price(match_price);
+//    scalar_oracle_creation.height(start_height);
+//    scalar_oracle_creation.text(scalar_question);
+//    scalar_oracle_creation.max(max_price);
+//    scalar_oracle_creation.price(match_price);
 
     /*
     resolve_scalar_contract.height(start_height);
@@ -72,7 +73,7 @@
 
     var mid = "7VcDtMRdZ0vTy9kzDoiMCiqveix/bs0t5qBla4fIWYE=";
 
-    market_viewer.mid(mid);
+    //market_viewer.mid(mid);
     
     market_liquidity_balance.mid(mid);
 

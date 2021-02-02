@@ -12,7 +12,7 @@ var check_binary_contract = (function(){
     s_port.value = "8090";
 
 
-    var cid = text_input("contract ip: ", div);
+    var cid = text_input("contract id: ", div);
     div.appendChild(br());
     var button = button_maker2("lookup", lookup);
     div.appendChild(button);

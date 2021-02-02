@@ -202,6 +202,16 @@ function text_input(query, div) {
     div.appendChild(x);
     return x;
 };
+function checkbox_input(text, div){
+    var box = document.createElement("input");
+    box.type = "checkbox";
+    //box.checked = true;
+    var box_label = document.createElement("label");
+    box_label.innerHTML = text;
+    div.appendChild(box_label);
+    div.appendChild(box);
+    return box;
+};
 function load_selector_options(selector, L) {
     if(L.length < 1) {
         return(0);

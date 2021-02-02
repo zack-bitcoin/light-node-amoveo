@@ -22,8 +22,12 @@ var publish_swap_offer = (function() {
 
     function publish(){
         var x = JSON.parse(offer.value);
-        var cid1 = x[1][6];
+        console.log(offer.value);
+        var cid1 = x[1][4];
+        console.log(JSON.stringify(x[1]));
+        console.log(cid1);
         var zero = btoa(array_to_string(integer_to_array(0,32)));
+        console.log(zero);
         if(!(cid1 == zero)){
             console.log("about to post");
             rpc.post(["read", 3, cid1], function(first){
@@ -42,7 +46,7 @@ var publish_swap_offer = (function() {
         };
     };
     function publish2(zero, x) {
-        var cid2 = x[1][9];
+        var cid2 = x[1][7];
         var second_offer = 0;
         if(!(cid2 == zero)){
             console.log("about to post");

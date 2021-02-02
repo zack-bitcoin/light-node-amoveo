@@ -26,7 +26,7 @@ var simplified_scalar_oracle_creation = (function(){
                 cid, source, source_type,
                 function(price, liquidity){
                     var price_guess = Math.round(price * max_price);
-                    var price_text = text_input("final price: ", more_options);
+                    var price_text = text_input("final price (for binary, 1=true, 0=false): ", more_options);
                     price_text.value = price_guess;
                     more_options.appendChild(price_text);
                     var info = document.createElement("div");
@@ -50,7 +50,7 @@ var simplified_scalar_oracle_creation = (function(){
                         var bet_amount = 2220000;
                         var tx2 = ["oracle_bet", 0, 0, 0,
                                    oid, 1, bet_amount];
-                        return(0);
+                        //return(0);
                         multi_tx.make([tx1, tx2], function(tx){
                             console.log(tx);
                             var stx = keys.sign(tx);

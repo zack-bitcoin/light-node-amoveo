@@ -19,12 +19,32 @@ var swap_offer = (function(){
     div.appendChild(br());
     var type2 = text_input("subcurrency contract type (leave blank for veo): ", div);
     div.appendChild(br());
+
+    var partial_match = checkbox_input("allow partially matching this limit order", div);
+    partial_match.checked = true;
+    div.appendChild(br());
+    
+    /*
+    var partial_match = document.createElement("input");
+    partial_match.type = "checkbox";
+    partial_match.checked = true;
+    var partial_match_label = document.createElement("label");
+    partial_match_label.innerHTML = "allow partially matching this limit order";
+    div.appendChild(partial_match_label);
+    div.appendChild(partial_match);
+    div.appendChild(br());
+    */
+
     var create_button = button_maker2("make swap offer", doit);
     div.appendChild(create_button);
     div.appendChild(br());
 
     function doit(){
         rpc.post(["account", keys.pub()], function(my_acc){
+            if(my_acc === 0){
+                display.innerHTML = "error: no key loaded. ";
+                return(0);
+            };
             var offer = {};
             offer.nonce = my_acc[2] + 1;
             var now = headers_object.top()[1];
@@ -47,6 +67,7 @@ var swap_offer = (function(){
             offer.fee1 = fee;
             offer.fee2 = fee;
             offer.acc1 = keys.pub();
+            offer.partial_match = partial_match.checked;
             var signed_offer;
 
             if(offer.type1 == 0){
@@ -59,6 +80,7 @@ var swap_offer = (function(){
                     display.innerHTML = "not enough veo to make this offer";
                     return(0);
                 } else {
+                    console.log(JSON.stringify(offer));
                     signed_offer = swaps.pack(offer);
                     display.innerHTML = JSON.stringify(signed_offer);
                     publish_swap_offer.offer(JSON.stringify(signed_offer));
