@@ -73,7 +73,26 @@ var explore_swap_offer = (function() {
         });
         temp_div.appendChild(button);
         //["market", nonce, mid, cid1, type1, cid2, type2, 0]
-        return(market_buttons(l.slice(1)));
+        rpc.post(["read", 3, cid1], function(contract1){
+            rpc.post(["read", 3, cid2], function(contract2){
+                if(contract1){
+                    var p = document.createElement("p");
+                    p.innerHTML = cid1
+                        .concat(": ")
+                        .concat(atob(contract1[1]));
+                    temp_div.appendChild(p);
+                    temp_div.appendChild(p);
+                }
+                if(contract2){
+                    var p = document.createElement("p");
+                    p.innerHTML = cid2
+                        .concat(": ")
+                        .concat(atob(contract2[1]));
+                    temp_div.appendChild(p);
+                }
+                return(market_buttons(l.slice(1)));
+            }, s_ip.value, parseInt(s_port.value));
+        }, s_ip.value, parseInt(s_port.value));
     };
     function display_orders(l){
         if((l.length) == 0) {
