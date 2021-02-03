@@ -11,6 +11,11 @@
 
     div.appendChild(br());
 
+    var pubkey_text = document.createElement("div");
+    pubkey_text.innerHTML = "your pubkey: "
+        .concat(pubkey);
+    div.appendChild(pubkey_text);
+
     var balance_text = document.createElement("div");
     balance_text.innerHTML = "your balance: ?";
     div.appendChild(balance_text);
@@ -18,6 +23,7 @@
 
     rpc.post(["account", pubkey], function(account){
         var balance = account[1];
+        
         balance_text.innerHTML = "your balance: "
             .concat((balance/100000000).toFixed(8));
     });

@@ -170,7 +170,14 @@ function keys_function1() {
         return stx;
     }
     function update_pubkey() {
-        pub_div.innerHTML = ("your pubkey ").concat(pubkey_64());
+        var pub = pubkey_64();
+        var link = document.createElement("a");
+        link.href = "account_explorer.html?pubkey="
+            .concat(pub);
+        link.innerHTML = pub;
+        link.target = "_blank";
+        pub_div.innerHTML = ("your pubkey ");
+        pub_div.appendChild(link);
     }
     function watch_only_func() {
 	var v = watch_only_pubkey.value;
