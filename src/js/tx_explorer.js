@@ -220,7 +220,7 @@
                 "Contract Simplify. <br><br>";
         } else if (type === "swap_tx2"){
             var match_parts = tx[5];
-            var offer = tx[4];
+            var offer = tx[4][1];
             var acc1 = offer[1];
             var cid1 = offer[4];
             var type1 = offer[5];

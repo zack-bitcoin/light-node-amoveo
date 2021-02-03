@@ -29,6 +29,7 @@
     });
 
     rpc.post(["account", pubkey], function(account){
+        console.log(JSON.stringify(account));
         var acc = account[1];
         var txs = acc[2];
         var sub_accs = acc[3];
