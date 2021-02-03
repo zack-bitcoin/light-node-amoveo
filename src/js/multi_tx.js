@@ -67,6 +67,8 @@ var multi_tx = (function(){
                 vol += Math.abs(tx[5]);
             } else if(tx[0] === "market_swap_tx"){
                 vol += Math.abs(tx[5]);
+            } else if(tx[0] === "swap_tx2"){
+                vol += Math.round(Math.abs((tx[4][1][6] + tx[4][1][9])/2));
             }
         };
         return(vol);
