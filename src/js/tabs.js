@@ -26,7 +26,8 @@ var tabs = (function(){
              ["create", create_tab_builder, "create stablecoin"],
              ["create_binary", create_binary_tab_builder, "create binary"],
              ["create_scalar", create_scalar_tab_builder, "create scalar"],
-             ["create_futarchy", create_futarchy_tab_builder, "create futarchy"]
+             ["create_futarchy", create_futarchy_tab_builder, "create futarchy"],
+             ["crosschain", crosschain_tab_builder, "crosschain DEX"]
             ];
     }
     var tabs = {};

@@ -11,10 +11,16 @@
     txid = txid.replace(/\ /g, "+");
 
     div.appendChild(br());
+    var block_height_div = document.createElement("div");
+    block_height_div.innerHTML = "this tx was included in block ???";
+    div.appendChild(block_height_div);
+    div.appendChild(br());
 
     rpc.post(["txs", txid], function(tx){
         var tx = tx[1];
         var block = tx[2];
+        block_height_div.innerHTML = "this tx was included in block "
+            .concat(block.toString());
         var raw = tx[3];
         console.log(JSON.stringify(raw[1]));
         display_txs([raw[1]]);

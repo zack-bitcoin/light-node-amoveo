@@ -15,8 +15,7 @@ var swaps = (function(){
     function all_defined(C){
         var l = [
             "acc1", "end_limit",
-            "amount1", "amount2",
-            "fee1"
+            "amount1", "amount2"
         ];
         for(var i = 0; i < l.length; i++){
             if(!(C[l[i]])){
