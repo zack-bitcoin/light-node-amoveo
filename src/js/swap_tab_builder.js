@@ -234,7 +234,7 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                 }
                 setTimeout(function(){
                     display_contracts2(div, contracts.slice(1), pairs, callback);
-                }, 100);
+                }, 200);
             });
             //}, get_ip(), 8090);//p2p derivatives server
         });

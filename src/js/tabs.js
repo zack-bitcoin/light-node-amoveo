@@ -146,6 +146,7 @@ var tabs = (function(){
     };
     function load_balances(accs, ls, s, callback) {
         var sub1 = accs.map(function(acc){
+            //console.log(JSON.stringify(acc));
             var sk = sub_accounts.key(keys.pub(), acc[0], acc[1]);
             var sk2 = btoa(array_to_string(sk));
             return({sub_key:sk2,
@@ -180,7 +181,8 @@ var tabs = (function(){
                 balances_db[sk] = {};
             };
             balances_db[sk].time = Date.now();
-            rpc.post(["sub_accounts", sk], function(sa){
+            //rpc.post(["sub_accounts", sk], function(sa){
+            sub_accounts.rpc(sk, function(sa){
                 var balance = 0;
                 if(!(sa == "empty")){
                     balance = sa[1];
@@ -206,7 +208,7 @@ var tabs = (function(){
                         //return(lb2(subs.slice(1), callback));
                     } else {//a subcurrency then
                         rpc.post(["read", 3, sub.cid], function(oracle_text){
-                            console.log(oracle_text);
+                            //console.log(oracle_text);
                             //build the string. load it in balances_db.
                             var s = "";
                             if(sub.type == 2){
@@ -264,7 +266,7 @@ var tabs = (function(){
         };
         setTimeout(function(){
             return(lb2(subs.slice(1), callback));
-        }, 100);
+        }, 200);
         
     };
     function change_tab(To) {
