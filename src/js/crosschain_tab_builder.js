@@ -284,12 +284,14 @@ if(contract_text.match(/has received less than/)){
     offer.type1 = 1;
     offer.acc1 = keys.pub();
     offer.partial_match = true;
-    var release_button = button_maker2("you have already been paid", function(){
+    var release_button = button_maker3("you have already been paid", function(button){
         rpc.post(["account", keys.pub()], function(my_acc){
             //release button to sell for 0.2% + fee.
             offer.nonce = my_acc[2] + 1;
             offer.amount2 = Math.round((balance*0.002) + (fee*5));//new oracle, oracle report, oracle close, withdraw winnings, oracle winnings
             post_offer(offer);
+            button.value = "done";
+            button.onclick = function(){return(0)};
         });
     });
     temp_div.appendChild(release_button);
@@ -377,11 +379,13 @@ if(contract_text.match(/has received less than/)){
      offer.type1 = 2;
      offer.acc1 = keys.pub();
      offer.partial_match = true;
-     var delivered_button = button_maker2("you have already delivered the coins on the other blockchain", function(){
+     var delivered_button = button_maker3("you have already delivered the coins on the other blockchain", function(button){
          rpc.post(["account", keys.pub()], function(my_acc){
              offer.nonce = my_acc[2] + 1;
              offer.amount2 = Math.round((balance*0.995) - (fee*5));
              post_offer(offer);
+             button.value = "done";
+             button.onclick = function(){return(0)};
          });
      });
      temp_div.appendChild(delivered_button);
