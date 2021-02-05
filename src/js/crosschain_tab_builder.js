@@ -101,17 +101,6 @@ function crosschain_tab_builder(div, selector){
                 offer.acc1 = keys.pub();
                 offer.partial_match = false;
                 post_offer(offer);
-                /*
-                var signed_offer = swaps.pack(offer);
-                rpc.post(["add", signed_offer, 0], function(z){
-                    display.innerHTML = "successfully posted your crosschain offer. ";
-                    var link = document.createElement("a");
-                    link.href = "contracts.html";
-                    link.innerHTML = "Your trade can be viewed on this page."
-                    link.target = "_blank";
-                    display.appendChild(link);
-                }, IP, 8090);//8090 is the p2p_derivatives server
-                */
             });
         }, IP, 8090);
     };
@@ -129,9 +118,11 @@ function crosschain_tab_builder(div, selector){
         var temp_div = document.createElement("div");
         cancel_buttons(temp_div, function(){
             release_buttons(temp_div, function(){
-                console.log("done making buttons");
-                lists_div.innerHTML = "";
-                lists_div.appendChild(temp_div);
+                delivered_buttons(temp_div, function(){
+                    console.log("done making buttons");
+                    lists_div.innerHTML = "";
+                    lists_div.appendChild(temp_div);
+                });
             });
         });
     };
@@ -246,9 +237,9 @@ function crosschain_tab_builder(div, selector){
                 if(balance > 100000){
                     rpc.post(["read", 3, cid], function(contract){
                         //console.log(JSON.stringify(contract));
-                        var Source = contract[5];
-                        var SourceType = contract[6];
                         if(!(contract === 0)){
+                            var Source = contract[5];
+                            var SourceType = contract[6];
                             var contract_text = atob(contract[1]);
 if(contract_text.match(/has received less than/)){
     var received_text = description_maker2(contract_text);
@@ -306,6 +297,96 @@ if(contract_text.match(/has received less than/)){
             }
         });
     };
+    function delivered_buttons(temp_div, callback){
+        //after giving the coins on the other blockchain, use this button to get paid.
+        console.log("making delivered buttons");
+        rpc.post(["account", keys.pub()], function(
+            account
+        ){
+            account = account[1];
+            var subaccounts = account[3];
+            return(delivered_subaccounts_loop(
+                temp_div, subaccounts.slice(1).reverse(),
+                callback));
+
+        }, IP, 8091);//the explorer
+    };
+    function delivered_subaccounts_loop(
+        temp_div, subaccounts, callback){
+        if(subaccounts.length === 0){
+            return(callback());
+        };
+        var callback2 = function(){
+            return(delivered_subaccounts_loop(
+                temp_div, subaccounts.slice(1),
+                callback));
+        };
+        var cid = subaccounts[0];
+        var id = sub_accounts.normal_key(keys.pub(), cid, 2);
+        sub_accounts.rpc(id, function(sa){
+            if(!(sa === 0)){
+                var balance = sa[1];
+                if(balance > 100000){
+                    rpc.post(["read", 3, cid], function(contract){
+                        if(!(contract === 0)){
+                            var Source = contract[5];
+                            var SourceType = contract[6];
+                            var contract_text = atob(contract[1]);
+ if(contract_text.match(/has received less than/)){
+     var received_text = description_maker2(contract_text)
+         .concat(" using contract ")
+         .concat(cid);
+     var description = document.createElement("span");
+     description.innerHTML = "you are selling "
+         .concat(received_text);
+     temp_div.appendChild(description);
+     var offer = {};
+     var block_height = headers_object.top()[1];
+     offer.start_limit = block_height - 1;
+     offer.end_limit = block_height + 10000;
+     offer.amount1 = balance;//amount to send
+     offer.cid2 = Source;
+     offer.cid1 = cid;
+     offer.type2 = SourceType;
+     offer.type1 = 2;
+     offer.acc1 = keys.pub();
+     offer.partial_match = true;
+     var delivered_button = button_maker2("you have already delivered the coins on the other blockchain", function(){
+         rpc.post(["account", keys.pub()], function(my_acc){
+             offer.nonce = my_acc[2] + 1;
+             offer.amount2 = Math.round((balance*0.995) - (fee*5));
+             post_offer(offer);
+         });
+     });
+     temp_div.appendChild(delivered_button);
+     var cancel_button = button_maker2("you cannot or will not deliver the coins on the other blockchain", function(){
+         rpc.post(["account", keys.pub()], function(my_acc){
+             offer.nonce = my_acc[2] + 1;
+             offer.amount2 = Math.round((balance*0.002) + (fee*5));
+             post_offer(offer);
+             
+         });
+     });
+     temp_div.appendChild(cancel_button);
+     temp_div.appendChild(description);
+     temp_div.appendChild(br());
+     temp_div.appendChild(br());
+     return(callback2());
+ } else {
+     return(callback2());
+ };
+                        } else {
+                            return(callback2());
+                        };
+                    }, IP, 8090);//p2p_derivatives
+                } else {
+                    return(callback2());
+                };
+            } else {
+                return(callback2());
+            }
+        });
+    }; 
     /*
     function release_subaccounts_loop(
         temp_div, subaccounts, callback){
@@ -445,31 +526,9 @@ if(contract_text.match(/has received less than/)){
         }, IP, 8090);//8090 is the p2p_derivatives server
     };
 
-    //Release the veo
-    //=========
-
-    //list of matched contracts for your account, each with a release the veo button.
-    //to make this: get a list of subcurrencies for your account from the explorer.
-    //filter for type 1s with non-zero balances
-    //look up the contract info from the explorer to see which ones are for crosschain swaps. keep those.
-
-    //look up contract info from the explorer to find the txid.
-    //look up the tx info from the explorer to find who matched.
-    //send them all the type 1 shares you have
-
-
-    //Dispute your contract to get your veo
+    //Selling other currency from other blockchain button
     //==========
 
-    //if they refuse to release, you need a way to sell you winning shares for 99% of the value.
-    //look up the subcurrencies you own. filter for type 2, non-zero balance, where it is a crosschain swap, and you don't have enough type 1 to combine back to veo.
-    //the button should make and publish a swap offer to sell for 99% of the value in veo.
-
-
-    //Get your VEO
-    //===========
-
-    //list of subcurrencies where you own both sides of the contract, and the contract only has 2 types.
-    // a button for each to combine back to veo.
+    
 
     };
