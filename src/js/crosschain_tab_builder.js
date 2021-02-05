@@ -272,7 +272,7 @@ if(contract_text.match(/has received less than/)){
     var description = document.createElement("span");
     description.innerHTML = "you are buying "
         .concat(received_text);
-    temp_div.appendChild(description);
+    //temp_div.appendChild(description);
     var offer = {};
     var block_height = headers_object.top()[1];
     offer.start_limit = block_height - 1;
@@ -294,7 +294,9 @@ if(contract_text.match(/has received less than/)){
             button.onclick = function(){return(0)};
         });
     });
+    temp_div.appendChild(description);
     temp_div.appendChild(release_button);
+    temp_div.appendChild(br());
     var dispute_button = button_maker2("you have not been paid, and they ran out of time", function(){
         rpc.post(["account", keys.pub()], function(my_acc){
             //dispute button to sell for 99% - fee.
@@ -304,7 +306,6 @@ if(contract_text.match(/has received less than/)){
         });
     });
     temp_div.appendChild(dispute_button);
-    temp_div.appendChild(description);
     temp_div.appendChild(br());
     temp_div.appendChild(br());
     
@@ -397,8 +398,8 @@ if(contract_text.match(/has received less than/)){
              
          });
      });
+     temp_div.appendChild(br());
      temp_div.appendChild(cancel_button);
-     temp_div.appendChild(description);
      temp_div.appendChild(br());
      temp_div.appendChild(br());
      return(callback2());
