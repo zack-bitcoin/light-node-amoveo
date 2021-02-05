@@ -70,11 +70,11 @@ function crosschain_tab_builder(div, selector){
     many_blocks_to_match_input.value = "30";
     */
 
-    var button = button_maker2("make crosschain trade offer", crosschain_offer);
+    var button = button_maker3("make crosschain trade offer", crosschain_offer);
     div.appendChild(button);
     div.appendChild(br());
 
-    function crosschain_offer(){
+    function crosschain_offer(button){
         var d = new Date();
         if(parseFloat(hours_input.value, 10) > (24*7)){
             display.innerHTML = "you cannot make a trade that needs to wait more than a week to run the oracle.";
@@ -129,6 +129,9 @@ function crosschain_tab_builder(div, selector){
                 post_offer(offer);
             });
         }, IP, 8090);
+        send_amount_input.value = "";
+        //button.value = "done";
+        //button.onclick = function(){return(0)};
     };
 
 
