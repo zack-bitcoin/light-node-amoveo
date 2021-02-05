@@ -50,7 +50,7 @@ function crosschain_tab_builder(div, selector){
 
     var security_amount_input = text_input("How much currency should your counterparty need to lock into the contract as a security deposit to enforce that they actually deliver. (they need to lock up the same currency type as you are selling, default is 10% the amount you are selling) (i.e. 0.015)", advanced_interface);
     advanced_interface.appendChild(br());
-    var hours_input = text_input("How many hours do they have until the money needs to arrive in your account on the other blockchain. Giving more time can allow for them to pay a lower fee, and you to trade at a better price. (i.e. 48)", advanced_interface);
+    var hours_input = text_input("How many hours do they have until the money needs to arrive in your account on the other blockchain. Giving more time can allow for them to pay a lower fee, and you to trade at a better price. Don't make it too big, we need to wait this long to run the oracle. (i.e. 48)", advanced_interface);
     hours_input.value = "48";
     advanced_interface.appendChild(br());
     //look at create_tab_builder to see about dates.
@@ -76,6 +76,10 @@ function crosschain_tab_builder(div, selector){
 
     function crosschain_offer(){
         var d = new Date();
+        if(parseFloat(hours_input.value, 10) > (24*7)){
+            display.innerHTML = "you cannot make a trade that needs to wait more than a week to run the oracle.";
+            return(0);
+        };
         d.setTime(d.getTime() + (parseFloat(hours_input.value, 10) * 60 * 60 * 1000)); 
         var date = d.toUTCString();
         var date = date.slice(5, 22).concat(" GMT");
