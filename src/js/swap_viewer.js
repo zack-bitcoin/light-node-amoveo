@@ -154,10 +154,10 @@ var swap_viewer = (function(){
         console.log(JSON.stringify([available_to_match, original_limit_order_size]));
         var A1 = Math.round(Y.amount1 * available_to_match / original_limit_order_size);
         var A2 = Math.round(Y.amount2 * available_to_match / original_limit_order_size);
+        amount_to_match_input.value = A1.toString();
         var warning = "";
         if(original_limit_order_size === 1){
             warning = "<p>You must either match all of this limit order, or none of it. It cannot be partially matched.</p>";
-            amount_to_match_input.value = A1.toString();
         } else if (original_limit_order_size < 100000){
             warning = "<p>Warning: this limit order can only be matched in unusually large chunks. This may be a trick to get you to trade at a bad price.</p>";
         }

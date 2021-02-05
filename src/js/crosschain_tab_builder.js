@@ -1,5 +1,6 @@
 function crosschain_tab_builder(div, selector){
     var ZERO = btoa(array_to_string(integer_to_array(0, 32)));
+    var fee = 200000;
     var display = document.createElement("div");
     var title = document.createElement("h3");
     title.innerHTML = "Crosschain Decentralized Exchange ";
@@ -99,7 +100,8 @@ function crosschain_tab_builder(div, selector){
                 offer.type2 = 1;
                 offer.acc1 = keys.pub();
                 offer.partial_match = false;
-                
+                post_offer(offer);
+                /*
                 var signed_offer = swaps.pack(offer);
                 rpc.post(["add", signed_offer, 0], function(z){
                     display.innerHTML = "successfully posted your crosschain offer. ";
@@ -109,12 +111,13 @@ function crosschain_tab_builder(div, selector){
                     link.target = "_blank";
                     display.appendChild(link);
                 }, IP, 8090);//8090 is the p2p_derivatives server
+                */
             });
         }, IP, 8090);
     };
 
 
-    var refresh_button = button_maker2("refresh", refresh);
+    var refresh_button = button_maker2("refresh available actions", refresh);
     div.appendChild(br());
     div.appendChild(refresh_button);
     div.appendChild(br());
@@ -185,29 +188,10 @@ function crosschain_tab_builder(div, selector){
                     var contract_text = atob(contract[1]);
                     //console.log(contract_text);
                     var description = description_maker(cid1, type1, amount1, contract_text);
-                    /*
-                    var receive = contract_text.match(/\d\d* \w* /)[0];
-                    var description = document.createElement("span");
-                    var spend_stuff;
-                    if(cid1 === ZERO){
-                        spend_stuff = "veo";
-                    } else {
-                        spend_stuff = cid1
-                            .concat(" type ")
-                            .concat(type1);
-                    };
-                    description.innerHTML = "you offered to trade "
-                        .concat((amount1/100000000).toFixed(8))
-                        .concat(" ")
-                        .concat(spend_stuff)
-                        .concat(" for ")
-                        .concat(receive);
-                    */
                     temp_div.appendChild(description);
 
                     var cancel_button = button_maker2("cancel trade", function(){
                         console.log("canceling");
-                        var fee = 200000;
                         var tx = ["trade_cancel_tx", keys.pub(), 2000000, fee, salt];
                         var stx = keys.sign(tx);
                         console.log(JSON.stringify(stx));
@@ -244,6 +228,85 @@ function crosschain_tab_builder(div, selector){
             //return(callback());
         }, IP, 8091);//the explorer
     };
+    function release_subaccounts_loop(
+        temp_div, subaccounts, callback){
+        if(subaccounts.length === 0){
+            return(callback());
+        };
+        var callback2 = function(){
+            return(release_subaccounts_loop(
+                temp_div, subaccounts.slice(1),
+                callback));
+        };
+        var cid = subaccounts[0];
+        var id = sub_accounts.normal_key(keys.pub(), cid, 1);
+        sub_accounts.rpc(id, function(sa){
+            if(!(sa === 0)){
+                var balance = sa[1];
+                if(balance > 100000){
+                    rpc.post(["read", 3, cid], function(contract){
+                        //console.log(JSON.stringify(contract));
+                        var Source = contract[5];
+                        var SourceType = contract[6];
+                        if(!(contract === 0)){
+                            var contract_text = atob(contract[1]);
+if(contract_text.match(/has received less than/)){
+    var received_text = description_maker2(contract_text);
+    var description = document.createElement("span");
+    description.innerHTML = "you are buying "
+        .concat(received_text);
+    temp_div.appendChild(description);
+    var offer = {};
+    var block_height = headers_object.top()[1];
+    offer.start_limit = block_height - 1;
+    offer.end_limit = block_height + 10000;
+    offer.amount1 = balance;//amount to send
+    offer.cid2 = Source;
+    offer.cid1 = cid;
+    offer.type2 = SourceType;
+    offer.type1 = 1;
+    offer.acc1 = keys.pub();
+    offer.partial_match = true;
+    var release_button = button_maker2("you have already been paid", function(){
+        rpc.post(["account", keys.pub()], function(my_acc){
+            //release button to sell for 0.2% + fee.
+            offer.nonce = my_acc[2] + 1;
+            offer.amount2 = Math.round((balance*0.002) + (fee*5));//new oracle, oracle report, oracle close, withdraw winnings, oracle winnings
+            post_offer(offer);
+        });
+    });
+    temp_div.appendChild(release_button);
+    var dispute_button = button_maker2("you have not been paid, and they ran out of time", function(){
+        rpc.post(["account", keys.pub()], function(my_acc){
+            //dispute button to sell for 99% - fee.
+            offer.nonce = my_acc[2] + 1;
+            offer.amount2 = Math.round((balance*0.995) - (fee*5));
+            post_offer(offer);
+        });
+    });
+    temp_div.appendChild(dispute_button);
+    temp_div.appendChild(description);
+    temp_div.appendChild(br());
+    temp_div.appendChild(br());
+    
+    
+    return(callback2());
+} else {
+    return(callback2());
+};
+                        } else {
+                            return(callback2());
+                        }
+                    }, IP, 8090);//p2p_derivatives
+                } else {
+                    return(callback2());
+                }
+            } else {
+                return(callback2());
+            }
+        });
+    };
+    /*
     function release_subaccounts_loop(
         temp_div, subaccounts, callback){
         //console.log("release subaccounts loop");
@@ -296,7 +359,6 @@ function crosschain_tab_builder(div, selector){
                var description = description_maker(cid1, type1, amount1, contract_text);
                    //var description = document.createElement("span");
                //var receive = contract_text.match(/\d\d* \w* /)[0];
-               //TODO HERE
 
                var release_button = button_maker2("release funds", function(){
                    rpc.post(["account", keys.pub()], function(acc){
@@ -339,11 +401,21 @@ function crosschain_tab_builder(div, selector){
             };
         });
     };
+    */
+    function description_maker2(contract_text){
+        var address = contract_text.match(/address \w*/)[0];
+        var receive = contract_text.match(/\d\d* \w* /)[0];
+        var r = (receive)
+            .concat(" in ")
+            .concat(address);
+        return(r);
+    };
     function description_maker(cid1, type1, amount1, contract_text){
         console.log(contract_text);
-        var address = contract_text.match(/address \w*/)[0];
-        console.log(address);
-        var receive = contract_text.match(/\d\d* \w* /)[0];
+        var d2 = description_maker2(contract_text);
+        //var address = contract_text.match(/address \w*/)[0];
+        //console.log(address);
+        //var receive = contract_text.match(/\d\d* \w* /)[0];
         var description = document.createElement("span");
         var spend_stuff;
         if(cid1 === ZERO){
@@ -358,10 +430,19 @@ function crosschain_tab_builder(div, selector){
             .concat(" ")
             .concat(spend_stuff)
             .concat(" for ")
-            .concat(receive)
-            .concat(" in ")
-            .concat(address);
+            .concat(d2);
         return(description);
+    };
+    function post_offer(offer){
+        var signed_offer = swaps.pack(offer);
+        rpc.post(["add", signed_offer, 0], function(z){
+            display.innerHTML = "successfully posted your crosschain offer. ";
+            var link = document.createElement("a");
+            link.href = "contracts.html";
+            link.innerHTML = "Your trade can be viewed on this page."
+            link.target = "_blank";
+            display.appendChild(link);
+        }, IP, 8090);//8090 is the p2p_derivatives server
     };
 
     //Release the veo
