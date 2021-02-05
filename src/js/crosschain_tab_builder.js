@@ -27,21 +27,39 @@ function crosschain_tab_builder(div, selector){
     var receive_amount_input = text_input("Amount of currency you want to receive. (i.e. 1.205)", div);
     div.appendChild(br());
     var selector_label = document.createElement("span");
-    selector_label.innerHTML = "currency you are spending: ";
+    selector_label.innerHTML = "Currency you are spending: ";
     div.appendChild(selector_label);
     div.appendChild(selector);
     div.appendChild(br());
     var spend_amount_input = text_input("Amount of currency you want to send. (i.e. 0.15)", div);
     div.appendChild(br());
-    var security_amount_input = text_input("How much currency should your counterparty need to lock into the contract as a security deposit to enforce that they actually deliver. (they need to lock up the same currency type as you are spending) (i.e. 0.015)", div);
+    var advanced_div = document.createElement("div");
+    advanced_div.appendChild(br());
+    var advanced_interface = document.createElement("div");
+    var more_button = button_maker2("more options", function(){
+        advanced_div.innerHTML = "";
+        advanced_div.appendChild(advanced_interface);
+    });
+    var less_button = button_maker2("less options", function(){
+        advanced_div.innerHTML = "<br>";
+    });
+    div.appendChild(more_button);
+    div.appendChild(less_button);
     div.appendChild(br());
-    var hours_input = text_input("How many hours do they have until the money needs to arrive in your account on the other blockchain. Giving more time can allow for them to pay a lower fee, and you to trade at a better price. (i.e. 48)", div);
-    div.appendChild(br());
+    div.appendChild(advanced_div);
+
+    var security_amount_input = text_input("How much currency should your counterparty need to lock into the contract as a security deposit to enforce that they actually deliver. (they need to lock up the same currency type as you are selling, default is 10% the amount you are selling) (i.e. 0.015)", advanced_interface);
+    advanced_interface.appendChild(br());
+    var hours_input = text_input("How many hours do they have until the money needs to arrive in your account on the other blockchain. Giving more time can allow for them to pay a lower fee, and you to trade at a better price. (i.e. 48)", advanced_interface);
+    hours_input.value = "48";
+    advanced_interface.appendChild(br());
     //look at create_tab_builder to see about dates.
-    var many_blocks_to_match_input = text_input("How many Amoveo blocks until your trade offer should expire as invalid. (Amoveo has about 130 blocks per day)(i.e. 130)", div);
-    div.appendChild(br());
+    var many_blocks_to_match_input = text_input("How many Amoveo blocks until your trade offer should expire as invalid. (Amoveo has about 130 blocks per day)(i.e. 130)", advanced_interface);
+    many_blocks_to_match_input.value = "130";
+    advanced_interface.appendChild(br());
 
     //test values
+    /*
     other_blockchain_input.value = "Dogecoin";
     ticker_input.value = "DOGE";
     other_address_input.value = "DCsXQW4HarTfDJ6PvP7e4Wbjd42Yhig5Tu";
@@ -50,7 +68,6 @@ function crosschain_tab_builder(div, selector){
     security_amount_input.value = "0.3";
     hours_input.value = "48";
     many_blocks_to_match_input.value = "30";
-    /*
     */
 
     var button = button_maker2("make crosschain trade offer", crosschain_offer);
@@ -86,7 +103,12 @@ function crosschain_tab_builder(div, selector){
         rpc.post(["add", 3, btoa(oracle_text), 0, 1, Source, SourceType], function(cid){
             rpc.post(["account", keys.pub()], function(my_acc){
                 var spend_amount = Math.round(parseFloat(spend_amount_input.value, 10)*100000000);
-                var amount2 = spend_amount + Math.round(parseFloat(security_amount_input.value, 10)*100000000);
+                var amount2;
+                if(security_amount_input.value === ""){
+                    amount2 = Math.round(spend_amount * 1.1);
+                } else {
+                    amount2 = spend_amount + Math.round(parseFloat(security_amount_input.value, 10)*100000000);
+                };
                 var offer = {};
                 offer.nonce = my_acc[2] + 1;
                 var block_height = headers_object.top()[1];
@@ -387,102 +409,6 @@ if(contract_text.match(/has received less than/)){
             }
         });
     }; 
-    /*
-    function release_subaccounts_loop(
-        temp_div, subaccounts, callback){
-        //console.log("release subaccounts loop");
-        if(subaccounts.length === 0){
-            return(callback());
-        };
-        var callback2 = function(){
-            return(release_subaccounts_loop(
-                temp_div, subaccounts.slice(1),
-                callback));
-        };
-        var cid = subaccounts[0];
-        //console.log(cid);
-        var id = sub_accounts.normal_key(keys.pub(), cid, 1);
-        sub_accounts.rpc(id, function(sa){
-            if(!(sa === 0)){
-                var balance = sa[1];
-                if(balance > 100000){
-                    rpc.post(["read", 3, cid], function(contract){
-                        //console.log(sa);
-                        //console.log(cid);
-                        //console.log(balance);
-                        if(!(contract === 0)){
-                            //console.log(contract);
-                            var contract_text = atob(contract[1]);
-                            if(contract_text.match(/has received less than/)){
-                                //console.log(contract_text);
-   rpc.post(["contract", cid], function(explorer_contract){
-       explorer_contract = explorer_contract[1];
-       var etxs = explorer_contract[5];
-       var txid = etxs[1];
-       rpc.post(["txs", txid], function(tx){
-           //console.log(JSON.stringify(tx));
-           var multi_tx = tx[1][3][1];
-           var pub2 = multi_tx[1];
-           var subtxs = multi_tx[4];
-           var swap_tx = subtxs[2];
-           var offer = swap_tx[4][1];
-           var my_pub = offer[1];
-           var cid_check = offer[7];
-           var type_check = offer[8];
-           var amount2 = offer[9];
-           var cid1 = offer[4];
-           var type1 = offer[5];
-           var amount1 = offer[6];
-           if(JSON.stringify(["swap_offer2", keys.pub(), cid, 1]) ===
-              JSON.stringify([offer[0], my_pub, cid_check, type_check])){
-               //console.log(pub2);
-               //console.log(JSON.stringify(offer));
-               var description = description_maker(cid1, type1, amount1, contract_text);
-                   //var description = document.createElement("span");
-               //var receive = contract_text.match(/\d\d* \w* /)[0];
-
-               var release_button = button_maker2("release funds", function(){
-                   rpc.post(["account", keys.pub()], function(acc){
-                       var nonce = acc[2] + 1;
-                       var fee = 200000;
-                       var tx = ["sub_spend_tx", keys.pub(), nonce, fee, pub2, amount2, cid, 1];
-                       var stx = keys.sign(tx);
-                       console.log(JSON.stringify(stx));
-                       post_txs([stx], function(x){
-                           display.innerHTML = x;
-                       });
-                       return(0);
-                   });
-               });
-               temp_div.appendChild(description);
-               temp_div.appendChild(br());
-               temp_div.appendChild(release_button);
-               temp_div.appendChild(br());
-               temp_div.appendChild(br());
-               return(callback2());
-           } else {
-               console.log(offer[0]);
-               console.log("bad tx error!");
-               return(callback2());
-           }
-       }, IP, 8091);
-   }, IP, 8091);//explorer
-                            } else {
-                                return(callback2());
-                            };
-                        } else {
-                            return(callback2());
-                        }
-                    }, IP, 8090);//p2p_derivatives
-                } else {
-                    return(callback2());
-                };
-            } else {
-                return(callback2());
-            };
-        });
-    };
-    */
     function description_maker2(contract_text){
         var address = contract_text.match(/address \w*/)[0];
         var receive = contract_text.match(/\d\d* \w* /)[0];
@@ -525,10 +451,4 @@ if(contract_text.match(/has received less than/)){
             display.appendChild(link);
         }, IP, 8090);//8090 is the p2p_derivatives server
     };
-
-    //Selling other currency from other blockchain button
-    //==========
-
-    
-
-    };
+};
