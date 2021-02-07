@@ -65,10 +65,10 @@ function crosschain_tab_builder(div, selector){
     other_address_input.value = "DCsXQW4HarTfDJ6PvP7e4Wbjd42Yhig5Tu";
     receive_amount_input.value = "100000";
     spend_amount_input.value = "1";
+    /*
     //security_amount_input.value = "0.3";
     hours_input.value = "48";
     many_blocks_to_match_input.value = "30";
-    /*
     */
 
     var button = button_maker3("make crosschain trade offer", crosschain_offer);
