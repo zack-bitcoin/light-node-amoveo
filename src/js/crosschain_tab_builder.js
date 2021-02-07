@@ -547,6 +547,8 @@ if(contract_text.match(/has received less than/)){
                 description.innerHTML.replace(
                         /you offered to trade/,
                     "they offered to give")
+                .concat(" ; The money must arrive before ")
+                .concat(contract_text.slice(-21))
                 .concat(" ; Offer expires in ")
                 .concat(expires - block_height)
                 .concat(" blocks.");
@@ -562,7 +564,9 @@ if(contract_text.match(/has received less than/)){
                                      if(x == "ZXJyb3I="){
                                          display.innerHTML = "server rejected the tx";
                                      }else{
-                                         display.innerHTML = "accepted trade offer and published tx. the tx id is ".concat(x);
+                                         display.innerHTML = "accepted trade offer and published tx. the tx id is "
+                                             .concat(x)
+                                             .concat(" please do not send the money until this transaction has been included in a block.");//todo, maybe we could write the address to deposit to here.
                                      }
                                  });
 
