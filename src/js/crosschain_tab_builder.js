@@ -129,7 +129,7 @@ function crosschain_tab_builder(div, selector){
                 post_offer(offer);
             });
         }, IP, 8090);
-        send_amount_input.value = "";
+        spend_amount_input.value = "";
         //button.value = "done";
         //button.onclick = function(){return(0)};
     };
@@ -148,9 +148,11 @@ function crosschain_tab_builder(div, selector){
         cancel_buttons(temp_div, function(){
             release_buttons(temp_div, function(){
                 delivered_buttons(temp_div, function(){
-                    console.log("done making buttons");
-                    lists_div.innerHTML = "";
-                    lists_div.appendChild(temp_div);
+                    active_offers(temp_div, function(){
+                        console.log("done making buttons");
+                        lists_div.innerHTML = "";
+                        lists_div.appendChild(temp_div);
+                    });
                 });
             });
         });
@@ -165,9 +167,14 @@ function crosschain_tab_builder(div, selector){
             });
         }, IP, 8090);
     };
-    function display_orders_from_markets(markets, temp_div, callback){
+    function display_orders_from_markets(
+        markets, temp_div, callback
+    ){
         if(markets.length === 0) {
             return(callback());
+        };
+        function callback2(){
+            return(display_orders_from_markets(markets.slice(1), temp_div, callback));
         };
         var market = markets[0];
         var mid = market[2];
@@ -178,10 +185,10 @@ function crosschain_tab_builder(div, selector){
             var type2 = market_data[6];
             if(type2 === 1){
                 display_orders(orders.slice(1), temp_div, function(){
-                    return(display_orders_from_markets(markets.slice(1), temp_div, callback));
+                    return(callback2());
                 });
             } else {
-                    return(display_orders_from_markets(markets.slice(1), temp_div, callback));
+                    return(callback2());
             };
         }, IP, 8090);
     };
@@ -239,8 +246,12 @@ function crosschain_tab_builder(div, selector){
         rpc.post(["account", keys.pub()], function(
             account
         ){
+            if(account === "error"){
+                return(callback());
+            };
             account = account[1];
             var subaccounts = account[3];
+            //console.log(JSON.stringify(account));
             //console.log(JSON.stringify(subaccounts));
             return(release_subaccounts_loop(
                 temp_div, subaccounts.slice(1).reverse(),
@@ -335,6 +346,9 @@ if(contract_text.match(/has received less than/)){
         rpc.post(["account", keys.pub()], function(
             account
         ){
+            if(account === "error"){
+                return(callback());
+            };
             account = account[1];
             var subaccounts = account[3];
             return(delivered_subaccounts_loop(
@@ -423,7 +437,7 @@ if(contract_text.match(/has received less than/)){
     }; 
     function description_maker2(contract_text){
         var address = contract_text.match(/address \w*/)[0];
-        var receive = contract_text.match(/\d\d* \w* /)[0];
+        var receive = contract_text.match(/\d[\.\d]* \w* /)[0];
         var r = (receive)
             .concat(" in ")
             .concat(address);
@@ -462,5 +476,103 @@ if(contract_text.match(/has received less than/)){
             link.target = "_blank";
             display.appendChild(link);
         }, IP, 8090);//8090 is the p2p_derivatives server
+    };
+    function active_offers(temp_div, callback){
+        console.log("making active offers list");
+        rpc.post(["markets"], function(markets){
+            markets = markets.slice(1);
+            //console.log(JSON.stringify(markets));
+            active_offers_from_markets(markets, temp_div, callback);
+        }, IP, 8090);
+    };
+    function active_offers_from_markets(
+        markets, temp_div, callback
+    ){
+        if(markets.length === 0) {
+            return(callback());
+        };
+        function callback2(){
+            return(active_offers_from_markets(markets.slice(1), temp_div, callback));
+        };
+        var market = markets[0];
+        var mid = market[2];
+        var cid2 = market[5];
+        var type2 = market[6];
+        if(!(type2 === 1)){
+            return(callback2());
+        };
+        rpc.post(["read", 3, cid2], function(contract){
+            if(contract === 0){
+                return(callback2());
+            };
+            //console.log(JSON.stringify(contract));
+            var Source = contract[5];
+            var SourceType = contract[6];
+            var contract_text = atob(contract[1]);
+            if(!(contract_text.match(/has received less than/))){
+                return(callback2());
+            };
+            rpc.post(["read", mid], function(market_data){
+                //console.log(JSON.stringify(market_data));
+                market_data = market_data[1];
+                var orders = market_data[7];
+                display_active_offers_orders(orders.slice(1), temp_div, contract_text, callback2);
+            }, IP, 8090);
+        }, IP, 8090);
+    };
+    function display_active_offers_orders(orders, temp_div, contract_text, callback){
+        if(orders.length === 0){
+            return(callback());
+        };
+        function callback2(){
+            return(display_active_offers_orders(orders.slice(1), temp_div, contract_text, callback));
+        };
+        console.log(JSON.stringify(orders));
+        var order = orders[0];
+        var price = order[1];
+        var amount = order[2];
+        var tid = order[3];
+        rpc.post(["read", 2, tid], function(trade){
+            var swap_offer2 = trade[1];
+            var from = swap_offer2[1];
+            var expires = swap_offer2[3];
+            var amount1 = swap_offer2[6];
+            var cid1 = swap_offer2[4];
+            var type1 = swap_offer2[5];
+            var cid2 = swap_offer2[7];
+            var salt = swap_offer2[10];
+            var block_height = headers_object.top()[1];
+            var description = description_maker(cid1, type1, amount1, contract_text);
+            description.innerHTML =
+                description.innerHTML.replace(
+                        /you offered to trade/,
+                    "they offered to give")
+                .concat(" Expires in ")
+                .concat(expires - block_height)
+                .concat(" blocks.");
+            temp_div.appendChild(description);
+            console.log(description.innerHTML);
+            console.log(JSON.stringify(swap_offer2));
+            var accept_button = button_maker2("accept the offer", function(){
+                swaps.make_tx(trade, 1, function(txs){
+                    multi_tx.make(txs, function(tx){
+                        var stx = keys.sign(tx);
+	                rpc.post(["txs", [-6, stx]],
+                                 function(x) {
+                                     if(x == "ZXJyb3I="){
+                                         display.innerHTML = "server rejected the tx";
+                                     }else{
+                                         display.innerHTML = "accepted trade offer and published tx. the tx id is ".concat(x);
+                                     }
+                                 });
+
+                    });
+                });
+            });
+            temp_div.appendChild(accept_button);
+            temp_div.appendChild(br());
+            temp_div.appendChild(br());
+            return(callback2());
+        }, IP, 8090);
     };
 };
