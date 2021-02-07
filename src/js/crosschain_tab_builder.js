@@ -439,7 +439,7 @@ if(contract_text.match(/has received less than/)){
         var address = contract_text.match(/address \w*/)[0];
         var receive = contract_text.match(/\d[\.\d]* \w* /)[0];
         var r = (receive)
-            .concat(" in ")
+            .concat(" to ")
             .concat(address);
         return(r);
     };
@@ -452,7 +452,7 @@ if(contract_text.match(/has received less than/)){
         var description = document.createElement("span");
         var spend_stuff;
         if(cid1 === ZERO){
-            spend_stuff = "veo";
+            spend_stuff = "VEO";
         } else {
             spend_stuff = cid1
                 .concat(" type ")
@@ -462,7 +462,7 @@ if(contract_text.match(/has received less than/)){
             .concat((amount1/100000000).toFixed(8))
             .concat(" ")
             .concat(spend_stuff)
-            .concat(" for ")
+            .concat(" in exchange for ")
             .concat(d2);
         return(description);
     };
