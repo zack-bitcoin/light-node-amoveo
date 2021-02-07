@@ -59,15 +59,15 @@ function crosschain_tab_builder(div, selector){
     advanced_interface.appendChild(br());
 
     //test values
-    /*
     other_blockchain_input.value = "Dogecoin";
     ticker_input.value = "DOGE";
     other_address_input.value = "DCsXQW4HarTfDJ6PvP7e4Wbjd42Yhig5Tu";
     receive_amount_input.value = "100000";
     spend_amount_input.value = "1";
-    security_amount_input.value = "0.3";
+    //security_amount_input.value = "0.3";
     hours_input.value = "48";
     many_blocks_to_match_input.value = "30";
+    /*
     */
 
     var button = button_maker3("make crosschain trade offer", crosschain_offer);
@@ -516,16 +516,16 @@ if(contract_text.match(/has received less than/)){
                 //console.log(JSON.stringify(market_data));
                 market_data = market_data[1];
                 var orders = market_data[7];
-                display_active_offers_orders(orders.slice(1), temp_div, contract_text, callback2);
+                display_active_offers_orders(orders.slice(1), temp_div, contract_text, Source, SourceType, callback2);
             }, IP, 8090);
         }, IP, 8090);
     };
-    function display_active_offers_orders(orders, temp_div, contract_text, callback){
+    function display_active_offers_orders(orders, temp_div, contract_text, Source, SourceType, callback){
         if(orders.length === 0){
             return(callback());
         };
         function callback2(){
-            return(display_active_offers_orders(orders.slice(1), temp_div, contract_text, callback));
+            return(display_active_offers_orders(orders.slice(1), temp_div, contract_text, Source, SourceType, callback));
         };
         console.log(JSON.stringify(orders));
         var order = orders[0];
@@ -556,9 +556,9 @@ if(contract_text.match(/has received less than/)){
             console.log(description.innerHTML);
             console.log(JSON.stringify(swap_offer2));
             var accept_button = button_maker2("accept the offer", function(){
-                //var new_contract_tx = new_scalar_contract.make_tx(
+                var new_contract_tx = new_scalar_contract.make_tx(contract_text, 1, Source, SourceType)
                 swaps.make_tx(trade, 1, function(txs){
-                    multi_tx.make(txs, function(tx){
+                    multi_tx.make([new_contract_tx].concat(txs), function(tx){
                         console.log(JSON.stringify(txs));
                         console.log(JSON.stringify(tx));
                         var stx = keys.sign(tx);
