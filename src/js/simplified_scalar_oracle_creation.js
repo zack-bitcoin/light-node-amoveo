@@ -50,6 +50,8 @@ var simplified_scalar_oracle_creation = (function(){
                         var bet_amount = 2220000;
                         var tx2 = ["oracle_bet", 0, 0, 0,
                                    oid, 1, bet_amount];
+                        //console.log(JSON.stringify([oid, Start, FullText]));
+                        //console.log(JSON.stringify([price, max_price]));
                         //return(0);
                         multi_tx.make([tx1, tx2], function(tx){
                             console.log(tx);

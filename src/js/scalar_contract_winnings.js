@@ -26,7 +26,8 @@ var scalar_contract_winnings = (function(){
                     display.innerHTML = "first make the oracle to enforce the outcome. the oracle does not exist yet.";
                     return(0);
                 };
-                merkle.request_proof("accounts", keys.pub(), function(acc){
+                //merkle.request_proof("accounts", keys.pub(), function(acc){
+                rpc.post(["account", keys.pub()], function(acc){
                     if(acc == "empty") {
                         display.innerHTML = "no account loaded.";
                         return(0);

@@ -1,5 +1,8 @@
 var scalar_oracle_creation = (function(){
     var div = document.getElementById("scalar_oracle_creation");
+    if(!(div)){
+        div = document.createElement("div");
+    };
     var display = document.createElement("p");
     div.appendChild(display);
     
