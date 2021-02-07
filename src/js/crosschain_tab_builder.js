@@ -547,7 +547,7 @@ if(contract_text.match(/has received less than/)){
                 description.innerHTML.replace(
                         /you offered to trade/,
                     "they offered to give")
-                .concat(" Expires in ")
+                .concat(" ; Offer expires in ")
                 .concat(expires - block_height)
                 .concat(" blocks.");
             temp_div.appendChild(description);
