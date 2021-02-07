@@ -2,6 +2,7 @@ function crosschain_tab_builder(div, selector){
     var ZERO = btoa(array_to_string(integer_to_array(0, 32)));
     var fee = 200000;
     var display = document.createElement("div");
+    display.innerHTML = "ready.";
     var title = document.createElement("h3");
     title.innerHTML = "Crosschain Decentralized Exchange ";
     div.appendChild(title);
@@ -106,33 +107,65 @@ function crosschain_tab_builder(div, selector){
         
         rpc.post(["add", 3, btoa(oracle_text), 0, 1, Source, SourceType], function(cid){
             rpc.post(["account", keys.pub()], function(my_acc){
-                var spend_amount = Math.round(parseFloat(spend_amount_input.value, 10)*100000000);
-                var amount2;
-                if(security_amount_input.value === ""){
-                    amount2 = Math.round(spend_amount * 1.1);
-                } else {
-                    amount2 = spend_amount + Math.round(parseFloat(security_amount_input.value, 10)*100000000);
+                if(my_acc === 0){
+                    display.innerHTML = "Load your private key first.";
+                    return(0);
                 };
-                var offer = {};
-                offer.nonce = my_acc[2] + 1;
-                var block_height = headers_object.top()[1];
-                offer.start_limit = block_height - 1;
-                offer.end_limit = block_height + parseInt(many_blocks_to_match_input.value, 10);
-                offer.amount1 = spend_amount;
-                offer.amount2 = amount2;
-                offer.cid1 = Source;
-                offer.cid2 = cid;
-                offer.type1 = SourceType;
-                offer.type2 = 1;
-                offer.acc1 = keys.pub();
-                offer.partial_match = false;
-                post_offer(offer);
-                spend_amount_input.value = "";
+                function callback2() {
+                    return(crosschain_offer2(spend_amount, Source, SourceType, my_acc, cid));
+                };
+                var spend_amount = Math.round(parseFloat(spend_amount_input.value, 10)*100000000);
+                console.log(selector.value);
+                console.log(spend_amount);
+                console.log(my_acc);
+                //return(0);
+                if(selector.value === "veo"){
+                    if (my_acc[1] < spend_amount) {
+                    display.innerHTML = "insufficient veo to make that swap offer";
+                        return(0);
+                    } else {
+                        return(callback2());
+                    }
+                } else {
+                    var sub_id = sub_accounts.normal_key(keys.pub(), Source, SourceType);
+                    sub_accounts.rpc(sub_id, function(sa){
+                        if(sa[1] < spend_amount){
+                            display.innerHTML = "insufficient subcurrency to make that swap offer";
+                            return(0);
+                        } else {
+                            return(callback2());
+                        };
+                    });
+                };
             });
         }, IP, 8090);
         //button.value = "done";
         //button.onclick = function(){return(0)};
     };
+    function crosschain_offer2(spend_amount, Source, SourceType, my_acc, cid){
+        var amount2;
+        if(security_amount_input.value === ""){
+            amount2 = Math.round(spend_amount * 1.1);
+        } else {
+            amount2 = spend_amount + Math.round(parseFloat(security_amount_input.value, 10)*100000000);
+        };
+        var offer = {};
+        offer.nonce = my_acc[2] + 1;
+        var block_height = headers_object.top()[1];
+        offer.start_limit = block_height - 1;
+        offer.end_limit = block_height + parseInt(many_blocks_to_match_input.value, 10);
+        offer.amount1 = spend_amount;
+        offer.amount2 = amount2;
+        offer.cid1 = Source;
+        offer.cid2 = cid;
+        offer.type1 = SourceType;
+        offer.type2 = 1;
+        offer.acc1 = keys.pub();
+        offer.partial_match = false;
+        post_offer(offer);
+        spend_amount_input.value = "";
+    };
+
 
 
     var refresh_button = button_maker2("refresh available actions", refresh);

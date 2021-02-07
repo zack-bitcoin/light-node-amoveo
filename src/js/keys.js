@@ -63,6 +63,7 @@ function keys_function1() {
     };
     var balance_button = button_maker2("check balance ", update_balance);
     var bal_div = document.createElement("div");
+    bal_div.innerHTML = "your balance: ?";
 
     div.appendChild(bal_div);
     div.appendChild(balance_button);
