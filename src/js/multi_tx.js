@@ -32,6 +32,14 @@ var multi_tx = (function(){
                 L[i][1] = 0;
                 L[i][2] = 0;
                 L[i][3] = 0;
+            } else if (L[i][0] == "unmatched") {
+                L[i][1] = 0;
+                L[i][2] = 0;
+                L[i][3] = 0;
+            } else if (L[i][0] == "oracle_winnings") {
+                L[i][1] = 0;
+                L[i][2] = 0;
+                L[i][3] = 0;
             } else {
                 console.log("swaps unhandled case");
                 console.log(L[i][0]);
@@ -75,9 +83,14 @@ var multi_tx = (function(){
     };
     function pay_dev_tx(Txs, callback) {
         var vol = vol_estimate(Txs);
+        console.log(vol);
         var dev = "BL0SzhkFGFW1kTTdnO8sGnwPEzUvx2U2nyECwWmUJPRhLxbPPK+ep8eYMxlTxVO/wnQS5WmsGIKcrPP7/Fw1WVc=";
         var amount = Math.floor(vol / 200);
-        spend_tx.make_tx(dev, keys.pub(), amount, callback);
+        if(amount > 10000){
+            spend_tx.make_tx(dev, keys.pub(), amount, callback);
+        } else {
+            return(callback([]));
+        };
     };
     function make(Txs, callback){
         var fee = 152050;
@@ -85,8 +98,8 @@ var multi_tx = (function(){
         rpc.post(["account", keys.pub()], function(Acc){
             //console.log(Acc);
             var Nonce = Acc[2] + 1;
-            pay_dev_tx(Txs, function(tx){
-                Txs = Txs.concat([tx]);//comment out this line to not pay the dev fee.
+            pay_dev_tx(Txs, function(txlist){
+                Txs = Txs.concat(txlist);//comment out this line to not pay the dev fee.
                 Txs = zero_accounts_nonces(Txs);
                 //console.log(JSON.stringify(Txs));
                 //return(0);

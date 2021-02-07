@@ -84,7 +84,7 @@ function pool_tab_builder(pool_tab, selector, hide_non_standard) {
                               //      merkle.request_proof("sub_accounts", key3, function(sa3) {
                                         console.log(JSON.stringify([CID, sa1, sa2, sa3, key1, key2, key3]));
                                         var make_tx = function(mid, sa, market){
-                                            if(sa === "empty"){
+                                            if(sa === 0){
                                                 return([]);
                                             //} else if(market === "empty"){
                                             //    return([]);

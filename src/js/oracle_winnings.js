@@ -21,14 +21,31 @@
             var tx2 = ["unmatched", from, nonce+1, fee, oid];
             var stx = keys.sign(tx);
             var stx2 = keys.sign(tx2);
-            var txs = [stx, stx2];
-            return post_txs(txs, function(x){
+            post_txs([stx], function(msg1){
+                status.innerHTML = msg1;
+                post_txs([stx2], function(msg2){
+                    status.innerHTML = msg1
+                        .concat("<br>")
+                        .concat(msg2);
+                });
+            });
+            //var txs = [stx, stx2];
+            /*
+            multi_tx.make([tx, tx2], function(mtx){
+                smtx = keys.sign(mtx);
+                console.log(JSON.stringify(smtx));
+                post_txs([smtx], function(msg){
+                    status.innerHTML = msg;
+                    keys.update_balance();
+                })
+            */
+            //return post_txs(txs, function(x){
                 //return rpc.post(["txs", [-6].concat(txs)], function(x) {
                 //console.log(x);
                 //status.innerHTML = "status: <font color=\"green\">successfully attempted to make a oracle_close tx.</font>";
-                status.innerHTML = x;
+                //status.innerHTML = x;
                 //return 0;
-            });
+//        });
         });
     };
 })();
