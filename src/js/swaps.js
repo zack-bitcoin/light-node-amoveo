@@ -158,14 +158,16 @@ var swaps = (function(){
         var fee = 200000;
         if(Type == 0){//they want veo
             merkle.request_proof("accounts", keys.pub(), function(Acc){
-                if(Acc[1] > Amount){
-                    callback([]);//we have enough of the veo they want.
-                } else {
+                callback([]);
+               // if(Acc[1] > Amount){
+                //callback([]);//we have enough of the veo they want.
+                /*} else {
                     console.log("not enough veo error");
                     console.log(Acc);
                     console.log(Amount);
                     callback("error");
                 }
+                */
             });
         } else {//they want a subcurrency
             console.log([keys.pub(), CID, Type]);
