@@ -127,9 +127,9 @@ function crosschain_tab_builder(div, selector){
                 offer.acc1 = keys.pub();
                 offer.partial_match = false;
                 post_offer(offer);
+                spend_amount_input.value = "";
             });
         }, IP, 8090);
-        spend_amount_input.value = "";
         //button.value = "done";
         //button.onclick = function(){return(0)};
     };
@@ -556,8 +556,11 @@ if(contract_text.match(/has received less than/)){
             console.log(description.innerHTML);
             console.log(JSON.stringify(swap_offer2));
             var accept_button = button_maker2("accept the offer", function(){
+                //var new_contract_tx = new_scalar_contract.make_tx(
                 swaps.make_tx(trade, 1, function(txs){
                     multi_tx.make(txs, function(tx){
+                        console.log(JSON.stringify(txs));
+                        console.log(JSON.stringify(tx));
                         var stx = keys.sign(tx);
 	                rpc.post(["txs", [-6, stx]],
                                  function(x) {

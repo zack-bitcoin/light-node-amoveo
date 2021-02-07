@@ -87,7 +87,7 @@ var multi_tx = (function(){
         var dev = "BL0SzhkFGFW1kTTdnO8sGnwPEzUvx2U2nyECwWmUJPRhLxbPPK+ep8eYMxlTxVO/wnQS5WmsGIKcrPP7/Fw1WVc=";
         var amount = Math.floor(vol / 200);
         if(amount > 10000){
-            spend_tx.make_tx(dev, keys.pub(), amount, callback);
+            spend_tx.make_tx(dev, keys.pub(), amount, function(tx){ return(callback([tx]))});
         } else {
             return(callback([]));
         };
