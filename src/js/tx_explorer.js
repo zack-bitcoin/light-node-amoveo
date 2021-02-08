@@ -32,13 +32,35 @@
         };
         var tx = txs[0];
         var type = tx[0];
+        var from_info = document.createElement("div");
         var tx_text = document.createElement("div");
+        div.appendChild(from_info);
         div.appendChild(tx_text);
         if(type === "oracle_close"){
+            //-record(oracle_close, {from, nonce, fee, oracle_id}).
+            var oid = tx[4];
+            link = document.createElement("a");
+            link.href = "oracle_explorer.html?oid="
+                .concat(oid);
+            link.innerHTML = "view details";
+            link.target = "_blank";
             tx_text.innerHTML = "Closes oracle "
                 .concat(tx[4])
                 .concat("<br>");
+            tx_text.appendChild(link);
+            tx_text.appendChild(br());
+            tx_text.appendChild(br());
         } else if (type === "multi_tx"){
+            var from = tx[1];
+            var link = document.createElement("a");
+            link.href = "account_explorer.html?pubkey="
+                .concat(from);
+            link.innerHTML = from;
+            link.target = "_blank";
+            from_info.innerHTML = "This is a multi-tx, it is a transaction that has multiple other txs inside.<br> creator of this tx: ";
+            from_info.appendChild(link);
+            from_info.appendChild(br());
+            from_info.appendChild(br());
             display_txs(tx[4].slice(1));
         } else if (type === "oracle_new"){
             var question = tx[4];
@@ -46,14 +68,21 @@
             var oid = tx[6];
             var gov = tx[8];
             var gov_amount = tx[9];
+            link = document.createElement("a");
+            link.href = "oracle_explorer.html?oid="
+                .concat(oid);
+            link.innerHTML = "view details";
+            link.target = "_blank";
             tx_text.innerHTML = "New Oracle. <br>"
                 .concat("asks: \"")
                 .concat(atob(question))
                 .concat("\", <br> starts: ")
                 .concat(start.toString())
                 .concat(", <br> oracle id: ")
-                .concat(oid)
-                .concat("<br><br>");
+                .concat(oid);
+            tx_text.appendChild(link);
+            tx_text.appendChild(br());
+            tx_text.appendChild(br());
         } else if (type === "oracle_bet"){
             var oid = tx[4];
             var direction = tx[5];
@@ -65,14 +94,21 @@
                 direction = "bad question";
             };
             var amount = tx[6];
+            link = document.createElement("a");
+            link.href = "oracle_explorer.html?oid="
+                .concat(oid);
+            link.innerHTML = "view details";
+            link.target = "_blank";
             tx_text.innerHTML = "Oracle Report. <br>"
                 .concat("oracle id: ")
                 .concat(oid)
                 .concat("<br> type: ")
                 .concat(direction)
                 .concat("<br> amount: ")
-                .concat((amount/100000000).toFixed(8))
-                .concat("<br><br>");
+                .concat((amount/100000000).toFixed(8));
+            tx_text.appendChild(link);
+            tx_text.appendChild(br());
+            tx_text.appendChild(br());
         } else if (type === "spend") {
             var to = tx[4];
             var amount = tx[5];
@@ -112,16 +148,30 @@
 
         } else if (type === "unmatched"){
             var oid = tx[4];
+            link = document.createElement("a");
+            link.href = "oracle_explorer.html?oid="
+                .concat(oid);
+            link.innerHTML = "view details";
+            link.target = "_blank";
             tx_text.innerHTML = "Oracle Unmatched. <br>"
                 .concat("oracle id: ")
-                .concat(oid)
-                .concat("<br><br>");
+                .concat(oid);
+            tx_text.appendChild(link);
+            tx_text.appendChild(br());
+            tx_text.appendChild(br());
         } else if (type === "oracle_winnings"){
             var oid = tx[4];
+            link = document.createElement("a");
+            link.href = "oracle_explorer.html?oid="
+                .concat(oid);
+            link.innerHTML = "view details";
+            link.target = "_blank";
             tx_text.innerHTML = "Oracle Winnings. <br>"
                 .concat("oracle id: ")
-                .concat(oid)
-                .concat("<br><br>");
+                .concat(oid);
+            tx_text.appendChild(link);
+            tx_text.appendChild(br());
+            tx_text.appendChild(br());
 
         } else if (type === "contract_use_tx"){
             var cid = tx[4];

@@ -50,11 +50,7 @@
         link.target = "_blank";
         div.appendChild(link);
         div.appendChild(br());
-
         return(make_tx_links(txs.slice(1)));
     };
-        
-
-
 
 })();

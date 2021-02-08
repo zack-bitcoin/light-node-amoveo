@@ -135,7 +135,7 @@ var swap_viewer = (function(){
             var signed_offer = X;
             swaps.make_tx(signed_offer, matched_parts, function(swap_txs){
                 txs = txs.concat(swap_txs);
-                tx = multi_tx.make(txs, function(tx) {
+                multi_tx.make(txs, function(tx) {
                     console.log(JSON.stringify(tx));
                     var stx = keys.sign(tx);
 	            rpc.post(["txs", [-6, stx]],
