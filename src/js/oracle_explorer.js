@@ -17,7 +17,22 @@
         .concat(oid);
     div.appendChild(oid_text);
     div.appendChild(br());
+    var info = document.createElement("div");
+    div.appendChild(info);
+    var closable = document.createElement("div");
+    div.appendChild(closable);
+    var tx_links = document.createElement("div");
+    div.appendChild(tx_links);
+    tx_links.innerHTML = "Txs related to this oracle<br>";
 
+    //blocks until closable
+    rpc.post(["oracles", oid], function(oracle){
+        rpc.post(["height"], function(height){
+            closable.innerHTML = "<br>closable in: "
+                .concat((oracle[9]-height).toString())
+                .concat(" blocks<br><br>");
+        });
+    });
     
     rpc.post(["oracles", oid], function(oracle){
         oracle = oracle[1];
@@ -34,9 +49,6 @@
             type = "bad question";
         };
         var closed = oracle[7];
-        console.log(JSON.stringify(oracle));
-        console.log(question);
-        var info = document.createElement("div");
         info.innerHTML = "oracle asks: "
             .concat(question)
             .concat("<br><br>type: ")
@@ -44,11 +56,11 @@
             .concat("<br><br>stake: ")
             .concat((stake / 100000000).toFixed(8))
             .concat("<br><br>last referenced in block height: ")
-            .concat(height.toString())
-            .concat("<br><br>Txs related to this oracle");
-        div.appendChild(info);
+            .concat(height.toString());
+            //.concat("<br><br>Txs related to this oracle");
         make_tx_links(txs.slice(1));
     }, get_ip(), 8091);
+
     function make_tx_links(txs){
         if(txs.length === 0){
             return(0);
@@ -59,8 +71,8 @@
             .concat(txid);
         link.innerHTML = txid;
         link.target = "_blank";
-        div.appendChild(link);
-        div.appendChild(br());
+        tx_links.appendChild(link);
+        tx_links.appendChild(br());
         return(make_tx_links(txs.slice(1)));
     };
 
