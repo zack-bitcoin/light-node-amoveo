@@ -248,7 +248,6 @@ function crosschain_tab_builder(div, selector){
                     var contract_text = atob(contract[1]);
                     //console.log(contract_text);
                     var description = description_maker(cid1, type1, amount1, contract_text);
-                    temp_div.appendChild(description);
 
                     var cancel_button = button_maker2("cancel trade", function(){
                         console.log("canceling");
@@ -263,6 +262,7 @@ function crosschain_tab_builder(div, selector){
                     var block_height = headers_object.top()[1];
                     if(block_height > 152000){
                         //hard update 45 is needed for canceling orders.
+                        temp_div.appendChild(description);
                         temp_div.appendChild(cancel_button);
                         temp_div.appendChild(br());
                     };
@@ -323,7 +323,7 @@ if(contract_text.match(/has received less than/)){
     var offer = {};
     var block_height = headers_object.top()[1];
     offer.start_limit = block_height - 1;
-    offer.end_limit = block_height + 10000;
+    offer.end_limit = block_height + 1000;
     offer.amount1 = balance;//amount to send
     offer.cid2 = Source;
     offer.cid1 = cid;
@@ -332,15 +332,91 @@ if(contract_text.match(/has received less than/)){
     offer.acc1 = keys.pub();
     offer.partial_match = true;
     var release_button = button_maker3("you have already been paid", function(button){
+        //release button to sell for 0.2% + fee.
         rpc.post(["account", keys.pub()], function(my_acc){
-            //release button to sell for 0.2% + fee.
             offer.nonce = my_acc[2] + 1;
             offer.amount2 = Math.round((balance*0.002) + (fee*5));//new oracle, oracle report, oracle close, withdraw winnings, oracle winnings
-            post_offer(offer);
-            button.value = "done";
-            button.onclick = function(){return(0)};
+            function cleanup(){
+                button.value = "done";
+                button.onclick = function(){return(0)};
+            };
+            function we_post_first(){
+                post_offer(offer);
+                cleanup();
+            };
+            //first we should look up if they already posted an offer to sell 
+            rpc.post(["markets"], function(markets){
+                markets = markets.slice(1);
+                var market = find_market(markets, offer.cid2, offer.type2, offer.cid1, 2);
+                if(market === 0){
+                    //console.log("cannot find market");
+                    //return(0);
+                    return(we_post_first());
+                } else {
+                    var mid = market[2];
+                    rpc.post(["read", mid], function(market_data){
+                        market_data = market_data[1];
+                        var orders = market_data[7].slice(1);
+                        var order = lowest_price_order(orders);
+                        var tid = order[3];
+                        rpc.post(["read", 2, tid], function(trade){
+                            console.log(JSON.stringify(trade));
+                            var swap = trade;
+                            var combine_tx = ["contract_use_tx", 0,0,0,
+                                              offer.cid1, -offer.amount1, 2, offer.cid2, offer.type2];
+                            swaps.make_tx(swap, 1000000, function(txs){
+                                multi_tx.make(txs.concat([combine_tx]), function(tx){
+                                    console.log(JSON.stringify(tx));
+                                    var stx = keys.sign(tx);
+	                            rpc.post(["txs", [-6, stx]],
+                                             function(x) {
+                                                 if(x == "ZXJyb3I="){
+                                                     display.innerHTML = "server rejected the tx";
+                                                 }else{
+                                                     display.innerHTML = "accepted trade offer and published tx. the tx id is "
+                                                         .concat(x);
+                                                     cleanup();
+                                                 }
+                                             });
+                                }); 
+                            });
+                        }, IP, 8090);
+                    }, IP, 8090);
+                };
+            }, IP, 8090);
         });
     });
+    function lowest_price_order(orders) {
+        if(orders.length === 1){
+            return(orders[0]);
+        };
+        var order0 = orders[0];
+        var order1 = orders[1];
+        var price0 = order0[1];
+        var price1 = order1[1];
+        if(price0 < price1){
+            return(lowest_price_order([order0].concat(orders.slice(2))));
+        } else {
+            return(lowest_price_order([order1].concat(orders.slice(2))));
+        };
+    };
+    function find_market(markets, cid2, type2, cid1, type1){
+        if(markets.length === 0){
+            return(0);
+        };
+        var market = markets[0];
+        var mcid1 = market[3];
+        var mtype1 = market[4];
+        var mcid2 = market[5];
+        var mtype2 = market[6];
+        if((cid2 === mcid2) &&
+           (type2 === mtype2) &&
+           (cid1 === mcid1) &&
+           (type1 === mtype1)){
+            return(market);
+        }
+        return(find_market(markets.slice(1), cid2, type2, cid1, type1));
+    };
     temp_div.appendChild(description);
     temp_div.appendChild(release_button);
     temp_div.appendChild(br());
@@ -422,7 +498,7 @@ if(contract_text.match(/has received less than/)){
      var offer = {};
      var block_height = headers_object.top()[1];
      offer.start_limit = block_height - 1;
-     offer.end_limit = block_height + 10000;
+     offer.end_limit = block_height + 1000;
      offer.amount1 = balance;//amount to send
      offer.cid2 = Source;
      offer.cid1 = cid;
@@ -441,6 +517,7 @@ if(contract_text.match(/has received less than/)){
      });
      temp_div.appendChild(delivered_button);
      var cancel_button = button_maker2("you cannot or will not deliver the coins on the other blockchain", function(){
+         //TODO, this should work like the "release_button". It should match an existing offer, if possible.
          rpc.post(["account", keys.pub()], function(my_acc){
              offer.nonce = my_acc[2] + 1;
              offer.amount2 = Math.round((balance*0.002) + (fee*5));
@@ -499,9 +576,15 @@ if(contract_text.match(/has received less than/)){
             .concat(d2);
         return(description);
     };
-    function post_offer(offer){
+    function post_offer(offer, second_offer){
+        var signed_second_offer;
+        if(!(second_offer)){
+            signed_second_offer = 0;
+        } else {
+            var signed_second_offer = swaps.pack(second_offer);
+        }
         var signed_offer = swaps.pack(offer);
-        rpc.post(["add", signed_offer, 0], function(z){
+        rpc.post(["add", signed_offer, signed_second_offer], function(z){
             display.innerHTML = "successfully posted your crosschain offer. ";
             var link = document.createElement("a");
             link.href = "contracts.html";
@@ -589,6 +672,7 @@ if(contract_text.match(/has received less than/)){
             console.log(description.innerHTML);
             console.log(JSON.stringify(swap_offer2));
             var accept_button = button_maker2("accept the offer", function(){
+                //TODO, this should also make an offer to sell your tokens for 99% of their value. the "already delivered button" stuff.
                 var new_contract_tx = new_scalar_contract.make_tx(contract_text, 1, Source, SourceType)
                 swaps.make_tx(trade, 1, function(txs){
                     multi_tx.make([new_contract_tx].concat(txs), function(tx){
@@ -599,13 +683,36 @@ if(contract_text.match(/has received less than/)){
                                  function(x) {
                                      if(x == "ZXJyb3I="){
                                          display.innerHTML = "server rejected the tx";
-                                     }else{
-                                         display.innerHTML = "accepted trade offer and published tx. the tx id is "
-                                             .concat(x)
-                                             .concat(" please do not send the money until this transaction has been included in a block.");//todo, maybe we could write the address to deposit to here.
-                                     }
+   }else{
+       display.innerHTML = "accepted trade offer and published tx. the tx id is "
+           .concat(x)
+           .concat(" please do not send the money until this transaction has been included in a block.");//todo, maybe we could write the address to deposit to here.
+       console.log("attempting to make the 99% sell offer");
+       console.log(JSON.stringify(swap_offer2));
+       var amount1_from_swap_offer = swap_offer2[6];
+       var amount2_from_swap_offer = swap_offer2[9];
+       var cid2_from_swap_offer = swap_offer2[7];
+       var cid1_from_swap_offer = swap_offer2[4];
+       var type1_from_swap_offer = swap_offer2[5];
+       var offer = {};
+       var block_height = headers_object.top()[1];
+       offer.start_limit = block_height - 1;
+       offer.end_limit = block_height + 2000;
+       offer.amount1 = amount2_from_swap_offer;
+       offer.cid1 = cid2_from_swap_offer;
+       offer.type1 = 2;
+       offer.amount2 = Math.round((amount1_from_swap_offer * 0.995) - (fee*5));
+       offer.cid2 = cid1_from_swap_offer;
+       offer.type2 = type1_from_swap_offer;
+       offer.acc1 = keys.pub();
+       offer.partial_match = true;
+         rpc.post(["account", keys.pub()], function(my_acc){
+             offer.nonce = my_acc[2] + 1;
+             console.log(JSON.stringify(offer));
+             post_offer(offer);
+         });
+   }
                                  });
-
                     });
                 });
             });
@@ -615,4 +722,7 @@ if(contract_text.match(/has received less than/)){
             return(callback2());
         }, IP, 8090);
     };
+    return({
+        post_offer: post_offer
+    });
 };
