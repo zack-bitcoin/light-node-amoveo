@@ -547,7 +547,7 @@ if(contract_text.match(/has received less than/)){
     }; 
     function description_maker2(contract_text){
         var address = contract_text.match(/address \w*/)[0];
-        var receive = contract_text.match(/\d[\.\d]* \w* /)[0];
+        var receive = contract_text.match(/\d[\.\d]* \w* before/)[0].slice(0,-6);
         var r = (receive)
             .concat(" to ")
             .concat(address);
