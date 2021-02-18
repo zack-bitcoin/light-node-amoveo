@@ -19,13 +19,15 @@ function keys_function1() {
     save_name.type = "text";
     save_name.value = "Amoveo private key";
     var load_text = document.createTextNode("get key from file");
-    document.body.appendChild(account_title);
-    document.body.appendChild(div);
-    div.appendChild(load_text);
     var file_selector = document.createElement("input");
     file_selector.type = "file";
     file_selector.onchange = load_keys;
-    div.appendChild(file_selector);
+    if(!(configure["hide_keys"])){
+        document.body.appendChild(account_title);
+        document.body.appendChild(div);
+        div.appendChild(load_text);
+        div.appendChild(file_selector);
+    }
     //div.appendChild(br());
     if(configure["new_account"]){
         var save_button = button_maker2("Generate new account. Saves the private key to a file.", save_keys);

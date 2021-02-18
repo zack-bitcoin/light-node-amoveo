@@ -32,11 +32,13 @@ var swap_viewer = (function(){
         var original_limit_order_size = Y.parts;
         var available_to_match;
         //var TID = hash.doit(65 bytes of pubkey, then 32 bytes of salt)
-        var TID = btoa(array_to_string(hash(
-            string_to_array(
-                atob(Y.acc1))
-                .concat(string_to_array(
-                    atob(Y.salt))))));
+//        var TID = btoa(array_to_string(hash(
+//            string_to_array(
+//                atob(Y.acc1))
+//                .concat(string_to_array(
+//                    atob(Y.salt))))));
+        var TID = swaps.id_maker(Y.acc1, Y.salt);
+        console.log(TID);
         rpc.post(["trades", TID], function(trade){
             console.log(trade);
             if(trade === 0){
@@ -47,19 +49,19 @@ var swap_viewer = (function(){
             
 
         
-        if(Y.cid1 == btoa(array_to_string(integer_to_array(0, 32)))){
-            contract1 = "veo";
-        }else{
-            contract1 = Y.cid1
-                .concat(" type ")
-                .concat(Y.type1);
-        }
+            if(Y.cid1 == btoa(array_to_string(integer_to_array(0, 32)))){
+                contract1 = "veo";
+            }else{
+                contract1 = Y.cid1
+                    .concat(" type ")
+                    .concat(Y.type1);
+            }
 
-        if(Y.cid2 == btoa(array_to_string(integer_to_array(0, 32)))){
-            contract2 = "veo";
-            update_display(Y, now, contract1, contract2, available_to_match, original_limit_order_size);
-            return(view2([], X, Y, original_limit_order_size, available_to_match));
-        }else{
+            if(Y.cid2 == btoa(array_to_string(integer_to_array(0, 32)))){
+                contract2 = "veo";
+                update_display(Y, now, contract1, contract2, available_to_match, original_limit_order_size);
+                return(view2([], X, Y, original_limit_order_size, available_to_match));
+            }else{
             contract2 = ("contract ")
                 .concat(Y.cid2)
                 .concat(" type ")

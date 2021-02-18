@@ -240,5 +240,14 @@ var swaps = (function(){
         console.log(JSON.stringify(Y));
         return(0);
     };
-    return({test: test, pack: pack, unpack: unpack, make_tx: make_tx});
+    function id_maker(acc, salt){
+        var TID = btoa(array_to_string(hash(
+            string_to_array(
+                atob(acc))
+                .concat(string_to_array(
+                    atob(salt))))));
+        return(TID);
+    };
+    return({test: test, pack: pack, unpack: unpack, make_tx: make_tx,
+            id_maker: id_maker});
 })();

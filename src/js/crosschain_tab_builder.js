@@ -669,6 +669,15 @@ if(contract_text.match(/has received less than/)){
                 .concat(expires - block_height)
                 .concat(" blocks.");
             temp_div.appendChild(description);
+            var link = document.createElement("a");
+            link.href = "offer_explorer.html?tid="
+                .concat(tid);
+            link.innerHTML = "contract offer in explorer ";
+            link.target = "_blank";
+            temp_div.appendChild(link);
+            temp_div.appendChild(br());
+            temp_div.appendChild(br());
+
             console.log(description.innerHTML);
             console.log(JSON.stringify(swap_offer2));
             var accept_button = button_maker2("accept the offer", function(){
