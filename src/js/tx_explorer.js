@@ -84,6 +84,7 @@
             tx_text.appendChild(br());
             tx_text.appendChild(br());
         } else if (type === "oracle_bet"){
+            var from = tx[1];
             var oid = tx[4];
             var direction = tx[5];
             if(direction === 1){
@@ -97,15 +98,27 @@
             link = document.createElement("a");
             link.href = "oracle_explorer.html?oid="
                 .concat(oid);
-            link.innerHTML = "view details";
+            link.innerHTML = "oracle: "
+                .concat(oid);
             link.target = "_blank";
+            alink = document.createElement("a");
+            alink.href = "account_explorer.html?pub="
+                .concat(from);
+            alink.innerHTML = "reporter: "
+                .concat(from);
+            alink.target = "_blank";
             tx_text.innerHTML = "Oracle Report. <br>"
-                .concat("oracle id: ")
-                .concat(oid)
+                //.concat("oracle id: ")
+                //.concat(oid)
                 .concat("<br> type: ")
                 .concat(direction)
                 .concat("<br> amount: ")
                 .concat((amount/100000000).toFixed(8));
+            tx_text.appendChild(br());
+            tx_text.appendChild(br());
+            tx_text.appendChild(alink);
+            tx_text.appendChild(br());
+            tx_text.appendChild(br());
             tx_text.appendChild(link);
             tx_text.appendChild(br());
             tx_text.appendChild(br());

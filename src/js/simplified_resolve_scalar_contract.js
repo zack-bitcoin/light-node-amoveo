@@ -30,7 +30,7 @@ var simplified_resolve_scalar_contract = (function(){
                 rpc.post(["oracle", 2, question_hash], function(text){
                     console.log(oracle_question);
                     console.log(atob(text));
-                    var is = atob(text).match(/max.0, min.MaxVal, .B . MaxVal . MaxPrice.. is \d*/)[0].match(/\d\d\d*/)[0];
+                    var is = atob(text).match(/max.0, min.MaxVal, .B . MaxVal . MaxPrice.. is \d*/)[0].match(/\d*$/)[0];
                     var final_price = parseInt(is, 10);
                     final_price = Math.round(is*max_price/MaxMeasurable);
                     return(resolve(
