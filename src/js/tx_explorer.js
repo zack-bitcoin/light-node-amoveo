@@ -19,8 +19,14 @@
     rpc.post(["txs", txid], function(tx){
         var tx = tx[1];
         var block = tx[2];
-        block_height_div.innerHTML = "this tx was included in block "
-            .concat(block.toString());
+        link = document.createElement("a");
+        link.href = "block_explorer.html?hash="
+            .concat(block);
+        link.innerHTML = block;
+        link.target = "_blank";
+        block_height_div.innerHTML = "this tx was included in block ";
+        //.concat(block.toString());
+        block_height_div.appendChild(link);
         var raw = tx[3];
         console.log(JSON.stringify(raw[1]));
         display_txs([raw[1]]);
