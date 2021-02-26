@@ -43,7 +43,7 @@ var simplified_scalar_oracle_creation = (function(){
                             price, max_price,
                             oracle_text);
                         var oid = id_maker(Start, 0,0, FullText);
-                        var fee = 152050;
+                        //var fee = 152050;
                         var tx1 = ["oracle_new", 0,0,0,
                                    btoa(FullText), Start,
                                    oid, 0, 0, 0];

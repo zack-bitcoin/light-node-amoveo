@@ -133,7 +133,7 @@
             console.log("fail");
             return 0;
         }
-        var tx = ["oracle_new", keys.pub(), nonce, fee, btoa(s), start, x, 0, 0, 0];
+        var tx = ["oracle_new", keys.pub(), nonce, Math.round(fee*1.1), btoa(s), start, x, 0, 0, 0];
         console.log(tx);
         var stx = keys.sign(tx);
         return ([stx]).concat(new_scalar_oracle2(question, start, ks.slice(1), nonce+1, id, many-1));

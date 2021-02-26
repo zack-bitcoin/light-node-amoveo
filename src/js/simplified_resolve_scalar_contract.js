@@ -68,8 +68,8 @@ var simplified_resolve_scalar_contract = (function(){
                 MP.toString(),
                 //max_price.value,
                 Text);
-        console.log("should be");
-        console.log("MaxPrice = 1; MaxVal = 4294967295; B = Zack wins this chess game https://lichess.org/tBeXCWCn from $0 to $MaxPrice; max(0, min(MaxVal, (B * MaxVal / MaxPrice)) is 4294967295");
+        //console.log("should be");
+        //console.log("MaxPrice = 1; MaxVal = 4294967295; B = Zack wins this chess game https://lichess.org/tBeXCWCn from $0 to $MaxPrice; max(0, min(MaxVal, (B * MaxVal / MaxPrice)) is 4294967295");
         console.log("is");
         console.log(FullText);
 //        var FullText = scalar_derivative.oracle_text(max_price.value, Text)
@@ -131,7 +131,7 @@ var simplified_resolve_scalar_contract = (function(){
                         .concat(integer_to_array(Start, 4));
                     var evidence = btoa(array_to_string(evidence));
                     var tx1 = ["contract_evidence_tx",
-                               keys.pub(), Nonce+1, fee, contract,
+                               keys.pub(), Nonce+1, fee*2, contract,
                                cid, evidence,//"AJmZmZk=",
                                [-6, ["oracles", oid]]];
                     console.log(JSON.stringify(tx1));

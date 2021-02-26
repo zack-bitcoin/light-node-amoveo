@@ -4,7 +4,7 @@
     var show_markets = document.createElement("input");
     show_markets.type = "button";
     show_markets.id = "show_markets_button";
-    document.body.appendChild(show_markets);
+    //document.body.appendChild(show_markets);
     document.body.appendChild(document.createElement("br"));
     var div = document.createElement("div");
     document.body.appendChild(div);
@@ -34,7 +34,7 @@
 	var lookup_oracle_text_node = document.createTextNode("list markets");
 	lookup_oracle_button.appendChild(lookup_oracle_text_node);
 	lookup_oracle_button.onclick = lookup_helper;
-	div.appendChild(lookup_oracle_button);
+	//div.appendChild(lookup_oracle_button);
 	function lookup_helper() {
             rpc.post(["list_oracles"], lookup_helper2);
 	}

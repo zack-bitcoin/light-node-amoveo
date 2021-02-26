@@ -25,7 +25,7 @@ var swap_viewer = (function(){
         var X = JSON.parse(offer.value);
         var Y = swaps.unpack(X);
         var now = headers_object.top()[1];
-
+        
         var contract1, contract2;
         console.log(offer.value);
         console.log(Y);

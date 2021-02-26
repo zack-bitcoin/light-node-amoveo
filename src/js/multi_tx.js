@@ -112,7 +112,7 @@ var multi_tx = (function(){
                 Txs = zero_accounts_nonces(Txs);
                 //console.log(JSON.stringify(Txs));
                 //return(0);
-                return(callback(["multi_tx", keys.pub(), Nonce, fee*(Txs.length), [-6].concat(Txs)]));
+                return(callback(["multi_tx", keys.pub(), Nonce, Math.round(1.1*fee*(Txs.length)), [-6].concat(Txs)]));
             });
         });
 

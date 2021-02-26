@@ -19,12 +19,13 @@
     rpc.post(["txs", txid], function(tx){
         var tx = tx[1];
         var block = tx[2];
+        var height = tx[4];
         link = document.createElement("a");
         link.href = "block_explorer.html?hash="
             .concat(block);
-        link.innerHTML = block;
+        link.innerHTML = height;//block;
         link.target = "_blank";
-        block_height_div.innerHTML = "this tx was included in block ";
+        block_height_div.innerHTML = "this tx was included in block number ";
         //.concat(block.toString());
         block_height_div.appendChild(link);
         var raw = tx[3];
