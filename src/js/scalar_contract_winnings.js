@@ -17,7 +17,9 @@ var scalar_contract_winnings = (function(){
         var cid = contract_id.value;
         var oid = oracle_id.value;
         merkle.request_proof("contracts", cid, function(contract){
-            merkle.request_proof("oracles", oid, function(oracle){
+            //merkle.request_proof("oracles", oid, function(oracle){
+            rpc.post(["oracles", oid], function(oracle){
+                console.log(oracle);
                 if(contract == "empty") {
                     display.innerHTML = "that contract does not exist";
                     return(0);
@@ -43,7 +45,10 @@ var scalar_contract_winnings = (function(){
                     }
                     var question_hash = oracle[3];
                     rpc.post(["oracle", 2, question_hash], function(text){
-                        var is = atob(text).match(/max.0, min.MaxVal, .B . MaxVal . MaxPrice.. is \d*/)[0].match(/\d\d\d*/)[0];
+                        console.log(text);
+                        console.log(atob(text));
+                        var is = atob(text).match(/max.0, min.MaxVal, .B . MaxVal . MaxPrice.. is \d*/)[0].match(/\d*$/)[0];
+                        console.log(is);
                         var price = parseInt(is, 10);
                         var maximum =  4294967295; 
                         payout_vector =
