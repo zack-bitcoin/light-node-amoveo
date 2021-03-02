@@ -234,24 +234,32 @@ var Address Date Ticker Amount Blockchain
     function settings1(
         oracle_start_height, blockchain, amount,
         ticker, date, tid, address_timeout, trade_nonce
-    ){ 
-        return(" "
-               .concat(address_timeout)
-               .concat(" ")
-               .concat(oracle_start_height.toString())
-               .concat(` ." `)
-               .concat(blockchain)
-               .concat(`" ." `)
-               .concat(amount.toString())
-               .concat(`" ." `)
-               .concat(ticker)
-               .concat(`" ." `)
-               .concat(date)
-               .concat(`" `)
-               .concat(trade_nonce.toString())
-               .concat(` binary `)
-               .concat(tid)
-              );
+    ){
+        var s = ` AT OSH ." B" ." AM" ." TIC" ." DA" TN binary TID `;
+        s = s.replace("AT", address_timeout)
+            .replace("OSH", oracle_start_height)
+            .replace("B", blockchain)
+            .replace("AM", amount)
+            .replace("TIC", ticker)
+            .replace("DA", date)
+            .replace("TN", trade_nonce)
+            .replace("TID", tid);
+        return(s);
+    };
+    function contract2bytes(
+        oracle_start_height, blockchain, amount,
+        ticker, date, bitcoin_address
+    ){
+        var s = ` OSH ." B" ." AM" ." TIC" ." DA" ." AD" binary ID2 call `;
+        s = s.replace("OSH", oracle_start_height)
+            .replace("B", blockchain)
+            .replace("AM", amount)
+            .replace("TIC", ticker)
+            .replace("DA", date)
+            .replace("AD", bitcoin_address)
+            .replace("ID2", part2id())
+        s = chalang_compiler.doit(s);
+        return(s);
     };
     function part2id(){
         var bytes = chalang_compiler.doit(
@@ -344,9 +352,23 @@ var Address Date Ticker Amount Blockchain
             var tx = ["contract_evidence_tx", keys.pub(),
                       Nonce, fee, part1_bytes, cid,
                       evidence, [-6, ["receipts", rid]]];
+            //TODO, also make the timeout tx to activate the next contract. Tx5 from test_txs:test(59)
             return(callback(tx));
         });
     };
+
+    //TODO function for making the oracle question
+
+    //TODO providing evidence the second time
+    // Tx9 = contract_evidence_tx:make_dict(MP, Contract2Bytes, CID2, Evidence2, [{oracles, OID}], Fee),
+
+    //TODO, the second timeout + simplify
+    //Tx10 = contract_timeout_tx:make_dict(MP, CID2, Fee),
+    //Tx11 = contract_simplify_tx:make_dict(MP, CID, CID2, 0, Matrix, [Empty, Full], Fee),
+
+    //TODO, withdraw winnings
+    //SubAcc1 = sub_accounts:make_key(MP, CID, 2),
+    //Tx12 = contract_winnings_tx:make_dict(MP, SubAcc1, CID, Fee, [Empty, Full]),
                       
     function test(){
         var bytes1 = chalang_compiler.doit(contract1);
