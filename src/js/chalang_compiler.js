@@ -114,21 +114,27 @@ var chalang_compiler = (function() {
                     });
             });
         };
-
-/*            p2[0]
-        //convert to list of words
-            .match(/[^\s]+/g)
-        //remove "var" and ";" from the ends
-            .slice(1, -1)
-            .map(function(x){
-                vars[x] = n;
-                n += 1;
-            });
-*/
         return(vars);
     };
     function remove_vars(page){
         return(page.replace(vars_regex, ""));
+    };
+    var string_regex = /\.\" [^\"]*\"/g;
+    //example:  `." hello world"`
+    function parse_strings(page){
+        return(page.replace(
+            string_regex,
+            parse_string));
+    };
+    function parse_string(string){
+        string = string.slice(3, -1);
+        console.log(string);
+        return(
+            " binary "
+                //.concat(string.length.toString())
+                //.concat(" ")
+                .concat(btoa(string))
+                .concat(" "));
     };
     function doit(s){
         var page0 = remove_comments(s);
@@ -141,7 +147,11 @@ var chalang_compiler = (function() {
         console.log(page2);
         var page3 = clean_whitespace(page2);
         console.log(page3);
-        var page4 = do_macros(page3);
+
+        var page3_5 = parse_strings(page3);
+        console.log(page3_5);
+
+        var page4 = do_macros(page3_5);
         console.log(page4);
         var db = {vars:vars,funs:{}};
         var fv = get_funs(page4, db);
@@ -169,7 +179,16 @@ var chalang_compiler = (function() {
             var b = w2o[w];
             var fun = db.funs[w];
             var more;
-            if(b){ more = [b];
+            if(w === "binary") {
+                var b = words[i+1];
+                var bin = atob(b);
+                var s = bin.length;
+                var four = four_bytes(s);
+                i = i + 1;
+                more = ([2])
+                    .concat(four)
+                    .concat(string_to_array(bin));
+            } else if(b){ more = [b];
             } else if(fun){
                 more = ([2,0,0,0,32])
                     .concat(fun);
@@ -179,18 +198,10 @@ var chalang_compiler = (function() {
                     console.log("no negatives.");
                     return(0);
                 };
-                more = num2bytes(w);
-            } else if(w == "binary") {
-                var b = words[i+1];
-                var bin = atob(b);
-                var s = bin.length;
-                var four = four_bytes(s);
-                more = ([2])
-                    .concat(four)
-                    .concat(string_to_array(bin));
+                more = num2bytes(w, vars2);
             } else if(!(vars2[w] === undefined)){
                 //existing variable.
-                more = num2bytes(vars2[w]);
+                more = num2bytes(vars2[w], vars2);
             }  else {
                 console.log("undefined variable");
                 console.log(w);
@@ -200,25 +211,25 @@ var chalang_compiler = (function() {
         };
         return({vars: vars2, code: bytes});
     };
-    function num2bytes(w){
+    function num2bytes(w, vars2){
         if(w<36){ return([140+w]);
         } else if(w<256){ return([3, w]);
         } else if(w<65536){
-            var w1 = Math.round(w / 256);
+            var w1 = Math.floor(w / 256);
             var w2 = w % 256;
             return([4, w1, w2]);
         } else {
-            var four = four_bytes(vars2[w]);
+            var four = four_bytes(w);
             return([0].concat(four));
         };
     };
     function four_bytes(w){
         var w4 = w%256;
-        w = Math.round(w/256);
+        w = Math.floor(w/256);
         var w3 = w%256;
-        w = Math.round(w/256);
+        w = Math.floor(w/256);
         var w2 = w%256;
-        w = Math.round(w/256);
+        w = Math.floor(w/256);
         var w1 = w;
         return([w1, w2, w3, w4]);
     };
@@ -230,6 +241,7 @@ var chalang_compiler = (function() {
         var def = macro.replace(nr, "").trim();
         return({name: name, def: def});
     };
+
     var funs_regex = /:\s+[^\;]*/g;
     function get_funs(page, db){
         var funs = page.match(funs_regex);
@@ -243,6 +255,7 @@ var chalang_compiler = (function() {
             var ops = to_opcodes(def, db);
             db.vars = ops.vars;
             var code = ops.code;
+            console.log(ops);
             var signature = hash(code)
             db.funs[name] = signature;
         };
@@ -266,6 +279,13 @@ var chalang_compiler = (function() {
         } else {
             return(page);
         };
+    };
+    function test2(){
+        var code = `
+ binary AAAA binary AQ== ++
+`;
+        return(test(code));
+
     };
     function test1(){
         var code = `
@@ -318,6 +338,7 @@ test
         return(x.stack);
     };
     return({
+        test2: test2,
         test1: test1,
         test0: test0,
         test: test,
