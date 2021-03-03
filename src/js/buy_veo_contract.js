@@ -246,18 +246,26 @@ var Address Date Ticker Amount Blockchain
             .replace("TID", tid);
         return(s);
     };
-    function contract2bytes(
+    function reusable_settings(
         oracle_start_height, blockchain, amount,
-        ticker, date, bitcoin_address
+        ticker, date
     ){
-        var s = ` OSH ." B" ." AM" ." TIC" ." DA" ." AD" binary ID2 call `;
+        var s = ` OSH ." B" ." AM" ." TIC" ." DA"  `;
         s = s.replace("OSH", oracle_start_height)
             .replace("B", blockchain)
             .replace("AM", amount)
             .replace("TIC", ticker)
-            .replace("DA", date)
-            .replace("AD", bitcoin_address)
-            .replace("ID2", part2id())
+            .replace("DA", date);
+        return(s);
+    };
+    function contract2bytes(
+        reusable_settings, bitcoin_address
+    ){
+        //var s = ` OSH ." B" ." AM" ." TIC" ." DA" ." AD" binary ID2 call `;
+        var s = ` ." AD" binary ID2 call `;
+        s = s.replace("AD", bitcoin_address)
+            .replace("ID2", part2id());
+        s = reusable_settings.concat(s);
         s = chalang_compiler.doit(s);
         return(s);
     };
@@ -268,7 +276,7 @@ var Address Date Ticker Amount Blockchain
         return(run(bytes)[0]);
     };
     function part1static_bytes(){
-        var s = ` macro part2 32 `
+        var s = ` macro part2 `
             .concat(part2id())
             .concat(` ; `)
             .concat(contract1);
@@ -279,6 +287,15 @@ var Address Date Ticker Amount Blockchain
         var s = chalang_compiler.doit(settings);
         var r = s.concat(part1static_bytes());
         return(r);
+    };
+    function part2bytes(
+        reusable_settings, bitcoin_address
+    ){
+        var s = ` ." BA" binary P2ID call `;
+        s = s.replace(BA, bitcoin_address);
+        s = s.replace(P2ID, part2id());
+        s = reusable_settings.concat(s);
+        return(chalang_compiler.doit(s));
     };
     function run(code){
         var d = chalang_object.data_maker(
@@ -297,15 +314,14 @@ var Address Date Ticker Amount Blockchain
     };
 
     function buy_veo_offer(
-        blocks_till_offer_expires,
-        security_lockup,
-        amount_to_buy,
-        settings
+        blocks_till_offer_expires, security_lockup,
+        amount_to_buy, settings
     ) {
         var contract_bytes = part2bytes(settings);
-        var ch = scalar_derivative.hash(contract_bytes);
-        var cid = binary_derivatives.id_maker(
-            ch, 2, ZERO, 0);
+        var cid = make_cid(contract_bytes, 2, ZERO, 0);
+        //var ch = scalar_derivative.hash(contract_bytes);
+        //var cid = binary_derivatives.id_maker(
+        //    ch, 2, ZERO, 0);
         var offer = {};
         var block_height = headers_object.top()[1];
         offer.start_limit = block_height - 1;
@@ -336,9 +352,10 @@ var Address Date Ticker Amount Blockchain
     function make_tx_to_choose_deposit_address(
         deposit_address, part1_bytes, their_pub, trade_id, callback
     ){
-        var ch = scalar_derivative.hash(part1_bytes);
-        var cid = binary_derivatives.id_maker(
-            ch, 2, ZERO, 0);
+        var cid = make_cid(part2_bytes, 2, ZERO, 0);
+        //var ch = scalar_derivative.hash(part1_bytes);
+        //var cid = binary_derivatives.id_maker(
+        //    ch, 2, ZERO, 0);
         var rid = rid_maker(trade_id, their_pub);
         var sig = keys.raw_sign(string_to_array(deposit_address));
         var evidence = ` binary `
@@ -357,18 +374,86 @@ var Address Date Ticker Amount Blockchain
         });
     };
 
-    //TODO function for making the oracle question
-
-    //TODO providing evidence the second time
-    // Tx9 = contract_evidence_tx:make_dict(MP, Contract2Bytes, CID2, Evidence2, [{oracles, OID}], Fee),
-
-    //TODO, the second timeout + simplify
-    //Tx10 = contract_timeout_tx:make_dict(MP, CID2, Fee),
-    //Tx11 = contract_simplify_tx:make_dict(MP, CID, CID2, 0, Matrix, [Empty, Full], Fee),
-
-    //TODO, withdraw winnings
+    function make_oracle_question(reusable_settings, contract2, bitcoin_address){
+        var s = ` ." BA" Address! Date! Ticker! Amount ! Blockchain ! drop Blockchain @ Address @  Amount @ Ticker @ Date @ oracle_builder `;
+        s = reusable_settings
+            .concat(contract2)
+            .concat(s);
+        var s = s.replace("BA", bitcoin_address);
+        var bytes = chalang_compiler.doit(s);
+        return(run(bytes)[0]);
+    };
+    function make_cid(bytes, type, Source, SourceType) {
+        var ch = scalar_derivative.hash(bytes);
+        var cid = binary_derivatives.id_maker(
+            ch, type, Source, SourceType);
+        return(cid);
+    };
+    function resolve_evidence_tx(contract2, oid, contract2bytes) {
+        //providing evidence the second time
+        var cid2 = make_cid(contract2bytes, 2, ZERO, 0);
+        var evidence2 = chalang_compiler(contract2);
+        var prove
+        var tx = [
+            "contract_evidence_tx", keys.pub(),
+            Nonce, fee, contract2bytes, cid2,
+            evidence2, [-6 ["oracles", oid]]
+        ];
+        return(tx);
+    };
+    function matrix(){
+        var full = integer_to_array(4294967295, 4);
+        var empty = integer_to_array(0, 4);
+        var matrix =
+            [[full, empty],
+             [empty, full]];
+        return(matrix);
+    };
+    function vector(Matrix, result){
+        var vector;
+        if(result){ vector = Matrix[1];
+        } else {    vector = Matrix[2];
+        }
+    };
+    function simplify_tx(CID, CID2, result) {
+        //Tx11 = contract_simplify_tx:make_dict(MP, CID, CID2, 0, Matrix, [Empty, Full], Fee),
+        var Matrix = matrix();
+        var Vector = vector(Matrix, result);
+        //TODO NONCE
+        var tx = ["contract_simplify_tx", keys.pub(),
+                  Nonce, fee, CID, CID2,
+                  0, Matrix, Vector];
+        return(tx);
+    };
+    function contract_winnings_tx(cid, result){
+        var Vector = vector(matrix(), result);
+        //TODO NONCE
+        var result2;
+        if(result){
+            result2 = 1;
+        } else {
+            result2 = 2;
+        };
+        var sub_account = sub_accounts.normal_key(
+            keys.pub(), cid, result2);
+        rpc.post(["sub_accounts", sub_account], function(sa) {
+            var amount = sa[1];
+            var tx = ["contract_winnings_tx", keys.pub(),
+                      Nonce, fee, cid, amount, sub_account,
+                      keys.pub(), Vector, 0];
+        });
+    };
     //SubAcc1 = sub_accounts:make_key(MP, CID, 2),
     //Tx12 = contract_winnings_tx:make_dict(MP, SubAcc1, CID, Fee, [Empty, Full]),
+
+
+    //todo, the first timeout
+    //-record(contract_timeout_tx, {from, nonce, fee, contract_id, proof, contract_hash, row}).%possibly converts it into a new kind of contract. %possibly unsigned
+    //Tx9 = contract_evidence_tx:make_dict(MP, Contract2Bytes, CID2, Evidence2, [{oracles, OID}], Fee),
+
+    //TODO, the second timeout
+    //-record(contract_timeout_tx, {from, nonce, fee, contract_id, proof, contract_hash, row}).%possibly converts it into a new kind of contract. %possibly unsigned
+    //Tx10 = contract_timeout_tx:make_dict(MP, CID2, Fee),
                       
     function test(){
         var bytes1 = chalang_compiler.doit(contract1);
