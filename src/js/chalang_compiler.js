@@ -1,6 +1,6 @@
 var chalang_compiler = (function() {
     var w2o = {
-        "int": 0,
+        "int4": 0,
         binary: 2,
         int1: 3,
         int2: 4,
@@ -128,7 +128,7 @@ var chalang_compiler = (function() {
     };
     function parse_string(string){
         string = string.slice(3, -1);
-        console.log(string);
+        //console.log(string);
         return(
             " binary "
                 //.concat(string.length.toString())
@@ -138,27 +138,27 @@ var chalang_compiler = (function() {
     };
     function doit(s){
         var page0 = remove_comments(s);
-        console.log(page0);
+        //console.log(page0);
         var page1 = add_spaces(page0);
-        console.log(page1);
+        //console.log(page1);
         var vars = get_vars(page1);
-        console.log(JSON.stringify(vars));
+        //console.log(JSON.stringify(vars));
         var page2 = remove_vars(page1);
-        console.log(page2);
+        //console.log(page2);
         var page3 = clean_whitespace(page2);
-        console.log(page3);
+        //console.log(page3);
 
         var page3_5 = parse_strings(page3);
-        console.log(page3_5);
+        //console.log(page3_5);
 
         var page4 = do_macros(page3_5);
-        console.log(page4);
+        //console.log(page4);
         var db = {vars:vars,funs:{}};
         var fv = get_funs(page4, db);
         var page5 = remove_functions(page4);
-        console.log(page5);
+        //console.log(page5);
         var ops = to_opcodes(page5, fv);
-        console.log(ops.code);
+        //console.log(ops.code);
         return(ops.code);
     };
     function remove_functions(page){
@@ -188,6 +188,20 @@ var chalang_compiler = (function() {
                 more = ([2])
                     .concat(four)
                     .concat(string_to_array(bin));
+            } else if(w === "int4") {
+                var n = words[i+1];
+                var four = four_bytes(n);
+                i = i + 1;
+                more = ([0]).concat(four);
+            } else if(w === "int1") {
+                var n = words[i+1];
+                i = i + 1;
+                more = ([3]).concat(n%256);
+            } else if(w === "int2") {
+                var n = words[i+1];
+                i = i + 1;
+                more = ([4]).concat(n_bytes(2, n));
+            } else if(b){ more = [b];
             } else if(b){ more = [b];
             } else if(fun){
                 more = ([2,0,0,0,32])
@@ -223,7 +237,16 @@ var chalang_compiler = (function() {
             return([0].concat(four));
         };
     };
+    function n_bytes(n, w) {
+        if(n < 1) { return([]) }
+        var b = w % 256;
+        var w2 = Math.floor(w/256);
+        return(n_bytes(n-1, w2)
+               .concat([b]));
+    };
     function four_bytes(w){
+        return(n_bytes(4, w));
+        /*
         var w4 = w%256;
         w = Math.floor(w/256);
         var w3 = w%256;
@@ -232,6 +255,7 @@ var chalang_compiler = (function() {
         w = Math.floor(w/256);
         var w1 = w;
         return([w1, w2, w3, w4]);
+        */
     };
     var macro_name = /[^\s]+/;
     function parse_macro(macro){
@@ -255,7 +279,7 @@ var chalang_compiler = (function() {
             var ops = to_opcodes(def, db);
             db.vars = ops.vars;
             var code = ops.code;
-            console.log(ops);
+            //console.log(ops);
             var signature = hash(code)
             db.funs[name] = signature;
         };
@@ -343,6 +367,7 @@ test
         test0: test0,
         test: test,
         doit: doit,
-        ops: w2o
+        ops: w2o,
+        four_bytes: four_bytes
     });
 })();

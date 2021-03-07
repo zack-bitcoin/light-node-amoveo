@@ -2,7 +2,7 @@ function chalang_main() {
     const word_size = 4294967296,
           hash_size = 32;
     const ops =
-          {int_op: 0,
+          {int4: 0,
            int1: 3,
            int2: 4,
            binary_op: 2,
@@ -141,7 +141,7 @@ function chalang_main() {
     function split_if(opcode, code) {
         var a = 0;
         for (var i = 0; i < code.length; i++) {
-            if ((code[i]) == ops.int_op) {
+            if ((code[i]) == ops.int4) {
                 i += 4;
             } else if (code[i] == ops.binary_op) {
                 var h = array_to_int(code.slice(i+1, i+5));
@@ -159,7 +159,7 @@ function chalang_main() {
     }
     function count_till(code, i, opcode) {
         for (var j = 0; (j + i) < code.length; j++) {
-            if ((code[i+j]) == ops.int_op) {
+            if ((code[i+j]) == ops.int4) {
                 j += 4;
             } else if (opcode == code[i+j]) {
                 return j;
@@ -179,7 +179,7 @@ function chalang_main() {
             if (binary[i] == old_character) {
                 var r2 = replace(old_character, new_code, binary.slice(i+1));
                 return binary.slice(0,i).concat(new_code).concat(r2);
-            } else if (binary[i] == ops.int_op) {
+            } else if (binary[i] == ops.int4) {
                 i += 4;
             } else if (binary[i] == ops.binary_op) {
                 var h = array_to_int(binary.slice(i+1, i+5));
@@ -213,7 +213,7 @@ function chalang_main() {
         d.stack = ([new_int]).concat(d.stack);
         return {i: i+2, d: d, g: 1, s: "int2", r: 1};
     };
-    op_code[ops.int_op] = function(i, code, d) {
+    op_code[ops.int4] = function(i, code, d) {
         var int_array = code.slice(i+1, i+5);
         var new_int = array_to_int(int_array);
         d.stack = ([new_int]).concat(d.stack);
@@ -691,7 +691,7 @@ function chalang_main() {
     function is_balanced_f(code) {
         var x = 0;
         for (var i = 0; i<code.length; i++) {
-            if (code[i] == ops.int_op) {
+            if (code[i] == ops.int4) {
                 i += 4;
             } else if (code[i] == ops.int1) {
                 i += 1;
@@ -718,6 +718,7 @@ function chalang_main() {
         if (is_balanced_f(code)) {
             return run2(code, d);
         } else {
+            console.trace();
             throw("misformed function. : ; ");
         }
     }
@@ -892,7 +893,7 @@ function chalang_main() {
     var split_append_contract = [
         //should return <<2,3,1>>
         ops.binary_op, 0,0,0,3, 1,2,3,
-        ops.int_op, 0,0,0,1,
+        ops.int4, 0,0,0,1,
         ops.split, ops.append
     ];
     function chalang_test() {
@@ -919,7 +920,7 @@ function chalang_main() {
         var arr = [];
         arr.length = Math.min(200, many_vs);
         return {"name": "d", "op_gas":op_gas, "stack": [], "alt": [], "ram_most": 0, "ram_limit":ram_gas, "vars": arr, "funs":{}, "many_funs": 0, "fun_limit":many_funs, "ram_current":(script_sig.length + code.length), "state":state};
-    }
+    } 
     return {run5: run5,
             test: chalang_test,
             ops: function() {return(ops);},

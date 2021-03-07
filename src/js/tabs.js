@@ -27,7 +27,8 @@ var tabs = (function(){
              ["create_binary", create_binary_tab_builder, "create binary"],
              ["create_scalar", create_scalar_tab_builder, "create scalar"],
              ["create_futarchy", create_futarchy_tab_builder, "create futarchy"],
-             ["crosschain", crosschain_tab_builder, "crosschain DEX"]
+             ["crosschain", crosschain_tab_builder, "crosschain DEX sell veo"],
+             ["crosschain2", crosschain_tab_builder2, "crosschain DEX buy veo"]
             ];
     }
     var tabs = {};

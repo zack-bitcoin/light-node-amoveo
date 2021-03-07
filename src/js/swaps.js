@@ -49,7 +49,12 @@ var swaps = (function(){
                 C.start_limit = 0;
             };
         };
-        var salt = btoa(random_cid(32));
+        var salt;
+        if(!(C.salt)){
+            salt = btoa(random_cid(32));
+        } else {
+            salt = C.salt;
+        };
         var pm = 1;
         if(C.partial_match){
             pm = 1000000;
@@ -71,7 +76,7 @@ var swaps = (function(){
              C.nonce
             ];
         */
-        console.log(JSON.stringify(serialized_offer));
+        //console.log(JSON.stringify(serialized_offer));
         var signed_so = keys.sign(serialized_offer);
         return(signed_so);
     };
