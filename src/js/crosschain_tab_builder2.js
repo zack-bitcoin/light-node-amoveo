@@ -16,8 +16,8 @@ function crosschain_tab_builder2(div, selector){
     //div.appendChild(br());
     div.appendChild(display);
     //div.appendChild(br());
-    //var IP = "159.89.87.58";
-    var IP = "0.0.0.0";
+    var IP = "159.89.87.58";
+    //var IP = "0.0.0.0";
 
     //Make trade offer interface
     var trade_offer_title = document.createElement("h3");
