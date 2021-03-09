@@ -32,6 +32,7 @@ function chalang_main() {
            pow: 56,
            rem: 57,
            eq: 58,
+           eq2: 59,
            caseif: 70,
            caseelse: 71,
            casethen: 72,
@@ -431,6 +432,15 @@ function chalang_main() {
             d.stack = ([1]).concat(d.stack);
         } else {
             d.stack = ([0]).concat(d.stack);
+        }
+        return {i: i, d: d, g: 1, s: "eq op", r: 1};
+    }
+    op_code[ops.eq2] = function(i, code, d) {
+        underflow_check(d, 2, "eq");
+        if (JSON.stringify(d.stack[0]) == JSON.stringify(d.stack[1])) {
+            d.stack = ([1]).concat(d.stack.slice(2));
+        } else {
+            d.stack = ([0]).concat(d.stack.slice(2));
         }
         return {i: i, d: d, g: 1, s: "eq op", r: 1};
     }
