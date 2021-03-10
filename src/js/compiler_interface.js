@@ -5,7 +5,7 @@
 
     var result = document.createElement("div");
 
-    load_examples([
+    load_examples(5, [
         ["case", `
 ( case test )
 0 1 =2 if 4 else 5 then
@@ -279,8 +279,59 @@ macro sort ( UnsortedList -- SortedList )
   [ 2, 4, 5, 10, 13 ]
   =2
 
+`],
+        ["contract that returns a different contract", `
+macro empty_string 4 0 split swap drop ;
+
+macro int_op binary AA== ;
+macro bin_op binary Ag== ;
+macro call_op binary cQ== ;
+
+( for measuring the length of a binary in bytes )
+def ( bin accumulator -- length )
+  swap
+  dup empty_string =2
+  if
+    drop
+  else
+    1 split drop
+    swap 1 +
+    recurse call
+  then ;
+var bin_length_fun ;
+bin_length_fun !
+macro bin_length ( bin -- length )
+  0 bin_length_fun @ call ;
+
+( converts a binary value into the chalang
+code for loading that same value onto the 
+stack )
+def
+  @ >r bin_op r@ bin_length ++ r> ++ ++
+;
+var bin_code_fun ;
+bin_code_fun !
+
+macro bin_code bin_code_fun @ call ;
+
+var hello ;
+binary aGVsbG8gd29ybGQ= hello !
+
+: func1 int4 5 binary aGVsbG8gd29ybGQ= ;
+
+( building a binary representation of func1 )
+int_op 5 ++ 
+hello bin_code
+hash
+func1
+
+( hash of the binary representation should be
+ the same as 'func1' )
+=2
+
 `]
     ]);
+    div.appendChild(br());
 
     var text = document.createElement("textarea");
     text.rows = 20;
@@ -313,7 +364,10 @@ macro sort ( UnsortedList -- SortedList )
         return(result.stack);
     };
 
-    function load_examples(pairs){
+    function load_examples(cols, pairs){
+        return(load_examples2(cols, cols, pairs));
+    }
+    function load_examples2(n, cols, pairs){
         if(pairs.length === 0){
             return(0);
         };
@@ -325,8 +379,14 @@ macro sort ( UnsortedList -- SortedList )
                 text.value = pair[1];
             });
         div.appendChild(button);
-        //div.appendChild(br());
-        return(load_examples(pairs.slice(1)));
+        var n2;
+        if(n === 1){
+            n2 = cols;
+            div.appendChild(br());
+        } else {
+            n2 = n-1;
+        }
+        return(load_examples2(n2, cols, pairs.slice(1)));
     };
 
         

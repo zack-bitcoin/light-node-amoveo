@@ -28,8 +28,6 @@ function crosschain_tab_builder2(div, selector){
     div.appendChild(br());
     var ticker_input = text_input("Name of the currency that you want to sell. (i.e. Eth)", div);
     div.appendChild(br());
-    var receive_amount_input = text_input("Amount of VEO you want to receive. (i.e. 1.205)", div);
-    div.appendChild(br());
     /*
     var selector_label = document.createElement("span");
     selector_label.innerHTML = "Currency you are buying: ";
@@ -39,6 +37,10 @@ function crosschain_tab_builder2(div, selector){
     */
     var spend_amount_input = text_input("Amount of currency you want to send. (i.e. 0.15)", div);
     div.appendChild(br());
+    var receive_amount_input = text_input("Amount of VEO you want to receive. (i.e. 1.205)", div);
+    div.appendChild(br());
+
+
     var advanced_div = document.createElement("div");
     advanced_div.appendChild(br());
     var advanced_interface = document.createElement("div");
@@ -65,10 +67,10 @@ function crosschain_tab_builder2(div, selector){
     advanced_interface.appendChild(br());
 
     //test values
-    other_blockchain_input.value = "Dogecoin";
-    ticker_input.value = "DOGE";
+    other_blockchain_input.value = "Bitcoin";
+    ticker_input.value = "BTC";
     receive_amount_input.value = "10";
-    spend_amount_input.value = "10000";
+    spend_amount_input.value = "0.0001";
     /*
     //security_amount_input.value = "0.3";
     hours_input.value = "48";

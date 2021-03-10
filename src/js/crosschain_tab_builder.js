@@ -60,10 +60,10 @@ function crosschain_tab_builder(div, selector){
     advanced_interface.appendChild(br());
 
     //test values
-    other_blockchain_input.value = "Dogecoin";
-    ticker_input.value = "DOGE";
-    other_address_input.value = "DCsXQW4HarTfDJ6PvP7e4Wbjd42Yhig5Tu";
-    receive_amount_input.value = "100000";
+    other_blockchain_input.value = "Bitcoin";
+    ticker_input.value = "BTC";
+    other_address_input.value = "1FdyGS6MSaWsrKwN6BSzrss6K55fj9Dft1";
+    receive_amount_input.value = "0.01";
     spend_amount_input.value = "1";
     /*
     //security_amount_input.value = "0.3";
