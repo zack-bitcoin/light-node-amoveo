@@ -17,8 +17,8 @@ function crosschain_tab_builder2(div, selector){
     //div.appendChild(br());
     div.appendChild(display);
     //div.appendChild(br());
-    var IP = "159.89.87.58";
-    //var IP = "0.0.0.0";
+    //var IP = "159.89.87.58";
+    var IP = "127.0.0.1";
 
     //Make trade offer interface
     var trade_offer_title = document.createElement("h3");
@@ -62,8 +62,8 @@ function crosschain_tab_builder2(div, selector){
     hours_input.value = "48";
     advanced_interface.appendChild(br());
     //look at create_tab_builder to see about dates.
-    var many_blocks_to_match_input = text_input("How many Amoveo blocks until your trade offer should expire as invalid. (Amoveo has about 130 blocks per day)(i.e. 130)", advanced_interface);
-    many_blocks_to_match_input.value = "130";
+    var blocks_till_expires_text = text_input("How many Amoveo blocks until your trade offer should expire as invalid. (Amoveo has about 130 blocks per day)(i.e. 130)", advanced_interface);
+    blocks_till_expires_text.value = "130";
     advanced_interface.appendChild(br());
 
     //test values
@@ -74,7 +74,7 @@ function crosschain_tab_builder2(div, selector){
     /*
     //security_amount_input.value = "0.3";
     hours_input.value = "48";
-    many_blocks_to_match_input.value = "30";
+    blocks_till_expires_text.value = "30";
     */
 
     var button = button_maker3("make crosschain trade offer", crosschain_offer);
@@ -106,7 +106,7 @@ function crosschain_tab_builder2(div, selector){
         var blockchain = other_blockchain_input.value;
         var ticker = ticker_input.value;
         var amount = spend_amount_input.value;
-        var blocks_till_expires = parseInt(many_blocks_to_match_input.value, 10);
+        var blocks_till_expires = parseInt(blocks_till_expires_text.value, 10);
         var addressTimeout = blocks_till_expires + block_height;
 
         var reusable_settings = buy_veo_contract.
@@ -122,7 +122,6 @@ function crosschain_tab_builder2(div, selector){
                 reusable_settings, addressTimeout,
                 1, TID);
         //console.log(JSON.stringify(settings));
-        //todo rename "many_blocks_to_match_input" to something like "blocks till expires"
         var amount2 = Math.round(parseFloat(security_amount_input.value, 10)*100000000);
         
         //the swap offer
@@ -141,40 +140,35 @@ function crosschain_tab_builder2(div, selector){
         var Contract = [
             "contract", cid, Source, SourceType,
             addressTimeout, oracleStartHeight,
-            blockchain, amount, ticker, date,
+            btoa(blockchain), btoa(amount),
+            btoa(ticker), btoa(date),
             TID, 0];
         console.log("this is the contract data that we teach to the p2p derivatives server.");
         console.log(JSON.stringify(Contract));
 
-        //TODO HERE
-        //check that your account is loaded.
+        rpc.post(["account", keys.pub()], function(my_acc){
+            if(my_acc === 0){
+                display.innerHTML = "Load your private key first.";
+                return(0);
+            };
+            if(my_acc[1] < amount2){
+                display.innerHTML = "Not enough VEO to make this offer.";
+                return(0);
+            };
+            var nonce = my_acc[2];
         //check that you have enough veo to do the offer.
+            rpc.post(["add", 4, Contract], function(x){
+                console.log(JSON.stringify(x));
+                rpc.post(["read", 3, cid], function(y){
+                    console.log(JSON.stringify(y));
+                }, IP, 8090);
+            }, IP, 8090);
+        });
+
+        //show available offers.
+        //In order
 
     };
-    function crosschain_offer2(spend_amount, Source, SourceType, my_acc, cid){
-        var amount2;
-        if(security_amount_input.value === ""){
-            amount2 = Math.round(spend_amount * 1.1);
-        } else {
-            amount2 = spend_amount + Math.round(parseFloat(security_amount_input.value, 10)*100000000);
-        };
-        var offer = {};
-        offer.nonce = my_acc[2] + 1;
-        var block_height = headers_object.top()[1];
-        offer.start_limit = block_height - 1;
-        offer.end_limit = block_height + blocks_till_expires;
-        offer.amount1 = spend_amount;
-        offer.amount2 = amount2;
-        offer.cid1 = Source;
-        offer.cid2 = cid;
-        offer.type1 = SourceType;
-        offer.type2 = 1;
-        offer.acc1 = keys.pub();
-        offer.partial_match = false;
-        post_offer(offer);
-        spend_amount_input.value = "";
-    };
-
 
 
     var refresh_button = button_maker2("refresh available actions", refresh);
@@ -185,16 +179,44 @@ function crosschain_tab_builder2(div, selector){
     var lists_div = document.createElement("div");
     div.appendChild(lists_div);
 
+    /*
+      normal
+=========
+      Alice offers to sell BTC, and she offers to sell her shares for 99% of their max value.
+      Bob accepts and gives his address to receive BTC, and makes an offer to sell his shares for 99% of their value.
+      Alice sends the bitcoin.
+      Bob buys the winning shares for 99% of their value.
+
+no delivery address
+=======
+      Alice offers to sell BTC, and she offers to sell her shares for 99% of their max value.
+      Bob accepts, locking in his veo.
+      After waiting a delay, Alice resolves the contract and withdraws all Bob's veo, or an untrusted third party buys Alice's winning shares and does it for her.
+
+no btc delivery
+======
+      Alice offers to sell BTC, and she offers to sell her shares for 99% of their max value.
+      Bob accepts and gives his address to receive BTC, and makes an offer to sell his shares for 99% of their value.
+      Alice didn't deliver the BTC, so an untrusted third party buys Bob's winning shares, they create the oracle and get the money.
+
+    */
+
+    //todo, when you make an offer to sell BTC, it should also offer to sell your shares for 99% of their max value, if you win.
+
     function refresh(){
         var temp_div = document.createElement("div");
         cancel_buttons(temp_div, function(){
+            //Alice
+            //todo. ability to cancel unmatched offers. increments your offer-nonce.
             release_buttons(temp_div, function(){
-                delivered_buttons(temp_div, function(){
-                    active_offers(temp_div, function(){
-                        console.log("done making buttons");
-                        lists_div.innerHTML = "";
-                        lists_div.appendChild(temp_div);
-                    });
+                //Bob
+                //todo. once you receive the bitcoin, you can release the funds. buys the winning shares for 99% of their value and combines.
+                active_offers(temp_div, function(){
+                    //Bob
+                    //todo. accept an offer, provide a btc address, and make an offer to sell your tokens for 99% of their max value.
+                    console.log("done making buttons");
+                    lists_div.innerHTML = "";
+                    lists_div.appendChild(temp_div);
                 });
             });
         });

@@ -323,11 +323,10 @@ binary aGVsbG8gd29ybGQ= hello !
 int_op 5 ++ 
 hello bin_code
 hash
-func1
 
 ( hash of the binary representation should be
  the same as 'func1' )
-=2
+func1 =2
 
 `]
     ]);
