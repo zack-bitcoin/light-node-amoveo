@@ -156,17 +156,26 @@ function crosschain_tab_builder2(div, selector){
                 return(0);
             };
             var nonce = my_acc[2];
-        //check that you have enough veo to do the offer.
             rpc.post(["add", 4, Contract], function(x){
+                //post the offer
+                rpc.post(["add", offer, 0], function(z){
+                    console.log(z);
+                    display.innerHTML = "successfully posted your crosschain offer. ";
+                    var link = document.createElement("a");
+                    link.href = "contracts.html";
+                    link.innerHTML = "Your trade can be viewed on this page."
+                    link.target = "_blank";
+                    display.appendChild(link);
+
+                }, IP, 8090);
+
                 console.log(JSON.stringify(x));
                 rpc.post(["read", 3, cid], function(y){
+                    //checking that the contract got published correctly.
                     console.log(JSON.stringify(y));
                 }, IP, 8090);
             }, IP, 8090);
         });
-
-        //show available offers.
-        //In order
 
     };
 
@@ -614,7 +623,10 @@ if(contract_text.match(/has received less than/)){
         } else {
             var signed_second_offer = swaps.pack(second_offer);
         }
+        console.log("to pack offer");
+        console.log(JSON.stringify(offer));
         var signed_offer = swaps.pack(offer);
+        console.log("packed offer");
         rpc.post(["add", signed_offer, signed_second_offer], function(z){
             display.innerHTML = "successfully posted your crosschain offer. ";
             var link = document.createElement("a");
@@ -628,7 +640,7 @@ if(contract_text.match(/has received less than/)){
         console.log("making active offers list");
         rpc.post(["markets"], function(markets){
             markets = markets.slice(1);
-            //console.log(JSON.stringify(markets));
+            console.log(JSON.stringify(markets));
             active_offers_from_markets(markets, temp_div, callback);
         }, IP, 8090);
     };
@@ -734,7 +746,7 @@ if(contract_text.match(/has received less than/)){
        var type1_from_swap_offer = swap_offer2[5];
        var offer = {};
        var block_height = headers_object.top()[1];
-       offer.start_limit = block_height - 1;
+       offer.start_limit = block_height - 10;
        offer.end_limit = block_height + 2000;
        offer.amount1 = amount2_from_swap_offer;
        offer.cid1 = cid2_from_swap_offer;
