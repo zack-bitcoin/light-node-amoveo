@@ -214,6 +214,7 @@ no btc delivery
 
     function refresh(){
         var temp_div = document.createElement("div");
+        //todo. alice needs a message saying where to send the bitcoin to.
         cancel_buttons(temp_div, function(){
             //Alice
             //todo. ability to cancel unmatched offers. increments your offer-nonce.
@@ -584,18 +585,24 @@ if(contract_text.match(/has received less than/)){
                 return(callback2());
             }
         });
-    }; 
-    function description_maker2(contract_text){
-        var address = contract_text.match(/address \w*/)[0];
+    };
+    //function description_maker2(contract_text){
+    //var address = contract_text.match(/address \w*/)[0];
+    /*
         var receive = contract_text.match(/\d[\.\d]* \w* before/)[0].slice(0,-6);
         var r = (receive)
             .concat(" to ")
             .concat(address);
         return(r);
-    };
-    function description_maker(cid1, type1, amount1, contract_text){
-        console.log(contract_text);
-        var d2 = description_maker2(contract_text);
+};
+*/
+    function description_maker(cid1, type1, amount1, contract){
+        var blockchain = contract[6];
+        var other_chain_amount = contract[7];
+        var ticker = contract[8];
+        var date = contract[9];
+        //console.log(contract_text);
+        //var d2 = description_maker2(contract_text);
         //var address = contract_text.match(/address \w*/)[0];
         //console.log(address);
         //var receive = contract_text.match(/\d\d* \w* /)[0];
@@ -613,7 +620,13 @@ if(contract_text.match(/has received less than/)){
             .concat(" ")
             .concat(spend_stuff)
             .concat(" in exchange for ")
-            .concat(d2);
+            .concat(atob(other_chain_amount))
+            .concat(" of ")
+            .concat(atob(ticker))
+            .concat(" on the")
+            .concat(atob(blockchain))
+            .concat(" blockchain by date ")
+            .concat(atob(date));
         return(description);
     };
     function post_offer(offer, second_offer){
@@ -637,10 +650,9 @@ if(contract_text.match(/has received less than/)){
         }, IP, 8090);//8090 is the p2p_derivatives server
     };
     function active_offers(temp_div, callback){
-        console.log("making active offers list");
         rpc.post(["markets"], function(markets){
             markets = markets.slice(1);
-            console.log(JSON.stringify(markets));
+            //console.log(JSON.stringify(markets));
             active_offers_from_markets(markets, temp_div, callback);
         }, IP, 8090);
     };
@@ -657,34 +669,38 @@ if(contract_text.match(/has received less than/)){
         var mid = market[2];
         var cid2 = market[5];
         var type2 = market[6];
-        if(!(type2 === 1)){
+        if(!(type2 === 2)){
             return(callback2());
         };
         rpc.post(["read", 3, cid2], function(contract){
+            //todo. only display the contract if the choose_address_timeout is in the future.
+            //todo. only display the contract if the oracle_start_height is in a reasonable timeframe.
             if(contract === 0){
                 return(callback2());
             };
-            //console.log(JSON.stringify(contract));
-            var Source = contract[5];
-            var SourceType = contract[6];
-            var contract_text = atob(contract[1]);
-            if(!(contract_text.match(/has received less than/))){
+            console.log(JSON.stringify(contract));
+            if(!(contract[0] === "contract")){
+                console.log("not this one\n");
                 return(callback2());
             };
             rpc.post(["read", mid], function(market_data){
                 //console.log(JSON.stringify(market_data));
                 market_data = market_data[1];
                 var orders = market_data[7];
-                display_active_offers_orders(orders.slice(1), temp_div, contract_text, Source, SourceType, callback2);
+                display_active_offers_orders(orders.slice(1), temp_div, contract, callback2);
             }, IP, 8090);
         }, IP, 8090);
     };
-    function display_active_offers_orders(orders, temp_div, contract_text, Source, SourceType, callback){
+    function display_active_offers_orders(orders, temp_div, contract, callback){
+        var Source = contract[2];
+        var SourceType = contract[3];
+        var tid = contract[10];
+
         if(orders.length === 0){
             return(callback());
         };
         function callback2(){
-            return(display_active_offers_orders(orders.slice(1), temp_div, contract_text, Source, SourceType, callback));
+            return(display_active_offers_orders(orders.slice(1), temp_div, contract, callback));
         };
         console.log(JSON.stringify(orders));
         var order = orders[0];
@@ -700,29 +716,80 @@ if(contract_text.match(/has received less than/)){
             var type1 = swap_offer2[5];
             var cid2 = swap_offer2[7];
             var salt = swap_offer2[10];
+            var trade_nonce = swap_offer2[11];
             var block_height = headers_object.top()[1];
-            var description = description_maker(cid1, type1, amount1, contract_text);
+            var description = description_maker(
+                cid1, type1, amount1, contract);
+            //ticker,
+             //   blockchain, date,
+              //  other_chain_amount);
             description.innerHTML =
                 description.innerHTML.replace(
                         /you offered to trade/,
                     "they offered to give")
-                .concat(" ; The money must arrive before ")
-                .concat(contract_text.slice(-21))
                 .concat(" ; Offer expires in ")
                 .concat(expires - block_height)
                 .concat(" blocks.");
             temp_div.appendChild(description);
+            /*
             var link = document.createElement("a");
             link.href = "offer_explorer.html?tid="
                 .concat(tid);
             link.innerHTML = "contract offer in explorer ";
             link.target = "_blank";
             temp_div.appendChild(link);
+            */
 
             console.log(description.innerHTML);
             console.log(JSON.stringify(swap_offer2));
+            var btc_address_input = text_input("address on other blockchain where you get paid.", temp_div),
             var accept_button = button_maker2("accept the offer", function(){
-                //TODO, this should also make an offer to sell your tokens for 99% of their value. the "already delivered button" stuff.
+                rpc.post(["account", keys.pub()], function(my_acc){
+                    var nonce = my_acc[2] + 1;
+                //todo: accept deposit address from input
+                    var deposit_address = btc_address_input.value;
+                    if(deposit_address.length < 5){
+                        display.innerHTML = "you need to choose an address on the other blockchain where you want to get paid.";
+                        return(0);
+                    };
+                    var address_timeout = contract[4];
+                    var oracle_start_height = contract[5];
+                    var blockchain = contract[6];
+                    var other_chain_amount = contract[7];
+                    var ticker = contract[8];
+                    var date = contract[9];
+                    var reusable_settings = buy_veo_contract.reusable_settings(oracle_start_height, blockchain, amount, ticker, date);
+                    var settings = buy_veo_contract.settings(reusable_settings, address_timeout, trade_nonce, tid);
+                    var contract1bytes = buy_veo_contract.contract1bytes(settings);
+                    var txs = buy_veo_contract.choose_deposit_address_tx(
+                        deposit_address, contract1bytes,
+                        their_pub, reusable_settings,
+                        tid, nonce);
+                    swaps.make_tx(trade, 1, function(swap_txs){
+                        //txs is [new_contract, contract_evidence, timeout_tx]
+                    //the evidence provides your bitcoin address.
+                        var txs = [txs[0]]
+                            .concat(swap_txs)
+                            .concat(txs.slice(1));
+                        multi_tx.make(txs, function(tx){
+                            console.log(JSON.stringify(txs));
+                            return(0);
+                            var stx = keys.sign(tx);
+                            post_txs([stx], function(response){
+                                display.innterHTML = response;
+                            });
+                        });
+                    //todo: publish the 3 txs. 
+                        //todo: publish an offer to sell your winnings for 99% of their value. If they don't deliver the btc, this is how you get your money out.
+                    });
+                });
+
+
+
+
+
+                /*
+
                 var new_contract_tx = new_scalar_contract.make_tx(contract_text, 1, Source, SourceType)
                 swaps.make_tx(trade, 1, function(txs){
                     multi_tx.make([new_contract_tx].concat(txs), function(tx){
@@ -770,6 +837,9 @@ if(contract_text.match(/has received less than/)){
             temp_div.appendChild(br());
             temp_div.appendChild(br());
             return(callback2());
+        }, IP, 8090);
+                */
+            });
         }, IP, 8090);
     };
     return({

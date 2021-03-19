@@ -482,7 +482,7 @@ var Address Date Ticker Amount Blockchain
         set_fee: function(x) { fee = x; },
         test: test,
 
-        settings: settings,
+       settings: settings,
         reusable_settings: reusable_settings,
         contract2bytes: contract2bytes,
         contract1bytes: contract1bytes,
