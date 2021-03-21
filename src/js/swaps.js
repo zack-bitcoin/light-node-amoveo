@@ -192,6 +192,7 @@ var swaps = (function(){
                     merkle.request_proof("contracts", CID, function(Contract){
                         rpc.post(["read", 3, CID], function(z){
                             console.log(z);
+                            console.log(CID);
                             var Source, SourceType, MT;
                             if(Contract == "empty"){
                                 if(!(z)){
@@ -207,8 +208,13 @@ var swaps = (function(){
                                     MT = 3;
                                     Source = z[4];
                                     SourceType = z[5];
+                                } else if (z[0] === "contract"){
+                                    //buy veo offer
+                                    MT = 2;
+                                    Source = z[2];
+                                    SourceType = z[3];
                                 } else {
-                                    cosole.log("server gave us a contract format we don't understand.");
+                                    console.log("server gave us a contract format we don't understand.");
                                     return(0);
                                 };
                             } else {
@@ -219,7 +225,8 @@ var swaps = (function(){
                             }
                             var Tx = ["contract_use_tx", 0, 0, 0, CID, Amount - bal, MT, Source, SourceType];
                             make_txs2(Source, SourceType, Amount - bal, function(L){return(callback(L.concat([Tx])))});
-                        }, get_ip(), "8090");
+                        //}, get_ip(), "8090");
+                        }, "127.0.0.1", "8090");
                     });
                 };
             });

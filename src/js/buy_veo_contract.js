@@ -296,9 +296,9 @@ var Address Date Ticker Amount Blockchain
         var result = chalang_object.run5(code, d);
         return(result.stack);
     };
-    function new_contract_tx(contract_bytes) {
-        var ch = scalar_derivative.hash(
-            contract_bytes);
+    function new_contract_tx(ch) {
+        //var ch = scalar_derivative.hash(
+        //    contract_bytes);
         //var cid = binary_derivatives.id_maker(
         //    ch, 2, ZERO, 0);
         var tx = ["contract_new_tx", keys.pub(),
@@ -373,12 +373,15 @@ var Address Date Ticker Amount Blockchain
             .concat(btoa(deposit_address))
             .concat(`" `);
         evidence = chalang_compiler.doit(evidence);
-        var new_tx = new_contract_tx(
-            contract_2bytesv);
+        var new_tx = new_contract_tx(ch2);
+        //contract2bytesv);
         var tx = ["contract_evidence_tx", keys.pub(),
-                  nonce, fee, contract1bytes, cid,
-                  evidence, [-6, ["receipts", rid]]];
+                  nonce, fee,
+                  btoa(array_to_string(contract1bytes)), cid,
+                  btoa(array_to_string(evidence)),
+                  [-6, ["receipts", rid]]];
         var timeout_tx = first_timeout(cid, ch2, nonce+1);
+        console.log("about to return from buy veo contract");
         return([new_tx, tx, timeout_tx]);
     };
 

@@ -627,7 +627,7 @@ if(contract_text.match(/has received less than/)){
             .concat(atob(other_chain_amount))
             .concat(" of ")
             .concat(atob(ticker))
-            .concat(" on the")
+            .concat(" on the ")
             .concat(atob(blockchain))
             .concat(" blockchain by date ")
             .concat(atob(date));
@@ -777,22 +777,30 @@ if(contract_text.match(/has received less than/)){
                     var settings = buy_veo_contract.settings(reusable_settings, address_timeout, trade_nonce, tid);
                     var contract1bytes = buy_veo_contract.contract1bytes(settings);
                     console.log(JSON.stringify([deposit_address, contract1bytes, from, reusable_settings, tid, nonce]));
-                    var txs = buy_veo_contract.choose_deposit_address_tx(
+                    var contract_txs = buy_veo_contract.choose_deposit_address_tx(
                         deposit_address, contract1bytes,
                         from, reusable_settings,
                         tid, nonce);
+                    console.log("making swap 1");
+                    console.log(JSON.stringify(contract_txs));
                     swaps.make_tx(trade, 1, function(swap_txs){
                         //txs is [new_contract, contract_evidence, timeout_tx]
                         //the evidence provides your bitcoin address.
                         //-record(contract_evidence_tx, {from, nonce, fee, contract, contract_id, evidence, prove}).
-                        var evidence0 = setelement(3, txs[1], nonce+1);
+                        //var evidence0 = setelement(3, txs[1], nonce+1);
+                        console.log(JSON.stringify(contract_txs));
+                        console.log(JSON.stringify(swap_txs));
+                        var evidence0 = contract_txs[1];
+                        evidence0[2] = nonce + 1;
                         var evidence = keys.sign(evidence0);
                         //evidence nonce is nonce+1
-                        var timeout0 = setelement(3, txs[2], nonce+2);
+                        //var timeout0 = setelement(3, contract_txs[2], nonce+2);
+                        var timeout0 = contract_txs[2];
+                        timeout0[2] = nonce+2;
                         var timeout = keys.sign(timeout0);
                         //timeout nonce is nonce+1
                         
-                        var txs = [txs[0]]
+                        var txs = [contract_txs[0]]
                             .concat(swap_txs);
                         multi_tx.make(txs, function(tx){
                             console.log(JSON.stringify(txs));
