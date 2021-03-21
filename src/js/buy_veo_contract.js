@@ -258,9 +258,12 @@ var Address Date Ticker Amount Blockchain
         reusable_settings, bitcoin_address
     ){
         var s = ` ." AD" binary ID2 call `;
+        console.log(s);
         s = s.replace("AD", bitcoin_address)
-            .replace("ID2", part2id());
+            .replace("ID2", btoa(array_to_string(part2id())));
+        console.log(s);
         s = reusable_settings.concat(s);
+        console.log(s);
         s = chalang_compiler.doit(s);
         return(s);
     };
@@ -321,7 +324,7 @@ var Address Date Ticker Amount Blockchain
         offer.type2 = 2;
         offer.acc1 = keys.pub();
         offer.partial_match = false;
-        //console.log(JSON.stringify(offer));
+        console.log(JSON.stringify(offer));
         var signed_offer = swaps.pack(offer);
         return(signed_offer);
     };
@@ -354,8 +357,10 @@ var Address Date Ticker Amount Blockchain
         reusable_settings, trade_id, nonce
     ){
         var contract2bytesv = contract2bytes(
-            reusable_settings, deposit_address);
-        var ch2 = scalar_derivative.hash(contract2bytesv);
+            reusable_settings, btoa(deposit_address));
+        console.log(contract2bytesv);
+        //var ch2 = scalar_derivative.hash(contract2bytesv);
+        var ch2 = btoa(array_to_string(hash(contract2bytesv)));
         var cid = make_cid(contract1bytes, 2, ZERO, 0);
         //var ch = scalar_derivative.hash(contract1bytes);
         //var cid = binary_derivatives.id_maker(
@@ -365,7 +370,7 @@ var Address Date Ticker Amount Blockchain
         var evidence = ` binary `
             .concat(sig)
             .concat(` ." `)
-            .concat(deposit_address)
+            .concat(btoa(deposit_address))
             .concat(`" `);
         evidence = chalang_compiler.doit(evidence);
         var new_tx = new_contract_tx(
