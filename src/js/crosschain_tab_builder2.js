@@ -283,6 +283,7 @@ no btc delivery
             var swap_offer2 = trade[1];
             var from = swap_offer2[1];
             var amount1 = swap_offer2[6];
+            var amount2 = swap_offer2[9];
             var cid1 = swap_offer2[4];
             var type1 = swap_offer2[5];
             var cid2 = swap_offer2[7];
@@ -292,7 +293,7 @@ no btc delivery
                     //console.log(JSON.stringify(contract));
                     var contract_text = atob(contract[1]);
                     //console.log(contract_text);
-                    var description = description_maker(cid1, type1, amount1, contract_text);
+                    var description = description_maker(cid1, type1, amount2 - amount1, contract_text);
 
                     var cancel_button = button_maker2("cancel trade", function(){
                         console.log("canceling");
@@ -722,6 +723,7 @@ if(contract_text.match(/has received less than/)){
             var from = swap_offer2[1];
             var expires = swap_offer2[3];
             var amount1 = swap_offer2[6];
+            var amount2 = swap_offer2[9];
             var cid1 = swap_offer2[4];
             var type1 = swap_offer2[5];
             var cid2 = swap_offer2[7];
@@ -729,7 +731,7 @@ if(contract_text.match(/has received less than/)){
             var trade_nonce = swap_offer2[11];
             var block_height = headers_object.top()[1];
             var description = description_maker(
-                cid1, type1, amount1, contract);
+                cid1, type1, amount2 - amount1, contract);
             //ticker,
              //   blockchain, date,
             //  other_chain_amount);
@@ -740,7 +742,7 @@ if(contract_text.match(/has received less than/)){
             description.innerHTML =
                 description.innerHTML.replace(
                         /you offered to trade/,
-                    "they offered to give")
+                    "they offered to buy")
                 .concat(" ; Offer expires in ")
                 .concat(expires - block_height)
                 .concat(" blocks.");
