@@ -143,6 +143,7 @@ function keys_function1() {
         return btoa(array_to_string([f].concat(x)))
     }
     function raw_sign(x) {
+        //x should be a list of bytes.
         var h = hash(x);
         var sig = keys_internal.sign(h);
         var sig2 = sig.toDER();

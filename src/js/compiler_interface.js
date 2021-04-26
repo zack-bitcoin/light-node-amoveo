@@ -54,7 +54,7 @@ r> r> r> r> and and and
         ["verify signature", `
 % signature test
 
-macro sig binary TUVVQ0lIQ1Ixc3ZwN05uTmt6Um1qTFBUZnR3OTlRZXVmSlBRamRRVXRCTlZpYWlKQWlFQWhuakh6MzFERWtTYXI0UWVRc1NrOGlJRG4rMTh4azAwYUVoTENLMWtiSmc9 ;
+macro sig binary MEUCIHCR1svp7NnNkzRmjLPTftw99QeufJPQjdQUtBNViaiJAiEAhnjHz31DEkSar4QeQsSk8iIDn+18xk00aEhLCK1kbJg= ;
 
  macro pub binary BLDdkEzI6L8qmIFcSdnH5pfNAjEU11S9pHXFzY4U0JMgfvIMnwMxDOA85t6DKArhzbPJ1QaNBFHO7nRguf3El3I= ;
 

@@ -14,13 +14,14 @@ function headers_main() {
         mode = "testnet";
         server_port.value = "8070";
         if (server_ip.value == "") {
-            server_ip.value = "159.89.87.58";
+            //server_ip.value = "159.89.87.58";
+            server_ip.value = default_ip();
         }
     } else {
         mode = "production";
         server_port.value = "8080";
         if (server_ip.value == "") {
-            server_ip.value = "159.89.87.58";
+            server_ip.value = default_ip();
         }
     }
     //console.log(mode);

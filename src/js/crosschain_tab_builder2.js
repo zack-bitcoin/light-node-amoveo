@@ -18,7 +18,7 @@ function crosschain_tab_builder2(div, selector){
     div.appendChild(display);
     //div.appendChild(br());
     //var IP = "159.89.87.58";
-    var IP = "127.0.0.1";
+    var IP = default_ip();
 
     //Make trade offer interface
     var trade_offer_title = document.createElement("h3");
@@ -69,7 +69,7 @@ function crosschain_tab_builder2(div, selector){
     //test values
     other_blockchain_input.value = "Bitcoin";
     ticker_input.value = "BTC";
-    receive_amount_input.value = "0.2";
+    receive_amount_input.value = "0.002";
     spend_amount_input.value = "0.000001";
     /*
     //security_amount_input.value = "0.3";
@@ -113,15 +113,12 @@ function crosschain_tab_builder2(div, selector){
             reusable_settings(
                 oracleStartHeight, blockchain,
                 amount, ticker, date);
-        //console.log(JSON.stringify(reusable_settings));
-
         var salt = btoa(random_cid(32));
         var TID = swaps.id_maker(keys.pub(), salt);
         var settings = buy_veo_contract.
             settings(
                 reusable_settings, addressTimeout,
                 1, TID);
-        //console.log(JSON.stringify(settings));
         var amount2 = Math.round(parseFloat(security_amount_input.value, 10)*100000000);
         
         //the swap offer
@@ -133,8 +130,6 @@ function crosschain_tab_builder2(div, selector){
             blocks_till_expires,
             amount2, amount1, 
             cid, salt);
-        console.log("this is the swap offer to activate the trade");
-        console.log(JSON.stringify(offer));
         
         //this is the contract data we teach the p2p derivatives server.
         var Contract = [
@@ -771,20 +766,18 @@ if(contract_text.match(/has received less than/)){
                     };
                     var address_timeout = contract[4];
                     var oracle_start_height = contract[5];
-                    var blockchain = contract[6];
-                    var other_chain_amount = contract[7];
-                    var ticker = contract[8];
-                    var date = contract[9];
-                    var reusable_settings = buy_veo_contract.reusable_settings(oracle_start_height, blockchain, amount, ticker, date);
+                    var blockchain = atob(contract[6]);
+                    var other_chain_amount = atob(contract[7]);
+                    var ticker = atob(contract[8]);
+                    var date = atob(contract[9]);
+                    var reusable_settings = buy_veo_contract.reusable_settings(oracle_start_height, blockchain, other_chain_amount, ticker, date);
                     var settings = buy_veo_contract.settings(reusable_settings, address_timeout, trade_nonce, tid);
                     var contract1bytes = buy_veo_contract.contract1bytes(settings);
-                    console.log(JSON.stringify([deposit_address, contract1bytes, from, reusable_settings, tid, nonce]));
+                    
                     var contract_txs = buy_veo_contract.choose_deposit_address_tx(
                         deposit_address, contract1bytes,
                         from, reusable_settings,
                         tid, nonce);
-                    console.log("making swap 1");
-                    console.log(JSON.stringify(contract_txs));
                     swaps.make_tx(trade, 1, function(swap_txs){
                         //txs is [new_contract, contract_evidence, timeout_tx]
                         //the evidence provides your bitcoin address.
@@ -808,9 +801,13 @@ if(contract_text.match(/has received less than/)){
                             console.log(JSON.stringify(txs));
                             console.log(JSON.stringify(evidence));
                             console.log(JSON.stringify(timeout));
-                            return(0);
+                            //return(0);
                             var stx = keys.sign(tx);
-   post_txs([stx, evidence, timeout], function(response){
+   //post_txs([stx, evidence, timeout], function(response){
+      post_txs([stx, evidence], function(response){
+
+       console.log("returned from posting txs");
+       console.log(response);
        display.innterHTML = response;
        //var amount1_from_swap_offer = swap_offer2[6];
        var amount2_from_swap_offer = swap_offer2[9];

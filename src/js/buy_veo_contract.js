@@ -115,7 +115,7 @@ bin_code_fun !
 
 macro bin_code bin_code_fun @ call ;
 
-var part2 ;
+var part2 ; 
 
 int_op OracleStartHeight @ ++
 Blockchain bin_code
@@ -124,10 +124,7 @@ Ticker bin_code
 Date bin_code
 Address bin_code
 bin_op ++ 32 ++ part2 ++ call_op ++
-( print )
 hash
-
-( part2 print print drop)
 
 0 1000
 
@@ -260,7 +257,7 @@ var Address Date Ticker Amount Blockchain
         var s = ` ." AD" binary ID2 call `;
         console.log(s);
         s = s.replace("AD", bitcoin_address)
-            .replace("ID2", btoa(array_to_string(part2id())));
+            .replace("ID2", part2id());
         console.log(s);
         s = reusable_settings.concat(s);
         console.log(s);
@@ -269,16 +266,17 @@ var Address Date Ticker Amount Blockchain
     };
     function part2id(){
         var code = contract2.concat(` part2 `);
-        //console.log(code);
         var bytes = chalang_compiler.doit(code);
-        //console.log(btoa(array_to_string(bytes)));
-        return(run(bytes)[0]);
+        return(" binary ".concat(btoa(array_to_string(run(bytes)[0].slice(1)))));
     };
     function part1static_bytes(){
+        //error here. it is including all of part2 instead of just the id.
         var s = ` macro part2 `
-            .concat(part2id())
+            .concat(part2id()) //currently is this: [binary,175,253,78,9,75,163,111,26,134,13,23,56,91,85,6,12,230,0,96,60,129,52,162,153,129,12,234,64,108,186,152,132].
+        //needs to be changed to valid chalang code.
             .concat(` ; `)
             .concat(contract1);
+        console.log(JSON.stringify(s));
         s = chalang_compiler.doit(s);
         return(s);
     };
@@ -356,31 +354,26 @@ var Address Date Ticker Amount Blockchain
         deposit_address, contract1bytes, their_pub,
         reusable_settings, trade_id, nonce
     ){
-        var contract2bytesv = contract2bytes(
-            reusable_settings, btoa(deposit_address));
-        console.log(contract2bytesv);
-        //var ch2 = scalar_derivative.hash(contract2bytesv);
-        var ch2 = btoa(array_to_string(hash(contract2bytesv)));
+        var ch = btoa(array_to_string(
+            hash(contract1bytes)));
         var cid = make_cid(contract1bytes, 2, ZERO, 0);
-        //var ch = scalar_derivative.hash(contract1bytes);
-        //var cid = binary_derivatives.id_maker(
-        //    ch, 2, ZERO, 0);
-        var rid = rid_maker(trade_id, their_pub);
-        var sig = keys.raw_sign(string_to_array(deposit_address));
+        var rid = rid_maker(trade_id, keys.pub());
+        console.log(JSON.stringify([rid, trade_id, their_pub, deposit_address]));
+        var sig = keys.raw_sign(serialize(btoa(deposit_address)));
         var evidence = ` binary `
             .concat(sig)
             .concat(` ." `)
-            .concat(btoa(deposit_address))
+            .concat(deposit_address)
             .concat(`" `);
         evidence = chalang_compiler.doit(evidence);
-        var new_tx = new_contract_tx(ch2);
+        var new_tx = new_contract_tx(ch);
         //contract2bytesv);
         var tx = ["contract_evidence_tx", keys.pub(),
                   nonce, fee,
                   btoa(array_to_string(contract1bytes)), cid,
                   btoa(array_to_string(evidence)),
                   [-6, ["receipts", rid]]];
-        var timeout_tx = first_timeout(cid, ch2, nonce+1);
+        var timeout_tx = first_timeout(cid, ch, nonce+1);
         console.log("about to return from buy veo contract");
         return([new_tx, tx, timeout_tx]);
     };
@@ -490,7 +483,9 @@ var Address Date Ticker Amount Blockchain
         set_fee: function(x) { fee = x; },
         test: test,
 
-       settings: settings,
+        part2id: part2id,
+        part1static_bytes: part1static_bytes,
+        settings: settings,
         reusable_settings: reusable_settings,
         contract2bytes: contract2bytes,
         contract1bytes: contract1bytes,
