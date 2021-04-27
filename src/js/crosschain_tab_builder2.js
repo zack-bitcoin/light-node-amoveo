@@ -209,12 +209,10 @@ no btc delivery
 
     */
 
-    //todo, when you make an offer to sell BTC, it should also offer to sell your shares for 99% of their max value, if you win.
-
     function refresh(){
         var temp_div = document.createElement("div");
-        //todo. alice needs a message saying where to send the bitcoin to.
-        cancel_buttons(temp_div, function(){
+        //todo. alice needs a message saying where to send the bitcoin to, and how much time is left.
+        //cancel_buttons(temp_div, function(){
             //Alice
             //todo. ability to cancel unmatched offers. increments your offer-nonce.
             release_buttons(temp_div, function(){
@@ -222,13 +220,15 @@ no btc delivery
                 //todo. once you receive the bitcoin, you can release the funds. buys the winning shares for 99% of their value and combines.
                 active_offers(temp_div, function(){
                     //Bob
-                    //todo. accept an offer, provide a btc address, and make an offer to sell your tokens for 99% of their max value.
+                    //accept an offer, provide a btc address, and make an offer to sell your tokens for 99% of their max value.
+            //Alice
+            //todo. ability to cancel unmatched offers. increments your offer-nonce.
                     console.log("done making buttons");
                     lists_div.innerHTML = "";
                     lists_div.appendChild(temp_div);
                 });
             });
-        });
+        //});
     };
     function cancel_buttons(temp_div, callback){
         console.log("making cancel buttons");
@@ -355,6 +355,7 @@ no btc delivery
                             var Source = contract[5];
                             var SourceType = contract[6];
                             var contract_text = atob(contract[1]);
+                            console.log(contract_text);
 if(contract_text.match(/has received less than/)){
     var received_text = description_maker2(contract_text);
     var description = document.createElement("span");
@@ -725,6 +726,39 @@ if(contract_text.match(/has received less than/)){
             var salt = swap_offer2[10];
             var trade_nonce = swap_offer2[11];
             var block_height = headers_object.top()[1];
+
+            if(from === keys.pub()){
+                console.log(JSON.stringify(swap_offer2));
+                var cancel_button = button_maker2("cancel the offer", function(){
+                
+                    //-record(trade_cancel_tx, {acc, nonce, fee, salt}).
+                    var trade_cancel_tx = ["trade_cancel_tx", from, 2, fee, salt];
+                    var stx = keys.sign(trade_cancel_tx);
+                    post_txs([stx], function(response){
+
+                        console.log(JSON.stringify(response));
+                        display.innerHTML = " canceled the trade. response from server: "
+                            .concat(response);
+                    });
+                });
+            var description = description_maker(
+                cid1, type1, amount2 - amount1, contract);
+            description.innerHTML =
+                description.innerHTML
+                .concat(" ; Offer expires in ")
+                .concat(expires - block_height)
+                .concat(" blocks.");
+            temp_div.appendChild(description);
+
+                //todo post description
+            temp_div.appendChild(br());
+            temp_div.appendChild(cancel_button);
+            temp_div.appendChild(br());
+            temp_div.appendChild(br());
+                
+                return(callback2());
+            };
+
             var description = description_maker(
                 cid1, type1, amount2 - amount1, contract);
             //ticker,
@@ -803,8 +837,7 @@ if(contract_text.match(/has received less than/)){
                             console.log(JSON.stringify(timeout));
                             //return(0);
                             var stx = keys.sign(tx);
-   //post_txs([stx, evidence, timeout], function(response){
-      post_txs([stx, evidence], function(response){
+   post_txs([stx, evidence, timeout], function(response){
 
        console.log("returned from posting txs");
        console.log(response);
