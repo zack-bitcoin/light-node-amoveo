@@ -211,25 +211,119 @@ no btc delivery
 
     function refresh(){
         var temp_div = document.createElement("div");
-        //todo. alice needs a message saying where to send the bitcoin to, and how much time is left.
-        //cancel_buttons(temp_div, function(){
-            //Alice
-            //todo. ability to cancel unmatched offers. increments your offer-nonce.
+        where_to_send_indicator(temp_div, function(){//todo. alice.
             release_buttons(temp_div, function(){
                 //Bob
                 //todo. once you receive the bitcoin, you can release the funds. buys the winning shares for 99% of their value and combines.
+                //todo. if they don't deliver the bitcoin in time, you can dispute.
+                //
                 active_offers(temp_div, function(){
                     //Bob
                     //accept an offer, provide a btc address, and make an offer to sell your tokens for 99% of their max value.
-            //Alice
-            //todo. ability to cancel unmatched offers. increments your offer-nonce.
+                    //Alice
+                    //ability to cancel unmatched offers. increments your offer-nonce.
                     console.log("done making buttons");
                     lists_div.innerHTML = "";
                     lists_div.appendChild(temp_div);
                 });
             });
-        //});
+        });
     };
+
+    function where_to_send_indicator(temp_div, callback){
+        //todo
+        rpc.post(["account", keys.pub()], function(
+            account
+        ){
+            if(account === "error"){
+                return(callback());
+            };
+            account = account[1];
+            var subaccounts = account[3];
+            return(where_to_send_indicator_loop(
+                temp_div, subaccounts.slice(1).reverse(),
+                callback));
+        }, IP, 8091);//the explorer
+    };
+    function where_to_send_indicator_loop(
+        temp_div, subaccounts, callback){
+        if(subaccounts.length === 0){
+            return(callback());
+        };
+        var callback2 = function(){
+            return(where_to_send_indicator_loop(
+                temp_div, subaccounts.slice(1),
+                callback));
+        };
+        var cid = subaccounts[0];
+        var id = sub_accounts.normal_key(keys.pub(), cid, 2);
+        sub_accounts.rpc(id, function(sa){
+            if(sa === 0){
+                return(callback2());
+            };
+            var balance = sa[1];
+            if(balance < 100000){
+                return(callback2());
+            };
+            rpc.post(["read", 3, cid], function(contract){
+                //-record(contract,
+                //{cid, source = <<0:256>>, 
+                //source_type = 0, choose_address_timeout,
+                //oracle_start_height, blockchain,
+                //amount, ticker, date, trade_id, now
+                //["contract","kop03QzWfbeHCHEHNpaqILi+IFsImh39mw1Iy6YsxYE=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",0,161314,161184,"Qml0Y29pbg==","MC4wMDAwMDE=","QlRD","MjYgQXByIDIwMjEgMTQ6MDkgR01U","MN9DgNGQzkpBlDOQZjoJu+XewZDxTMdLX9PxmXXbUt0=",[-7,1619,273396,794174]]
+                if(contract === 0){
+                    //contract doesn't exist in the p2p derivatives explorer.
+                    return(callback2());
+                };
+                if(!(contract[0] === "contract")){
+                    //not a buy_veo contract.
+                    return(callback2());
+                };
+                rpc.post(["contracts", cid], function(consensus_state_contract){
+                    if(consensus_state_contract === 0){
+                        //contract doesn't exist in consensus state space.
+                        return(callback2());
+                    };
+                    var result = consensus_state_contract[7];
+                    if(result === ZERO){
+                        //unfinalized contract
+                        return(callback2());
+      //result = <<0:256>>,%if result is an integer in (0,many_types], then all the money goes to that type.
+      //%otherwise, result can be a merkle root of a tree that describes some other contract with the same source and source_type.
+      //%or, the result can be the hash of a merkle structure describing how the value is divided up among the participants.
+                    };
+                    var sink = consenesus_state_contract[10];
+                    rpc.post(["contracts", sink], function(cs_contract2){
+                        console.log(JSON.stringify(cs_contract2));
+                        if(cs_contract2 === 0){
+                            //sink contract doesn't exist in consensus state space
+                            return(callback2());
+                        }
+                    
+                        //-record(contract, {code, many_types, nonce, last_modified, delay, closed, result, source, source_type, sink, volume}).
+
+                        var Source = contract[2];
+                        var SourceType = contract[3];
+                //var contract_text = atob(contract[1]);
+                        var oracle_start_height =
+                            contract[5];
+                        var blockchain = atob(contract[6]);
+                        var amount = atob(contract[7]);
+                        var ticker = atob(contract[8]);
+                        var date = atob(contract[9]);
+                        var trade_id = contract[10];
+                        console.log(JSON.stringify(contract));
+                        console.log(JSON.stringify([blockchain, ticker, amount, date, trade_id]));
+                        //todo
+                        //extract bitcoin address from contract2 to send to, and create a message about how much to deliver, and how much time is left.
+                
+                    });
+                });
+            }, IP, 8090);
+        });
+    };
+    /*
     function cancel_buttons(temp_div, callback){
         console.log("making cancel buttons");
         rpc.post(["markets"], function(markets){
@@ -314,6 +408,7 @@ no btc delivery
             };
         }, IP, 8090);
     };
+    */
 
     function release_buttons(temp_div, callback){
         console.log("making release buttons");
@@ -791,6 +886,7 @@ if(contract_text.match(/has received less than/)){
             var btc_address_input = text_input("address on other blockchain where you get paid.", temp_div);
             btc_address_input.value = "test_address";
             var accept_button = button_maker2("accept the offer", function(){
+                console.log("accepting the offer");
                 rpc.post(["account", keys.pub()], function(my_acc){
                     var nonce = my_acc[2] + 1;
                     var deposit_address = btc_address_input.value;
@@ -825,18 +921,22 @@ if(contract_text.match(/has received less than/)){
                         //evidence nonce is nonce+1
                         //var timeout0 = setelement(3, contract_txs[2], nonce+2);
                         var timeout0 = contract_txs[2];
+                            console.log(JSON.stringify(timeout0));
                         timeout0[2] = nonce+2;
                         var timeout = keys.sign(timeout0);
                         //timeout nonce is nonce+1
                         
                         var txs = [contract_txs[0]]
                             .concat(swap_txs);
+                console.log("making multi tx");
                         multi_tx.make(txs, function(tx){
                             console.log(JSON.stringify(txs));
                             console.log(JSON.stringify(evidence));
                             console.log(JSON.stringify(timeout));
                             //return(0);
                             var stx = keys.sign(tx);
+                            console.log("publishing txs");
+                            console.log(JSON.stringify([stx, evidence, timeout]));
    post_txs([stx, evidence, timeout], function(response){
 
        console.log("returned from posting txs");

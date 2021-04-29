@@ -463,10 +463,17 @@ var Address Date Ticker Amount Blockchain
     };
     function first_timeout(CID, CH2, nonce) {
         var Matrix = matrix();
+        console.log(JSON.stringify(Matrix));//[[[255,255,255,255],[0,0,0,0]],[[0,0,0,0],[255,255,255,255]]]
+
         var proofs = contract_evidence_proof(Matrix);
+        var row = Matrix[0].map(function(x){
+            //from [0,0,0,0] -> zero
+            return(btoa(array_to_string(x)));
+        });
+        row = [-6].concat(row);
         var tx = ["contract_timeout_tx", keys.pub(),
                   nonce, fee, CID, proofs, CH2,
-                  Matrix[0]];
+                  row];
         return(tx);
     };
                       
