@@ -82,9 +82,9 @@ var resolve_scalar_contract = (function(){
                     console.log(JSON.stringify(tx1));
                     var stx1 = keys.sign(tx1);
                     
-                    var tx2 = ["contract_timeout_tx",
+                    var tx2 = ["contract_timeout_tx2",
                                keys.pub(), Nonce+1, fee,
-                               cid, 0, 0, 0];
+                               cid, 0, 0, 0, 0];
                     var stx2 = keys.sign(tx2);
                     post_txs([stx1], function(msg){
                         display.innerHTML = msg;

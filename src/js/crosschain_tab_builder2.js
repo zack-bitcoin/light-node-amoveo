@@ -293,13 +293,15 @@ no btc delivery
       //%otherwise, result can be a merkle root of a tree that describes some other contract with the same source and source_type.
       //%or, the result can be the hash of a merkle structure describing how the value is divided up among the participants.
                     };
-                    var sink = consenesus_state_contract[10];
-                    rpc.post(["contracts", sink], function(cs_contract2){
-                        console.log(JSON.stringify(cs_contract2));
-                        if(cs_contract2 === 0){
+                    var sink = consensus_state_contract[10];
+                    //rpc.post(["contracts", sink], function(cs_contract2){
+                        console.log(JSON.stringify(sink));
+                        console.log(JSON.stringify(consensus_state_contract));
+                        //console.log(JSON.stringify(cs_contract2));
+                        //if(cs_contract2 === 0){
                             //sink contract doesn't exist in consensus state space
-                            return(callback2());
-                        }
+                        //    return(callback2());
+                        //}
                     
                         //-record(contract, {code, many_types, nonce, last_modified, delay, closed, result, source, source_type, sink, volume}).
 
@@ -318,7 +320,7 @@ no btc delivery
                         //todo
                         //extract bitcoin address from contract2 to send to, and create a message about how much to deliver, and how much time is left.
                 
-                    });
+                    //});
                 });
             }, IP, 8090);
         });
@@ -921,7 +923,7 @@ if(contract_text.match(/has received less than/)){
                         //evidence nonce is nonce+1
                         //var timeout0 = setelement(3, contract_txs[2], nonce+2);
                         var timeout0 = contract_txs[2];
-                            console.log(JSON.stringify(timeout0));
+                        //    console.log(JSON.stringify(timeout0));
                         timeout0[2] = nonce+2;
                         var timeout = keys.sign(timeout0);
                         //timeout nonce is nonce+1
@@ -932,12 +934,12 @@ if(contract_text.match(/has received less than/)){
                         multi_tx.make(txs, function(tx){
                             console.log(JSON.stringify(txs));
                             console.log(JSON.stringify(evidence));
-                            console.log(JSON.stringify(timeout));
+                            //console.log(JSON.stringify(timeout));
                             //return(0);
                             var stx = keys.sign(tx);
                             console.log("publishing txs");
                             console.log(JSON.stringify([stx, evidence, timeout]));
-   post_txs([stx, evidence, timeout], function(response){
+                            post_txs([stx, evidence, timeout], function(response){
 
        console.log("returned from posting txs");
        console.log(response);

@@ -258,6 +258,22 @@
             tx_text.appendChild(link);
             tx_text.appendChild(br());
             tx_text.appendChild(br());
+        } else if (type === "contract_timeout_tx2"){
+            var cid = tx[4];
+            var proof = tx[5];
+            var contract_hash = tx[6];
+            var row = tx[7];
+            var sink = tx[8];
+            console.log(JSON.stringify([
+                cid, proof, contract_hash, row, sink
+            ]));
+            var link = make_contract_link(cid);
+            tx_text.innerHTML =
+                "Contract Timeout. <br>"
+                .concat("cid: ");
+            tx_text.appendChild(link);
+            tx_text.appendChild(br());
+            tx_text.appendChild(br());
         } else if (type === "contract_timeout_tx"){
             var cid = tx[4];
             var proof = tx[5];

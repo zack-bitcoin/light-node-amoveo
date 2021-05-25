@@ -65,7 +65,7 @@ var multi_tx = (function(){
             //} else if(tx[0] === "oracle_close"){
             } else if(tx[0] === "sub_spend_tx"){
                 vol += tx[5];
-            //} else if(tx[0] === "contract_timeout_tx"){
+            //} else if(tx[0] === "contract_timeout_tx2"){
             //} else if(tx[0] === "contract_simplify_tx"){
             //} else if(tx[0] === "contract_winnings_tx"){
             } else if(tx[0] === "contract_use_tx"){

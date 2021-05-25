@@ -46,10 +46,10 @@ var resolve_binary_contract = (function(){
                 post_txs([stx], function(msg){
                 //display.innerHTML = msg;
 
-                    var tx = ["contract_timeout_tx",
+                    var tx = ["contract_timeout_tx2",
                               keys.pub(),
                               nonce + 1, fee, cid, 0,
-                              0, 0]
+                              0, 0, 0]
                     var stx = keys.sign(tx);
                     post_txs([stx], function(msg2){
                         display.innerHTML = msg.concat("<br>").concat(msg2);

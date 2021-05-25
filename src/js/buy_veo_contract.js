@@ -254,7 +254,7 @@ var Address Date Ticker Amount Blockchain
     function contract2bytes(
         reusable_settings, bitcoin_address
     ){
-        var s = ` ." AD" binary ID2 call `;
+        var s = ` ." AD" ID2 call `;
         console.log(s);
         s = s.replace("AD", bitcoin_address)
             .replace("ID2", part2id());
@@ -346,8 +346,8 @@ var Address Date Ticker Amount Blockchain
                   nonce, fee, contract1bytes, cid,
                   "", []];
         var timeout_tx =
-            ["contract_timeout_tx", keys.pub(),
-             nonce+1, fee, cid, 0, 0, 0];
+            ["contract_timeout_tx2", keys.pub(),
+             nonce+1, fee, cid, 0, 0, 0, 0];
         return([tx, timeout_tx]);
     };
     function make_txs_to_choose_deposit_address(
@@ -373,8 +373,8 @@ var Address Date Ticker Amount Blockchain
                   btoa(array_to_string(contract1bytes)), cid,
                   btoa(array_to_string(evidence)),
                   [-6, ["receipts", rid]]];
-        var timeout_tx = first_timeout(cid, ch, nonce+1);
-        console.log("about to return from buy veo contract");
+        var timeout_tx = first_timeout(cid, ch, reusable_settings, deposit_address, nonce+1);
+        //console.log("about to return from buy veo contract");
         return([new_tx, tx, timeout_tx]);
     };
 
@@ -409,8 +409,8 @@ var Address Date Ticker Amount Blockchain
             evidence2, [-6 ["oracles", oid]]
         ];
         var timeout_tx = [
-            "contract_timeout_tx",keys.pub(),
-            nonce+1, fee, cid2, 0, 0, 0];
+            "contract_timeout_tx2",keys.pub(),
+            nonce+1, fee, cid2, 0, 0, 0, 0];
         var simplify_tx = simplify_tx(cid1, cid2, result, nonce+2);
         return([evidence_tx, timeout_tx, simplify_tx]);
     };
@@ -461,7 +461,7 @@ var Address Date Ticker Amount Blockchain
         var v1 = Matrix[0][0];
         return([-7,"DuuMB6kmlzrtq7xvpJZC01BrGSojmrRIiQH+n9oU2cM=","cqT6NUTkOoNv/LJozgbM28VdRNXmsbHBkhalPqmDAf0=",[-6,[-7,"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","69C/42A2nzhjBR3hE6PxPhdn/FY060N1dMOt2RIVMVo=","/0URezACy63B5htZN80FCOUC1ZyUPvbLaCwqIV3LP80=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="]]]);
     };
-    function first_timeout(CID, CH2, nonce) {
+    function first_timeout(CID, CH, reusable_settings, deposit_address, nonce) {
         var Matrix = matrix();
         console.log(JSON.stringify(Matrix));//[[[255,255,255,255],[0,0,0,0]],[[0,0,0,0],[255,255,255,255]]]
 
@@ -471,9 +471,18 @@ var Address Date Ticker Amount Blockchain
             return(btoa(array_to_string(x)));
         });
         row = [-6].concat(row);
-        var tx = ["contract_timeout_tx", keys.pub(),
+        //CID2 = contracts:make_id(CH2, 2, <<0:256>>, 0),
+        //var child_cid = binary_derivative.id_maker(
+        //    CH2, 2, ZERO, 0);
+        var c2b = contract2bytes(
+            reusable_settings, deposit_address);
+        var CH2 = scalar_derivative.hash(btoa(array_to_string(c2b)));
+        console.log("contract 2 bytes");
+        console.log(JSON.stringify(c2b));
+        var child_cid = make_cid(c2b, 2, ZERO, 0);
+        var tx = ["contract_timeout_tx2", keys.pub(),
                   nonce, fee, CID, proofs, CH2,
-                  row];
+                  row, child_cid];
         return(tx);
     };
                       
