@@ -11,12 +11,12 @@
         //server_ip.value = "0.0.0.0";
     };
     //const urlParams = new URLSearchParams(window.location.search);
-    console.log(get_ip());
+    console.log(default_ip());
     rpc.post(["contracts", 100], function(contracts){
         //console.log(JSON.stringify(contracts));
         contracts_div.innerHTML = "";
         return(display_contracts(contracts.slice(1)));
-    }, get_ip(), 8091);//8091 is explorer
+    }, default_ip(), 8091);//8091 is explorer
     //}, "0.0.0.0", 8091);//8091 is explorer
     function display_contracts(contracts){
         if(contracts.length < 1){
@@ -87,7 +87,7 @@
             });
             //});
         //}, "0.0.0.0", 8090);//8091 is p2p_derivatives
-        }, get_ip(), 8090);//8091 is p2p_derivatives
+        }, default_ip(), 8090);//8091 is p2p_derivatives
             //                   });
     };
 
