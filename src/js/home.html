@@ -3,6 +3,13 @@
   <head>
   </head>
   <body>
+    <script>
+      if(server_ip.value === "zack-bitcoin.github.io"){
+          var h = document.createElement("h1");
+          document.appendChild(h);
+          h.innerHTML = "WARNING. If you are using chrome on a computer, then you need to enable insecure content in the site settings for your browser. This can be done by clicking the picture of a lock at the left side of the URL. If you are using a phone, then consider using the less secure version served by a full node: http://159.89.87.58:8080/home.html"
+      };
+    </script>
     <h1>Light Wallet - Main Menu - Amoveo</h1>
     <a href="https://github.com/zack-bitcoin/amoveo"> Learn about Amoveo </a><br />
     <a href="./txs.html">Send VEO, receive VEO, sign txs, and publish txs. Used for cold storage. </a><br />
