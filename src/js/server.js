@@ -42,9 +42,14 @@ document.body.appendChild(document.createElement("br"));
 */
 
 function get_port() {
-    return parseInt(server_port.value, 10);
+    var p = parseInt(server_port.value, 10);
+    return(p || 8080);
 }
 function get_ip() {
     //return JSON.parse(server_ip.value);
-    return server_ip.value;
+    var s = server_ip.value;
+    if(s.length === 0){
+        s = default_ip();
+    };
+    return s;
 }

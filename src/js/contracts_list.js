@@ -16,7 +16,7 @@
         //console.log(JSON.stringify(contracts));
         contracts_div.innerHTML = "";
         return(display_contracts(contracts.slice(1)));
-    }, default_ip(), 8091);//8091 is explorer
+    }, get_ip(), 8091);//8091 is explorer
     //}, "0.0.0.0", 8091);//8091 is explorer
     function display_contracts(contracts){
         if(contracts.length < 1){
@@ -87,7 +87,7 @@
             });
             //});
         //}, "0.0.0.0", 8090);//8091 is p2p_derivatives
-        }, default_ip(), 8090);//8091 is p2p_derivatives
+        }, get_ip(), 8090);//8091 is p2p_derivatives
             //                   });
     };
 
