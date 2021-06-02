@@ -3,10 +3,12 @@
   <head>
   </head>
   <body>
+    <h1 id="warning"></h1>
     <script>
       var s = document.URL.split("/")[2].split(":")[0];
       if(s === "zack-bitcoin.github.io"){
-          var h = document.createElement("h1");
+          //var h = document.createElement("h1");
+          var h = document.getElementById("warning");
           document.appendChild(h);
           h.innerHTML = "WARNING. If you are using chrome on a computer, then you need to enable insecure content in the site settings for your browser. This can be done by clicking the picture of a lock at the left side of the URL. If you are using a phone, then consider using the less secure version served by a full node: http://159.89.87.58:8080/home.html"
       };
