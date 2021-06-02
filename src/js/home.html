@@ -3,14 +3,12 @@
   <head>
   </head>
   <body>
-    <h1 id="warning"></h1>
+    <div id="warning"></div>
     <script>
       var s = document.URL.split("/")[2].split(":")[0];
       if(s === "zack-bitcoin.github.io"){
-          //var h = document.createElement("h1");
           var h = document.getElementById("warning");
-          document.appendChild(h);
-          h.innerHTML = "WARNING. If you are using chrome on a computer, then you need to enable insecure content in the site settings for your browser. This can be done by clicking the picture of a lock at the left side of the URL. If you are using a phone, then consider using the less secure version served by a full node: http://159.89.87.58:8080/home.html"
+          h.innerHTML = '<h1>WARNING. If you are using chrome on a computer, then you need to enable insecure content in the site settings for your browser. This can be done by clicking the picture of a lock at the left side of the URL. Instructions for enabling mixed content on other devices can be found <a href="https://support.savvas.com/s/article/How-to-display-mixed-content-with-Google-Chrome-Internet-Explorer-or-Firefox-1408394589290">here</a> Alternatively consider using the less secure version <a href="http://159.89.87.58:8080/home.html">served by a full node</a></h1>'
       };
     </script>
     <h1>Light Wallet - Main Menu - Amoveo</h1>
