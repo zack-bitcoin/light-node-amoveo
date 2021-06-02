@@ -51,5 +51,8 @@ function get_ip() {
     if(s.length === 0){
         s = default_ip();
     };
+    if(s === "zack-bitcoin.github.io"){
+        s = default_ip();
+    };
     return s;
 }
