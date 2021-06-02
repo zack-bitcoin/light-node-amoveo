@@ -232,6 +232,11 @@ no btc delivery
 
     function where_to_send_indicator(temp_div, callback){
         //todo
+        //the deposit address is in the evidence of the contract_evidence_tx, and it is a part of the contract_timeout_tx.
+        //we want to grab the address from the timeout tx, because false evidence could have been made.
+        //we should scan the sub accounts and txs in the mempool to see if we are trying to buy veo. For every offer where we are trying to buy veo, we should scan the txs related to that contract, and also check the mempool for the contract_timeout_tx for that contract.
+        //extract the deposit address from the contract_timeout_tx.
+        console.log("where to send indicator");
         rpc.post(["account", keys.pub()], function(
             account
         ){
@@ -257,6 +262,8 @@ no btc delivery
         };
         var cid = subaccounts[0];
         var id = sub_accounts.normal_key(keys.pub(), cid, 2);
+        console.log("checking sub account for cid: ");
+        console.log(cid);
         sub_accounts.rpc(id, function(sa){
             if(sa === 0){
                 return(callback2());
@@ -280,7 +287,7 @@ no btc delivery
                     //not a buy_veo contract.
                     return(callback2());
                 };
-                rpc.post(["contracts", cid], function(consensus_state_contract){
+                rpc.post(["contracts", cid], function(consensus_state_contract){//from full node, includes tx_pool 
                     if(consensus_state_contract === 0){
                         //contract doesn't exist in consensus state space.
                         return(callback2());
@@ -452,7 +459,7 @@ no btc delivery
                             var Source = contract[5];
                             var SourceType = contract[6];
                             var contract_text = atob(contract[1]);
-                            console.log(contract_text);
+                            //console.log(contract_text);
 if(contract_text.match(/has received less than/)){
     var received_text = description_maker2(contract_text);
     var description = document.createElement("span");
@@ -742,15 +749,15 @@ if(contract_text.match(/has received less than/)){
         } else {
             signed_offer = offer;
         };
-        console.log("packed offer");
-        console.log(JSON.stringify(signed_offer));
+        //console.log("packed offer");
+        //console.log(JSON.stringify(signed_offer));
         rpc.post(["add", signed_offer, signed_second_offer], function(z){
             display.innerHTML = "successfully posted your crosschain offer. ";
             var link = document.createElement("a");
             link.href = "contracts.html";
             link.innerHTML = "Your trade can be viewed on this page."
             link.target = "_blank";
-            display.appendChild(link);
+            //display.appendChild(link);
         }, IP, 8090);//8090 is the p2p_derivatives server
     };
     function active_offers(temp_div, callback){
@@ -888,7 +895,7 @@ if(contract_text.match(/has received less than/)){
             var btc_address_input = text_input("address on other blockchain where you get paid.", temp_div);
             btc_address_input.value = "test_address";
             var accept_button = button_maker2("accept the offer", function(){
-                console.log("accepting the offer");
+                //console.log("accepting the offer");
                 rpc.post(["account", keys.pub()], function(my_acc){
                     var nonce = my_acc[2] + 1;
                     var deposit_address = btc_address_input.value;
@@ -915,8 +922,8 @@ if(contract_text.match(/has received less than/)){
                         //the evidence provides your bitcoin address.
                         //-record(contract_evidence_tx, {from, nonce, fee, contract, contract_id, evidence, prove}).
                         //var evidence0 = setelement(3, txs[1], nonce+1);
-                        console.log(JSON.stringify(contract_txs));
-                        console.log(JSON.stringify(swap_txs));
+                        //console.log(JSON.stringify(contract_txs));
+                        //console.log(JSON.stringify(swap_txs));
                         var evidence0 = contract_txs[1];
                         evidence0[2] = nonce + 1;
                         var evidence = keys.sign(evidence0);
@@ -932,17 +939,17 @@ if(contract_text.match(/has received less than/)){
                             .concat(swap_txs);
                 console.log("making multi tx");
                         multi_tx.make(txs, function(tx){
-                            console.log(JSON.stringify(txs));
-                            console.log(JSON.stringify(evidence));
+                            //console.log(JSON.stringify(txs));
+                            //console.log(JSON.stringify(evidence));
                             //console.log(JSON.stringify(timeout));
                             //return(0);
                             var stx = keys.sign(tx);
-                            console.log("publishing txs");
-                            console.log(JSON.stringify([stx, evidence, timeout]));
+                            //console.log("publishing txs");
+                            //console.log(JSON.stringify([stx, evidence, timeout]));
                             post_txs([stx, evidence, timeout], function(response){
 
-       console.log("returned from posting txs");
-       console.log(response);
+       //console.log("returned from posting txs");
+       //console.log(response);
        display.innterHTML = response;
        //var amount1_from_swap_offer = swap_offer2[6];
        var amount2_from_swap_offer = swap_offer2[9];
