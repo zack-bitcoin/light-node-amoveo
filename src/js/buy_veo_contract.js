@@ -512,6 +512,7 @@ var Address Date Ticker Amount Blockchain
         oracle_question: make_oracle_question,
         resolve_evidence_tx: resolve_evidence_tx,
         winnings_tx: winnings_tx,
-        make_cid: make_cid
+        make_cid: make_cid,
+        run: run
     });
 })();

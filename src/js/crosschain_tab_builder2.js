@@ -237,27 +237,40 @@ no btc delivery
         //we should scan the sub accounts and txs in the mempool to see if we are trying to buy veo. For every offer where we are trying to buy veo, we should scan the txs related to that contract, and also check the mempool for the contract_timeout_tx for that contract.
         //extract the deposit address from the contract_timeout_tx.
         console.log("where to send indicator");
-        rpc.post(["account", keys.pub()], function(
-            account
-        ){
-            if(account === "error"){
-                return(callback());
-            };
-            account = account[1];
-            var subaccounts = account[3];
-            return(where_to_send_indicator_loop(
-                temp_div, subaccounts.slice(1).reverse(),
-                callback));
-        }, IP, 8091);//the explorer
+        rpc.post(["txs"], function(txs){
+            txs0 = txs.slice(1);
+            //console.log(JSON.stringify(txs));
+            txs = txs0.filter(function(tx){
+                return(tx[1][0] === "contract_timeout_tx2");
+            });
+            //console.log(JSON.stringify(txs));
+            const sids = txs.map(function(tx){
+                return(tx[1][4]);
+            });
+            console.log(JSON.stringify(sids));
+            rpc.post(["account", keys.pub()], function(
+                account
+            ){
+                if(account === "error"){
+                    return(callback());
+                };
+                account = account[1];
+                var subaccounts = account[3].concat(sids);
+                return(where_to_send_indicator_loop(
+                    temp_div, subaccounts.slice(1).reverse(), txs0,
+                    callback));
+            }, IP, 8091);//the explorer
+        });
     };
     function where_to_send_indicator_loop(
-        temp_div, subaccounts, callback){
+        temp_div, subaccounts, txs, callback){
         if(subaccounts.length === 0){
             return(callback());
         };
         var callback2 = function(){
             return(where_to_send_indicator_loop(
                 temp_div, subaccounts.slice(1),
+                txs,
                 callback));
         };
         var cid = subaccounts[0];
@@ -301,33 +314,37 @@ no btc delivery
       //%or, the result can be the hash of a merkle structure describing how the value is divided up among the participants.
                     };
                     var sink = consensus_state_contract[10];
-                    //rpc.post(["contracts", sink], function(cs_contract2){
-                        console.log(JSON.stringify(sink));
-                        console.log(JSON.stringify(consensus_state_contract));
-                        //console.log(JSON.stringify(cs_contract2));
-                        //if(cs_contract2 === 0){
-                            //sink contract doesn't exist in consensus state space
-                        //    return(callback2());
-                        //}
-                    
-                        //-record(contract, {code, many_types, nonce, last_modified, delay, closed, result, source, source_type, sink, volume}).
-
-                        var Source = contract[2];
-                        var SourceType = contract[3];
-                //var contract_text = atob(contract[1]);
-                        var oracle_start_height =
-                            contract[5];
-                        var blockchain = atob(contract[6]);
-                        var amount = atob(contract[7]);
-                        var ticker = atob(contract[8]);
-                        var date = atob(contract[9]);
-                        var trade_id = contract[10];
-                        console.log(JSON.stringify(contract));
-                        console.log(JSON.stringify([blockchain, ticker, amount, date, trade_id]));
-                        //todo
-                        //extract bitcoin address from contract2 to send to, and create a message about how much to deliver, and how much time is left.
-                
-                    //});
+                    //rpc.post(["contracts", sink], function(contract2){
+                    rpc.post(["contract", cid], function(contract2){
+                        contract2 = contract2[0];
+                        console.log(JSON.stringify(contract2));
+                        var contract_txs;
+                        if(contract2 === 0){
+                            contract_txs = [];
+                        } else if(!(contract2)){
+                            contract_txs = [];
+                        } else {
+                            contract_txs = contract2[5];
+                        };
+                        console.log(JSON.stringify(contract_txs));
+                        //TODO contract_txs is currently all txids. we should look up the txs.
+                        txs = txs.filter(function(tx){
+                            return((tx[1][0] === "contract_evidence_tx")
+                                   && (tx[1][5] === cid));
+                        });
+                        if((!(contract_txs)) && (txs.length === 0)){
+                            return(callback2());
+                        };
+                        console.log(JSON.stringify(txs));
+                        var evidence_tx = txs[0];
+                        var evidence = evidence_tx[1][6];
+                        console.log(JSON.stringify(evidence));
+                        var address = buy_veo_contract.run(string_to_array(atob(evidence)))[0];
+                        address = array_to_string(address.slice(1));
+                        console.log(address);
+                        //todo, print the address to send to, and how much to send.
+                        return(callback2());
+                    }, IP, 8091);
                 });
             }, IP, 8090);
         });
