@@ -236,7 +236,6 @@ function keys_function1() {
         //var top_hash = hash(headers_object.serialize(headers_object.top()));
         //rpc.post(["account", trie_key], function(unconfirmed) {
         const unconfirmed = await rpc.apost(["account", trie_key]);
-        console.log(unconfirmed);
         var U = unconfirmed[1] / token_units();
 
         const x = await merkle.arequest_proof("accounts", trie_key);

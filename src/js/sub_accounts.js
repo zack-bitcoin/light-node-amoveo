@@ -9,6 +9,22 @@ sub_accounts = (function(){
         return(btoa(array_to_string(key(p, c, t))))
     };
     var memoized_sub_accounts = {};
+    async function amemoized_rpc(id){
+        var x = memoized_sub_accounts[id];
+        if(x){
+            return(x);
+        } else {
+            let sa = rpc.apost(["sub_accounts", id]);
+            if((sa === "c3RvcCBzcGFtbWluZyB0aGUgc2VydmVy")){
+                console.log("spam filter triggered.");
+                return(sa);
+            } else {
+                memoized_sub_accounts[id] = sa;
+                return(sa);
+            };
+        };
+
+    };
     function memoized_rpc(id, callback){
         var x = memoized_sub_accounts[id];
         //console.log(x);
@@ -32,5 +48,6 @@ sub_accounts = (function(){
 
     return({key: key,
             normal_key: normal_key,
+            arpc: amemoized_rpc,
             rpc: memoized_rpc});
 })();
