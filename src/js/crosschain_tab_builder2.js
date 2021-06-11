@@ -235,7 +235,6 @@ no btc delivery
         //the deposit address is in the evidence of the contract_evidence_tx, and it is a part of the contract_timeout_tx.
         //we want to grab the address from the timeout tx, because false evidence could have been made.
         //we should scan the sub accounts and txs in the mempool to see if we are trying to buy veo. For every offer where we are trying to buy veo, we should scan the txs related to that contract, and also check the mempool for the contract_timeout_tx for that contract.
-        //extract the deposit address from the contract_timeout_tx.
         console.log("where to send indicator");
         rpc.post(["txs"], function(txs){
             txs0 = txs.slice(1);
@@ -275,23 +274,18 @@ no btc delivery
         };
         var cid = subaccounts[0];
         var id = sub_accounts.normal_key(keys.pub(), cid, 2);
-        console.log("checking sub account for cid: ");
-        console.log(cid);
+        //console.log("checking sub account for cid: ");
+        //console.log(cid);
         sub_accounts.rpc(id, function(sa){
+            //we should probably use a merkle proof here. maybe we should edit the sub_accounts module to use merkle proofs? todo
             if(sa === 0){
                 return(callback2());
             };
             var balance = sa[1];
             if(balance < 100000){
-                return(callback2());
+               return(callback2());
             };
-            rpc.post(["read", 3, cid], function(contract){
-                //-record(contract,
-                //{cid, source = <<0:256>>, 
-                //source_type = 0, choose_address_timeout,
-                //oracle_start_height, blockchain,
-                //amount, ticker, date, trade_id, now
-                //["contract","kop03QzWfbeHCHEHNpaqILi+IFsImh39mw1Iy6YsxYE=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",0,161314,161184,"Qml0Y29pbg==","MC4wMDAwMDE=","QlRD","MjYgQXByIDIwMjEgMTQ6MDkgR01U","MN9DgNGQzkpBlDOQZjoJu+XewZDxTMdLX9PxmXXbUt0=",[-7,1619,273396,794174]]
+            rpc.post(["read", 3, cid], function(contract){//p2p derivatives
                 if(contract === 0){
                     //contract doesn't exist in the p2p derivatives explorer.
                     return(callback2());
@@ -300,7 +294,8 @@ no btc delivery
                     //not a buy_veo contract.
                     return(callback2());
                 };
-                rpc.post(["contracts", cid], function(consensus_state_contract){//from full node, includes tx_pool 
+                rpc.post(["contracts", cid], function(consensus_state_contract){//from full node, includes tx_pool
+                    //todo, maybe this needs to be a merkle proof.
                     if(consensus_state_contract === 0){
                         //contract doesn't exist in consensus state space.
                         return(callback2());
@@ -316,7 +311,7 @@ no btc delivery
                     var sink = consensus_state_contract[10];
                     //rpc.post(["contracts", sink], function(contract2){
                     rpc.post(["contract", cid], function(contract2){
-                        contract2 = contract2[0];
+                        contract2 = contract2[1];
                         console.log(JSON.stringify(contract2));
                         var contract_txs;
                         if(contract2 === 0){
@@ -324,32 +319,193 @@ no btc delivery
                         } else if(!(contract2)){
                             contract_txs = [];
                         } else {
-                            contract_txs = contract2[5];
+                            contract_txs = contract2[5].slice(1);
                         };
-                        console.log(JSON.stringify(contract_txs));
-                        //TODO contract_txs is currently all txids. we should look up the txs.
-                        txs = txs.filter(function(tx){
-                            return((tx[1][0] === "contract_evidence_tx")
-                                   && (tx[1][5] === cid));
+                        txids_to_txs(contract_txs, [], function(contract_txs){
+                            
+                            txs = txs.concat(contract_txs);
+                            console.log(JSON.stringify(txs));
+                            var timeout_txs = txs.filter(function(tx){
+                                return((tx[1][0] === "contract_timeout_tx2") &&
+                                       (tx[1][4] === cid))
+                            });
+                            if((!(contract_txs)) && (txs.length === 0)){
+                                return(callback2());
+                            };
+                            if((timeout_txs.length === 0)){
+                                return(callback2());
+                            };
+                            var sink = timeout_txs[0][1][8];
+                            console.log(JSON.stringify(txs));
+                            evidence_txs = txs.filter(function(tx){
+                                return((tx[1][0] === "contract_evidence_tx") &&
+                                       (tx[1][5] === cid));
+                            });
+                            valid_evidence_txs(evidence_txs, sink, cid, [], function(evidence_txs2){
+                                console.log(JSON.stringify(txs));
+                                var evidence_tx = evidence_txs2[0];
+                                var evidence = evidence_tx[1][6];
+                                //console.log(JSON.stringify(evidence));
+                                var address = buy_veo_contract.run(string_to_array(atob(evidence))).reverse()[1];
+                                address = array_to_string(address.slice(1));
+                                var send_to_p = document.createElement("p");
+                                //console.log(JSON.stringify(contract));
+                                var send_amount = atob(contract[7]);
+                                //TODO: we should check that the amount of subcurrency we own is correct for the amount we should send.
+                                var blockchain = atob(contract[6]);
+                                var ticker = atob(contract[8]);
+                                var date = atob(contract[9]);
+                                send_to_p.innerHTML = "send amount "
+                                    .concat(send_amount)
+                                    .concat(" of ")
+                                    .concat(ticker)
+                                    .concat(", on blockchain: ")
+                                    .concat(blockchain)
+                                    .concat(", by date: ")
+                                    .concat(date)
+                                    .concat(", to address: ")
+                                    .concat(address);
+                                temp_div.appendChild(send_to_p);
+                                return(callback2());
+                            });
                         });
-                        if((!(contract_txs)) && (txs.length === 0)){
-                            return(callback2());
-                        };
-                        console.log(JSON.stringify(txs));
-                        var evidence_tx = txs[0];
-                        var evidence = evidence_tx[1][6];
-                        console.log(JSON.stringify(evidence));
-                        var address = buy_veo_contract.run(string_to_array(atob(evidence)))[0];
-                        address = array_to_string(address.slice(1));
-                        console.log(address);
-                        //todo, print the address to send to, and how much to send.
-                        return(callback2());
                     }, IP, 8091);
                 });
             }, IP, 8090);
         });
     };
-    /*
+    function txids_to_txs(txids, txs, callback){
+        if(txids.length === 0){
+            return(callback(txs));
+        };
+        rpc.post(["txs", txids[0]], function(tx){
+            return(txids_to_txs(
+                txids.slice(1),
+                [tx[1][3]].concat(txs),
+                callback));
+        }, IP, 8091);
+    };
+//    function spk_prove_facts(Prove, Dict2, NewHeight, function(prove_code)
+    function spk_prove_facts(prove, callback){
+        var s = `macro [ nil ;/
+macro , swap cons ;/
+macro ] swap cons reverse ;/
+[`;
+        prove_facts2(prove, "", function(b){
+            var f = s.concat(b);
+            console.log(f);
+            var compiled = chalang_compiler.doit(f);
+            console.log(compiled);
+            return(callback(compiled))});
+    };
+    function prove_facts2(prove, code, callback){
+        console.log(JSON.stringify(prove));
+        
+        //prove is [{tree, key}|...]
+        //ID = tree2id(Tree, Height),
+        //grab `data` from the full node.
+        var tree = prove[0][0];
+        var id = tree2id(tree);
+        var key = prove[0][1];
+        //merkle.request_proof(tree, key, function(data){
+        rpc.post([tree, key], function(data){
+            var data_part;
+            if(data === 0){
+                data_part = ", int4 0 ";
+            } else {
+                var SD = merkle.serialize(data);
+                //data_part = ", binary " + (SD).length + " " + btoa(array_to_string(SD));
+                data_part = ", binary " + btoa(array_to_string(SD));
+            }
+            var type_part = "int4 ".concat(id);
+            var key_part;
+            console.log(key);
+            if(typeof(key) === "number"){
+                key_part = ", int4 " + key;
+            } else {
+                key = string_to_array(atob(key));
+                //key_part = ", binary " + (key.length) + " " + btoa(array_to_string(key));
+                key_part = ", binary " + btoa(array_to_string(key));
+            }
+            console.log(key);
+        var fact = "[" + type_part + key_part + data_part + "]";
+        if (prove.length > 1){
+            fact = fact.concat(", ");
+            return(spk_prove_facts2(
+                prove.slice(1),
+                code.concat(fact),
+                callback));
+        } else {
+            return(callback(code.concat(fact).concat("]")));
+        }
+        });
+    };
+    function tree2id(name){
+        if(name === "accounts"){
+            return(1);
+        } else if(name === "channels"){
+            return(2);
+        } else if(name ==="existence"){
+            return(3);
+        } else if(name ==="oracles"){
+            return(4);
+        } else if(name === "governance"){
+            return(5);
+        } else {
+            return(0);
+        };
+    };
+    function valid_evidence_txs(evidence_txs, sink, cid, keepers, callback){
+        if(evidence_txs.length === 0) {
+            return(callback(keepers));
+        };
+        var tx = evidence_txs[0];
+        var other_txs = evidence_txs.slice(1);
+        function callbackwithout(){
+            return(valid_evidence_txs(
+                other_txs,
+                sink,
+                cid,
+                keepers,
+                callback));
+        };
+        function callbackwith(){
+            return(valid_evidence_txs(
+                other_txs,
+                sink,
+                cid,
+                keepers.concat([tx]),
+                callback));
+        };
+        if(!(tx[1][0] === "contract_evidence_tx")){
+            console.log("wrong tx type");
+            return(callbackwithout());
+        };
+        if(!(tx[1][5] === cid)){
+            console.log("tx for wrong contract");
+            return(callbackwithout());
+        };
+        var contract = string_to_array(atob(tx[1][4]));
+        var cid_check = buy_veo_contract.make_cid(contract, 2, ZERO, 0);
+        if(!(cid === cid_check)){
+            console.log("invalid contract code");
+            return(callbackwithout());
+        };
+        var evidence = string_to_array(atob(tx[1][6]));
+        var prove = tx[1][7].slice(1);
+        console.log(JSON.stringify(prove));
+        spk_prove_facts(prove, function(prove_code){
+            var sink_check = buy_veo_contract.run(evidence.concat(prove_code).concat(contract))[2];
+            sink_check2 = binary_derivative.id_maker(btoa(array_to_string(sink_check.slice(1))), 2, ZERO, 0);
+            if(!(sink === sink_check2)){
+                console.log("invalid contract result");
+                return(callbackwithout());
+            };
+            return(callbackwith())
+        });
+    };
+        
+        /*
     function cancel_buttons(temp_div, callback){
         console.log("making cancel buttons");
         rpc.post(["markets"], function(markets){
@@ -447,7 +603,7 @@ no btc delivery
             account = account[1];
             var subaccounts = account[3];
             //console.log(JSON.stringify(account));
-            //console.log(JSON.stringify(subaccounts));
+            console.log(JSON.stringify(subaccounts));
             return(release_subaccounts_loop(
                 temp_div, subaccounts.slice(1).reverse(),
                 callback));

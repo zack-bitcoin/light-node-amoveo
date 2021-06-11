@@ -137,6 +137,8 @@ function merkle_proofs_main() {
                 return hash(string_to_array(atob(account)).concat(string_to_array(atob(oid))));
             }
             return hash(string_to_array(atob(v[1])).concat(string_to_array(atob(v[2]))));
+        } else if(t === "receipt"){
+            return(string_to_array(atob(v[1])));
 	} else {
             console.log("type is ");
             console.log(t);
@@ -183,11 +185,11 @@ function merkle_proofs_main() {
             var nonce = integer_to_array(v[2], 3);
             var pubkey = string_to_array(atob(v[3]));
             var bets = string_to_array(atob(v[5]));
-            var serialized = ([]).concat(
-		balance).concat(
-                    nonce).concat(
-			pubkey).concat(
-                            bets);
+            var serialized = ([])
+                .concat(balance)
+                .concat(nonce)
+                .concat(pubkey)
+                .concat(bets);
             return serialized;
 	} else if ( t == "sub_acc" ) {
             var balance = integer_to_array(v[1], 6);
@@ -232,18 +234,18 @@ function merkle_proofs_main() {
             var last_modified = integer_to_array(v[4], 4);
             var delay = integer_to_array(v[5], 4);
             var closed = integer_to_array(v[6], 1);
-            return ([])
-                .concat(code)
-                .concat(result)
-                .concat(source)
-                .concat(sink)
-                .concat(sourcetype)
-                .concat(many)
-                .concat(nonce)
-                .concat(last_modified)
-                .concat(delay)
-                .concat(closed)
-                .concat(volume);
+            return (([])
+                    .concat(code)
+                    .concat(result)
+                    .concat(source)
+                    .concat(sink)
+                    .concat(sourcetype)
+                    .concat(many)
+                    .concat(nonce)
+                    .concat(last_modified)
+                    .concat(delay)
+                    .concat(closed)
+                    .concat(volume));
 	} else if ( t == "channel" ) {
             //var cid = integer_to_array(v[1], 32);
             var cid = string_to_array(atob(v[1]));
@@ -301,6 +303,15 @@ function merkle_proofs_main() {
 	    //console.log("serialized oracle");
 	    //console.log(JSON.stringify(serialized));
             return serialized;
+	} else if (t == "receipt") {
+            //TID:256, Pub:520, Nonce:Height_bits()
+            var tid = string_to_array(atob(v[2]));
+            var pub = string_to_array(atob(v[3]));
+            var nonce = integer_to_array(v[4], 4);
+            return(([])
+                   .concat(tid)
+                   .concat(pub)
+                   .concat(nonce));
 	} else {
             console.log("cannot decode type ");
             console.log(t);
