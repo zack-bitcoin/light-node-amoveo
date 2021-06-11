@@ -336,8 +336,10 @@ function headers_main() {
 	//console.log((prev_ewah).toJSNumber());
 	var DT = header[5] - prev_header[5];
 	//maybe check that the header's time is in the past.
-	var Hashrate0 = bigInt.max(bigInt(1),
-				   bigInt(hashrate_converter()).times(sci2int(prev_header[6])).divide(DT));
+	var Hashrate0 = bigInt.max(
+            bigInt(1),
+	    bigInt(hashrate_converter())
+                .times(sci2int(prev_header[6])).divide(DT));
 	var N = 20;
 	var Converter = prev_ewah.times(1024000);
 	var EWAH2 = Converter.times((N - 1)).divide(prev_ewah);
@@ -425,15 +427,15 @@ function headers_main() {
         var nonce = atob(x[8]); // 32 bytes
         var period = x[10];
         var y = string_to_array(prev_hash);
-        return y.concat(
-            integer_to_array(height, 4)).concat(
-                integer_to_array(time, 5)).concat(
-                    integer_to_array(version, 2)).concat(
-                        string_to_array(trees_hash)).concat(
-                            string_to_array(txs_proof_hash)).concat(
-                                integer_to_array(difficulty, 2)).concat(
-                                    string_to_array(nonce)).concat(
-                                        integer_to_array(period, 2));
+        return y
+            .concat(integer_to_array(height, 4))
+            .concat(integer_to_array(time, 5))
+            .concat(integer_to_array(version, 2))
+            .concat(string_to_array(trees_hash))
+            .concat(string_to_array(txs_proof_hash))
+            .concat(integer_to_array(difficulty, 2))
+            .concat(string_to_array(nonce))
+            .concat(integer_to_array(period, 2));
     }
     function hash_test() {
         console.log(hash([1,4,6,1,2,3,4,4]));

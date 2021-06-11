@@ -20,6 +20,39 @@ var rpc = (function() {
         var u = url(port, ip);
         return talk(cmd, u, callback, 10000);//use up to 10 seconds for this request
     }
+    async function main2(cmd, ip, port) {
+        if (ip == undefined){
+            ip = get_ip();
+        }
+        if (port == undefined){
+            port = get_port();
+        }
+        var u = url(port, ip);
+        return atalk(cmd, u);//use up to 10 seconds for this request
+    }
+    async function atalk(cmd, u) {
+        return new Promise(function(resolve, reject){
+            let xmlhttp = new XMLHttpRequest();
+            xmlhttp.open("POST", u);
+            xmlhttp.onload = function() {
+                if (this.status >= 200 && this.status < 300) {
+                    resolve(JSON.parse(xmlhttp.response)[1]);
+                } else {
+                    reject({
+                        status: this.status,
+                        statusText: xmlhttp.statusText
+                    });
+                }
+            };
+            xmlhttp.onerror = function () {
+                reject({
+                    status: this.status,
+                statusText: xmlhttp.statusText
+                });
+            };
+            xmlhttp.send(JSON.stringify(cmd));
+        });
+    };
     function talk(cmd, u, callback, n) {
         var xmlhttp=new XMLHttpRequest();
         xmlhttp.open("POST",u,true);
@@ -56,6 +89,7 @@ var rpc = (function() {
             setTimeout(function() {return listen(x, cmd, u, callback, n-50);}, 50);}
     };
     return {post: main,
+            apost: main2,
             default_explorer: default_explorer,
             messenger: messenger};
 })();

@@ -225,7 +225,7 @@ function keys_function1() {
     var update_balance_callback = function(){
         return(0);
     };
-    function update_balance() {
+    async function update_balance() {
         var trie_key = pubkey_64();
         var headers_top = headers_object.top();
         if (headers_top == 0) {
@@ -234,26 +234,28 @@ function keys_function1() {
             return(0);
         }
         //var top_hash = hash(headers_object.serialize(headers_object.top()));
-        rpc.post(["account", trie_key], function(unconfirmed) {
-            var U = unconfirmed[1] / token_units();
-            
-            merkle.request_proof("accounts", trie_key, function(x) {
-                var C = x[1] / token_units();
-                //set_balance(C);
-                var S = ("your balance ").concat(
-                    (C).toString()).concat(
+        //rpc.post(["account", trie_key], function(unconfirmed) {
+        const unconfirmed = await rpc.apost(["account", trie_key]);
+        console.log(unconfirmed);
+        var U = unconfirmed[1] / token_units();
+
+        const x = await merkle.arequest_proof("accounts", trie_key);
+        //merkle.request_proof("accounts", trie_key, function(x) {
+        var C = x[1] / token_units();
+        //set_balance(C);
+        var S = ("your balance ").concat(
+            (C).toString()).concat(
+                " VEO");
+        if (!(C == U)) {
+            S = S.concat(
+                ", unconfirmed: ").concat(
+                    (U-C).toString()).concat(
                         " VEO");
-                if (!(C == U)) {
-                    S = S.concat(
-                        ", unconfirmed: ").concat(
-                            (U-C).toString()).concat(
-                                " VEO");
-                };
-                bal_div.innerHTML = S;
-                update_balance_callback();
-            });
-        });
-    }
+        };
+        bal_div.innerHTML = S;
+        update_balance_callback();
+        //});
+    };
     function set_balance(n) {
         bal_div.innerHTML = ("your balance ").concat((n).toString()) + " VEO";
     }

@@ -293,6 +293,37 @@ function crosschain_tab_builder(div, selector){
             //return(callback());
         }, IP, 8091);//the explorer
     };
+    function lowest_price_order(orders) {
+        if(orders.length === 1){
+            return(orders[0]);
+        };
+        var order0 = orders[0];
+        var order1 = orders[1];
+        var price0 = order0[1];
+        var price1 = order1[1];
+        if(price0 < price1){
+            return(lowest_price_order([order0].concat(orders.slice(2))));
+        } else {
+            return(lowest_price_order([order1].concat(orders.slice(2))));
+        };
+    };
+    function find_market(markets, cid2, type2, cid1, type1){
+        if(markets.length === 0){
+            return(0);
+        };
+        var market = markets[0];
+        var mcid1 = market[3];
+        var mtype1 = market[4];
+        var mcid2 = market[5];
+        var mtype2 = market[6];
+        if((cid2 === mcid2) &&
+           (type2 === mtype2) &&
+           (cid1 === mcid1) &&
+           (type1 === mtype1)){
+            return(market);
+        }
+        return(find_market(markets.slice(1), cid2, type2, cid1, type1));
+    };
     function release_subaccounts_loop(
         temp_div, subaccounts, callback){
         if(subaccounts.length === 0){
@@ -315,7 +346,7 @@ function crosschain_tab_builder(div, selector){
                             var Source = contract[5];
                             var SourceType = contract[6];
                             var contract_text = atob(contract[1]);
-if(contract_text.match(/has received less than/)){
+  if(contract_text.match(/has received less than/)){
     var received_text = description_maker2(contract_text);
     var description = document.createElement("span");
     description.innerHTML = "you are buying "
@@ -387,37 +418,7 @@ if(contract_text.match(/has received less than/)){
             }, IP, 8090);
         });
     });
-    function lowest_price_order(orders) {
-        if(orders.length === 1){
-            return(orders[0]);
-        };
-        var order0 = orders[0];
-        var order1 = orders[1];
-        var price0 = order0[1];
-        var price1 = order1[1];
-        if(price0 < price1){
-            return(lowest_price_order([order0].concat(orders.slice(2))));
-        } else {
-            return(lowest_price_order([order1].concat(orders.slice(2))));
-        };
-    };
-    function find_market(markets, cid2, type2, cid1, type1){
-        if(markets.length === 0){
-            return(0);
-        };
-        var market = markets[0];
-        var mcid1 = market[3];
-        var mtype1 = market[4];
-        var mcid2 = market[5];
-        var mtype2 = market[6];
-        if((cid2 === mcid2) &&
-           (type2 === mtype2) &&
-           (cid1 === mcid1) &&
-           (type1 === mtype1)){
-            return(market);
-        }
-        return(find_market(markets.slice(1), cid2, type2, cid1, type1));
-    };
+
     temp_div.appendChild(description);
     temp_div.appendChild(release_button);
     temp_div.appendChild(br());
@@ -433,11 +434,10 @@ if(contract_text.match(/has received less than/)){
     temp_div.appendChild(br());
     temp_div.appendChild(br());
     
-    
     return(callback2());
-} else {
-    return(callback2());
-};
+  } else {
+      return(callback2());
+  };
                         } else {
                             return(callback2());
                         }
