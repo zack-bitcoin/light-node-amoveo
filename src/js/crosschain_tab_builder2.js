@@ -81,7 +81,7 @@ function crosschain_tab_builder2(div, selector){
     div.appendChild(button);
     div.appendChild(br());
 
-    function crosschain_offer(button){
+    async function crosschain_offer(button){
         var amount1 = Math.round(parseFloat(receive_amount_input.value, 10)*100000000);
         
         if("" === security_amount_input.value){
@@ -141,24 +141,26 @@ function crosschain_tab_builder2(div, selector){
         console.log("this is the contract data that we teach to the p2p derivatives server.");
         console.log(JSON.stringify(Contract));
 
-        rpc.post(["account", keys.pub()], function(my_acc){
-            if(my_acc === 0){
-                display.innerHTML = "Load your private key first.";
-                return(0);
+        const my_acc = await rpc.apost(["account", keys.pub()]);
+            //rpc.post(["account", keys.pub()], function(my_acc){
+        if(my_acc === 0){
+            display.innerHTML = "Load your private key first.";
+            return(0);
+        };
+        if(my_acc[1] < amount2){
+            display.innerHTML = "Not enough VEO to make this offer.";
+            return(0);
             };
-            if(my_acc[1] < amount2){
-                display.innerHTML = "Not enough VEO to make this offer.";
-                return(0);
-            };
-            var nonce = my_acc[2];
-            rpc.post(["add", 4, Contract], function(x){
-                //post the offer
-                console.log(JSON.stringify(offer));
-                post_offer(offer);
-                
-                /*
-                rpc.post(["add", offer, 0], function(z){
-                    console.log(z);
+        var nonce = my_acc[2];
+        const x = await rpc.apost(["add", 4, Contract], IP, 8090); 
+        //rpc.post(["add", 4, Contract], function(x){
+        //post the offer
+        console.log(JSON.stringify(offer));
+        post_offer(offer);
+            
+            /*
+              rpc.post(["add", offer, 0], function(z){
+              console.log(z);
                     display.innerHTML = "successfully posted your crosschain offer. ";
                     var link = document.createElement("a");
                     link.href = "contracts.html";
@@ -168,14 +170,11 @@ function crosschain_tab_builder2(div, selector){
 
                 }, IP, 8090);
                 */
-                console.log(JSON.stringify(x));
-                rpc.post(["read", 3, cid], function(y){
+        console.log(JSON.stringify(x));
+        rpc.post(["read", 3, cid], function(y){
                     //checking that the contract got published correctly.
-                    console.log(JSON.stringify(y));
-                }, IP, 8090);
-            }, IP, 8090);
-        });
-
+            console.log(JSON.stringify(y));
+        }, IP, 8090);
     };
 
 
@@ -211,11 +210,12 @@ no btc delivery
 
     function refresh(){
         var temp_div = document.createElement("div");
-        where_to_send_indicator(temp_div, function(){//todo. alice.
+        //todo, in both where to send indicator and release_buttons we are looking at zeroth confirmation txs. this is not secure.
+        where_to_send_indicator(temp_div, function(){//alice. 
             release_buttons(temp_div, function(){
                 //Bob
-                //todo. once you receive the bitcoin, you can release the funds. buys the winning shares for 99% of their value and combines.
-                //todo. if they don't deliver the bitcoin in time, you can dispute.
+                //once you receive the bitcoin, you can release the funds. buys the winning shares for 99% of their value and combines. todo test
+                //if they don't deliver the bitcoin in time, you can dispute. todo test
                 //
                 active_offers(temp_div, function(){
                     //Bob
@@ -238,7 +238,7 @@ no btc delivery
         console.log("where to send indicator");
         let txs = await rpc.apost(["txs"]);
         txs0 = txs.slice(1);
-            //console.log(JSON.stringify(txs));
+        console.log(JSON.stringify(txs));
         txs = txs0.filter(function(tx){
             return(tx[1][0] === "contract_timeout_tx2");
         });
@@ -247,6 +247,8 @@ no btc delivery
             return(tx[1][4]);
         });
         console.log(JSON.stringify(sids));
+
+
         let account = await rpc.apost(["account", keys.pub()], IP, 8091);
         if(account === "error"){
             return(callback());
@@ -279,6 +281,7 @@ no btc delivery
             return(callback2());
         };
         var balance = sa[1];
+        //todo we need to check that we received as much of the sub account as we requested.
         if(balance < 100000){
             return(callback2());
         };
@@ -332,14 +335,17 @@ no btc delivery
         if((timeout_txs.length === 0)){
             return(callback2());
         };
-        var sink = timeout_txs[0][1][8];
-        console.log(JSON.stringify(txs));
+        var sink2 = timeout_txs[0][1][8];//TODO why are we re-defining the sink here???
+        if(!(sink === sink2)){
+            return(callback2());
+        };
+        //console.log(JSON.stringify(txs));
         evidence_txs = txs.filter(function(tx){
             return((tx[1][0] === "contract_evidence_tx") &&
                    (tx[1][5] === cid));
         });
         valid_evidence_txs(evidence_txs, sink, cid, [], function(evidence_txs2){
-            console.log(JSON.stringify(txs));
+            //console.log(JSON.stringify(txs));
             var evidence_tx = evidence_txs2[0];
             var evidence = evidence_tx[1][6];
             //console.log(JSON.stringify(evidence));
@@ -371,11 +377,9 @@ no btc delivery
             return(txs);
         };
         const tx = await rpc.apost(["txs", txids[0]], IP, 8091);
-        //rpc.post(["txs", txids[0]], function(tx){
             return(txids_to_txs(
                 txids.slice(1),
                 [tx[1][3]].concat(txs)));
-        //}, IP, 8091);
     };
 //    function spk_prove_facts(Prove, Dict2, NewHeight, function(prove_code)
     function spk_prove_facts(prove, callback){
@@ -584,119 +588,240 @@ macro ] swap cons reverse ;/
     };
     */
 
-    function release_buttons(temp_div, callback){
+    async function release_buttons(temp_div, callback){
         console.log("making release buttons");
-        rpc.post(["account", keys.pub()], function(
-            account
-        ){
-            if(account === "error"){
-                return(callback());
-            };
-            account = account[1];
-            var subaccounts = account[3];
-            //console.log(JSON.stringify(account));
-            console.log(JSON.stringify(subaccounts));
-            return(release_subaccounts_loop(
-                temp_div, subaccounts.slice(1).reverse(),
-                callback));
-            //return(callback());
-        }, IP, 8091);//the explorer
+        let txs = await rpc.apost(["txs"]);
+        txs0 = txs.slice(1);
+        console.log(JSON.stringify(txs));
+        txs = txs0.filter(function(tx){
+            return(tx[1][0] === "contract_timeout_tx2");
+        });
+            //console.log(JSON.stringify(txs));
+        const sids = txs.map(function(tx){
+            return(tx[1][4]);
+        });
+        console.log(JSON.stringify(sids));
+        
+        let account = await rpc.apost(["account", keys.pub()], IP, 8091);
+        if(account === "error"){
+            return(callback());
+        };
+        account = account[1];
+        var subaccounts = account[3].concat(sids);
+        //console.log(JSON.stringify(account));
+        //console.log(JSON.stringify(subaccounts));
+        return(release_subaccounts_loop(
+            temp_div, subaccounts.slice(1).reverse(),
+            txs0,
+            callback));
     };
-    function release_subaccounts_loop(
-        temp_div, subaccounts, callback){
+    async function release_subaccounts_loop(
+        temp_div, subaccounts, txs, callback){
         if(subaccounts.length === 0){
             return(callback());
         };
         var callback2 = function(){
             return(release_subaccounts_loop(
                 temp_div, subaccounts.slice(1),
+                txs,
                 callback));
         };
         var cid = subaccounts[0];
         var id = sub_accounts.normal_key(keys.pub(), cid, 1);
-        sub_accounts.rpc(id, function(sa){
-            if(!(sa === 0)){
-                var balance = sa[1];
-                if(balance > 100000){
-                    rpc.post(["read", 3, cid], function(contract){
-                        //console.log(JSON.stringify(contract));
-                        if(!(contract === 0)){
-                            var Source = contract[5];
-                            var SourceType = contract[6];
-                            var contract_text = atob(contract[1]);
-                            //console.log(contract_text);
-if(contract_text.match(/has received less than/)){
-    var received_text = description_maker2(contract_text);
-    var description = document.createElement("span");
-    description.innerHTML = "you are buying "
-        .concat(received_text);
-    //temp_div.appendChild(description);
-    var offer = {};
-    var block_height = headers_object.top()[1];
-    offer.start_limit = block_height - 1;
-    offer.end_limit = block_height + 1000;
-    offer.amount1 = balance;//amount to send
-    offer.cid2 = Source;
-    offer.cid1 = cid;
-    offer.type2 = SourceType;
-    offer.type1 = 1;
-    offer.acc1 = keys.pub();
-    offer.partial_match = true;
-    var release_button = button_maker3("you have already been paid", function(button){
-        //release button to sell for 0.2% + fee.
-        rpc.post(["account", keys.pub()], function(my_acc){
-            offer.nonce = my_acc[2] + 1;
-            offer.amount2 = Math.round((balance*0.002) + (fee*5));//new oracle, oracle report, oracle close, withdraw winnings, oracle winnings
-            function cleanup(){
-                button.value = "done";
-                button.onclick = function(){return(0)};
-            };
-            function we_post_first(){
-                post_offer(offer);
-                cleanup();
-            };
-            //first we should look up if they already posted an offer to sell 
-            rpc.post(["markets"], function(markets){
+        let sa = await sub_accounts.arpc(id);
+        //sub_accounts.rpc(id, function(sa){
+        if(sa === 0){
+            return callback2();
+        };
+        var balance = sa[1];
+        if(balance < 100000){
+            return(callback2());
+        };
+        let contract = await rpc.apost(["read", 3, cid], IP, 8090);
+            //rpc.post(["read", 3, cid], function(contract){
+        //console.log(JSON.stringify(contract));
+        if(contract === 0){
+            return(callback2());
+        };
+        if(!(contract[0] === "contract")){
+            //not a buy_veo contract.
+            //console.log("not a buy veo contract");
+            return(callback2());
+        };
+        let consensus_state_contract =
+            await rpc.apost(["contracts", cid]);
+        if(consensus_state_contract === 0){
+            //contract doesn't exist in consensus state space.
+            //console.log("contract not in consensus space");
+            return(callback2());
+        };
+        var result = consensus_state_contract[7];
+        if(result === ZERO){
+            //console.log("unfinalized contract");
+            return(callback2());
+        };
+        var sink = consensus_state_contract[10];
+        let contract2 = await rpc.apost(["contract", cid], IP, 8091);
+        contract2 = contract2[1];
+        //console.log(JSON.stringify(contract2));
+        let contract_txs;
+        if(contract2 === 0){
+            contract_txs = [];
+        } else if(!(contract2)){
+            contract_txs = [];
+        } else {
+            contract_txs = contract2[5].slice(1);
+        };
+        contract_txs = await txids_to_txs(contract_txs, []);
+        txs = txs.concat(contract_txs);
+        //console.log(JSON.stringify(txs));
+        var timeout_txs = txs.filter(function(tx){
+            return((tx[1][0] === "contract_timeout_tx2") &&
+                   (tx[1][4] === cid))
+        });
+        if((!(contract_txs)) && (txs.length === 0)){
+            //console.log("no timeout tx");
+            return(callback2());
+        };
+        if((timeout_txs.length === 0)){
+            //console.log(JSON.stringify(cid));
+            //console.log(JSON.stringify(txs));
+            //console.log("no timeout tx2");
+            return(callback2());
+        };
+        var sink2 = timeout_txs[0][1][8];//TODO why are we re-defining the sink here???
+        if(!(sink === sink2)){
+            return(callback2());
+        };
+        evidence_txs = txs.filter(function(tx){
+            return((tx[1][0] === "contract_evidence_tx") &&
+                   (tx[1][5] === cid));
+        });
+        valid_evidence_txs(evidence_txs, sink, cid, [], function(evidence_txs2){
+            var evidence_tx = evidence_txs2[0];
+            var evidence = evidence_tx[1][6];
+            var address = buy_veo_contract.run(string_to_array(atob(evidence))).reverse()[1];
+            address = array_to_string(address.slice(1));
+            var send_amount = atob(contract[7]);
+            var blockchain = atob(contract[6]);
+            var ticker = atob(contract[8]);
+            var date = atob(contract[9]);
+            var send_to_p = document.createElement("span");
+            send_to_p.innerHTML = "if you have received "
+                .concat(send_amount)
+                .concat(" of ")
+                .concat(ticker)
+                .concat(", on blockchain: ")
+                .concat(blockchain)
+                .concat(", by date: ")
+                .concat(date)
+                .concat(", in address: ")
+                .concat(address)
+                .concat(", then click this button to release the veo.");
+            temp_div.appendChild(send_to_p);
+            console.log("working here");//todo
+            console.log(JSON.stringify(contract));
+            var Source = contract[2];
+            var SourceType = contract[3];
+            
+
+        
+            //var contract_text = atob(contract[1]);
+        //if(!(contract_text.match(/has received less than/))){
+        //    return(callback2());
+        //};
+        //console.log(cid);
+
+        //var received_text = description_maker2(contract_text);
+        //var description = document.createElement("span");
+        //description.innerHTML = "you are buying "
+        //    .concat(received_text);
+        //temp_div.appendChild(description);
+            var offer = {};
+            var block_height = headers_object.top()[1];
+            offer.start_limit = block_height - 1;
+            offer.end_limit = block_height + 1000;
+            offer.amount1 = balance;//amount to send
+            offer.cid2 = Source;
+            offer.cid1 = cid;
+            offer.type2 = SourceType;
+            offer.type1 = 1;
+            offer.acc1 = keys.pub();
+            offer.partial_match = true;
+            console.log("start making release button");
+            var release_button = button_maker3("you have already been paid", async function(button){
+                //release button to sell for 0.2% + fee.
+                let my_acc = await rpc.apost(["account", keys.pub()]);
+                //rpc.post(["account", keys.pub()], function(my_acc){
+                offer.nonce = my_acc[2] + 1;
+                offer.amount2 = Math.round((balance*0.002) + (fee*5));//new oracle, oracle report, oracle close, withdraw winnings, oracle winnings
+                function cleanup(){
+                    button.value = "done";
+                    button.onclick = function(){return(0)};
+                };
+                function we_post_first(){
+                    post_offer(offer);
+                    cleanup();
+                };
+                //first we should look up if they already posted an offer to sell
+                let markets = await rpc.apost(["markets"], IP, 8090);
+                //rpc.post(["markets"], function(markets){
                 markets = markets.slice(1);
                 var market = find_market(markets, offer.cid2, offer.type2, offer.cid1, 2);
                 if(market === 0){
                     //console.log("cannot find market");
                     //return(0);
                     return(we_post_first());
-                } else {
-                    var mid = market[2];
-                    rpc.post(["read", mid], function(market_data){
-                        market_data = market_data[1];
-                        var orders = market_data[7].slice(1);
-                        var order = lowest_price_order(orders);
-                        var tid = order[3];
-                        rpc.post(["read", 2, tid], function(trade){
-                            console.log(JSON.stringify(trade));
-                            var swap = trade;
-                            var combine_tx = ["contract_use_tx", 0,0,0,
-                                              offer.cid1, -offer.amount1, 2, offer.cid2, offer.type2];
-                            swaps.make_tx(swap, 1000000, function(txs){
-                                multi_tx.make(txs.concat([combine_tx]), function(tx){
-                                    console.log(JSON.stringify(tx));
-                                    var stx = keys.sign(tx);
-	                            rpc.post(["txs", [-6, stx]],
-                                             function(x) {
-                                                 if(x == "ZXJyb3I="){
-                                                     display.innerHTML = "server rejected the tx";
-                                                 }else{
-                                                     display.innerHTML = "accepted trade offer and published tx. the tx id is "
-                                                         .concat(x);
-                                                     cleanup();
-                                                 }
-                                             });
-                                }); 
-                            });
-                        }, IP, 8090);
-                    }, IP, 8090);
                 };
-            }, IP, 8090);
+                var mid = market[2];
+                let market_data = await rpc.apost(["read", mid], IP, 8090);
+                
+                market_data = market_data[1];
+                var orders = market_data[7].slice(1);
+                var order = lowest_price_order(orders);
+                var tid = order[3];
+                let trade = await rpc.apost(["read", 2, tid], IP, 8090);
+                //rpc.post(["read", 2, tid], function(trade){
+                console.log(JSON.stringify(trade));
+                var swap = trade;
+                var combine_tx = [
+                    "contract_use_tx", 0,0,0,
+                    offer.cid1, -offer.amount1, 2, offer.cid2, offer.type2];
+                swaps.make_tx(swap, 1000000, function(txs){
+                    multi_tx.make(txs.concat([combine_tx]), async function(tx){
+                        console.log(JSON.stringify(tx));
+                        var stx = keys.sign(tx);
+                        let x = await rpc.apost(["txs", [-6, stx]]);
+	                //rpc.post(["txs", [-6, stx]],
+                        //function(x) {
+                        if(x == "ZXJyb3I="){
+                            display.innerHTML = "server rejected the tx";
+                        }else{
+                            display.innerHTML = "accepted trade offer and published tx. the tx id is "
+                                .concat(x);
+                            cleanup();
+                        }
+                        //};
+                    }); 
+                });
+            });
+        //temp_div.appendChild(description);
+            temp_div.appendChild(release_button);
+            temp_div.appendChild(br());
+            var dispute_button = button_maker2("you have not been paid, and they ran out of time", async function(){
+                const my_acc = await rpc.apost(["account", keys.pub()]);
+                //dispute button to sell for 99% - fee.
+                offer.nonce = my_acc[2] + 1;
+                offer.amount2 = Math.round((balance*0.995) - (fee*5));
+                post_offer(offer);
+            });
+            temp_div.appendChild(dispute_button);
+            temp_div.appendChild(br());
+            temp_div.appendChild(br());
+            
+            return(callback2());
         });
-    });
+    };
     function lowest_price_order(orders) {
         if(orders.length === 1){
             return(orders[0]);
@@ -728,39 +853,7 @@ if(contract_text.match(/has received less than/)){
         }
         return(find_market(markets.slice(1), cid2, type2, cid1, type1));
     };
-    temp_div.appendChild(description);
-    temp_div.appendChild(release_button);
-    temp_div.appendChild(br());
-    var dispute_button = button_maker2("you have not been paid, and they ran out of time", function(){
-        rpc.post(["account", keys.pub()], function(my_acc){
-            //dispute button to sell for 99% - fee.
-            offer.nonce = my_acc[2] + 1;
-            offer.amount2 = Math.round((balance*0.995) - (fee*5));
-            post_offer(offer);
-        });
-    });
-    temp_div.appendChild(dispute_button);
-    temp_div.appendChild(br());
-    temp_div.appendChild(br());
-    
-    
-    return(callback2());
-} else {
-    return(callback2());
-};
-                        } else {
-                            return(callback2());
-                        }
-                    }, IP, 8090);//p2p_derivatives
-                } else {
-                    return(callback2());
-                }
-            } else {
-                return(callback2());
-            }
-        });
-    };
-    function delivered_buttons(temp_div, callback){
+function delivered_buttons(temp_div, callback){
         //after giving the coins on the other blockchain, use this button to get paid.
         console.log("making delivered buttons");
         rpc.post(["account", keys.pub()], function(

@@ -14,6 +14,7 @@ sub_accounts = (function(){
         if(x){
             return(x);
         } else {
+            //todo, maybe this should be checking merkle proofs.
             let sa = rpc.apost(["sub_accounts", id]);
             if((sa === "c3RvcCBzcGFtbWluZyB0aGUgc2VydmVy")){
                 console.log("spam filter triggered.");
