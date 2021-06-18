@@ -54,17 +54,18 @@ var tabs = (function(){
         keys.update_balance_callback(load);
     }
 
-    function load() {
+    async function load() {
         //display.innerHTML = "<h3>looking up which currencies you own.</h3>";
-        setTimeout(function(){
-            rpc.post(["account", keys.pub()], function(response){
-                if(response == "error") {
-                    //display.innerHTML = "<h3>load a key with funds.</h3>";
-                } else {
-                    sub_accs = response[1][3].slice(1);
-                    liquidity_shares = response[1][4].slice(1);
-                    display.innerHTML = "";
-                }
+        setTimeout(async function(){
+            //rpc.post(["account", keys.pub()], function(response){
+            const response = await rpc.apost(["account", keys.pub()], get_ip(), 8091)
+            if(response == "error") {
+                //display.innerHTML = "<h3>load a key with funds.</h3>";
+            } else {
+                sub_accs = response[1][3].slice(1);
+                liquidity_shares = response[1][4].slice(1);
+                display.innerHTML = "";
+            }
                     //TODO figure out which subcurrencies we own in each contract. each subcurrency goes into the selector seperately.
                 contracts_to_subs(sub_accs, [], function(sub_accs2){
                     load_balances(
@@ -74,8 +75,7 @@ var tabs = (function(){
                         });
                 });
                 
-            }, get_ip(), 8091), 0
-        });
+        }, 0);
     };
     function contracts_to_subs(contracts, R, callback) {
         if(contracts.length < 1){
@@ -165,109 +165,108 @@ var tabs = (function(){
         var subs = sub1.concat(sub2);
         return(lb2(subs, callback));
     }
-    function lb2(subs, callback){
+    async function lb2(subs, callback){
         if(subs.length == 0){
             return(callback());
+        };
+        async function callback2(){
+            setTimeout(function(){
+                return(lb2(subs.slice(1), callback));
+            }, 200);
         };
         var sub = subs[0];
         var sk = sub.sub_key;
         if(balances_db[sk] &&
            balances_db[sk].time &&
            ((Date.now() - balances_db[sk].time) <
-                update_frequency)){
+            update_frequency)){
+            return(callback2());
             //return(lb2(subs.slice(1), callback));
             //don't update.
-        } else {
-            if(!balances_db[sk]){
-                balances_db[sk] = {};
-            };
-            balances_db[sk].time = Date.now();
-            //rpc.post(["sub_accounts", sk], function(sa){
-            sub_accounts.rpc(sk, function(sa){
-                var balance = 0;
-                if(!(sa == "empty")){
-                    balance = sa[1];
-                };
-                if(balance < 10001){
-                    //do we need to erase it, if it exists?
-                    balances_db[sk].time = Date.now()*2;
-                    //return(lb2(subs.slice(1), callback));
-                };
-                if(balance > 10000){
-                    balances_db[sk].bal = balance;
-                    balances_db[sk].type = sub.type;
-                    balances_db[sk].cid = sub.cid;
-                    if(sub.type == 0) {//its a market
-                        //build the string. load it in balances_db.
-                        var mid = sub.cid;
-                        var s = "market: "
-                            .concat(mid)
-                            .concat(" balance : ")
-                            .concat((balance / token_units()).toString());
-                        balances_db[sk].string = s;
-                        show_balances();
-                        //return(lb2(subs.slice(1), callback));
-                    } else {//a subcurrency then
-                        rpc.post(["read", 3, sub.cid], function(oracle_text){
-                            //console.log(oracle_text);
-                            //build the string. load it in balances_db.
-                            var s = "";
-                            if(sub.type == 2){
-                                s = s.concat("inverse ");
-                            };
-                            if(oracle_text &&(!(oracle_text == 0))){
-                                var ot1 = atob(oracle_text[1]);
-                                if(is_ticker_format(ot1)){
-                                    var ticker = decode_ticker(ot1);
-                                    var limit = coll_limit(ot1);
-                                    balances_db[sk].limit = limit;
-                                    var ticker_symbol = symbol(ot1);
-                                    balances_db[sk].ticker_symbol = "v".concat(ticker_symbol);
-                                    s = s.concat("ticker: v")
-                                        .concat(ticker);
-                                    if(sub.type === 1){
-                                        s = s
-                                            .concat(" balance: ")
-                                            .concat((balance * limit / token_units()).toString())
-                                            .concat(" v")
-                                            .concat(ticker_symbol);
-                                    } else {
-                                        s = s
-                                            .concat(" balance: ")
-                                            .concat((balance/token_units()).toString());
-                                    };
-                                } else {
-                                    if(ot1.length > 64){
-                                        ot1 = ot1.slice(0, 64)
-                                            .concat("...");
-                                    };
-                                    s = s.concat("oracle text: ")
-                                        .concat(ot1)
-                                        .concat("contract: ")
-                                        .concat(sub.cid)
-                                        .concat(" balance: ")
-                                        .concat((balance/token_units()).toString());
-                                };
-                            } else {
-                                s = s
-                                    .concat("contract: ")
-                                    .concat(sub.cid)
-                                    .concat(" balance: ")
-                                    .concat((balance/token_units()).toString());
-                            };
-                            balances_db[sk].string = s;
-                            show_balances();
-                            //setTimeout(function(){
-                            //    return(lb2(subs.slice(1), callback));
-                            //}, 0);
-                        }, get_ip(), 8090);
-                    };
-                };
-            });
         };
-        setTimeout(function(){
-            return(lb2(subs.slice(1), callback));
-        }, 200);
+        if(!balances_db[sk]){
+            balances_db[sk] = {};
+        };
+        balances_db[sk].time = Date.now();
+        //rpc.post(["sub_accounts", sk], function(sa){
+        let sa = await sub_accounts.arpc(sk);
+        //sub_accounts.rpc(sk, function(sa){
+        var balance = 0;
+        if(!(sa == "empty")){
+            balance = sa[1];
+        };
+        if(balance < 10001){
+            //do we need to erase it, if it exists?
+            balances_db[sk].time = Date.now()*2;
+            //return(lb2(subs.slice(1), callback));
+            return(callback2());
+        };
+        balances_db[sk].bal = balance;
+        balances_db[sk].type = sub.type;
+        balances_db[sk].cid = sub.cid;
+        if(sub.type == 0) {//its a market
+            //build the string. load it in balances_db.
+            var mid = sub.cid;
+            var s = "market: "
+                .concat(mid)
+                .concat(" balance : ")
+                .concat((balance / token_units()).toString());
+            balances_db[sk].string = s;
+            show_balances();
+            return(callback2());
+            //return(lb2(subs.slice(1), callback));
+        };
+        //a subcurrency then
+        let oracle_text = await rpc.apost(["read", 3, sub.cid], get_ip(), 8090);
+        var s = "";
+        if(sub.type == 2){
+            s = s.concat("inverse ");
+        };
+        if(oracle_text &&(!(oracle_text == 0))){
+            var ot1 = atob(oracle_text[1]);
+            if(is_ticker_format(ot1)){
+                var ticker = decode_ticker(ot1);
+                var limit = coll_limit(ot1);
+                balances_db[sk].limit = limit;
+                var ticker_symbol = symbol(ot1);
+                balances_db[sk].ticker_symbol = "v".concat(ticker_symbol);
+                s = s.concat("ticker: v")
+                    .concat(ticker);
+                if(sub.type === 1){
+                    s = s
+                        .concat(" balance: ")
+                        .concat((balance * limit / token_units()).toString())
+                        .concat(" v")
+                        .concat(ticker_symbol);
+                } else {
+                    s = s
+                        .concat(" balance: ")
+                        .concat((balance/token_units()).toString());
+                };
+            } else {
+                if(ot1.length > 64){
+                    ot1 = ot1.slice(0, 64)
+                        .concat("...");
+                };
+                s = s.concat("oracle text: ")
+                    .concat(ot1)
+                    .concat("contract: ")
+                    .concat(sub.cid)
+                    .concat(" balance: ")
+                    .concat((balance/token_units()).toString());
+            };
+        } else {
+            s = s
+                .concat("contract: ")
+                .concat(sub.cid)
+                .concat(" balance: ")
+                .concat((balance/token_units()).toString());
+        };
+        balances_db[sk].string = s;
+        show_balances();
+        //}, get_ip(), 8090);
+        //};
+        return(callback2());
         
     };
     function change_tab(To) {
@@ -353,18 +352,19 @@ var tabs = (function(){
         return(
             date
                 .replace("12:00 ", "")
-                .replace(/-\d\d?-/,
-                         function(s){
-                             n = Math.abs(parseInt(s));
-                             if(n === month){
-                                 return(s);
-                             };
-                             var m = months[n];
-                             if(!(m)){
-                                 m = n;
-                             };
-                             return("-".concat(m).concat("-"))
-                         })
+                .replace(
+                    /-\d\d?-/,
+                    function(s){
+                        n = Math.abs(parseInt(s));
+                        if(n === month){
+                            return(s);
+                        };
+                        var m = months[n];
+                        if(!(m)){
+                            m = n;
+                        };
+                        return("-".concat(m).concat("-"))
+                    })
                 .replace("-".concat(month.toString()).concat("-"), "-")
                 .replace("-".concat(year.toString()), "")
         );

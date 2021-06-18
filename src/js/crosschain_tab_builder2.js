@@ -130,6 +130,22 @@ function crosschain_tab_builder2(div, selector){
             blocks_till_expires,
             amount2, amount1, 
             cid, salt);
+
+        var offer99 = {};
+        offer99.start_limit = block_height - 1;
+        offer99.end_limit = block_height + 1000;
+        offer99.amount1 = amount1 + amount2;//should be 10% bigger??
+        offer99.cid1 = cid;
+        offer99.type1 = 2;
+        offer99.type2 = 0;
+        offer99.cid2 = ZERO;
+        offer99.amount2 = Math.round((amount1*0.998) + (fee*5));
+        
+        offer99.acc1 = keys.pub();
+        offer99.partial_match = true;
+        
+
+        //todo, make a second offer that sells your shares in the trade for 99% of their max value.
         
         //this is the contract data we teach the p2p derivatives server.
         var Contract = [
@@ -142,6 +158,7 @@ function crosschain_tab_builder2(div, selector){
         console.log(JSON.stringify(Contract));
 
         const my_acc = await rpc.apost(["account", keys.pub()]);
+        console.log(my_acc);
             //rpc.post(["account", keys.pub()], function(my_acc){
         if(my_acc === 0){
             display.innerHTML = "Load your private key first.";
@@ -156,7 +173,7 @@ function crosschain_tab_builder2(div, selector){
         //rpc.post(["add", 4, Contract], function(x){
         //post the offer
         console.log(JSON.stringify(offer));
-        post_offer(offer);
+        post_offer(offer, offer99);
             
             /*
               rpc.post(["add", offer, 0], function(z){
@@ -210,7 +227,7 @@ no btc delivery
 
     function refresh(){
         var temp_div = document.createElement("div");
-        //todo, in both where to send indicator and release_buttons we are looking at zeroth confirmation txs. this is not secure.
+        lists_div.innerHTML = "<h1>loading...</h1>";
         where_to_send_indicator(temp_div, function(){//alice. 
             release_buttons(temp_div, function(){
                 //Bob
@@ -231,14 +248,12 @@ no btc delivery
     };
 
     async function where_to_send_indicator(temp_div, callback){
-        //todo
         //the deposit address is in the evidence of the contract_evidence_tx, and it is a part of the contract_timeout_tx.
         //we want to grab the address from the timeout tx, because false evidence could have been made.
-        //we should scan the sub accounts and txs in the mempool to see if we are trying to buy veo. For every offer where we are trying to buy veo, we should scan the txs related to that contract, and also check the mempool for the contract_timeout_tx for that contract.
+        //we scan the sub accounts and txs in the mempool to see if we are trying to buy veo. For every offer where we are trying to buy veo, we scan the txs related to that contract, and also check the mempool for the contract_timeout_tx for that contract.
         console.log("where to send indicator");
         let txs = await rpc.apost(["txs"]);
         txs0 = txs.slice(1);
-        console.log(JSON.stringify(txs));
         txs = txs0.filter(function(tx){
             return(tx[1][0] === "contract_timeout_tx2");
         });
@@ -255,6 +270,7 @@ no btc delivery
         };
         account = account[1];
         var subaccounts = account[3].concat(sids);
+        console.log(JSON.stringify(subaccounts));
         return(where_to_send_indicator_loop(
             temp_div, subaccounts.slice(1).reverse(), txs0,
             callback));
@@ -276,12 +292,10 @@ no btc delivery
         //console.log(cid);
         let sa = await sub_accounts.arpc(id);
         //sub_accounts.rpc(id, function(sa){
-            //we should probably use a merkle proof here. maybe we should edit the sub_accounts module to use merkle proofs? todo
         if(sa === 0){
             return(callback2());
         };
         var balance = sa[1];
-        //todo we need to check that we received as much of the sub account as we requested.
         if(balance < 100000){
             return(callback2());
         };
@@ -296,7 +310,6 @@ no btc delivery
         };
         let consensus_state_contract =
             await rpc.apost(["contracts", cid]);
-        //todo, maybe this needs to be a merkle proof.
         if(consensus_state_contract === 0){
             //contract doesn't exist in consensus state space.
             return(callback2());
@@ -310,6 +323,7 @@ no btc delivery
             //%or, the result can be the hash of a merkle structure describing how the value is divided up among the participants.
         };
         var sink = consensus_state_contract[10];
+        //offer99.sink = sink;
         //rpc.post(["contracts", sink], function(contract2){
         let contract2 = await rpc.apost(["contract", cid], IP, 8091);
         contract2 = contract2[1];
@@ -324,15 +338,20 @@ no btc delivery
         };
         contract_txs = await txids_to_txs(contract_txs, []);
         txs = txs.concat(contract_txs);
+        //console.log(JSON.stringify(txs));
+        console.log("getting timeout tx");
         console.log(JSON.stringify(txs));
         var timeout_txs = txs.filter(function(tx){
             return((tx[1][0] === "contract_timeout_tx2") &&
                    (tx[1][4] === cid))
         });
         if((!(contract_txs)) && (txs.length === 0)){
+            console.log("tx doesn't exist 1");
             return(callback2());
         };
         if((timeout_txs.length === 0)){
+            console.log("tx doesn't exist 2");
+            console.log(JSON.stringify(timeout_txs));
             return(callback2());
         };
         var sink2 = timeout_txs[0][1][8];//TODO why are we re-defining the sink here???
@@ -354,7 +373,6 @@ no btc delivery
             var send_to_p = document.createElement("p");
             //console.log(JSON.stringify(contract));
             var send_amount = atob(contract[7]);
-            //TODO: we should check that the amount of subcurrency we own is correct for the amount we should send.
             var blockchain = atob(contract[6]);
             var ticker = atob(contract[8]);
             var date = atob(contract[9]);
@@ -394,7 +412,7 @@ macro ] swap cons reverse ;/
             console.log(compiled);
             return(callback(compiled))});
     };
-    function prove_facts2(prove, code, callback){
+    async function prove_facts2(prove, code, callback){
         console.log(JSON.stringify(prove));
         
         //prove is [{tree, key}|...]
@@ -403,8 +421,16 @@ macro ] swap cons reverse ;/
         var tree = prove[0][0];
         var id = tree2id(tree);
         var key = prove[0][1];
+        var data;
+        var dip = default_ip();
+        if(dip === "0.0.0.0"){
+            data = await rpc.apost([tree, key]);
+        } else {
+            data = await merkle.arequest_proof(tree, key);
+        };
         //merkle.request_proof(tree, key, function(data){
-        rpc.post([tree, key], function(data){
+        //rpc.post([tree, key], function(data){
+            //console.log(JSON.stringify(data));
             var data_part;
             if(data === 0){
                 data_part = ", int4 0 ";
@@ -415,12 +441,10 @@ macro ] swap cons reverse ;/
             }
             var type_part = "int4 ".concat(id);
             var key_part;
-            console.log(key);
             if(typeof(key) === "number"){
                 key_part = ", int4 " + key;
             } else {
                 key = string_to_array(atob(key));
-                //key_part = ", binary " + (key.length) + " " + btoa(array_to_string(key));
                 key_part = ", binary " + btoa(array_to_string(key));
             }
             console.log(key);
@@ -434,7 +458,7 @@ macro ] swap cons reverse ;/
         } else {
             return(callback(code.concat(fact).concat("]")));
         }
-        });
+        //});
     };
     function tree2id(name){
         if(name === "accounts"){
@@ -627,13 +651,16 @@ macro ] swap cons reverse ;/
                 callback));
         };
         var cid = subaccounts[0];
-        var id = sub_accounts.normal_key(keys.pub(), cid, 1);
-        let sa = await sub_accounts.arpc(id);
+        var sid = sub_accounts.normal_key(keys.pub(), cid, 1);
+        var sid2 = sub_accounts.normal_key(keys.pub(), cid, 2);
+        let sa = await sub_accounts.arpc(sid);
         //sub_accounts.rpc(id, function(sa){
         if(sa === 0){
             return callback2();
         };
         var balance = sa[1];
+        console.log(JSON.stringify(cid));
+        console.log(JSON.stringify(balance));
         if(balance < 100000){
             return(callback2());
         };
@@ -689,7 +716,7 @@ macro ] swap cons reverse ;/
             //console.log("no timeout tx2");
             return(callback2());
         };
-        var sink2 = timeout_txs[0][1][8];//TODO why are we re-defining the sink here???
+        var sink2 = timeout_txs[0][1][8];
         if(!(sink === sink2)){
             return(callback2());
         };
@@ -719,39 +746,27 @@ macro ] swap cons reverse ;/
                 .concat(address)
                 .concat(", then click this button to release the veo.");
             temp_div.appendChild(send_to_p);
-            console.log("working here");//todo
-            console.log(JSON.stringify(contract));
             var Source = contract[2];
             var SourceType = contract[3];
-            
-
-        
-            //var contract_text = atob(contract[1]);
-        //if(!(contract_text.match(/has received less than/))){
-        //    return(callback2());
-        //};
-        //console.log(cid);
-
-        //var received_text = description_maker2(contract_text);
-        //var description = document.createElement("span");
-        //description.innerHTML = "you are buying "
-        //    .concat(received_text);
-        //temp_div.appendChild(description);
             var offer = {};
             var block_height = headers_object.top()[1];
+            //todo, this should be swapping from the child contract instead.
             offer.start_limit = block_height - 1;
             offer.end_limit = block_height + 1000;
             offer.amount1 = balance;//amount to send
             offer.cid2 = Source;
-            offer.cid1 = cid;
+            //offer.cid1 = cid;
+            offer.cid1 = sink;
             offer.type2 = SourceType;
             offer.type1 = 1;
             offer.acc1 = keys.pub();
             offer.partial_match = true;
             console.log("start making release button");
-            var release_button = button_maker3("you have already been paid", async function(button){
+            var release_button = button_maker3("you have already been paid. release the veo.", async function(button){
+                console.log("start release button");
                 //release button to sell for 0.2% + fee.
                 let my_acc = await rpc.apost(["account", keys.pub()]);
+                console.log(my_acc);
                 //rpc.post(["account", keys.pub()], function(my_acc){
                 offer.nonce = my_acc[2] + 1;
                 offer.amount2 = Math.round((balance*0.002) + (fee*5));//new oracle, oracle report, oracle close, withdraw winnings, oracle winnings
@@ -764,31 +779,89 @@ macro ] swap cons reverse ;/
                     cleanup();
                 };
                 //first we should look up if they already posted an offer to sell
+                console.log("before markets");
                 let markets = await rpc.apost(["markets"], IP, 8090);
+                console.log(JSON.stringify(markets));
+                console.log("after markets");
                 //rpc.post(["markets"], function(markets){
                 markets = markets.slice(1);
-                var market = find_market(markets, offer.cid2, offer.type2, offer.cid1, 2);
+                console.log("before find markets");
+                //var market = find_market(markets, offer.cid2, offer.type2, offer.cid1, 2);//problem here?
+        //offer99.cid1 = cid;
+        //offer99.type1 = 2;
+        //offer99.type2 = 0;
+        //offer99.cid2 = ZERO;
+                var market = find_market(markets, ZERO, 0, cid, 2);//problem here?
+                console.log("after find markets");
                 if(market === 0){
                     //console.log("cannot find market");
                     //return(0);
                     return(we_post_first());
                 };
                 var mid = market[2];
+                console.log("before market data");
                 let market_data = await rpc.apost(["read", mid], IP, 8090);
+                console.log(" market data");
                 
                 market_data = market_data[1];
                 var orders = market_data[7].slice(1);
                 var order = lowest_price_order(orders);
                 var tid = order[3];
+                console.log("before trade");
                 let trade = await rpc.apost(["read", 2, tid], IP, 8090);
                 //rpc.post(["read", 2, tid], function(trade){
                 console.log(JSON.stringify(trade));
                 var swap = trade;
                 var combine_tx = [
                     "contract_use_tx", 0,0,0,
-                    offer.cid1, -offer.amount1, 2, offer.cid2, offer.type2];
+                    sink,// offer.cid1,
+                    -offer.amount1, 2, offer.cid2, offer.type2];
+//-record(contract_winnings_tx, {from, nonce, fee, contract_id, amount, sub_account, winner, proof, row}).
+//    Proofs = contract_evidence_tx:make_proof1(Matrix),
+                //Tx7 = contract_winnings_tx:make_dict(MP, SubAcc1, CID, Fee, [Empty, Full], Proofs),
+
+                //row defaults as zero
+                //amount is balance of the sub account
+                //winner is an account address
+                
+                var MAX = btoa(array_to_string(integer_to_array(-1, 4)));
+                var MIN = btoa(array_to_string(integer_to_array(0, 4)));
+                const matrix = [-6, [-6, MAX, MIN],[-6, MIN, MAX]];
+                const proof1 = [-7,"DuuMB6kmlzrtq7xvpJZC01BrGSojmrRIiQH+n9oU2cM=","cqT6NUTkOoNv/LJozgbM28VdRNXmsbHBkhalPqmDAf0=",[-6,[-7,"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","69C/42A2nzhjBR3hE6PxPhdn/FY060N1dMOt2RIVMVo=","/0URezACy63B5htZN80FCOUC1ZyUPvbLaCwqIV3LP80=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="]]];
+                const proof2 = [-7,"DuuMB6kmlzrtq7xvpJZC01BrGSojmrRIiQH+n9oU2cM=","WYFpPI34PuoW2kKg90j6yymVRmiFRKDCiH7V/78IboY=",[-6,[-7,"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","69C/42A2nzhjBR3hE6PxPhdn/FY060N1dMOt2RIVMVo=","/0URezACy63B5htZN80FCOUC1ZyUPvbLaCwqIV3LP80=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="]]];
+                /*
+                  serialize_row([], B) -> B;
+                  serialize_row([<<H:32>>|T], A) -> 
+                  A2 = <<A/binary, H:32>>,
+                  R = serialize_row(T, A2).
+                */
+                var row = matrix[1];
+                var row2 = matrix[2];
+                //var row = [MAX, ZERO];//lists:nth(1, Matrix)
+                //RowHash = hash:doit(contract_evidence_tx:serialize_row(Row, <<>>)),//row is same as from in the tx.
+                //var result = btoa(array_to_string(integer_to_array(consensus_state_contract[7], 32)));
+                //const proof = [-7,
+                //               result,//same as "result" from in the contract.
+                //               rowhash,
+                //               proof2];
+                var winnings_tx = [
+                    "contract_winnings_tx", 0,0,0,
+                    cid, balance, sid,
+                    keys.pub(), proof1, row];
+                var winnings_tx2 = [
+                    "contract_winnings_tx", 0,0,0,
+                    cid, balance, sid2,//balance wrong? why didn't I get it all yet?
+                    keys.pub(), proof2, row2];
+                console.log(JSON.stringify(winnings_tx));
+                console.log(JSON.stringify(winnings_tx2));
+                    console.log("make trade");
                 swaps.make_tx(swap, 1000000, function(txs){
-                    multi_tx.make(txs.concat([combine_tx]), async function(tx){
+                        console.log(JSON.stringify(swap));
+                        console.log(JSON.stringify(txs));
+                        console.log("make trade2");
+                    //todo. we also need to convert our money from the parent contract to the child, with a contract_winnings_tx.
+                    multi_tx.make(txs.concat([combine_tx, winnings_tx, winnings_tx2]), async function(tx){
+                        //multi_tx.make(txs.concat([combine_tx, winnings_tx]), async function(tx){
                         console.log(JSON.stringify(tx));
                         var stx = keys.sign(tx);
                         let x = await rpc.apost(["txs", [-6, stx]]);
@@ -822,6 +895,34 @@ macro ] swap cons reverse ;/
             return(callback2());
         });
     };
+    /*
+make_leaves(Matrix, MT) ->
+    CFG = mtree:cfg(MT),
+    %L1 =  leaf:new(0, CH, 0, CFG),
+    make_leaves2([], 1, Matrix, CFG).
+make_leaves2(X, _, [], _) -> X;
+make_leaves2(X, N, [R|T], CFG) -> 
+    SR = serialize_row(R, <<>>),
+    RH = hash:doit(SR),
+    L = leaf:new(N, RH, 0, CFG),
+    make_leaves2([L|X], N+1, T, CFG).
+make_tree(Matrix) ->
+    MT = mtree:new_empty(5, 32, 0),
+    Leaves = make_leaves(Matrix, MT),
+    mtree:store_batch(Leaves, 1, MT).
+make_proof(N, Matrix) ->
+    {Root, MT} = make_tree(Matrix), 
+    true = (N =< MT),
+    CFG = mtree:cfg(MT),
+    {MP_R, Leaf1, Proof1} = 
+        mtree:get(leaf:path_maker(N, CFG),
+                  Root,
+                  MT),
+    {MP_R, leaf:value(Leaf1), Proof1}.
+make_proof1(Matrix) ->
+    make_proof(1, Matrix).
+
+*/
     function lowest_price_order(orders) {
         if(orders.length === 1){
             return(orders[0]);
@@ -852,102 +953,6 @@ macro ] swap cons reverse ;/
             return(market);
         }
         return(find_market(markets.slice(1), cid2, type2, cid1, type1));
-    };
-function delivered_buttons(temp_div, callback){
-        //after giving the coins on the other blockchain, use this button to get paid.
-        console.log("making delivered buttons");
-        rpc.post(["account", keys.pub()], function(
-            account
-        ){
-            if(account === "error"){
-                return(callback());
-            };
-            account = account[1];
-            var subaccounts = account[3];
-            return(delivered_subaccounts_loop(
-                temp_div, subaccounts.slice(1).reverse(),
-                callback));
-
-        }, IP, 8091);//the explorer
-    };
-    function delivered_subaccounts_loop(
-        temp_div, subaccounts, callback){
-        if(subaccounts.length === 0){
-            return(callback());
-        };
-        var callback2 = function(){
-            return(delivered_subaccounts_loop(
-                temp_div, subaccounts.slice(1),
-                callback));
-        };
-        var cid = subaccounts[0];
-        var id = sub_accounts.normal_key(keys.pub(), cid, 2);
-        sub_accounts.rpc(id, function(sa){
-            if(!(sa === 0)){
-                var balance = sa[1];
-                if(balance > 100000){
-                    rpc.post(["read", 3, cid], function(contract){
-                        if(!(contract === 0)){
-                            var Source = contract[5];
-                            var SourceType = contract[6];
-                            var contract_text = atob(contract[1]);
- if(contract_text.match(/has received less than/)){
-     var received_text = description_maker2(contract_text)
-         .concat(" using contract ")
-         .concat(cid);
-     var description = document.createElement("span");
-     description.innerHTML = "you are selling "
-         .concat(received_text);
-     temp_div.appendChild(description);
-     var offer = {};
-     var block_height = headers_object.top()[1];
-     offer.start_limit = block_height - 1;
-     offer.end_limit = block_height + 1000;
-     offer.amount1 = balance;//amount to send
-     offer.cid2 = Source;
-     offer.cid1 = cid;
-     offer.type2 = SourceType;
-     offer.type1 = 2;
-     offer.acc1 = keys.pub();
-     offer.partial_match = true;
-     var delivered_button = button_maker3("you have already delivered the coins on the other blockchain", function(button){
-         rpc.post(["account", keys.pub()], function(my_acc){
-             offer.nonce = my_acc[2] + 1;
-             offer.amount2 = Math.round((balance*0.995) - (fee*5));
-             post_offer(offer);
-             button.value = "done";
-             button.onclick = function(){return(0)};
-         });
-     });
-     temp_div.appendChild(delivered_button);
-     var cancel_button = button_maker2("you cannot or will not deliver the coins on the other blockchain", function(){
-         //TODO, this should work like the "release_button". It should match an existing offer, if possible.
-         rpc.post(["account", keys.pub()], function(my_acc){
-             offer.nonce = my_acc[2] + 1;
-             offer.amount2 = Math.round((balance*0.002) + (fee*5));
-             post_offer(offer);
-             
-         });
-     });
-     temp_div.appendChild(br());
-     temp_div.appendChild(cancel_button);
-     temp_div.appendChild(br());
-     temp_div.appendChild(br());
-     return(callback2());
- } else {
-     return(callback2());
- };
-                        } else {
-                            return(callback2());
-                        };
-                    }, IP, 8090);//p2p_derivatives
-                } else {
-                    return(callback2());
-                };
-            } else {
-                return(callback2());
-            }
-        });
     };
     //function description_maker2(contract_text){
     //var address = contract_text.match(/address \w*/)[0];
