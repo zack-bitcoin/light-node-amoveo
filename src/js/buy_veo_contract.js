@@ -255,12 +255,9 @@ var Address Date Ticker Amount Blockchain
         reusable_settings, bitcoin_address
     ){
         var s = ` ." AD" ID2 call `;
-        console.log(s);
         s = s.replace("AD", bitcoin_address)
             .replace("ID2", part2id());
-        console.log(s);
         s = reusable_settings.concat(s);
-        console.log(s);
         s = chalang_compiler.doit(s);
         return(s);
     };
@@ -276,7 +273,6 @@ var Address Date Ticker Amount Blockchain
         //needs to be changed to valid chalang code.
             .concat(` ; `)
             .concat(contract1);
-        console.log(JSON.stringify(s));
         s = chalang_compiler.doit(s);
         return(s);
     };
@@ -322,7 +318,6 @@ var Address Date Ticker Amount Blockchain
         offer.type2 = 2;
         offer.acc1 = keys.pub();
         offer.partial_match = false;
-        console.log(JSON.stringify(offer));
         var signed_offer = swaps.pack(offer);
         return(signed_offer);
     };
@@ -358,7 +353,6 @@ var Address Date Ticker Amount Blockchain
             hash(contract1bytes)));
         var cid = make_cid(contract1bytes, 2, ZERO, 0);
         var rid = rid_maker(trade_id, keys.pub());
-        console.log(JSON.stringify([rid, trade_id, their_pub, deposit_address]));
         var sig = keys.raw_sign(serialize(btoa(deposit_address)));
         var evidence = ` binary `
             .concat(sig)
@@ -463,7 +457,7 @@ var Address Date Ticker Amount Blockchain
     };
     function first_timeout(CID, CH, reusable_settings, deposit_address, nonce) {
         var Matrix = matrix();
-        console.log(JSON.stringify(Matrix));//[[[255,255,255,255],[0,0,0,0]],[[0,0,0,0],[255,255,255,255]]]
+        //console.log(JSON.stringify(Matrix));//[[[255,255,255,255],[0,0,0,0]],[[0,0,0,0],[255,255,255,255]]]
 
         var proofs = contract_evidence_proof(Matrix);
         var row = Matrix[0].map(function(x){
@@ -477,15 +471,194 @@ var Address Date Ticker Amount Blockchain
         var c2b = contract2bytes(
             reusable_settings, deposit_address);
         var CH2 = scalar_derivative.hash(btoa(array_to_string(c2b)));
-        console.log("contract 2 bytes");
-        console.log(JSON.stringify(c2b));
+        //console.log("contract 2 bytes");
+        //console.log(JSON.stringify(c2b));
         var child_cid = make_cid(c2b, 2, ZERO, 0);
         var tx = ["contract_timeout_tx2", keys.pub(),
                   nonce, fee, CID, proofs, CH2,
                   row, child_cid];
         return(tx);
     };
-                      
+
+    async function get_deposit_address(cid, txs){
+        var IP = default_ip();
+        let consensus_state_contract =
+            await rpc.apost(["contracts", cid]);
+        if(consensus_state_contract === 0){
+            //contract doesn't exist in consensus state space.
+            //console.log("contract not in consensus space");
+            return([]);
+        };
+        var result = consensus_state_contract[7];
+        if(result === ZERO){
+            //console.log("unfinalized contract");
+            return([]);
+        };
+        var sink = consensus_state_contract[10];
+        let contract2 = await rpc.apost(["contract", cid], IP, 8091);
+        contract2 = contract2[1];
+        //console.log(JSON.stringify(contract2));
+        let contract_txs;
+        if(contract2 === 0){
+            contract_txs = [];
+        } else if(!(contract2)){
+            contract_txs = [];
+        } else {
+            contract_txs = contract2[5].slice(1);
+        };
+        contract_txs = await txids_to_txs(contract_txs, []);
+        txs = txs.concat(contract_txs);
+        //console.log(JSON.stringify(txs));
+        var timeout_txs = txs.filter(function(tx){
+            return((tx[1][0] === "contract_timeout_tx2") &&
+                   (tx[1][4] === cid))
+        });
+        if((!(contract_txs)) && (txs.length === 0)){
+            //console.log("no timeout tx");
+            return([]);
+        };
+        if((timeout_txs.length === 0)){
+            //console.log(JSON.stringify(cid));
+            //console.log(JSON.stringify(txs));
+            //console.log("no timeout tx2");
+            return([]);
+        };
+        var sink2 = timeout_txs[0][1][8];
+        if(!(sink === sink2)){
+            return([]);
+        };
+        evidence_txs = txs.filter(function(tx){
+            return((tx[1][0] === "contract_evidence_tx") &&
+                   (tx[1][5] === cid));
+        });
+        var evidence_txs2 = await avalid_evidence_txs(evidence_txs, sink, cid, []);
+        var evidence_tx = evidence_txs2[0];
+        var evidence = evidence_tx[1][6];
+        var address = buy_veo_contract.run(string_to_array(atob(evidence))).reverse()[1];
+        address = array_to_string(address.slice(1));
+        return([address, sink]);
+    };
+    async function aspk_prove_facts(prove){
+        var s = `macro [ nil ;/
+macro , swap cons ;/
+macro ] swap cons reverse ;/
+[`;
+        var b = await aprove_facts2(prove, "");
+        var f = s.concat(b);
+        var compiled = chalang_compiler.doit(f);
+        return(compiled);
+    };
+    async function aprove_facts2(prove, code){
+        
+        //prove is [{tree, key}|...]
+        //ID = tree2id(Tree, Height),
+        //grab `data` from the full node.
+        var tree = prove[0][0];
+        var id = tree2id(tree);
+        var key = prove[0][1];
+        var data;
+        var dip = default_ip();
+        if(dip === "0.0.0.0"){
+            data = await rpc.apost([tree, key]);
+        } else {
+            data = await merkle.arequest_proof(tree, key);
+        };
+            var data_part;
+            if(data === 0){
+                data_part = ", int4 0 ";
+            } else {
+                var SD = merkle.serialize(data);
+                data_part = ", binary " + btoa(array_to_string(SD));
+            }
+            var type_part = "int4 ".concat(id);
+            var key_part;
+            if(typeof(key) === "number"){
+                key_part = ", int4 " + key;
+            } else {
+                key = string_to_array(atob(key));
+                key_part = ", binary " + btoa(array_to_string(key));
+            }
+        var fact = "[" + type_part + key_part + data_part + "]";
+        if (prove.length > 1){
+            fact = fact.concat(", ");
+            return(aprove_facts2(
+                prove.slice(1),
+                code.concat(fact)));
+        } else {
+            return(code.concat(fact).concat("]"));
+        }
+    };
+    async function avalid_evidence_txs(evidence_txs, sink, cid, keepers){
+        if(evidence_txs.length === 0) {
+            return(keepers);
+        };
+        var tx = evidence_txs[0];
+        var other_txs = evidence_txs.slice(1);
+        function callbackwithout(){
+            return(avalid_evidence_txs(
+                other_txs,
+                sink,
+                cid,
+                keepers));
+        };
+        function callbackwith(){
+            return(avalid_evidence_txs(
+                other_txs,
+                sink,
+                cid,
+                keepers.concat([tx])));
+        };
+        if(!(tx[1][0] === "contract_evidence_tx")){
+            console.log("wrong tx type");
+            return(callbackwithout());
+        };
+        if(!(tx[1][5] === cid)){
+            console.log("tx for wrong contract");
+            return(callbackwithout());
+        };
+        var contract = string_to_array(atob(tx[1][4]));
+        var cid_check = buy_veo_contract.make_cid(contract, 2, ZERO, 0);
+        if(!(cid === cid_check)){
+            console.log("invalid contract code");
+            return(callbackwithout());
+        };
+        var evidence = string_to_array(atob(tx[1][6]));
+        var prove = tx[1][7].slice(1);
+        //spk_prove_facts(prove, function(prove_code){
+        var prove_code = await aspk_prove_facts(prove);
+        var sink_check = buy_veo_contract.run(evidence.concat(prove_code).concat(contract))[2];
+        sink_check2 = binary_derivative.id_maker(btoa(array_to_string(sink_check.slice(1))), 2, ZERO, 0);
+        if(!(sink === sink_check2)){
+            console.log("invalid contract result");
+            return(callbackwithout());
+        };
+        return(callbackwith());
+    };
+    async function txids_to_txs(txids, txs){
+        if(txids.length === 0){
+            return(txs);
+        };
+        const tx = await rpc.apost(["txs", txids[0]], default_ip(), 8091);
+            return(txids_to_txs(
+                txids.slice(1),
+                [tx[1][3]].concat(txs)));
+    };
+    function tree2id(name){
+        if(name === "accounts"){
+            return(1);
+        } else if(name === "channels"){
+            return(2);
+        } else if(name ==="existence"){
+            return(3);
+        } else if(name ==="oracles"){
+            return(4);
+        } else if(name === "governance"){
+            return(5);
+        } else {
+            return(0);
+        };
+    };
+
     function test(){
         var bytes1 = chalang_compiler.doit(contract1);
         //var bytes2 = chalang_compiler.doit(contract2);
@@ -513,6 +686,8 @@ var Address Date Ticker Amount Blockchain
         resolve_evidence_tx: resolve_evidence_tx,
         winnings_tx: winnings_tx,
         make_cid: make_cid,
-        run: run
+        run: run,
+        new_contract_tx: new_contract_tx,
+        get_deposit_address: get_deposit_address
     });
 })();

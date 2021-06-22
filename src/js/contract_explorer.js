@@ -46,29 +46,45 @@
             .concat(x.toFixed(8));
     });
     rpc.post(["read", 3, cid], function(contract){
-        //from p2p derivatives explorer
-        //console.log(get_ip());
-        //console.log(contract);
-        var text = atob(contract[1]);
-        max_range = contract[3];
-        
-        lower_limit = text.match(/minus -?\d+/g);
-        //console.log(lower_limit);
-        if(lower_limit){
-            lower_limit = lower_limit
-                .reverse()[0];
-            lower_limit = lower_limit.match(/-?\d+/g);
-            lower_limit = parseInt(lower_limit, 10);
+        if(contract[0] === "contract"){
+            //buy veo contract
+            var s = ""
+                .concat(cid)
+                .concat(": ")
+                .concat(atob(contract[7]))
+                .concat(" of ")
+                .concat(atob(contract[8]))
+                .concat(" in blockchain ")
+                .concat(atob(contract[6]))
+                .concat(". by date: ")
+                .concat(atob(contract[9]));
+            text_div.innerHTML = (s);
         } else {
-            lower_limit = 0;
-        };
-        
-        text_div.innerHTML = "oracle text: "
-            .concat(text)
-            .concat("<br> in the range from ")
-            .concat(lower_limit)
-            .concat(" to ")
-            .concat(max_range + lower_limit);
+            console.log(JSON.stringify(contract));
+            //from p2p derivatives explorer
+            //console.log(get_ip());
+            //console.log(contract);
+            var text = atob(contract[1]);
+            max_range = contract[3];
+            
+            lower_limit = text.match(/minus -?\d+/g);
+            //console.log(lower_limit);
+            if(lower_limit){
+                lower_limit = lower_limit
+                    .reverse()[0];
+                lower_limit = lower_limit.match(/-?\d+/g);
+                lower_limit = parseInt(lower_limit, 10);
+            } else {
+                lower_limit = 0;
+            };
+            
+            text_div.innerHTML = "oracle text: "
+                .concat(text)
+                .concat("<br> in the range from ")
+                .concat(lower_limit)
+                .concat(" to ")
+                .concat(max_range + lower_limit);
+        }
     }, get_ip(), 8090); 
 
 
@@ -79,7 +95,7 @@
     rpc.post(["contract", cid], function(contract){
         //from the explorer
             contract = contract[1];
-            //console.log(JSON.stringify(contract));
+        //console.log(JSON.stringify(contract));
             var source = contract[2];
             var source_type = contract[6];
         //var swap_tab = swap_tab_builder();
