@@ -41,8 +41,16 @@ var multi_tx = (function(){
                 L[i][1] = 0;
                 L[i][2] = 0;
                 L[i][3] = 0;
+            } else if (L[i][0] == "contract_winnings_tx") {
+                L[i][1] = 0;
+                L[i][2] = 0;
+                L[i][3] = 0;
+            } else if (L[i][0] == "contract_timeout_tx2") {
+                L[i][1] = 0;
+                L[i][2] = 0;
+                L[i][3] = 0;
             } else {
-                console.log("swaps unhandled case");
+                console.log("multi-tx unhandled case");
                 console.log(L[i][0]);
             }
         };
@@ -101,21 +109,48 @@ var multi_tx = (function(){
             return(callback([]));
         };
     };
-    function make(Txs, callback){
+    async function apay_dev_tx(Txs) {
+        var vol = vol_estimate(Txs);
+        console.log(vol);
+        var dev = "BL0SzhkFGFW1kTTdnO8sGnwPEzUvx2U2nyECwWmUJPRhLxbPPK+ep8eYMxlTxVO/wnQS5WmsGIKcrPP7/Fw1WVc=";
+        var amount = Math.floor(vol / 200);
+        if(amount > 10000){
+            //spend_tx.make_tx(dev, keys.pub(), amount, function(tx){ return(callback([tx]))});
+            var tx = await spend_tx.amake_tx(dev, keys.pub(), amount)
+            return([tx]);
+        } else {
+            return([]);
+        };
+    };
+    async function make(Txs, callback){
         var fee = 152050;
         //merkle.request_proof("accounts", keys.pub(), function(Acc){
-        rpc.post(["account", keys.pub()], function(Acc){
+        //rpc.post(["account", keys.pub()], function(Acc){
+        var Acc = await rpc.apost(["account", keys.pub()]);
             //console.log(Acc);
-            var Nonce = Acc[2] + 1;
-            pay_dev_tx(Txs, function(txlist){
-                Txs = Txs.concat(txlist);//comment out this line to not pay the dev fee.
-                Txs = zero_accounts_nonces(Txs);
+        var Nonce = Acc[2] + 1;
+        pay_dev_tx(Txs, function(txlist){
+            Txs = Txs.concat(txlist);//comment out this line to not pay the dev fee.
+            Txs = zero_accounts_nonces(Txs);
                 //console.log(JSON.stringify(Txs));
                 //return(0);
-                return(callback(["multi_tx", keys.pub(), Nonce, Math.round(1.1*fee*(Txs.length)), [-6].concat(Txs)]));
-            });
+            return(callback(["multi_tx", keys.pub(), Nonce, Math.round(1.1*fee*(Txs.length)), [-6].concat(Txs)]));
         });
-
     };
-    return({make: make});
+    async function amake(Txs){
+        var fee = 152050;
+        //merkle.request_proof("accounts", keys.pub(), function(Acc){
+        //rpc.post(["account", keys.pub()], function(Acc){
+        var Acc = await rpc.apost(["account", keys.pub()]);
+            //console.log(Acc);
+        var Nonce = Acc[2] + 1;
+        var txlist = await apay_dev_tx(Txs);
+        Txs = Txs.concat(txlist);//comment out this line to not pay the dev fee.
+        Txs = zero_accounts_nonces(Txs);
+                //console.log(JSON.stringify(Txs));
+                //return(0);
+        return(["multi_tx", keys.pub(), Nonce, Math.round(1.1*fee*(Txs.length)), [-6].concat(Txs)]);
+    };
+    return({make: make,
+            amake: amake});
 })();

@@ -292,12 +292,8 @@ no btc delivery
         };
 
         var r = await buy_veo_contract.get_deposit_address(cid, txs);
-        var address, sink;
-        if(r.length === 0){
+        if(!(r.address)){
             return(callback2());
-        } else {
-            address = r[0];
-            sink = r[1];
         };
         var send_to_p = document.createElement("p");
         //console.log(JSON.stringify(contract));
@@ -314,7 +310,7 @@ no btc delivery
             .concat(", by date: ")
             .concat(date)
             .concat(", to address: ")
-            .concat(address);
+            .concat(r.address);
         temp_div.appendChild(send_to_p);
         return(callback2());
     };
@@ -376,12 +372,8 @@ no btc delivery
         };
 
         var r = await buy_veo_contract.get_deposit_address(cid, txs);
-        var address, sink;
-        if(r.length === 0){
+        if(!(r.address)){
             return(callback2());
-        } else {
-            address = r[0];
-            sink = r[1];
         };
         var send_amount = atob(contract[7]);
         var blockchain = atob(contract[6]);
@@ -397,7 +389,7 @@ no btc delivery
             .concat(", by date: ")
             .concat(date)
             .concat(", in address: ")
-            .concat(address)
+            .concat(r.address)
             .concat(", then click this button to release the veo.");
         temp_div.appendChild(send_to_p);
         var Source = contract[2];
@@ -408,7 +400,7 @@ no btc delivery
         offer.end_limit = block_height + 1000;
         offer.amount1 = balance;//amount to send
         offer.cid2 = Source;
-        offer.cid1 = sink;
+        offer.cid1 = r.sink;
         offer.type2 = SourceType;
         offer.type1 = 1;
         offer.acc1 = keys.pub();
@@ -447,24 +439,26 @@ no btc delivery
             var swap = trade;
             var combine_tx = [
                 "contract_use_tx", 0,0,0,
-                sink,// offer.cid1,
+                r.sink,// offer.cid1,
                 -offer.amount1, 2, offer.cid2, offer.type2];
             
-            var MAX = btoa(array_to_string(integer_to_array(-1, 4)));
-            var MIN = btoa(array_to_string(integer_to_array(0, 4)));
-            const matrix = [-6, [-6, MAX, MIN],[-6, MIN, MAX]];
-            const proof1 = [-7,"DuuMB6kmlzrtq7xvpJZC01BrGSojmrRIiQH+n9oU2cM=","cqT6NUTkOoNv/LJozgbM28VdRNXmsbHBkhalPqmDAf0=",[-6,[-7,"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","69C/42A2nzhjBR3hE6PxPhdn/FY060N1dMOt2RIVMVo=","/0URezACy63B5htZN80FCOUC1ZyUPvbLaCwqIV3LP80=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="]]];
-            const proof2 = [-7,"DuuMB6kmlzrtq7xvpJZC01BrGSojmrRIiQH+n9oU2cM=","WYFpPI34PuoW2kKg90j6yymVRmiFRKDCiH7V/78IboY=",[-6,[-7,"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","69C/42A2nzhjBR3hE6PxPhdn/FY060N1dMOt2RIVMVo=","/0URezACy63B5htZN80FCOUC1ZyUPvbLaCwqIV3LP80=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="]]];
+            //var MAX = btoa(array_to_string(integer_to_array(-1, 4)));
+            //var MIN = btoa(array_to_string(integer_to_array(0, 4)));
+            //const matrix = [-6, [-6, MAX, MIN],[-6, MIN, MAX]];
+            const matrix = buy_veo_contract.matrix();
             var row = matrix[1];
             var row2 = matrix[2];
             var winnings_tx = [
                 "contract_winnings_tx", 0,0,0,
-                cid, balance, sid,
-                keys.pub(), proof1, row];
+                cid, balance, sid, keys.pub(),
+                buy_veo_contract.proof1(), row];
+            var sid2 = sub_accounts.normal_key(keys.pub(), cid, 2);
+            let sa2 = await sub_accounts.arpc(sid2);
+            var balance2 = sa2[1];
             var winnings_tx2 = [
                 "contract_winnings_tx", 0,0,0,
-                cid, balance, sid2,
-                keys.pub(), proof2, row2];
+                cid, balance2, sid2, keys.pub(),
+                buy_veo_contract.proof2(), row2];
             swaps.make_tx(swap, 1000000, function(txs){
                 multi_tx.make(txs.concat([combine_tx, winnings_tx, winnings_tx2]), async function(tx){
                     var stx = keys.sign(tx);
@@ -531,11 +525,11 @@ no btc delivery
                 .concat(" type ")
                 .concat(type1);
         };
-        description.innerHTML = "you offered to trade "
+        description.innerHTML = "you offered to receive "
             .concat((amount1/100000000).toFixed(8))
             .concat(" ")
             .concat(spend_stuff)
-            .concat(" in exchange for ")
+            .concat(" for sending ")
             .concat(atob(other_chain_amount))
             .concat(" of ")
             .concat(atob(ticker))
@@ -564,7 +558,7 @@ no btc delivery
             display.innerHTML = "successfully posted your crosschain offer. ";
             var link = document.createElement("a");
             link.href = "contracts.html";
-            link.innerHTML = "Your trade can be viewed on this page."
+            link.innerHTML = "Your trade can be viewed on this page.";
             link.target = "_blank";
             //display.appendChild(link);
         }, IP, 8090);//8090 is the p2p_derivatives server
@@ -614,7 +608,7 @@ no btc delivery
     function display_active_offers_orders(orders, temp_div, contract, callback){
         var Source = contract[2];
         var SourceType = contract[3];
-        var tid = contract[10];
+        var tid0 = contract[10];
 
         if(orders.length === 0){
             return(callback());
@@ -627,6 +621,11 @@ no btc delivery
         var price = order[1];
         var amount = order[2];
         var tid = order[3];
+        if(!(tid === tid0)){
+            console.log("tids not equal");
+            console.log(JSON.stringify([tid, tid0]));
+            return(0);
+        };
         rpc.post(["read", 2, tid], function(trade){
             var swap_offer2 = trade[1];
             var from = swap_offer2[1];
@@ -639,6 +638,11 @@ no btc delivery
             var salt = swap_offer2[10];
             var trade_nonce = swap_offer2[11];
             var block_height = headers_object.top()[1];
+            if(!(trade_nonce === 1)){
+                console.log("unexpected trade nonce");
+                return(0);
+            };
+                
 
             if(from === keys.pub()){
                 console.log(JSON.stringify(swap_offer2));
@@ -681,7 +685,7 @@ no btc delivery
             } 
             description.innerHTML =
                 description.innerHTML.replace(
-                        /you offered to trade/,
+                        /you offered to receive/,
                     "they offered to buy")
                 .concat(" ; Offer expires in ")
                 .concat(expires - block_height)
@@ -692,7 +696,7 @@ no btc delivery
             btc_address_input.value = "test_address";
             var accept_button = button_maker2("accept the offer", function(){
                 //console.log("accepting the offer");
-                rpc.post(["account", keys.pub()], function(my_acc){
+                rpc.post(["account", keys.pub()], async function(my_acc){
                     var nonce = my_acc[2] + 1;
                     var deposit_address = btc_address_input.value;
                     if(deposit_address.length < 5){
@@ -708,6 +712,15 @@ no btc delivery
                     var reusable_settings = buy_veo_contract.reusable_settings(oracle_start_height, blockchain, other_chain_amount, ticker, date);
                     var settings = buy_veo_contract.settings(reusable_settings, address_timeout, trade_nonce, tid);
                     var contract1bytes = buy_veo_contract.contract1bytes(settings);
+                    var contract1bytes2 = await buy_veo_contract.contract_to_1bytes(contract);
+
+                    if(!(JSON.stringify(contract1bytes) === JSON.stringify(contract1bytes2))){
+                        console.log("incorrectly calculated contract1bytes");
+                        console.log(JSON.stringify(settings));
+                        console.log(JSON.stringify(contract1bytes));
+                        console.log(JSON.stringify(contract1bytes2));
+                        return(0);
+                    };
                     
                     var contract_txs = buy_veo_contract.choose_deposit_address_tx(
                         deposit_address, contract1bytes,
