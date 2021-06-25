@@ -281,7 +281,8 @@ no btc delivery
         if(balance < 100000){
             return(callback2());
         };
-        let contract = await rpc.apost(["read", 3, cid], IP, 8090);
+        //let contract = await rpc.apost(["read", 3, cid], IP, 8090);
+        let contract = await buy_veo_contract.verified_p2p_contract(cid);
         if(contract === 0){
             //contract doesn't exist in the p2p derivatives explorer.
             return(callback2());
@@ -703,25 +704,17 @@ no btc delivery
                         display.innerHTML = "you need to choose an address on the other blockchain where you want to get paid.";
                         return(0);
                     };
-                    var address_timeout = contract[4];
+                    //var address_timeout = contract[4];
                     var oracle_start_height = contract[5];
                     var blockchain = atob(contract[6]);
                     var other_chain_amount = atob(contract[7]);
                     var ticker = atob(contract[8]);
                     var date = atob(contract[9]);
                     var reusable_settings = buy_veo_contract.reusable_settings(oracle_start_height, blockchain, other_chain_amount, ticker, date);
-                    var settings = buy_veo_contract.settings(reusable_settings, address_timeout, trade_nonce, tid);
-                    var contract1bytes = buy_veo_contract.contract1bytes(settings);
-                    var contract1bytes2 = await buy_veo_contract.contract_to_1bytes(contract);
+                    //var settings = buy_veo_contract.settings(reusable_settings, address_timeout, trade_nonce, tid);
+                    //var contract1bytes = buy_veo_contract.contract1bytes(settings);
+                    var contract1bytes = await buy_veo_contract.contract_to_1bytes(contract);
 
-                    if(!(JSON.stringify(contract1bytes) === JSON.stringify(contract1bytes2))){
-                        console.log("incorrectly calculated contract1bytes");
-                        console.log(JSON.stringify(settings));
-                        console.log(JSON.stringify(contract1bytes));
-                        console.log(JSON.stringify(contract1bytes2));
-                        return(0);
-                    };
-                    
                     var contract_txs = buy_veo_contract.choose_deposit_address_tx(
                         deposit_address, contract1bytes,
                         from, reusable_settings,

@@ -691,9 +691,23 @@ macro ] swap cons reverse ;/
         var tid = contract[10];
         var trade_nonce = 1;//otherwise get it from the swap offer?
         var settings = buy_veo_contract.settings(reusable_settings, address_timeout, trade_nonce, tid);
-        console.log(JSON.stringify(settings));
         var contract1bytes = buy_veo_contract.contract1bytes(settings);
         return(contract1bytes);
+    };
+    async function verified_p2p_contract(cid){
+        //gets the contract data from the p2p derivatives server.
+        //checks a merkle proof to know this data is correct.
+        let p2p_contract = await rpc.apost(["read", 3, cid], default_ip(), 8090);
+        if(p2p_contract === 0){
+            return(0);
+        };
+        var contract1bytes = await buy_veo_contract.contract_to_1bytes(p2p_contract);
+        var cid2 = buy_veo_contract.make_cid(contract1bytes, 2, ZERO, 0);
+        if(!(cid === cid2)){
+            console.log("got bad contract data from the server");
+            return(0);
+        };
+        return(p2p_contract);
     };
         
 
@@ -730,6 +744,8 @@ macro ] swap cons reverse ;/
         proof1: proof1,
         proof2: proof2,
         matrix: matrix,
-        contract_to_1bytes: contract_to_1bytes
+        contract_to_1bytes: contract_to_1bytes,
+        simplify_tx: simplify_tx,
+        verified_p2p_contract: verified_p2p_contract
     });
 })();

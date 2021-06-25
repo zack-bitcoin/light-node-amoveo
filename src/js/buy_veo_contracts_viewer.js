@@ -28,16 +28,13 @@
             var id2 = sub_accounts.normal_key(keys.pub(), cid, 2);
             let sa1 = await sub_accounts.arpc(id1);
             let sa2 = await sub_accounts.arpc(id2);
-            let p2p_contract = await rpc.apost(["read", 3, cid], default_ip(), 8090);
-            //todo. we should verify that the p2p contract data matches some on-chain data.
-
-
-            var txs = await rpc.apost(["txs"]);
-            txs = txs.slice(1);
-            var address_sink = await buy_veo_contract.get_deposit_address(cid, txs);
+            let p2p_contract = await buy_veo_contract.verified_p2p_contract(cid);
             if(p2p_contract === 0){
                 return(0);
             };
+            var txs = await rpc.apost(["txs"]);
+            txs = txs.slice(1);
+            var address_sink = await buy_veo_contract.get_deposit_address(cid, txs);
             //console.log(JSON.stringify(address_sink));
 
             if(((!(sa1 === 0)) && (sa1[1] > 0)) ||
@@ -114,14 +111,6 @@
             //todo. test
             var out_of_time_button = button_maker2("they ran out of time", async function(){
                 console.log("if you have winning shares, withdraw your winnings.");
-                //var address_timeout = p2p_contract[4];
-                //var TID = p2p_contract[10];
-                //var settings = buy_veo_contract.settings(reusable_settings, address_timeout, 1, TID);
-                //console.log(JSON.stringify(settings));
-                //console.log(JSON.stringify(address_timeout));
-                //console.log(JSON.stringify(1));
-                //console.log(JSON.stringify(TID));
-                //var contract1bytes = buy_veo_contract.contract1bytes(settings);
                 var contract1bytes = await buy_veo_contract.contract_to_1bytes(p2p_contract);
                 console.log(JSON.stringify(contract1bytes));
                 var my_acc = await rpc.apost(["account", keys.pub()]);
@@ -141,7 +130,6 @@
                 multi = keys.sign(multi);
                 console.log(JSON.stringify(evidence));
                 post_txs([evidence, multi], function(response){
-                    //todo test
                     var span = document.createElement("span");
                     span.innerHTML = response;
                     option_div.appendChild(br());
@@ -197,30 +185,62 @@
             option_div.appendChild(a);
             return(0);
         };
+            //if the oracle is settled and you have winning shares, then give a button to convert your winnings to veo. Converts to the child contract first.
+            // todo. test when we need to simplify.
+            // todo. test when we don't need to simplify.
+        var resolved = (cs_contract[6] === 1);
+        var sinked = (cs_contract[10] === sink);
+        var rns = resolved && sinked;
+        var txs = [];
 
         const matrix = buy_veo_contract.matrix();
-        if((consensus_oracle[2] === 1) &&
+        var show_button = false;
+        if((consensus_oracle[2] === 2) &&
            (sa1[1] > 1)){
-        //todo if the oracle is settled and you have winning shares, then give a button to convert your winnings to veo. Needs to convert to the child contract first.
+            show_button = true;
             var row = matrix[1];
+            if(rns){
+                var simplify_tx = buy_veo_contract.simplify_tx(cid, sink, row, 0);
+                txs = txs.concat([simplify_tx]);
+            }
             var winnings_tx = [
                 "contract_winnings_tx", 0,0,0,
                 cid, sa1[1], sid, keys.pub(),
-                buy_veo_contract.proof1(), row];
+                //buy_veo_contract.proof1(), row];
+                row, 0];
+            txs = txs.concat([winnings_tx]);
 
         };
-        if((consensus_oracle[2] === 2) &&
+        if((consensus_oracle[2] === 1) &&
            (sa2[1] > 1)){
+            show_button = true;
             var row2 = matrix[2];
+            if(rns){
+                var simplify_tx = buy_veo_contract.simplify_tx(cid, sink, row2, 0);
+                txs = txs.concat([simplify_tx]);
+            };
             var winnings_tx2 = [
                 "contract_winnings_tx", 0,0,0,
                 cid, sa2[1], sid2, keys.pub(),
-                buy_veo_contract.proof2(), row2];
-        //todo if the oracle is settled and you have winning shares, then give a button to convert your winnings to veo. Needs to convert to the child contract first.
+                //buy_veo_contract.proof2(), row2];
+                row2, 0];
+            txs = txs.concat([winnings_tx]);
 
         };
-        //-record(oracle, {id, result, question, starts, type, orders, orders_hash, creator, done_timer, governance, governance_amount});
-
+        var multi = await multi_tx.amake(txs);
+        var win_button = button_maker2("the oracle resolved and you won. click here to get your winnings.", async function(){
+            post_txs([multi], function(response){
+                var span = document.createElement("span");
+                span.innerHTML = response;
+                option_div.appendChild(br());
+                option_div.appendChild(span);
+                option_div.appendChild(br());
+            });
+        });
+        if(show_button){
+            option_div.appendChild(win_button);
+            refresh_div.appendChild(br());
+        };
     };
     async function combine_to_veo(cid, sa1, sa2, consensus_contract, option_div){
         console.log(JSON.stringify(consensus_contract));
