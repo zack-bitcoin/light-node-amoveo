@@ -12,6 +12,7 @@
     buy_div1.appendChild(div);
 
     async function refresh(){
+        console.log("refresh started");
         let account = await rpc.apost(["account", keys.pub()], default_ip(), 8091);
         if(account === "error"){
             console.log("account does not exist");
@@ -19,81 +20,116 @@
         };
         div.innerHTML = "";
         account = account[1];
-        var subaccounts = account[3].slice(1);
+        var subaccounts = account[3].slice(1).reverse();
+        var dip = default_ip();
+        if(dip === "0.0.0.0"){
+            let txs = await rpc.apost(["txs"]);
+            txs0 = txs.slice(1);
+            txs = txs0.filter(function(tx){
+                return(tx[1][0] === "contract_timeout_tx2");
+            });
+            const sids = txs.map(function(tx){
+                return(tx[1][4]);
+            });
+            subaccounts = sids
+                .concat(subaccounts);
+        };
+        return(refresh2(subaccounts));
+    };
+    async function refresh2(subaccounts){
+        console.log(subaccounts.length);
+        if(subaccounts.length === 0){
+            console.log("refresh2 finished");
+            return(0);
+        };
+        var cid = subaccounts[0];
+        function callback(){
+            //console.log(JSON.stringify(subaccounts));
+            return(refresh2(subaccounts.slice(1)));
+        };
+        //subaccounts.map(async function(cid){
+        var option_div = document.createElement("div");
+        div.appendChild(option_div);
+        var id1 = sub_accounts.normal_key(keys.pub(), cid, 1);
+        var id2 = sub_accounts.normal_key(keys.pub(), cid, 2);
+        let sa1 = await sub_accounts.arpc(id1);
+        let sa2 = await sub_accounts.arpc(id2);
+        let p2p_contract = await buy_veo_contract.verified_p2p_contract(cid);
+        //let p2p_contract = await rpc.apost(["read", 3, cid], default_ip(), 8090);
+        if(p2p_contract === 0){
+            return(callback());
+        };
+        console.log("verified read");
+        console.log(JSON.stringify(p2p_contract));
+        var txs = await rpc.apost(["txs"]);
+        txs = txs.slice(1);
+        var address_sink = await buy_veo_contract.get_deposit_address(cid, txs);
+        //console.log(JSON.stringify(address_sink));
         
-        subaccounts.map(async function(cid){
-            var option_div = document.createElement("div");
-            div.appendChild(option_div);
-            var id1 = sub_accounts.normal_key(keys.pub(), cid, 1);
-            var id2 = sub_accounts.normal_key(keys.pub(), cid, 2);
-            let sa1 = await sub_accounts.arpc(id1);
-            let sa2 = await sub_accounts.arpc(id2);
-            let p2p_contract = await buy_veo_contract.verified_p2p_contract(cid);
-            if(p2p_contract === 0){
-                return(0);
-            };
-            var txs = await rpc.apost(["txs"]);
-            txs = txs.slice(1);
-            var address_sink = await buy_veo_contract.get_deposit_address(cid, txs);
-            //console.log(JSON.stringify(address_sink));
-
-            if(((!(sa1 === 0)) && (sa1[1] > 0)) ||
-               ((!(sa2 === 0)) && (sa2[1] > 0))){
+        if(((!(sa1 === 0)) && (sa1[1] > 0)) ||
+           ((!(sa2 === 0)) && (sa2[1] > 0))){
             //if((!(sa1 === 0)) ||
             //   (!(sa2 === 0))){
-                //about this p2p_contract
-                var address_string = "<br />to address: undecided";
-                if (address_sink.address){
-                    address_string = "<br />to address: ".concat(address_sink.address);
-                };
-                var s = ""
-                    .concat(atob(p2p_contract[7]))
-                    .concat(" of ")
-                    .concat(atob(p2p_contract[8]))
-                    .concat("<br />in blockchain ")
-                    .concat(atob(p2p_contract[6]))
-                    .concat(address_string)
-                    .concat("<br /> is delivered by date: ")
-                    .concat(atob(p2p_contract[9]))
-                    .concat(" contract id: ")
-                    .concat(cid);
-                var p = document.createElement("span");
-                p.innerHTML = s;
-                option_div.appendChild(br());
-                option_div.appendChild(p);
-                option_div.appendChild(br());
-            } else {
-                return(0);
+            //about this p2p_contract
+            var address_string = "<br />to address: undecided";
+            if (address_sink.address){
+                address_string = "<br />to address: ".concat(address_sink.address);
             };
-            //display balances
-            if((!(sa1 === 0)) && (sa1[1] > 0)){
-                var bal = sa1[1];
-                var s = document.createElement("span");
-                s.innerHTML = "you win "
-                    .concat(bal)
-                    .concat(" if the money is not delivered");
-                option_div.appendChild(s);
-                option_div.appendChild(br());
-            }
-            if((!(sa2 === 0)) && (sa2[1] > 0)){
-                var bal = sa2[1];
-                var s = document.createElement("span");
-                s.innerHTML = "you win "
-                    .concat(bal)
-                    .concat(" if the money is delivered");
-                option_div.appendChild(s);
-                option_div.appendChild(br());
-            }
-            //interface to combine
-            if((!(sa1 === 0)) && (!(sa2 === 0)) && ((sa1[1] > 0)) && ((sa2[1] > 0))){
-                combine_to_veo(cid, sa1, sa2, address_sink.consensus_state_contract, option_div);
-            };
-            if((!(sa1 === 0)) || (!(sa2 === 0))){
-                oracle_options(cid, p2p_contract, address_sink.address, address_sink.consensus_state_contract, address_sink.sink, sa1, sa2, option_div);
-            };
-        });
+            var s = ""
+                .concat(atob(p2p_contract[7]))
+                .concat(" of ")
+                .concat(atob(p2p_contract[8]))
+                .concat("<br />in blockchain ")
+                .concat(atob(p2p_contract[6]))
+                .concat(address_string)
+                .concat("<br /> is delivered by date: ")
+                .concat(atob(p2p_contract[9]))
+                .concat(" contract id: ")
+                .concat(cid);
+            var p = document.createElement("span");
+            p.innerHTML = s;
+            option_div.appendChild(br());
+            option_div.appendChild(p);
+            option_div.appendChild(br());
+            var link = document.createElement("a");
+            link.innerHTML = "contract with id: ".concat(cid);
+            link.target = "_blank";
+            link.href = "contract_explorer.html?cid=".concat(cid);
+            option_div.appendChild(link);
+            option_div.appendChild(br());
+        } else {
+            return(callback());
+        };
+        //display balances
+        if((!(sa1 === 0)) && (sa1[1] > 0)){
+            var bal = sa1[1];
+            var s = document.createElement("span");
+            s.innerHTML = "you win "
+                .concat(bal)
+                .concat(" if the money is not delivered");
+            option_div.appendChild(s);
+            option_div.appendChild(br());
+        }
+        if((!(sa2 === 0)) && (sa2[1] > 0)){
+            var bal = sa2[1];
+            var s = document.createElement("span");
+            s.innerHTML = "you win "
+                .concat(bal)
+                .concat(" if the money is delivered");
+            option_div.appendChild(s);
+            option_div.appendChild(br());
+        }
+        //interface to combine
+        if((!(sa1 === 0)) && (!(sa2 === 0)) && ((sa1[1] > 0)) && ((sa2[1] > 0))){
+            combine_to_veo(cid, sa1, sa2, address_sink.consensus_state_contract, option_div);
+        };
+        if((!(sa1 === 0)) || (!(sa2 === 0))){
+            oracle_options(cid, p2p_contract, address_sink.address, address_sink.consensus_state_contract, address_sink.sink, sa1, sa2, option_div);
+        };
+        return(callback());
     };
     async function oracle_options(cid, p2p_contract, bitcoin_address, cs_contract, sink, sa1, sa2, option_div){
+        console.log("oracle options");
         //console.log(bitcoin_address);
         var choose_address_timeout = p2p_contract[4];
         var height_now = headers_object.top()[1];
@@ -103,10 +139,19 @@
         var ticker = atob(p2p_contract[8]);
         var date = atob(p2p_contract[9]);
         var reusable_settings = buy_veo_contract.reusable_settings(oracle_start_height, blockchain, amount, ticker, date);
+        console.log(JSON.stringify([
+            "out of time",
+            (!(bitcoin_address)),
+            (cs_contract[7] === ZERO),
+            (sa1[1] > 0),
+            (height_now > choose_address_timeout)]));
+        console.log(cs_contract[7]);
+        console.log(ZERO);
         if((!(bitcoin_address)) &&
            (cs_contract[7] === ZERO) &&
            (sa1[1] > 0) &&
            (height_now > choose_address_timeout)){
+            console.log("ran out of time");
             //they ran out of time to deliver the veo.
             //todo. test
             var out_of_time_button = button_maker2("they ran out of time", async function(){
@@ -142,6 +187,7 @@
             option_div.append(br());
             return(0);
         };
+        console.log("should happen");
         //console.log(reusable_settings);
         //console.log(bitcoin_address);
         var question = buy_veo_contract.oracle_question(reusable_settings, bitcoin_address);
@@ -154,14 +200,21 @@
         } else {
             consensus_oracle = await merkle.arequest_proof("oracles", oid);
         };
-        if((consensus_oracle === 0) &&
+        console.log(consensus_oracle);
+        if(consensus_oracle === 0){
+            consensus_oracle = "empty";
+        }
+        if((consensus_oracle === "empty") &&
            (!(cs_contract[7] === ZERO))){
             //if the oracle doesn't exist, give a button for creating it.
+            console.log("button to make oracle");
             var fee = 152050;
             var new_oracle_button = button_maker2("create the oracle for this contract", async function(){
-                var acc = await merkle.arequest_proof("accounts", keys.pub());
+                //var acc = await merkle.arequest_proof("accounts", keys.pub());
+                var acc = await rpc.apost(["accounts", keys.pub()]);
                 var nonce = acc[2] + 1;
                 var tx = ["oracle_new", keys.pub(), nonce, Math.round(fee*1.1), btoa(question), oracle_start_height, oid, 0, 0, 0];
+                var oid = id_maker(oracle_start_height, 0, 0, question);
                 var stx = keys.sign(tx);
                 post_txs([stx], function(response){
                     console.log(JSON.stringify(tx));
@@ -170,6 +223,12 @@
                     option_div.appendChild(br());
                     option_div.appendChild(span);
                     option_div.appendChild(br());
+                    var link = document.createElement("a");
+                    link.innerHTML = "oracle with id: ".concat(oid);
+                    link.target = "_blank";
+                    link.href = "oracle_explorer.html?oid=".concat(oid);
+                    option_div.appendChild(link);
+                    option_div.appendChild(br());
                 });
             });
             option_div.appendChild(new_oracle_button);
@@ -177,6 +236,7 @@
         };
         if(consensus_oracle[2] === 0){
             //if the oracle exists and isn't settled, link to the explorer for that oracle.
+            console.log("explorer link");
             var a = document.createElement("a");
             a.href = "oracle_explorer.html?oid="
                 .concat(oid);
@@ -243,7 +303,8 @@
         };
     };
     async function combine_to_veo(cid, sa1, sa2, consensus_contract, option_div){
-        console.log(JSON.stringify(consensus_contract));
+        console.log("combine_to_veo");
+        //console.log(JSON.stringify(consensus_contract));
         var closed = consensus_contract[6];
         var button = button_maker2("combine both share types back to veo", async function(){
             var tx;

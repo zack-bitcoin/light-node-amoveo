@@ -154,10 +154,10 @@ macro oracle_builder
   ( blockchain address amount ticker date -- oracle_text )
   >r >r >r >r >r
   ." The " r> ++
-  ."  address " r> ++ ++
-  ."  is a valid address for that blockchain and has received more than or equal to " r> ++ ++
-  ."  of " r> ++ ++
-  ."  before " r> ++ ++
+  ." address " r> ++ ++
+  ." is a valid address for that blockchain and has received more than or equal to " r> ++ ++
+  ." of " r> ++ ++
+  ." before " r> ++ ++
 ;
 
 macro oracle_id ( question_hash start_height -- oid)
@@ -178,7 +178,7 @@ var Address Date Ticker Amount Blockchain
   OracleStartHeight !
 
 ( grab the OID from the consensus state. )
-  var OID OID2 OracleResult ;
+  var OID OracleResult OID2 ;
   car drop
   car swap drop
   car swap drop
@@ -264,6 +264,7 @@ var Address Date Ticker Amount Blockchain
     function part2id(){
         var code = contract2.concat(` part2 `);
         var bytes = chalang_compiler.doit(code);
+        //console.log(JSON.stringify(bytes));
         return(" binary ".concat(btoa(array_to_string(run(bytes)[0].slice(1)))));
     };
     function part1static_bytes(){
@@ -361,12 +362,15 @@ var Address Date Ticker Amount Blockchain
             .concat(deposit_address)
             .concat(`" `);
         evidence = chalang_compiler.doit(evidence);
+        console.log(JSON.stringify(evidence));
+        console.log(JSON.stringify(btoa(array_to_string(evidence))));
         var new_tx = new_contract_tx(ch);
         //contract2bytesv);
         var tx = ["contract_evidence_tx", keys.pub(),
                   nonce, fee,
                   btoa(array_to_string(contract1bytes)), cid,
                   btoa(array_to_string(evidence)),
+                  //evidence,
                   [-6, ["receipts", rid]]];
         var timeout_tx = first_timeout(cid, ch, reusable_settings, deposit_address, nonce+1);
         //console.log("about to return from buy veo contract");
@@ -400,7 +404,7 @@ var Address Date Ticker Amount Blockchain
         //get the oid by making the oracle question.
         //providing evidence the second time
         var cid2 = make_cid(contract2bytes, 2, ZERO, 0);
-        var evidence2 = chalang_compiler(contract2);
+        var evidence2 = chalang_compiler.doit(contract2);
         var prove
         var evidence_tx = [
             "contract_evidence_tx", keys.pub(),
@@ -413,6 +417,7 @@ var Address Date Ticker Amount Blockchain
         var simplify_tx = simplify_tx(cid1, cid2, result, nonce+2);
         return([evidence_tx, timeout_tx, simplify_tx]);
     };
+    /*
     function matrix(){
         var full = integer_to_array(4294967295, 4);
         var empty = integer_to_array(0, 4);
@@ -421,6 +426,7 @@ var Address Date Ticker Amount Blockchain
              [empty, full]];
         return(matrix);
     };
+    */
     function vector(Matrix, result){
         var vector;
         if(result){ vector = Matrix[1];
@@ -456,20 +462,15 @@ var Address Date Ticker Amount Blockchain
             });
         });
     };
-    function contract_evidence_proof(Matrix) {
-        var v1 = Matrix[0][0];
+    function contract_evidence_proof() {
         return([-7,"DuuMB6kmlzrtq7xvpJZC01BrGSojmrRIiQH+n9oU2cM=","cqT6NUTkOoNv/LJozgbM28VdRNXmsbHBkhalPqmDAf0=",[-6,[-7,"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","69C/42A2nzhjBR3hE6PxPhdn/FY060N1dMOt2RIVMVo=","/0URezACy63B5htZN80FCOUC1ZyUPvbLaCwqIV3LP80=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="]]]);
     };
     function first_timeout(CID, CH, reusable_settings, deposit_address, nonce) {
         var Matrix = matrix();
         //console.log(JSON.stringify(Matrix));//[[[255,255,255,255],[0,0,0,0]],[[0,0,0,0],[255,255,255,255]]]
 
-        var proofs = contract_evidence_proof(Matrix);
-        var row = Matrix[1].slice(1).map(function(x){
-            //from [0,0,0,0] -> zero
-            return(btoa(array_to_string(x)));
-        });
-        row = [-6].concat(row);
+        var proofs = contract_evidence_proof();
+        var row = Matrix[1];
         //CID2 = contracts:make_id(CH2, 2, <<0:256>>, 0),
         //var child_cid = binary_derivative.id_maker(
         //    CH2, 2, ZERO, 0);
@@ -701,10 +702,22 @@ macro ] swap cons reverse ;/
         if(p2p_contract === 0){
             return(0);
         };
-        var contract1bytes = await buy_veo_contract.contract_to_1bytes(p2p_contract);
-        var cid2 = buy_veo_contract.make_cid(contract1bytes, 2, ZERO, 0);
-        if(!(cid === cid2)){
+
+
+
+        if(!(p2p_contract[0] === "contract")){
+            return(0);
+        };
+        var contract1bytes = await contract_to_1bytes(p2p_contract);
+        var cid2 = make_cid(contract1bytes, 2, ZERO, 0);
+        var cid3 = p2p_contract[1];
+        if((!(cid === cid2)) ||
+           (!(cid === cid3))){
             console.log("got bad contract data from the server");
+            console.log(JSON.stringify(p2p_contract));
+            console.log(cid);
+            console.log(cid2);
+            console.log(cid3);
             return(0);
         };
         return(p2p_contract);

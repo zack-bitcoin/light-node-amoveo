@@ -71,6 +71,7 @@
     });
     
     rpc.post(["oracles", oid], function(oracle){
+        console.log(oracle);
         oracle = oracle[1];
         var height = oracle[2];
         var txs = oracle[3];

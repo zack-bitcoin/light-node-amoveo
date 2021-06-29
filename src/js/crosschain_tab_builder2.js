@@ -69,8 +69,8 @@ function crosschain_tab_builder2(div, selector){
     //test values
     other_blockchain_input.value = "Bitcoin";
     ticker_input.value = "BTC";
-    receive_amount_input.value = "0.002";
-    spend_amount_input.value = "0.000001";
+    receive_amount_input.value = "0.2";
+    spend_amount_input.value = "0.01";
     /*
     //security_amount_input.value = "0.3";
     hours_input.value = "48";
@@ -151,6 +151,15 @@ function crosschain_tab_builder2(div, selector){
             btoa(blockchain), btoa(amount),
             btoa(ticker), btoa(date),
             TID, 0];
+        var contract1bytes = await buy_veo_contract.contract_to_1bytes(Contract);
+        console.log(date);
+        console.log(JSON.stringify(contract1bytes));
+        var cid2 = buy_veo_contract.make_cid(contract1bytes, 2, ZERO, 0);
+        if(!(cid === cid2)){
+            console.log("made bad contract");
+            console.log(Contract);
+            return(0);
+        };
         console.log("this is the contract data that we teach to the p2p derivatives server.");
         console.log(JSON.stringify(Contract));
 
@@ -166,7 +175,10 @@ function crosschain_tab_builder2(div, selector){
             return(0);
             };
         var nonce = my_acc[2];
-        const x = await rpc.apost(["add", 4, Contract], IP, 8090); 
+        console.log("teaching contract");
+        console.log(JSON.stringify(Contract));
+        const x = await rpc.apost(["add", 4, Contract], IP, 8090);
+        console.log(x);
         //rpc.post(["add", 4, Contract], function(x){
         //post the offer
         console.log(JSON.stringify(offer));
@@ -252,9 +264,9 @@ no btc delivery
         };
         account = account[1];
         var subaccounts = account[3].concat(sids);
-        console.log(JSON.stringify(subaccounts));
+        //console.log(JSON.stringify(subaccounts));
         return(where_to_send_indicator_loop(
-            temp_div, subaccounts.slice(1).reverse(), txs0,
+            temp_div, subaccounts.slice(1), txs0,
             callback));
     };
     async function where_to_send_indicator_loop(
@@ -357,8 +369,8 @@ no btc delivery
             return callback2();
         };
         var balance = sa[1];
-        console.log(JSON.stringify(cid));
-        console.log(JSON.stringify(balance));
+        //console.log(JSON.stringify(cid));
+        //console.log(JSON.stringify(balance));
         if(balance < 100000){
             return(callback2());
         };
@@ -731,6 +743,8 @@ no btc delivery
                 console.log("making multi tx");
                         multi_tx.make(txs, function(tx){
                             var stx = keys.sign(tx);
+                            console.log("posting txs");
+                            console.log(JSON.stringify([stx, evidence, timeout]));
                             post_txs([stx, evidence, timeout], function(response){
        display.innterHTML = response;
        var amount2_from_swap_offer = swap_offer2[9];
