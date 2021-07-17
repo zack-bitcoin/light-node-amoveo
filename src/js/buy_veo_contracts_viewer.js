@@ -146,6 +146,7 @@
             (sa1[1] > 0),
             (height_now > choose_address_timeout)]));
         console.log(cs_contract[7]);
+        console.log(JSON.stringify(cs_contract));
         console.log(ZERO);
         if((!(bitcoin_address)) &&
            (cs_contract[7] === ZERO) &&
@@ -209,29 +210,14 @@
             //if the oracle doesn't exist, give a button for creating it.
             console.log("button to make oracle");
             var fee = 152050;
-            var new_oracle_button = button_maker2("create the oracle for this contract", async function(){
-                //var acc = await merkle.arequest_proof("accounts", keys.pub());
-                var acc = await rpc.apost(["accounts", keys.pub()]);
-                var nonce = acc[2] + 1;
-                var tx = ["oracle_new", keys.pub(), nonce, Math.round(fee*1.1), btoa(question), oracle_start_height, oid, 0, 0, 0];
-                var oid = id_maker(oracle_start_height, 0, 0, question);
-                var stx = keys.sign(tx);
-                post_txs([stx], function(response){
-                    console.log(JSON.stringify(tx));
-                    var span = document.createElement("span");
-                    span.innerHTML = response;
-                    option_div.appendChild(br());
-                    option_div.appendChild(span);
-                    option_div.appendChild(br());
-                    var link = document.createElement("a");
-                    link.innerHTML = "oracle with id: ".concat(oid);
-                    link.target = "_blank";
-                    link.href = "oracle_explorer.html?oid=".concat(oid);
-                    option_div.appendChild(link);
-                    option_div.appendChild(br());
-                });
+            var new_oracle_button = button_maker2("the money was delivered. create the oracle.", async function(){
+                new_oracle(oracle_start_height, question, 1, option_div);
+            });
+            var new_oracle_false_button = button_maker2("the money was NOT delivered. create the oracle.", async function(){
+                new_oracle(oracle_start_height, question, 2, option_div);
             });
             option_div.appendChild(new_oracle_button);
+            option_div.appendChild(new_oracle_false_button);
             return(0);
         };
         if(consensus_oracle[2] === 0){
@@ -255,52 +241,90 @@
 
         const matrix = buy_veo_contract.matrix();
         var show_button = false;
+
+        var result, sa;
         if((consensus_oracle[2] === 2) &&
            (sa1[1] > 1)){
             show_button = true;
-            var row = matrix[1];
-            if(rns){
-                var simplify_tx = buy_veo_contract.simplify_tx(cid, sink, row, 0);
-                txs = txs.concat([simplify_tx]);
-            }
-            var winnings_tx = [
-                "contract_winnings_tx", 0,0,0,
-                cid, sa1[1], sid, keys.pub(),
-                //buy_veo_contract.proof1(), row];
-                row, 0];
-            txs = txs.concat([winnings_tx]);
-
+            result = 1;
+            sa = sa1;
         };
         if((consensus_oracle[2] === 1) &&
            (sa2[1] > 1)){
             show_button = true;
-            var row2 = matrix[2];
-            if(rns){
-                var simplify_tx = buy_veo_contract.simplify_tx(cid, sink, row2, 0);
-                txs = txs.concat([simplify_tx]);
-            };
-            var winnings_tx2 = [
-                "contract_winnings_tx", 0,0,0,
-                cid, sa2[1], sid2, keys.pub(),
-                //buy_veo_contract.proof2(), row2];
-                row2, 0];
-            txs = txs.concat([winnings_tx]);
-
+            result = 2;
+            sa = sa2;
         };
-        var multi = await multi_tx.amake(txs);
-        var win_button = button_maker2("the oracle resolved and you won. click here to get your winnings.", async function(){
-            post_txs([multi], function(response){
+        if(show_button){
+            var win_button = button_maker2("the oracle resolved and you won. click here to get your winnings.", async function(){
+                var row = matrix[result];
+                var sid = sub_accounts.normal_key(keys.pub(), cid, result);
+                var winnings_tx = [
+                    "contract_winnings_tx", 0,0,0,
+                    cid, sa[1], sid, keys.pub(),
+                    row, 0];
+                var my_acc = await rpc.apost(["account", keys.pub()]);
+                var nonce = my_acc[2] + 1;
+                var contract2bytes =
+                    buy_veo_contract
+                    .contract2bytes(
+                        reusable_settings, bitcoin_address);
+                console.log(contract2bytes);
+                const [evidence_tx, timeout_tx, simplify_tx] =
+                      buy_veo_contract
+                      .resolve_evidence_tx(
+                          oid, contract2bytes, cid, result, nonce);
+                txs = txs.concat([timeout_tx]);
+                if(rns){
+                    txs = txs.concat([simplify_tx]);
+                };
+                txs = txs.concat([winnings_tx]);
+                var response = await apost_txs([keys.sign(evidence_tx)]);
+                console.log(response);
+                var multi = await multi_tx.amake(txs);
+                multi = keys.sign(multi);
+                var response2 = await apost_txs([multi]);
                 var span = document.createElement("span");
-                span.innerHTML = response;
+                span.innerHTML = response
+                    .concat("<br />")
+                    .concat(response2);
                 option_div.appendChild(br());
                 option_div.appendChild(span);
                 option_div.appendChild(br());
             });
-        });
-        if(show_button){
             option_div.appendChild(win_button);
             refresh_div.appendChild(br());
         };
+    };
+    async function new_oracle(oracle_start_height, question, result, option_div) {
+        var fee = 152050;
+        var acc = await rpc.apost(["accounts", keys.pub()]);
+        var nonce = acc[2] + 1;
+        var oid = id_maker(oracle_start_height, 0, 0, question);
+        var new_tx = [
+            "oracle_new", keys.pub(), nonce,
+            Math.round(fee*1.1),
+            btoa(question), oracle_start_height,
+            oid, 0, 0, 0];
+        var bet_amount = 2220000;
+        var bet_tx = ["oracle_bet", 0, 0, 0,
+                      oid, result, bet_amount];
+        var txs = [new_tx, bet_tx];
+        tx = await multi_tx.amake(txs);
+        var stx = keys.sign(tx);
+        post_txs([stx], function(response){
+            var span = document.createElement("span");
+            span.innerHTML = response;
+            option_div.appendChild(br());
+            option_div.appendChild(span);
+            option_div.appendChild(br());
+            var link = document.createElement("a");
+            link.innerHTML = "oracle with id: ".concat(oid);
+            link.target = "_blank";
+            link.href = "oracle_explorer.html?oid=".concat(oid);
+            option_div.appendChild(link);
+            option_div.appendChild(br());
+        });
     };
     async function combine_to_veo(cid, sa1, sa2, consensus_contract, option_div){
         console.log("combine_to_veo");

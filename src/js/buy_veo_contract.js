@@ -362,8 +362,7 @@ var Address Date Ticker Amount Blockchain
             .concat(deposit_address)
             .concat(`" `);
         evidence = chalang_compiler.doit(evidence);
-        console.log(JSON.stringify(evidence));
-        console.log(JSON.stringify(btoa(array_to_string(evidence))));
+        //console.log(JSON.stringify(btoa(array_to_string(evidence))));
         var new_tx = new_contract_tx(ch);
         //contract2bytesv);
         var tx = ["contract_evidence_tx", keys.pub(),
@@ -408,14 +407,16 @@ var Address Date Ticker Amount Blockchain
         var prove
         var evidence_tx = [
             "contract_evidence_tx", keys.pub(),
-            nonce, fee, contract2bytes, cid2,
-            evidence2, [-6 ["oracles", oid]]
+            nonce, fee,
+            btoa(array_to_string(contract2bytes)), cid2,
+            btoa(array_to_string(evidence2)),
+            [-6, ["oracles", oid]]
         ];
         var timeout_tx = [
             "contract_timeout_tx2",keys.pub(),
             nonce+1, fee, cid2, 0, 0, 0, 0];
-        var simplify_tx = simplify_tx(cid1, cid2, result, nonce+2);
-        return([evidence_tx, timeout_tx, simplify_tx]);
+        var simplify = simplify_tx(cid1, cid2, result, nonce+2);
+        return([evidence_tx, timeout_tx, simplify]);
     };
     /*
     function matrix(){
@@ -429,9 +430,10 @@ var Address Date Ticker Amount Blockchain
     */
     function vector(Matrix, result){
         var vector;
-        if(result){ vector = Matrix[1];
+        if(result === 1){ vector = Matrix[1];
         } else {    vector = Matrix[2];
-        }
+               }
+        return(vector);
     };
     function simplify_tx(CID, CID2, result, nonce) {
         //Tx11 = contract_simplify_tx:make_dict(MP, CID, CID2, 0, Matrix, [Empty, Full], Fee),
@@ -541,6 +543,9 @@ var Address Date Ticker Amount Blockchain
                    (tx[1][5] === cid));
         });
         var evidence_txs2 = await avalid_evidence_txs(evidence_txs, sink, cid, []);
+        if(evidence_txs2.length === 0){
+            return(["fail", "could not generate evidence txs"]);
+        };
         var evidence_tx = evidence_txs2[0];
         var evidence = evidence_tx[1][6];
         var address = buy_veo_contract.run(string_to_array(atob(evidence))).reverse()[1];
@@ -554,6 +559,10 @@ macro , swap cons ;/
 macro ] swap cons reverse ;/
 [`;
         var b = await aprove_facts2(prove, "");
+        console.log(b);
+        if(b[0] === "fail"){
+            return b;
+        };
         var f = s.concat(b);
         var compiled = chalang_compiler.doit(f);
         return(compiled);
@@ -573,21 +582,24 @@ macro ] swap cons reverse ;/
         } else {
             data = await merkle.arequest_proof(tree, key);
         };
-            var data_part;
-            if(data === 0){
-                data_part = ", int4 0 ";
-            } else {
-                var SD = merkle.serialize(data);
-                data_part = ", binary " + btoa(array_to_string(SD));
-            }
-            var type_part = "int4 ".concat(id);
-            var key_part;
-            if(typeof(key) === "number"){
-                key_part = ", int4 " + key;
-            } else {
-                key = string_to_array(atob(key));
-                key_part = ", binary " + btoa(array_to_string(key));
-            }
+        if(data === "empty"){
+            return(["fail", "cannot make a proof"]);
+        }
+        var data_part;
+        if(data === 0){
+            data_part = ", int4 0 ";
+        } else {
+            var SD = merkle.serialize(data);
+            data_part = ", binary " + btoa(array_to_string(SD));
+        }
+        var type_part = "int4 ".concat(id);
+        var key_part;
+        if(typeof(key) === "number"){
+            key_part = ", int4 " + key;
+        } else {
+            key = string_to_array(atob(key));
+            key_part = ", binary " + btoa(array_to_string(key));
+        }
         var fact = "[" + type_part + key_part + data_part + "]";
         if (prove.length > 1){
             fact = fact.concat(", ");
@@ -636,6 +648,10 @@ macro ] swap cons reverse ;/
         var prove = tx[1][7].slice(1);
         //spk_prove_facts(prove, function(prove_code){
         var prove_code = await aspk_prove_facts(prove);
+        if(prove_code[0] === "fail"){
+            console.log("cannot make a merkle proof for the contract");
+            return(callbackwithout());
+        };
         var sink_check = buy_veo_contract.run(evidence.concat(prove_code).concat(contract))[2];
         sink_check2 = binary_derivative.id_maker(btoa(array_to_string(sink_check.slice(1))), 2, ZERO, 0);
         if(!(sink === sink_check2)){
@@ -700,12 +716,11 @@ macro ] swap cons reverse ;/
         //checks a merkle proof to know this data is correct.
         let p2p_contract = await rpc.apost(["read", 3, cid], default_ip(), 8090);
         if(p2p_contract === 0){
+            console.log("no contract");
             return(0);
         };
-
-
-
         if(!(p2p_contract[0] === "contract")){
+            console.log("wrong type");
             return(0);
         };
         var contract1bytes = await contract_to_1bytes(p2p_contract);

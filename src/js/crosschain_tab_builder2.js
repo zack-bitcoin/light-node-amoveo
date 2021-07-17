@@ -69,8 +69,8 @@ function crosschain_tab_builder2(div, selector){
     //test values
     other_blockchain_input.value = "Bitcoin";
     ticker_input.value = "BTC";
-    receive_amount_input.value = "0.2";
-    spend_amount_input.value = "0.01";
+    receive_amount_input.value = "0.1";
+    spend_amount_input.value = "0.000001";
     /*
     //security_amount_input.value = "0.3";
     hours_input.value = "48";

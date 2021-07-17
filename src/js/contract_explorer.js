@@ -180,7 +180,7 @@
             */
             //-record(contract, {cid, source = <<0:256>>, types, markets = [], txs = []}).
             //return(display_contracts2(div, contracts.slice(1), []));
-        }, get_ip(), 8091);//8091 is explorer
+    }, get_ip(), 8091);//8091 is explorer
     function make_market_links(markets, LLs, callback){
         //console.log(markets);
         if(markets.length === 0){

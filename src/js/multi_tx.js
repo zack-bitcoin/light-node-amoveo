@@ -49,6 +49,10 @@ var multi_tx = (function(){
                 L[i][1] = 0;
                 L[i][2] = 0;
                 L[i][3] = 0;
+            } else if (L[i][0] == "contract_simplify_tx") {
+                L[i][1] = 0;
+                L[i][2] = 0;
+                L[i][3] = 0;
             } else {
                 console.log("multi-tx unhandled case");
                 console.log(L[i][0]);

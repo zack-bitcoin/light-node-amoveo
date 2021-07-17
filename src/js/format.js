@@ -611,6 +611,14 @@ function post_txs(txs, callback) {
                  }
              });
 };
+async function apost_txs(txs) {
+    var x = await rpc.apost(["txs", [-6].concat(txs)]);
+    if(x == "ZXJyb3I="){
+        return("server rejected the tx");
+    }else{
+        return("published tx. the tx id is ".concat(x));
+    };
+};
 
 var configure = {};
 
