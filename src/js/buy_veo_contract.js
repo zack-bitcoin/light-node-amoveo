@@ -548,7 +548,7 @@ var Address Date Ticker Amount Blockchain
         };
         var evidence_tx = evidence_txs2[0];
         var evidence = evidence_tx[1][6];
-        var address = buy_veo_contract.run(string_to_array(atob(evidence))).reverse()[1];
+        var address = run(string_to_array(atob(evidence))).reverse()[1];
         address = array_to_string(address.slice(1));
         response.address = address;
         return(response);
@@ -652,7 +652,7 @@ macro ] swap cons reverse ;/
             console.log("cannot make a merkle proof for the contract");
             return(callbackwithout());
         };
-        var sink_check = buy_veo_contract.run(evidence.concat(prove_code).concat(contract))[2];
+        var sink_check = run(evidence.concat(prove_code).concat(contract))[2];
         sink_check2 = binary_derivative.id_maker(btoa(array_to_string(sink_check.slice(1))), 2, ZERO, 0);
         if(!(sink === sink_check2)){
             console.log("invalid contract result");
@@ -749,31 +749,34 @@ macro ] swap cons reverse ;/
 
 
     return({
-        set_fee: function(x) { fee = x; },
+        //exposed for testing only.
         test: test,
-
+        run: run,
         part2id: part2id,
         part1static_bytes: part1static_bytes,
+        winnings_tx: winnings_tx,
+        simplify_tx: simplify_tx,
+
+        //configuration
+        set_fee: function(x) { fee = x; },
+
+        //functions we use.
         settings: settings,
         reusable_settings: reusable_settings,
         contract2bytes: contract2bytes,
         contract1bytes: contract1bytes,
-        
         buy_veo_offer: buy_veo_offer,
         choose_deposit_address_tx: make_txs_to_choose_deposit_address,
         evidence_of_no_deposit_address: evidence_of_no_deposit_address,
         oracle_question: make_oracle_question,
         resolve_evidence_tx: resolve_evidence_tx,
-        winnings_tx: winnings_tx,
         make_cid: make_cid,
-        run: run,
         new_contract_tx: new_contract_tx,
         get_deposit_address: get_deposit_address,
         proof1: proof1,
         proof2: proof2,
         matrix: matrix,
         contract_to_1bytes: contract_to_1bytes,
-        simplify_tx: simplify_tx,
         verified_p2p_contract: verified_p2p_contract
     });
 })();

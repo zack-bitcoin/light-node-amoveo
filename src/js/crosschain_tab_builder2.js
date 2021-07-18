@@ -4,9 +4,9 @@ function crosschain_tab_builder2(div, selector){
     var fee = 200000;
     var display = document.createElement("div");
     display.innerHTML = "ready.";
-    var warning = document.createElement("h1");
-    warning.innerHTML = "<font color='green'>This tab is in development. It doesn't do anything with money yet. To test it out, open the browser console and click 'make crosschain trade offer'.</font>";
-    div.appendChild(warning);
+    //var warning = document.createElement("h1");
+    //warning.innerHTML = "<font color='green'>This tab is in development. It doesn't do anything with money yet. To test it out, open the browser console and click 'make crosschain trade offer'.</font>";
+    //div.appendChild(warning);
     var title = document.createElement("h3");
     title.innerHTML = "Crosschain Decentralized Exchange ";
     div.appendChild(title);
