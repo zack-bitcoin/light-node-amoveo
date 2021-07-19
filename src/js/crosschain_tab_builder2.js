@@ -467,7 +467,8 @@ no btc delivery
                 buy_veo_contract.proof1(), row];
             var sid2 = sub_accounts.normal_key(keys.pub(), cid, 2);
             let sa2 = await sub_accounts.arpc(sid2);
-            var balance2 = sa2[1];
+            //var balance2 = sa2[1];
+            var balance2 = balance;
             var winnings_tx2 = [
                 "contract_winnings_tx", 0,0,0,
                 cid, balance2, sid2, keys.pub(),
