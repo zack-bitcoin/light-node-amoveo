@@ -286,7 +286,7 @@ var Address Date Ticker Amount Blockchain
     };
     function run(code){
         var d = chalang_object.data_maker(
-            10000, 10000, 10000, 10000, [], [],
+            100000, 10000, 10000, 10000, [], [],
             chalang_object.new_state(0, 0));
         var result = chalang_object.run5(code, d);
         return(result.stack);
