@@ -76,6 +76,10 @@ function chalang_main() {
         }
     }
     function underflow_check(d, min_size, op_name) {
+        /*if(!(d.stack)){
+            console.log("chalang error");
+            console.log(JSON.stringify(d));
+        }*/
         if (d.stack.length < min_size) {
             throw(JSON.stringify(["error", "stack underflow", op_name]));
         }
