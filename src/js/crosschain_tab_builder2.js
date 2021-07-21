@@ -458,6 +458,7 @@ no btc delivery
             //var MAX = btoa(array_to_string(integer_to_array(-1, 4)));
             //var MIN = btoa(array_to_string(integer_to_array(0, 4)));
             //const matrix = [-6, [-6, MAX, MIN],[-6, MIN, MAX]];
+            /*
             const matrix = buy_veo_contract.matrix();
             var row = matrix[1];
             var row2 = matrix[2];
@@ -473,6 +474,9 @@ no btc delivery
                 "contract_winnings_tx", 0,0,0,
                 cid, balance2, sid2, keys.pub(),
                 buy_veo_contract.proof2(), row2];
+            */
+            var [winnings_tx, winnings_tx2] =
+                await buy_veo_contract.both_winnings(cid);
             swaps.make_tx(swap, 1000000, function(txs){
                 multi_tx.make(txs.concat([combine_tx, winnings_tx, winnings_tx2]), async function(tx){
                     var stx = keys.sign(tx);

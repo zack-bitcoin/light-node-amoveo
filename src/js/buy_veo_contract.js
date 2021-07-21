@@ -444,6 +444,25 @@ var Address Date Ticker Amount Blockchain
                   0, Matrix, Vector];
         return(tx);
     };
+    async function both_winners(cid){
+        const mat = matrix();
+        const row1 = mat[1];
+        const row2 = mat[2];
+        const sid1 = sub_accounts.normal_key(keys.pub(), cid, 1);
+        const sid2 = sub_accounts.normal_key(keys.pub(), cid, 2);
+        const sa1 = await sub_accounts.arpc(sid1);
+        const sa2 = await sub_accounts.arpc(sid2);
+        const balance = Math.max(sa1[1], sa2[1]);
+        const winnings_tx = [
+            "contract_winnings_tx", 0,0,0,
+            cid, balance, sid1, keys.pub(),
+            proof1(), row1];
+        const winnings_tx2 = [
+            "contract_winnings_tx", 0,0,0,
+            cid, balance, sid2, keys.pub(),
+            proof2(), row2];
+        return([winnings_tx, winnings_tx2]);
+    };
     function winnings_tx(cid, result, callback){
         var Vector = vector(matrix(), result);
         var result2;
@@ -746,6 +765,7 @@ macro ] swap cons reverse ;/
         return([bytes1.length]);//should be 337, 104.
         //is 215, 264
     };
+    
 
 
     return({
@@ -777,6 +797,7 @@ macro ] swap cons reverse ;/
         proof2: proof2,
         matrix: matrix,
         contract_to_1bytes: contract_to_1bytes,
-        verified_p2p_contract: verified_p2p_contract
+        verified_p2p_contract: verified_p2p_contract,
+        both_winners: both_winners
     });
 })();
