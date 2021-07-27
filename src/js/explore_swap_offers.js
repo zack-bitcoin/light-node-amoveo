@@ -27,15 +27,23 @@ var explore_swap_offer = (function() {
         }, s_ip.value, parseInt(s_port.value));
     };
     refresh();
-    function decode_market_veo_contract(cid, contract){
-        var contract_string = " "
+    async function decode_market_veo_contract(cid, contract){
+        var txs = await rpc.apost(["txs"]);
+        txs = txs.slice(1);
+        var r = await buy_veo_contract.get_deposit_address(cid, txs);
+        var address = r.address;
+        console.log(address);
+        var contract_string = " type 2 wins if "
             .concat(atob(contract[7]))
             .concat(" of ")
             .concat(atob(contract[8]))
             .concat(" in blockchain ")
             .concat(atob(contract[6]))
-            .concat(". by date: ")
+            .concat(" is delivered to ")
+            .concat(address)
+            .concat(" by date: ")
             .concat(atob(contract[9]))
+            .concat(" , or if the address isn't valid for that blockchain. ");
         var s = cid
             .concat(": ")
             .concat(contract_string);
@@ -88,14 +96,14 @@ var explore_swap_offer = (function() {
         temp_div.appendChild(button);
         //["market", nonce, mid, cid1, type1, cid2, type2, 0]
         rpc.post(["read", 3, cid1], function(contract1){
-            rpc.post(["read", 3, cid2], function(contract2){
-                buy_veo_viewer(temp_div, contract1, cid1);
-                buy_veo_viewer(temp_div, contract2, cid2);
+            rpc.post(["read", 3, cid2], async function(contract2){
+                await buy_veo_viewer(temp_div, contract1, cid1);
+                await buy_veo_viewer(temp_div, contract2, cid2);
                 return(market_buttons(l.slice(1)));
             }, s_ip.value, parseInt(s_port.value));
         }, s_ip.value, parseInt(s_port.value));
     };
-    function buy_veo_viewer(temp_div, contract, cid){
+    async function buy_veo_viewer(temp_div, contract, cid){
         if(contract){
             var p = document.createElement("span");
             var a = document.createElement("a");
@@ -103,7 +111,7 @@ var explore_swap_offer = (function() {
             a.href = "contract_explorer.html?cid=".concat(cid);
             a.target = "_blank";
             if(contract[0] === "contract"){
-                p.innerHTML = decode_market_veo_contract(cid, contract);
+                p.innerHTML = await decode_market_veo_contract(cid, contract);
             } else {
                 p.innerHTML = cid
                     .concat(": ")
