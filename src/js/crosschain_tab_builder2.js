@@ -547,7 +547,7 @@ no btc delivery
             .concat((amount1/100000000).toFixed(8))
             .concat(" ")
             .concat(spend_stuff)
-            .concat(" for sending ")
+            .concat(" if you send ")
             .concat(atob(other_chain_amount))
             .concat(" of ")
             .concat(atob(ticker))
@@ -718,6 +718,10 @@ no btc delivery
                     var nonce = my_acc[2] + 1;
                     var deposit_address = btc_address_input.value;
                     if(deposit_address.length < 5){
+                        display.innerHTML = "you need to choose an address on the other blockchain where you want to get paid.";
+                        return(0);
+                    };
+                    if(deposit_address === keys.pub()){
                         display.innerHTML = "you need to choose an address on the other blockchain where you want to get paid.";
                         return(0);
                     };

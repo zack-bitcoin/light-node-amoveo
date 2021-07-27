@@ -192,7 +192,8 @@ var tabs = (function(){
         let sa = await sub_accounts.arpc(sk);
         //sub_accounts.rpc(sk, function(sa){
         var balance = 0;
-        if(!(sa == "empty")){
+        //if((!(sa == "empty")) && (!(s){
+        if(sa && (sa[0] === "sub_acc")){
             balance = sa[1];
         };
         if(balance < 10001){
@@ -218,6 +219,9 @@ var tabs = (function(){
         };
         //a subcurrency then
         let oracle_text = await rpc.apost(["read", 3, sub.cid], get_ip(), 8090);
+        //console.log(JSON.stringify(oracle_text));
+
+
         var s = "";
         if(sub.type == 2){
             s = s.concat("inverse ");
@@ -243,6 +247,32 @@ var tabs = (function(){
                         .concat(" balance: ")
                         .concat((balance/token_units()).toString());
                 };
+            } else if (oracle_text[0] === "contract"){
+       /*-record(contract, 
+        {cid, source = <<0:256>>, 
+         source_type = 0, choose_address_timeout,
+         oracle_start_height, blockchain,
+         amount, ticker, date, trade_id, now
+         }).*/
+                var trade_direction;
+                if(sub.type === 2){
+                    trade_direction = "buying VEO. Spending ";
+                } else {
+                    trade_direction = "selling VEO. Buying ";
+                };
+                console.log(balance);
+                console.log(sa);
+                s = ""
+                    .concat(trade_direction)
+                    .concat(atob(oracle_text[7]))
+                    .concat(" of ")
+                    .concat(atob(oracle_text[8]))
+                    .concat(" on blockchain ")
+                    .concat(atob(oracle_text[6]))
+                    .concat(" by date ")
+                    .concat(atob(oracle_text[9]))
+                    .concat(". balance: ")
+                    .concat((balance/token_units()).toString());
             } else {
                 if(ot1.length > 64){
                     ot1 = ot1.slice(0, 64)
