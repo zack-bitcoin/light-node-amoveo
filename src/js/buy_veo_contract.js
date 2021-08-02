@@ -254,8 +254,8 @@ var Address Date Ticker Amount Blockchain
     function contract2bytes(
         reusable_settings, bitcoin_address
     ){
-        var s = ` ." AD" ID2 call `;
-        s = s.replace("AD", bitcoin_address)
+        var s = ` ." ADDRESS" ID2 call `;
+        s = s.replace("ADDRESS", bitcoin_address)
             .replace("ID2", part2id());
         s = reusable_settings.concat(s);
         s = chalang_compiler.doit(s);
