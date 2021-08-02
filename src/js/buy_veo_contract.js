@@ -243,12 +243,12 @@ var Address Date Ticker Amount Blockchain
         oracle_start_height, blockchain, amount,
         ticker, date
     ){
-        var s = ` int4 OSH ." B" ." AM" ." TIC" ." DA"  `;
+        var s = ` int4 OSH ." BLOCKCHAIN" ." AMOUNT" ." TICKERPART" ." DATEPART"  `;
         s = s.replace("OSH", oracle_start_height)
-            .replace("B", blockchain)
-            .replace("AM", amount)
-            .replace("TIC", ticker)
-            .replace("DA", date);
+            .replace("BLOCKCHAIN", blockchain)
+            .replace("AMOUNT", amount)
+            .replace("TICKERPART", ticker)
+            .replace("DATEPART", date);
         return(s);
     };
     function contract2bytes(

@@ -76,7 +76,7 @@ function crosschain_tab_builder(div, selector){
     div.appendChild(button);
     div.appendChild(br());
 
-    function crosschain_offer(button){
+    async function crosschain_offer(button){
         var d = new Date();
         if(parseFloat(hours_input.value, 10) > (24*7)){
             display.innerHTML = "you cannot make a trade that needs to wait more than a week to run the oracle.";
@@ -85,6 +85,13 @@ function crosschain_tab_builder(div, selector){
         d.setTime(d.getTime() + (parseFloat(hours_input.value, 10) * 60 * 60 * 1000)); 
         var date = d.toUTCString();
         var date = date.slice(5, 22).concat(" GMT");
+        var [cid, oracle_text] =
+            await sell_veo_contract.oid(
+                receive_blockchain_input.value,
+                receive_address_input.value,
+                receive_amount_input.value,
+                date);
+        /*
         var oracle_text = "the "
             .concat(other_blockchain_input.value)
             .concat(" address ")
@@ -95,6 +102,7 @@ function crosschain_tab_builder(div, selector){
             .concat(ticker_input.value)
             .concat(" before ")
             .concat(date);
+        */
 
         var Source, SourceType;
         if(selector.value == "veo"){
@@ -106,7 +114,11 @@ function crosschain_tab_builder(div, selector){
             SourceType = V[1];
         };
         
-        rpc.post(["add", 3, btoa(oracle_text), 0, 1, Source, SourceType], function(cid){
+        rpc.post(["add", 3, btoa(oracle_text), 0, 1, Source, SourceType], function(unused_cid){
+            if(!(cid === unused_cid)){
+                console.log("calculated bad cid");
+                return(0);
+            };
             rpc.post(["account", keys.pub()], function(my_acc){
                 if(my_acc === 0){
                     display.innerHTML = "Load your private key first.";

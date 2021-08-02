@@ -1,16 +1,42 @@
+function crosschain_tab_builder3(div, selector){
+    //crypto to crypto exchange
+    /*
+      So it starts with alice having 1 unit of btc and 1.1 veo. Bob has 1 unit of eth and 0.1 veo.
+    
 
-function crosschain_tab_builder2(div, selector){
+Contract 1 is a sell veo contract, where alice is buying eth.
+Contract 2 is a buy veo contract, where alice is selling her btc.
+
+Alice should only have an incentive to send her btc if she has already receive the eth.
+so contract 2 should be priced in contract 1 type 2, which is only valuable if the eth has already been delivered.
+
+Alice's first swap offer is that she sends 1 veo if she receives 1.2 contract1 (sell veo) type 1.
+The second is that she sends 0.1 veo if she receives 1.2 contract2 (buy veo) type 2.
+
+To accept this offer, bob needs a big multitx to create both contracts, deposit 1.2 veo into contract 1, deposit 1.2 of contract 1 type 2 into contract 2, then he can accept the swap offers to refund his 1.1 veo with the flash loan.
+
+
+todo: plan what swap offers we need so that beginner users don't need to deal with oracles or enforcement.
+* bob doesn't deliver eth.
+  - alice sells contract1 type1
+* bob chooses an invalid address.
+  - alice sells contract2 type2
+* alice doesn't deliver btc.
+  - bob sells contract2 type1
+     */
+
+
     var ZERO = btoa(array_to_string(integer_to_array(0, 32)));
     var fee = 200000;
     var display = document.createElement("div");
     display.innerHTML = "ready.";
-    //var warning = document.createElement("h1");
-    //warning.innerHTML = "<font color='green'>This tab is in development. It doesn't do anything with money yet. To test it out, open the browser console and click 'make crosschain trade offer'.</font>";
-    //div.appendChild(warning);
+    var warning = document.createElement("h1");
+    warning.innerHTML = "<font color='green'>This tab is in development. It doesn't do anything with money yet. To test it out, open the browser console and click 'make crosschain trade offer'.</font>";
+    div.appendChild(warning);
     var title = document.createElement("h3");
     title.innerHTML = "Crosschain Decentralized Exchange ";
     div.appendChild(title);
-    //div.appendChild(br());
+    div.appendChild(br());
     var details = document.createElement("p");
     details.innerHTML = "Sell a currency on another blockchain to buy VEO. Manage these kinds of trades.";
     div.appendChild(details);
@@ -24,9 +50,11 @@ function crosschain_tab_builder2(div, selector){
     var trade_offer_title = document.createElement("h3");
     trade_offer_title.innerHTML = "Make Trade Offer";
     div.appendChild(trade_offer_title);
-    var other_blockchain_input = text_input("Name of the other blockchain where you want to sell value. (i.e. Ethereum)", div);
+    //var other_blockchain_input = text_input("Name of the other blockchain where you want to sell value. (i.e. Ethereum)", div);
+    var spend_blockchain_input = text_input("Name of the other blockchain where you want to sell value. (i.e. Ethereum)", div);
     div.appendChild(br());
-    var ticker_input = text_input("Name of the currency that you want to sell. (i.e. Eth)", div);
+    //var ticker_input = text_input("Name of the currency that you want to sell. (i.e. Eth)", div);
+    var spend_ticker_input = text_input("Name of the currency that you want to sell. (i.e. Eth)", div);
     div.appendChild(br());
     /*
     var selector_label = document.createElement("span");
@@ -37,7 +65,19 @@ function crosschain_tab_builder2(div, selector){
     */
     var spend_amount_input = text_input("Amount of currency you want to send. (i.e. 0.15)", div);
     div.appendChild(br());
-    var receive_amount_input = text_input("Amount of VEO you want to receive. (i.e. 1.205)", div);
+
+    
+    var receive_blockchain_input = text_input("Name of the other blockchain where you want to receive value. (i.e. Bitcoin)", div);
+    div.appendChild(br());
+    var receive_ticker_input = text_input("Name of the currency that you want to receive. (i.e. BTC)", div);
+    div.appendChild(br());
+    var receive_amount_input = text_input("Amount of currency you want to receive. (i.e. 0.03)", div);
+    div.appendChild(br());
+    var receive_address_input = text_input("Your address on the other blockchain where you will get paid. Needs to be a fresh address that has never received currency before", div);
+    div.appendChild(br());
+    var veo_amount_input = text_input("Amount of veo to collateralize the contracts. Should be worth a little more than either of the other 2 currencies. (i.e. 1.25)", div);
+    div.appendChild(br());
+    var veo_cooperation_deposit_input = text_input("Amount of veo to incentivize cooperative finalization of the contract. Should be worth a fraction of the VEO collateral.", div);
     div.appendChild(br());
 
 
@@ -56,8 +96,8 @@ function crosschain_tab_builder2(div, selector){
     div.appendChild(br());
     div.appendChild(advanced_div);
 
-    var security_amount_input = text_input("How much currency should you need to lock into the contract as a security deposit to enforce that you actually deliver. (default is 10% the amount you are selling) (i.e. 0.015)", advanced_interface);
-    advanced_interface.appendChild(br());
+    //var security_amount_input = text_input("How much currency should you need to lock into the contract as a security deposit to enforce that you actually deliver. (default is 10% the amount you are selling) (i.e. 0.015)", advanced_interface);
+    //advanced_interface.appendChild(br());
     var hours_input = text_input("How many hours do you have until the money needs to arrive in their account on the other blockchain. Don't make it too big, we need to wait this long to run the oracle, but also don't make it too small, as if you fail to deliver the currency in time, then you lose your safety deposit. (i.e. 48)", advanced_interface);
     hours_input.value = "48";
     advanced_interface.appendChild(br());
@@ -67,10 +107,15 @@ function crosschain_tab_builder2(div, selector){
     advanced_interface.appendChild(br());
 
     //test values
-    other_blockchain_input.value = "Bitcoin";
-    ticker_input.value = "BTC";
-    receive_amount_input.value = "0.1";
-    spend_amount_input.value = "0.000001";
+    spend_blockchain_input.value = "Ethereum";
+    receive_blockchain_input.value = "Bitcoin";
+    spend_ticker_input.value = "ETH";
+    receive_ticker_input.value = "BTC";
+    spend_amount_input.value = "0.002";
+    receive_amount_input.value = "0.000001";
+    receive_address_input.value = "test_address";
+    veo_amount_input.value = "1.25";
+    veo_cooperation_deposit_input.value = "";
     /*
     //security_amount_input.value = "0.3";
     hours_input.value = "48";
@@ -103,34 +148,83 @@ function crosschain_tab_builder2(div, selector){
         var SourceType = 0;
         var block_height = headers_object.top()[1];
         var oracleStartHeight = block_height;
-        var blockchain = other_blockchain_input.value;
-        var ticker = ticker_input.value;
-        var amount = spend_amount_input.value;
+        var spend_blockchain = spend_blockchain_input.value;
+        var receive_blockchain = receive_blockchain_input.value;
+        var spend_ticker = spend_ticker_input.value;
+        var receive_ticker = receive_ticker_input.value;
+        var spend_amount = spend_amount_input.value;
+        var receive_amount = receive_amount_input.value;
+        var receive_address = receive_address_input.value;
+        var veo_collateral = Math.round(parseFloat(veo_amount_input.value, 10) * 100000000);
         var blocks_till_expires = parseInt(blocks_till_expires_text.value, 10);
         var addressTimeout = blocks_till_expires + block_height;
+        var vcdi = veo_cooperation_deposit_input.value;
+        var security_lockup;
+        if(vcdi){
+            security_lockup = Math.round(parseFloat(veo_cooperation_deposit_input.value, 10) * 100000000);
+        } else {
+            security_lockup = Math.round(veo_collateral / 10);
+        };
 
+        //making the sell veo contract
+        var [sell_cid, oracle_text] =
+            await sell_veo_contract.oid(
+                receive_blockchain_input.value,
+                receive_address_input.value,
+                receive_amount_input.value,
+                date);
+        var cid_check = await rpc.apost(["add", 3, btoa(oracle_text), 0,1, ZERO, 0]);
+        if(!(sell_cid === cid_check)){
+            console.log("calculated bad cid");
+            return(0);
+        };
+        var sell_offer = {};
+        //should send 1 unit of veo in exchange for (1 + (security * 2)) units of contract1 type1
+        var block_height = headers_object.top()[1];
+        sell_offer.start_limit = block_height - 1;
+        sell_offer.end_limit = block_height + parseInt(many_blocks_to_match_input.value, 10);
+        sell_offer.amount1 = veo_collateral;
+        sell_offer.amount2 = veo_collateral + (2 * security_lockup);
+        sell_offer.cid1 = ZERO;
+        sell_offer.cid2 = sell_cid;
+        sell_offer.type1 = 0;
+        sell_offer.type2 = 1;
+        sell_offer.acc1 = keys.pub();
+        sell_offer.partial_match = false;
+
+        //todo, also make an offer to sell type 1 for 99% of it's maximum possible value.
+        //post_offer(offer);
+        
+        //making the buy veo contract.
         var reusable_settings = buy_veo_contract.
             reusable_settings(
                 oracleStartHeight, blockchain,
-                amount, ticker, date);
+                spend_amount, ticker, date);
         var salt = btoa(random_cid(32));
         var TID = swaps.id_maker(keys.pub(), salt);
         var settings = buy_veo_contract.
             settings(
                 reusable_settings, addressTimeout,
                 1, TID);
-        var amount2 = Math.round(parseFloat(security_amount_input.value, 10)*100000000);
+        //var amount2 = Math.round(parseFloat(security_amount_input.value, 10)*100000000);
+        var amount2 = Math.round(parseFloat(veo_collateral, 10)*100000000);
         
         //the swap offer
         var contract_bytes = buy_veo_contract.
             contract1bytes(settings);
-        var cid = buy_veo_contract.
-            make_cid(contract_bytes, 2, ZERO, 0);
-        var offer = buy_veo_contract.buy_veo_offer(
+        //oracle: "address has received less than X by date D"
+        //true oracle goes to type 1.
+        //if the btc is delivered, goes to type 2.
+        var buy_cid = buy_veo_contract.
+            make_cid(contract_bytes, 2, sell_cid, 2);
+        //should send (security amount) units of veo for (1 + (2 * security amount)) units of contract2 type 2.
+        var buy_offer = buy_veo_contract.buy_veo_offer(
             blocks_till_expires,
-            amount2, amount1, 
-            cid, salt);
+            security_lockup, veo_collateral + security_lockup, 
+            buy_cid, salt);
+        //todo, also make an offer to sell buy_contract type 2 for 99% of it's value
 
+        //this is an example, we need 2.
         var offer99 = {};
         offer99.start_limit = block_height - 1;
         offer99.end_limit = block_height + 1000;
@@ -179,19 +273,17 @@ function crosschain_tab_builder2(div, selector){
         console.log(JSON.stringify(Contract));
         const x = await rpc.apost(["add", 4, Contract], IP, 8090);
         console.log(x);
-        console.log(cid);
-        if(!(x === cid)){
-            console.log("bad cid produced");
-            return(0);
-        };
         //rpc.post(["add", 4, Contract], function(x){
         //post the offer
-        //rpc.post(["read", 3, cid], function(y){
+        //console.log(JSON.stringify(offer));
+        //post_offer(buy_offer, offer99);
+
+        //todo, do post_offers for the 4 offers.
+
+        rpc.post(["read", 3, cid], function(y){
                     //checking that the contract got published correctly.
-        //    console.log(JSON.stringify(y));
-        //}, IP, 8090);
-        console.log(JSON.stringify(offer));
-        post_offer(offer, offer99);
+            console.log(JSON.stringify(y));
+        }, IP, 8090);
     };
 
 
