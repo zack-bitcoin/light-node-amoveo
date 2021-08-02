@@ -710,6 +710,8 @@ no btc delivery
                 description.innerHTML.replace(
                         /you offered to receive/,
                     "they offered to buy")
+                .replace(/if you send/,
+                         "you will receive")
                 .concat(" ; Offer expires in ")
                 .concat(expires - block_height)
                 .concat(" blocks.");
