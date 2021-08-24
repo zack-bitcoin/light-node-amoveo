@@ -87,10 +87,12 @@ function crosschain_tab_builder(div, selector){
         var date = date.slice(5, 22).concat(" GMT");
         var [cid, oracle_text] =
             await sell_veo_contract.oid(
-                receive_blockchain_input.value,
-                receive_address_input.value,
+                other_blockchain_input.value,
+                other_address_input.value,
                 receive_amount_input.value,
+                ticker_input.value,
                 date);
+        console.log(oracle_text);
         /*
         var oracle_text = "the "
             .concat(other_blockchain_input.value)
@@ -203,90 +205,48 @@ function crosschain_tab_builder(div, selector){
             });
         });
     };
-    function cancel_buttons(temp_div, callback){
+    async function cancel_buttons(temp_div, callback){
         console.log("making cancel buttons");
-        rpc.post(["markets"], function(markets){
-            markets = markets.slice(1);
-            //console.log(JSON.stringify(markets));
-            display_orders_from_markets(markets, temp_div, function(){
-                callback();
-            });
-        }, IP, 8090);
+        var swap_offers =
+            await swap_offer_downloader.doit(
+                1, "sell_veo");
+        display_cancels_faster(
+            swap_offers, temp_div);
+        return(callback());
     };
-    function display_orders_from_markets(
-        markets, temp_div, callback
-    ){
-        if(markets.length === 0) {
-            return(callback());
-        };
-        function callback2(){
-            return(display_orders_from_markets(markets.slice(1), temp_div, callback));
-        };
-        var market = markets[0];
-        var mid = market[2];
-        rpc.post(["read", mid], function(market_data){
-            //console.log(JSON.stringify(market_data));
-            market_data = market_data[1];
-            var orders = market_data[7];
-            var type2 = market_data[6];
-            if(type2 === 1){
-                display_orders(orders.slice(1), temp_div, function(){
-                    return(callback2());
+    async function display_cancels_helper(
+        trade, temp_div){
+        //for canceling
+        var swap_offer2 = trade[1];
+        var from = swap_offer2[1];
+        var amount1 = swap_offer2[6];
+        var cid1 = swap_offer2[4];
+        var type1 = swap_offer2[5];
+        var cid2 = swap_offer2[7];
+        var salt = swap_offer2[10];
+        if(from === keys.pub()){
+            var contract = await rpc.apost(["read", 3, cid2], IP, 8090);
+                //console.log(JSON.stringify(contract));
+            var contract_text = atob(contract[1]);
+            console.log(contract_text);
+            var description = description_maker(cid1, type1, amount1, contract_text);
+            
+            var cancel_button = button_maker2("cancel trade", function(){
+                console.log("canceling");
+                var tx = ["trade_cancel_tx", keys.pub(), 2000000, fee, salt];
+                var stx = keys.sign(tx);
+                console.log(JSON.stringify(stx));
+                post_txs([stx], function(x){
+                    display.innerHTML = x;
                 });
-            } else {
-                    return(callback2());
-            };
-        }, IP, 8090);
-    };
-    function display_orders(orders, temp_div, callback){
-        if(orders.length === 0){
-            return(callback());
+                return(0);
+            });
+            var block_height = headers_object.top()[1];
+            temp_div.appendChild(description);
+            temp_div.appendChild(cancel_button);
+            temp_div.appendChild(br());
         };
-        var order = orders[0];
-        var price = order[1];
-        var amount = order[2];
-        var tid = order[3];
-        rpc.post(["read", 2, tid], function(trade){
-            //console.log(JSON.stringify(trade));
-            var swap_offer2 = trade[1];
-            var from = swap_offer2[1];
-            var amount1 = swap_offer2[6];
-            var cid1 = swap_offer2[4];
-            var type1 = swap_offer2[5];
-            var cid2 = swap_offer2[7];
-            var salt = swap_offer2[10];
-            if(from === keys.pub()){
-                rpc.post(["read", 3, cid2], function(contract){
-                    //console.log(JSON.stringify(contract));
-                    var contract_text = atob(contract[1]);
-                    //console.log(contract_text);
-                    var description = description_maker(cid1, type1, amount1, contract_text);
-
-                    var cancel_button = button_maker2("cancel trade", function(){
-                        console.log("canceling");
-                        var tx = ["trade_cancel_tx", keys.pub(), 2000000, fee, salt];
-                        var stx = keys.sign(tx);
-                        console.log(JSON.stringify(stx));
-                        post_txs([stx], function(x){
-                            display.innerHTML = x;
-                        });
-                        return(0);
-                    });
-                    var block_height = headers_object.top()[1];
-                    if(block_height > 152000){
-                        //hard update 45 is needed for canceling orders.
-                        temp_div.appendChild(description);
-                        temp_div.appendChild(cancel_button);
-                        temp_div.appendChild(br());
-                    };
-                    return(display_orders(orders.slice(1), temp_div, callback));
-                }, IP, 8090);
-            } else {
-                return(display_orders(orders.slice(1), temp_div, callback));
-            };
-        }, IP, 8090);
     };
-
     function release_buttons(temp_div, callback){
         console.log("making release buttons");
         rpc.post(["account", keys.pub()], function(
@@ -559,6 +519,7 @@ function crosschain_tab_builder(div, selector){
         });
     }; 
     function description_maker2(contract_text){
+        console.log(contract_text);
         var address = contract_text.match(/address \w*/)[0];
         var receive = contract_text.match(/\d[\.\d]* \w* before/)[0].slice(0,-6);
         var r = (receive)
@@ -568,6 +529,7 @@ function crosschain_tab_builder(div, selector){
     };
     function description_maker(cid1, type1, amount1, contract_text){
         console.log(contract_text);
+        console.log(cid1);
         var d2 = description_maker2(contract_text);
         //var address = contract_text.match(/address \w*/)[0];
         //console.log(address);
@@ -606,142 +568,131 @@ function crosschain_tab_builder(div, selector){
             display.appendChild(link);
         }, IP, 8090);//8090 is the p2p_derivatives server
     };
-    function active_offers(temp_div, callback){
+    async function active_offers(temp_div, callback){
         console.log("making active offers list");
-        rpc.post(["markets"], function(markets){
-            markets = markets.slice(1);
-            //console.log(JSON.stringify(markets));
-            active_offers_from_markets(markets, temp_div, callback);
-        }, IP, 8090);
-    };
-    function active_offers_from_markets(
-        markets, temp_div, callback
-    ){
-        if(markets.length === 0) {
-            return(callback());
-        };
-        function callback2(){
-            return(active_offers_from_markets(markets.slice(1), temp_div, callback));
-        };
-        var market = markets[0];
-        var mid = market[2];
-        var cid2 = market[5];
-        var type2 = market[6];
-        if(!(type2 === 1)){
-            return(callback2());
-        };
-        rpc.post(["read", 3, cid2], function(contract){
-            if(contract === 0){
-                return(callback2());
-            };
-            //console.log(JSON.stringify(contract));
-            var Source = contract[5];
-            var SourceType = contract[6];
-            var contract_text = atob(contract[1]);
-            if(!(contract_text.match(/has received less than/))){
-                return(callback2());
-            };
-            rpc.post(["read", mid], function(market_data){
-                //console.log(JSON.stringify(market_data));
-                market_data = market_data[1];
-                var orders = market_data[7];
-                display_active_offers_orders(orders.slice(1), temp_div, contract_text, Source, SourceType, callback2);
-            }, IP, 8090);
-        }, IP, 8090);
-    };
-    function display_active_offers_orders(orders, temp_div, contract_text, Source, SourceType, callback){
-        if(orders.length === 0){
-            return(callback());
-        };
-        function callback2(){
-            return(display_active_offers_orders(orders.slice(1), temp_div, contract_text, Source, SourceType, callback));
-        };
-        console.log(JSON.stringify(orders));
-        var order = orders[0];
-        var price = order[1];
-        var amount = order[2];
-        var tid = order[3];
-        rpc.post(["read", 2, tid], function(trade){
-            var swap_offer2 = trade[1];
-            var from = swap_offer2[1];
-            var expires = swap_offer2[3];
-            var amount1 = swap_offer2[6];
-            var cid1 = swap_offer2[4];
-            var type1 = swap_offer2[5];
-            var cid2 = swap_offer2[7];
-            var salt = swap_offer2[10];
-            var block_height = headers_object.top()[1];
-            var description = description_maker(cid1, type1, amount1, contract_text);
-            description.innerHTML =
-                description.innerHTML.replace(
-                        /you offered to trade/,
-                    "they offered to give")
-                .concat(" ; The money must arrive before ")
-                .concat(contract_text.slice(-21))
-                .concat(" ; Offer expires in ")
-                .concat(expires - block_height)
-                .concat(" blocks.");
-            temp_div.appendChild(description);
-            var link = document.createElement("a");
-            link.href = "offer_explorer.html?tid="
-                .concat(tid);
-            link.innerHTML = "contract offer in explorer ";
-            link.target = "_blank";
-            temp_div.appendChild(link);
 
-            console.log(description.innerHTML);
-            console.log(JSON.stringify(swap_offer2));
-            var accept_button = button_maker2("accept the offer", function(){
-                //TODO, this should also make an offer to sell your tokens for 99% of their value. the "already delivered button" stuff.
-                var new_contract_tx = new_scalar_contract.make_tx(contract_text, 1, Source, SourceType)
-                swaps.make_tx(trade, 1, function(txs){
-                    multi_tx.make([new_contract_tx].concat(txs), function(tx){
-                        console.log(JSON.stringify(txs));
-                        console.log(JSON.stringify(tx));
-                        var stx = keys.sign(tx);
-	                rpc.post(["txs", [-6, stx]],
-                                 function(x) {
-                                     if(x == "ZXJyb3I="){
-                                         display.innerHTML = "server rejected the tx";
-   }else{
-       display.innerHTML = "accepted trade offer and published tx. the tx id is "
-           .concat(x)
-           .concat(" please do not send the money until this transaction has been included in a block.");//todo, maybe we could write the address to deposit to here.
-       console.log("attempting to make the 99% sell offer");
-       console.log(JSON.stringify(swap_offer2));
-       var amount1_from_swap_offer = swap_offer2[6];
-       var amount2_from_swap_offer = swap_offer2[9];
-       var cid2_from_swap_offer = swap_offer2[7];
-       var cid1_from_swap_offer = swap_offer2[4];
-       var type1_from_swap_offer = swap_offer2[5];
-       var offer = {};
-       var block_height = headers_object.top()[1];
-       offer.start_limit = block_height - 1;
-       offer.end_limit = block_height + 2000;
-       offer.amount1 = amount2_from_swap_offer;
-       offer.cid1 = cid2_from_swap_offer;
-       offer.type1 = 2;
-       offer.amount2 = Math.round((amount1_from_swap_offer * 0.995) - (fee*5));
-       offer.cid2 = cid1_from_swap_offer;
-       offer.type2 = type1_from_swap_offer;
-       offer.acc1 = keys.pub();
-       offer.partial_match = true;
-         rpc.post(["account", keys.pub()], function(my_acc){
-             offer.nonce = my_acc[2] + 1;
-             console.log(JSON.stringify(offer));
-             post_offer(offer);
-         });
-   }
-                                 });
-                    });
+        var swap_offers =
+            await swap_offer_downloader.doit(
+                1, "sell_veo");
+        display_active_offers_faster(
+            swap_offers, temp_div);
+        return(callback());
+    };
+    async function display_cancels_faster(
+        l, temp_div){
+        //l: [[contract, [[tid, offer]...]]...]
+        l.map(async function(a){
+            var contract = a[0];
+            var offers = a[1];
+            offers.map(async function(offer){
+                await display_cancels_helper(
+                    offers[0][1], temp_div);
+            });
+        });
+    };
+
+    async function display_active_offers_faster(
+        l, temp_div){
+        //l: [[contract, [[tid, offer]...]]...]
+        l.map(async function(a){
+            var contract = a[0];
+            var offers = a[1];
+            var contract_text = atob(contract[1]);
+            offers.map(async function(offer_x){
+                var tid = offer_x[0];
+                var trade = offer_x[1];
+                display_active_offers_order(
+                    trade, temp_div, contract_text,
+                    tid);
+            });
+        });
+    };
+    async function display_active_offers_order(
+        trade, temp_div, contract_text,
+        tid){
+        console.log(JSON.stringify(trade));
+        var swap_offer2 = trade[1];
+        var from = swap_offer2[1];
+        if(from === keys.pub()){
+            return(0);
+        };
+        var expires = swap_offer2[3];
+        var amount1 = swap_offer2[6];
+        var cid1 = swap_offer2[4];
+        var type1 = swap_offer2[5];
+        var cid2 = swap_offer2[7];
+        var salt = swap_offer2[10];
+        var block_height = headers_object.top()[1];
+        var description = description_maker(
+            cid1, type1, amount1, contract_text);
+        description.innerHTML =
+            description.innerHTML.replace(
+                /you offered to trade/,
+                "they offered to give")
+            .concat(" ; The money must arrive before ")
+            .concat(contract_text.slice(-21))
+            .concat(" ; Offer expires in ")
+            .concat(expires - block_height)
+            .concat(" blocks.");
+        temp_div.appendChild(description);
+        var link = document.createElement("a");
+        link.href = "offer_explorer.html?tid="
+            .concat(tid);
+        link.innerHTML = "contract offer in explorer ";
+            link.target = "_blank";
+        temp_div.appendChild(link);
+        
+        console.log(description.innerHTML);
+        console.log(JSON.stringify(swap_offer2));
+        var accept_button = button_maker2("accept the offer", function(){
+            //TODO, this should also make an offer to sell your tokens for 99% of their value. the "already delivered button" stuff.
+            //var new_contract_tx = new_scalar_contract.make_tx(contract_text, 1, Source, SourceType);
+            var new_contract_tx = new_scalar_contract.make_tx(contract_text, 1);
+            swaps.make_tx(trade, 1, function(txs){
+                multi_tx.make([new_contract_tx].concat(txs), async function(tx){
+                    console.log(JSON.stringify(txs));
+                    console.log(JSON.stringify(tx));
+                    var stx = keys.sign(tx);
+	            var x = await rpc.apost(["txs", [-6, stx]]);
+                    if(x == "ZXJyb3I="){
+                        display.innerHTML = "server rejected the tx";
+                    }else{
+                        display.innerHTML = "accepted trade offer and published tx. the tx id is "
+                            .concat(x)
+                            .concat(" please do not send the money until this transaction has been included in a block.");//todo, maybe we could write the address to deposit to here.
+                        console.log("attempting to make the 99% sell offer");
+                        console.log(JSON.stringify(swap_offer2));
+                        var amount1_from_swap_offer = swap_offer2[6];
+                        var amount2_from_swap_offer = swap_offer2[9];
+                        var cid2 = swap_offer2[7];
+                        var cid1 = swap_offer2[4];
+                        var type1_from_swap_offer = swap_offer2[5];
+                        var offer = {};
+                        var block_height = headers_object.top()[1];
+                        offer.start_limit = block_height - 1;
+                        offer.end_limit = block_height + 2000;
+                        offer.amount1 = amount2_from_swap_offer;
+                        offer.cid1 = cid2;//contract
+                        offer.type1 = 2;
+                        offer.amount2 = Math.round((amount1_from_swap_offer * 0.995) - (fee*5));
+                        offer.cid2 = cid1;//veo
+                        offer.type2 = type1_from_swap_offer;
+                        offer.acc1 = keys.pub();
+                        offer.partial_match = true;
+                        var my_acc = await rpc.apost(["account", keys.pub()]);
+                        offer.nonce = my_acc[2] + 1;
+                        console.log(JSON.stringify(offer));
+                        post_offer(offer);
+                    }
                 });
             });
-            temp_div.appendChild(accept_button);
-            temp_div.appendChild(br());
-            temp_div.appendChild(br());
-            return(callback2());
-        }, IP, 8090);
+        });
+        temp_div.appendChild(accept_button);
+        temp_div.appendChild(br());
+        temp_div.appendChild(br());
+        return(0);
     };
+
     return({
         post_offer: post_offer
     });
