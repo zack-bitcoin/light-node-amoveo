@@ -23,13 +23,14 @@ var tabs = (function(){
             [["swap", swap_tab_builder, "swap"],
              ["pool", pool_tab_builder, "pool"],
              ["spend", spend_tab_builder, "spend"],
-             ["create", create_tab_builder, "create stablecoin"],
-             ["create_binary", create_binary_tab_builder, "create binary"],
-             ["create_scalar", create_scalar_tab_builder, "create scalar"],
+             ["create", create_tab_builder, "create stablecoin market"],
+             ["create_binary", create_binary_tab_builder, "create binary market"],
+             ["create_scalar", create_scalar_tab_builder, "create scalar market"],
              ["create_futarchy", create_futarchy_tab_builder, "create futarchy"],
              ["crosschain", crosschain_tab_builder, "crosschain DEX sell veo"],
              ["crosschain2", crosschain_tab_builder2, "crosschain DEX buy veo"],
-             ["crosschain3", crosschain_tab_builder3, "crosschain DEX"]
+             ["crosschain3", crosschain_tab_builder3, "crosschain DEX"],
+             ["bet", bet_tab_builder, "bet"]
             ];
     }
     var tabs = {};

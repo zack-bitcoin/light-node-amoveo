@@ -657,11 +657,24 @@ no btc delivery
         }
         return(find_market(markets.slice(1), cid2, type2, cid1, type1));
     };
+    function description_maker2(contract_text){
+        console.log(contract_text);
+        var address = contract_text.match(/address \w*/)[0];
+        var receive = contract_text.match(/\d[\.\d]* \w* before/)[0].slice(0,-6);
+        var r = (receive)
+            .concat(" to ")
+            .concat(address);
+        return(r);
+    };
     function description_maker(cid1, type1, amount1, contract){
-        var blockchain = contract[6];
-        var other_chain_amount = contract[7];
-        var ticker = contract[8];
-        var date = contract[9];
+        console.log(JSON.stringify(contract));
+        var contract_text = atob(contract[1]);
+        var d2 = description_maker2(contract_text);
+        //for buy veo contracts
+        //var blockchain = contract[6];
+        //var other_chain_amount = contract[7];
+        //var ticker = contract[8];
+        //var date = contract[9];
         var description = document.createElement("span");
         var spend_stuff;
         if(cid1 === ZERO){
@@ -671,6 +684,7 @@ no btc delivery
                 .concat(" type ")
                 .concat(type1);
         };
+        console.log(JSON.stringify(contract));
         description.innerHTML = "you offered to receive "
             .concat((amount1/100000000).toFixed(8))
             .concat(" ")
@@ -748,11 +762,12 @@ no btc delivery
                 //console.log(JSON.stringify(market_data));
                 market_data = market_data[1];
                 var orders = market_data[7];
-                display_active_offers_orders(orders.slice(1), temp_div, contract_text, Source, SourceType, callback2);
+                display_active_offers_orders(orders.slice(1), temp_div, contract, Source, SourceType, callback2);
             }, IP, 8090);
         }, IP, 8090);
     };
-    function display_active_offers_orders(orders, temp_div, contract_text, Source, SourceType, callback){
+    function display_active_offers_orders(orders, temp_div, contract, Source, SourceType, callback){
+        var contract_text = atob(contract[1]);
         //var Source = contract[2];
         //var SourceType = contract[3];
         //var tid0 = contract[10];
@@ -761,7 +776,7 @@ no btc delivery
             return(callback());
         };
         function callback2(){
-            return(display_active_offers_orders(orders.slice(1), temp_div, contract_text, Source, SourceType, callback));
+            return(display_active_offers_orders(orders.slice(1), temp_div, contract, Source, SourceType, callback));
         };
         //todo. if there is not a corresponding order for the buy_veo half of the crosschain swap, then ignore it.
         console.log(JSON.stringify(orders));
@@ -774,7 +789,7 @@ no btc delivery
             var from = swap_offer2[1];
             var expires = swap_offer2[3];
             var amount1 = swap_offer2[6];
-            //var amount2 = swap_offer2[9];
+            var amount2 = swap_offer2[9];
             var cid1 = swap_offer2[4];
             var type1 = swap_offer2[5];
             var cid2 = swap_offer2[7];

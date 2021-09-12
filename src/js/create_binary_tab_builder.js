@@ -36,7 +36,7 @@ function create_binary_tab_builder(div, selector){
         };
         var amount = Math.round(parseFloat(amount_text.value)*token_units());
         //return(tabs.create.make_contract2(Text, MP, price, amount, display));
-        return(tabs.tabs.create.tab.make_contract2(Text, MP, price, amount, display, selector));
+        return(tabs.tabs.create.tab.make_contract2(Text, MP, price, amount, display, selector));//todo. this is from create_tab_builder.js  Maybe we should add that module to a more usable namespace. Maybe move this pure function to a library file if possible.
     };
     return({
         oracle:(function(x){oracle_text.value = x}),

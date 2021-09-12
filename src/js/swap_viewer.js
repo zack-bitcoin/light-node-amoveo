@@ -1,6 +1,12 @@
-var swap_viewer = (function(){
+function swap_viewer_creator(div2){
 
     var div = document.getElementById("swap_viewer");
+    if(!(div)){
+        div = div2;
+        if(!(div2)){
+            return(0);
+        };
+    };
     var display = document.createElement("p");
     div.appendChild(display);
     
@@ -197,4 +203,6 @@ var swap_viewer = (function(){
     
     return({offer: function(x) {offer.value = x},
             view: view})
-})();
+};
+
+var swap_viewer = swap_viewer_creator();

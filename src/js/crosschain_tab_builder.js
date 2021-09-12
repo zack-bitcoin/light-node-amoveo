@@ -191,12 +191,15 @@ function crosschain_tab_builder(div, selector){
     var lists_div = document.createElement("div");
     div.appendChild(lists_div);
 
-    function refresh(){
+    async function refresh(){
         var temp_div = document.createElement("div");
-        cancel_buttons(temp_div, function(){
+        var swap_offers =
+            await swap_offer_downloader.doit(
+                1, "sell_veo");
+        cancel_buttons(temp_div, swap_offers, function(){
             release_buttons(temp_div, function(){
                 delivered_buttons(temp_div, function(){
-                    active_offers(temp_div, function(){
+                    active_offers(temp_div, swap_offers, function(){
                         console.log("done making buttons");
                         lists_div.innerHTML = "";
                         lists_div.appendChild(temp_div);
@@ -205,11 +208,11 @@ function crosschain_tab_builder(div, selector){
             });
         });
     };
-    async function cancel_buttons(temp_div, callback){
+    async function cancel_buttons(temp_div, swap_offers, callback){
         console.log("making cancel buttons");
-        var swap_offers =
-            await swap_offer_downloader.doit(
-                1, "sell_veo");
+        //var swap_offers =
+        //    await swap_offer_downloader.doit(
+        //        1, "sell_veo");
         display_cancels_faster(
             swap_offers, temp_div);
         return(callback());
@@ -568,12 +571,12 @@ function crosschain_tab_builder(div, selector){
             display.appendChild(link);
         }, IP, 8090);//8090 is the p2p_derivatives server
     };
-    async function active_offers(temp_div, callback){
+    async function active_offers(temp_div, swap_offers, callback){
         console.log("making active offers list");
 
-        var swap_offers =
-            await swap_offer_downloader.doit(
-                1, "sell_veo");
+        //var swap_offers =
+        //    await swap_offer_downloader.doit(
+        //        1, "sell_veo");
         display_active_offers_faster(
             swap_offers, temp_div);
         return(callback());

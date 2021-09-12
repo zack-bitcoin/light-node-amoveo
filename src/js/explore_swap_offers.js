@@ -1,19 +1,30 @@
-var explore_swap_offer = (function() {
+function explore_swap_offers_creator(div2, hide_server_select) {
     var div = document.getElementById("explore_swap_offers");
+    if(!(div)){
+        div = div2;
+        if(!(div2)){
+            return(0);
+        };
+    };
     var display = document.createElement("p");
     div.appendChild(display);
 
-    var s_ip = text_input("server ip: ", div);
-    div.appendChild(br());
-    s_ip.value = get_ip();
     
-    var s_port = text_input("server port: ", div);
-    div.appendChild(br());
-    s_port.value = "8090";
-
     var refresh_button = button_maker2("refresh list of markets", refresh);
-    div.appendChild(refresh_button);
-    div.appendChild(br());
+    var s_ip, s_port;
+    if(!(hide_server_select)){
+        s_ip = text_input("server ip: ", div);
+        s_port = text_input("server port: ", div);
+        div.appendChild(br());
+        div.appendChild(br());
+    } else {
+        s_ip = document.createElement("p");
+        s_port = document.createElement("p");
+    }
+    s_ip.value = get_ip();
+    s_port.value = "8090";
+        div.appendChild(refresh_button);
+        div.appendChild(br());
 
     var temp_div = document.createElement("div");
     div.appendChild(temp_div);
@@ -159,4 +170,7 @@ var explore_swap_offer = (function() {
         refresh: refresh
     });
 
-})();
+};
+
+
+var explore_swap_offer = (explore_swap_offers_creator());

@@ -16,6 +16,9 @@ function pool_tab_builder(pool_tab, selector, hide_non_standard) {
     var pool_title = document.createElement("h3");
     pool_title.innerHTML = "Pool Currencies";
     pool_tab.appendChild(pool_title);
+    var details = document.createElement("p");
+    details.innerHTML = "This tool is for depositing or withdrawing liquidity from any of the uniswap-like markets.";
+    pool_tab.appendChild(details);
     pool_tab.appendChild(display);
     var selector_label = document.createElement("span");
     selector_label.innerHTML = "which currency to sell: ";

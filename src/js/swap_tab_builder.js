@@ -58,6 +58,10 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
     swap_tab.appendChild(contracts_list_link);
     swap_tab.appendChild(swap_title);
     swap_tab.appendChild(br());
+    var details = document.createElement("p");
+    details.innerHTML = "This tool takes advantage of all available uniswap-like markets in order to transform your currency into the type you want, in a single block. It uses a gradient descent algorithm to combine the markets as efficiently as possible, it tries to be arbitrage-free.";
+    swap_tab.appendChild(details);
+    swap_tab.appendChild(br());
     swap_tab.appendChild(display);
     var selector_label = document.createElement("span");
     selector_label.innerHTML = "which currency to sell: ";
