@@ -44,7 +44,7 @@ function bet_tab_builder(div, selector){
         var amount = Math.round(parseFloat(amount_e.value) * token_units());
         var them = Math.round(parseFloat(them_e.value) * token_units());
         var expires = Math.round(
-            parseFloat(till_expires_e.value)/6);
+            parseFloat(till_expires_e.value)*6);
 
         var MP = 1;//many possible prices.
         var Text = bet;
@@ -63,7 +63,7 @@ function bet_tab_builder(div, selector){
         swap.cid1 = ZERO;
         swap.cid2 = cid;
         swap.amount1 = amount;
-        swap.amount2 = them*2;
+        swap.amount2 = them + amount;
         swap.partial_match = false;
         swap.acc1 = keys.pub();
         swap.end_limit = headers_object.top()[1] + expires;
