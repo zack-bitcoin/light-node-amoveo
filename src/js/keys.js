@@ -253,6 +253,7 @@ function keys_function1() {
         };
         bal_div.innerHTML = S;
         update_balance_callback();
+        return(0);
         //});
     };
     function set_balance(n) {

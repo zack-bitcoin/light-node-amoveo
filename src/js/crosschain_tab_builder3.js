@@ -198,7 +198,7 @@ todo: plan what swap offers we need so that beginner users don't need to deal wi
         sell_offer99.start_limit = block_height - 1;
         sell_offer99.end_limit = sell_offer.end_limit + 1000;
         sell_offer99.amount1 = veo_all;
-        sell_offer99.amount2 = Math.round((veo_all * 0.998) + (fee*5));
+        sell_offer99.amount2 = Math.round((veo_all * 0.998) + (fee*5));//todo, maybe this should be a minus? in crosschain_tab_builder2 as well.
         sell_offer99.cid1 = sell_cid;
         sell_offer99.cid2 = ZERO;
         sell_offer99.type1 = 1;

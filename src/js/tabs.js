@@ -56,11 +56,11 @@ var tabs = (function(){
         keys.update_balance_callback(load);
     }
 
-    async function load() {
+    function load() {
         //display.innerHTML = "<h3>looking up which currencies you own.</h3>";
         setTimeout(async function(){
             //rpc.post(["account", keys.pub()], function(response){
-            const response = await rpc.apost(["account", keys.pub()], get_ip(), 8091)
+            const response = await rpc.apost(["account", keys.pub()], get_ip(), 8091);
             if(response == "error") {
                 //display.innerHTML = "<h3>load a key with funds.</h3>";
             } else {
@@ -69,14 +69,13 @@ var tabs = (function(){
                 display.innerHTML = "";
             }
                     //TODO figure out which subcurrencies we own in each contract. each subcurrency goes into the selector seperately.
-                contracts_to_subs(sub_accs, [], function(sub_accs2){
-                    load_balances(
-                        sub_accs2, liquidity_shares, "<h4>your balances in each subcurrency</h4>",
-                        function(){
-                            show_balances();
-                        });
-                });
-                
+            contracts_to_subs(sub_accs, [], function(sub_accs2){
+                load_balances(
+                    sub_accs2, liquidity_shares, "<h4>your balances in each subcurrency</h4>",
+                    function(){
+                        show_balances();
+                    });
+            });
         }, 0);
     };
     function contracts_to_subs(contracts, R, callback) {

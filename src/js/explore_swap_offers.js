@@ -95,7 +95,7 @@ function explore_swap_offers_creator(div2, hide_server_select) {
                      function(z) {
                          var orders = z[1][7];
                          orders = orders.slice(1);
-                         console.log(orders);
+                         //console.log(orders);
                          orders_div.innerHTML = "<h3>available trades in market "
                              .concat(m[2])
                              .concat("</h3>");
@@ -155,6 +155,7 @@ function explore_swap_offers_creator(div2, hide_server_select) {
         return(display_orders(l.slice(1)));
     };
     function trade_details(tid){
+        //if it is your own swap offer, then make a cancel offer button. todo.
         rpc.post(["read", 2, tid], function(t){
             console.log(JSON.stringify(t));
             //t = t[1];

@@ -1,4 +1,6 @@
 function swap_viewer_creator(div2){
+    var ZERO = btoa(array_to_string(integer_to_array(0, 32)));
+    var IP = default_ip();
 
     var div = document.getElementById("swap_viewer");
     if(!(div)){
@@ -34,7 +36,7 @@ function swap_viewer_creator(div2){
         
         var contract1, contract2;
         console.log(offer.value);
-        console.log(Y);
+        console.log(JSON.stringify(Y));
         var original_limit_order_size = Y.parts;
         var available_to_match;
         //var TID = hash.doit(65 bytes of pubkey, then 32 bytes of salt)
@@ -67,16 +69,13 @@ function swap_viewer_creator(div2){
         }
         
         if(Y.cid2 == btoa(array_to_string(integer_to_array(0, 32)))){
+            //currency 2 is the kind that you need to send. So this is the only type you could ever need to make the contract for.
             contract2 = "veo";
             update_display(Y, now, contract1, contract2, available_to_match, original_limit_order_size);
             return(view2([], X, Y, original_limit_order_size, available_to_match));
         }else{
             contract2 = await contract_text(
                 Y.cid2, Y.type2);
-            //contract2 = ("contract ")
-            //.concat(Y.cid2)
-            //.concat(" type ")
-            //.concat(Y.type2);
         }
         update_display(Y, now, contract1, contract2, available_to_match, original_limit_order_size);
         console.log("amount to make contracts");
@@ -168,8 +167,9 @@ function swap_viewer_creator(div2){
         //txs is the new_contracts parts.
         //swap_txs is the contract_use_txs
         console.log("in view 2");
+        console.log(Y.acc1);
         accept_button.onclick = function(){
-            var amount_to_match = parseInt(amount_to_match_input.value, 10);
+            var amount_to_match = Math.round(parseFloat(amount_to_match_input.value, 10) * token_units());
             if(!amount_to_match){
                 display.innerHTML =
                     "<p>You need to choose how much you want to buy</p>";
@@ -188,25 +188,40 @@ function swap_viewer_creator(div2){
             };
             var matched_parts = Math.round(available_to_match * amount_to_match / A1);
             var signed_offer = X;
-            swaps.make_tx(signed_offer, matched_parts, function(swap_txs){
+            swaps.make_tx(signed_offer, matched_parts, async function(swap_txs){
                 txs = txs.concat(swap_txs);
-                multi_tx.make(txs, function(tx) {
-                    console.log(JSON.stringify(tx));
-                    var stx = keys.sign(tx);
-	            rpc.post(["txs", [-6, stx]],
-                             function(x) {
-                                 if(x == "ZXJyb3I="){
-                                     display.innerHTML = "server rejected the tx";
-                                 }else{
-                                     display.innerHTML = "accepted trade offer and published tx. the tx id is ".concat(x);
-                                 }
-                             });
-                });
+                var tx = await multi_tx.amake(txs);
+                console.log(JSON.stringify(tx));
+                var stx = keys.sign(tx);
+                var response = await apost_txs([stx]);
+                display.innerHTML = response;
+                if(!(response === "server rejected the tx")){
+                    if(Y.type1 === 0){//only if you are paying veo for a subcurrency that is priced in veo.
+                        //todo. publish an offer to sell your winnings for 99% of the max possible value.
+                        var offer99 = {};
+                        offer99.type1 = 3-Y.type2;
+                        offer99.type2 = 0;
+                        offer99.cid1 = Y.cid2;
+                        offer99.cid2 = ZERO;
+                        offer99.amount1 = Y.amount2;
+                        offer99.amount2 = Math.round(((Y.amount2) * 0.998) - (fee * 5));
+                        offer99.partial_match = false;
+                        offer99.acc1 = keys.pub();
+                        offer99.end_limit = Y.end_limit + 1;
+                        var signed_offer = swaps.pack(offer99);
+                        var response = await rpc.apost(
+                            ["add", signed_offer, 0],
+                            IP, 8090);
+                        console.log(JSON.stringify(offer99));
+                        console.log(response);
+                    };
+                };
             });
         };
     };
     function update_display(Y, now, contract1, contract2, available_to_match, original_limit_order_size){
         console.log(JSON.stringify([available_to_match, original_limit_order_size]));
+        console.log(JSON.stringify(Y));
         var A1 = Math.round(Y.amount1 * available_to_match / original_limit_order_size) / token_units();
         var A2 = Math.round(Y.amount2 * available_to_match / original_limit_order_size) / token_units();
         amount_to_match_input.value = A1.toString();
@@ -216,20 +231,46 @@ function swap_viewer_creator(div2){
         } else if (original_limit_order_size < 100000){
             warning = "<p>Warning: this limit order can only be matched in unusually large chunks. This may be a trick to get you to trade at a bad price.</p>";
         }
-        display.innerHTML =
-            "<p>expires in  "
-            .concat(Y.end_limit - now)
-            .concat(" blocks.</p><p>you gain: ")
-            .concat(A1)
-            .concat(" of ")
-            .concat(contract1)
-            .concat("</p><p>you lose: ")
-            .concat(A2)
-            .concat(" of ")
-            .concat(contract2)
-            .concat("</p>")
-            .concat(warning)
-            .concat("");
+        if(Y.acc1 === keys.pub()){
+            display.innerHTML =
+                "<p>this is an offer that you made. it expires in "
+                .concat(Y.end_limit - now)
+                .concat(" blocks.</p><p>you lose: ")
+                .concat(A1)
+                .concat(" of ")
+                .concat(contract1)
+                .concat("</p><p>you gain: ")
+                .concat(A2)
+                .concat(" of ")
+                .concat(contract2)
+                .concat("</p>");
+            var cancel_button = button_maker2("cancel offer", function(){ return(cancel_offer(Y.salt))});
+            display.appendChild(cancel_button);
+        } else {
+            display.innerHTML =
+                "<p>expires in  "
+                .concat(Y.end_limit - now)
+                .concat(" blocks.</p><p>you gain: ")
+                .concat(A1)
+                .concat(" of ")
+                .concat(contract1)
+                .concat("</p><p>you lose: ")
+                .concat(A2)
+                .concat(" of ")
+                .concat(contract2)
+                .concat("</p>")
+                .concat(warning)
+                .concat("");
+        };
+    };
+    var fee = 200000;
+    function cancel_offer(salt){
+        var tx = ["trade_cancel_tx", keys.pub(), 2000000, fee, salt];
+        var stx = keys.sign(tx);
+        post_txs([stx], function(x){
+            display.innerHTML = x;
+        });
+        return(0);
     };
     
     return({offer: function(x) {offer.value = x},

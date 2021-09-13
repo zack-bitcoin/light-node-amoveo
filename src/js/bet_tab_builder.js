@@ -1,6 +1,7 @@
 function bet_tab_builder(div, selector){
     var ZERO = btoa(array_to_string(integer_to_array(0, 32)));
     var IP = default_ip();
+    var fee = 200000;
     var title = document.createElement("h3");
     title.innerHTML = "bet on anything";
     var display = document.createElement("div");
@@ -67,16 +68,27 @@ function bet_tab_builder(div, selector){
         swap.partial_match = false;
         swap.acc1 = keys.pub();
         swap.end_limit = headers_object.top()[1] + expires;
+        var offer99 = {};
+        offer99.type1 = 1;
+        offer99.type2 = 0;
+        offer99.cid1 = cid;
+        offer99.cid2 = ZERO;
+        offer99.amount1 = (them + amount);
+        offer99.amount2 = Math.round(((them + amount) * 0.998) - (fee * 5))
+        offer99.partial_match = false;
+        offer99.acc1 = keys.pub();
+        offer99.end_limit = headers_object.top()[1] + expires + 1;
         console.log(expires);
         console.log(JSON.stringify(swap));
         var signed_offer = swaps.pack(swap);
+        var signed_99 = swaps.pack(offer99);
 
         var max_price = 1;//1 is for binary contracts.
         var response1 = await rpc.apost(["add", 3, btoa(Text), 0, max_price, ZERO, 0], IP, 8090);
         console.log(response1);
 
         var response = await rpc.apost(
-            ["add", signed_offer, 0],
+            ["add", signed_offer, signed_99],
             IP, 8090);
         console.log(response);
         display.innerHTML = "successfully posted your bet offer. ";
