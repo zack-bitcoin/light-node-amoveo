@@ -27,7 +27,7 @@ function swap_viewer_creator(div2){
     div.appendChild(accept_button);
     div.appendChild(br());
 
-    function view(){
+    async function view(){
         var X = JSON.parse(offer.value);
         var Y = swaps.unpack(X);
         var now = headers_object.top()[1];
@@ -45,42 +45,73 @@ function swap_viewer_creator(div2){
 //                    atob(Y.salt))))));
         var TID = swaps.id_maker(Y.acc1, Y.salt);
         console.log(TID);
-        rpc.post(["trades", TID], function(trade){
-            console.log(trade);
-            if(trade === 0){
-                available_to_match = original_limit_order_size;
-            } else {
-                available_to_match = original_limit_order_size - trade[2];
-            };
-            
+        //rpc.post(["trades", TID], function(trade){
+        var trade = await rpc.apost(["trades", TID])
+        console.log(trade);
+        if(trade === 0){
+            available_to_match = original_limit_order_size;
+        } else {
+            available_to_match = original_limit_order_size - trade[2];
+        };
+        
 
         
-            if(Y.cid1 == btoa(array_to_string(integer_to_array(0, 32)))){
-                contract1 = "veo";
-            }else{
-                contract1 = Y.cid1
-                    .concat(" type ")
-                    .concat(Y.type1);
-            }
-
-            if(Y.cid2 == btoa(array_to_string(integer_to_array(0, 32)))){
-                contract2 = "veo";
-                update_display(Y, now, contract1, contract2, available_to_match, original_limit_order_size);
-                return(view2([], X, Y, original_limit_order_size, available_to_match));
-            }else{
-            contract2 = ("contract ")
-                .concat(Y.cid2)
-                .concat(" type ")
-                .concat(Y.type2);
+        if(Y.cid1 == btoa(array_to_string(integer_to_array(0, 32)))){
+            contract1 = "veo";
+        }else{
+                //contract1 = Y.cid1
+                //    .concat(" type ")
+                //    .concat(Y.type1);
+            contract1 = await contract_text(
+                Y.cid1, Y.type1);
         }
+        
+        if(Y.cid2 == btoa(array_to_string(integer_to_array(0, 32)))){
+            contract2 = "veo";
             update_display(Y, now, contract1, contract2, available_to_match, original_limit_order_size);
-            console.log("amount to make contracts");
-            maybe_make_contracts(Y.cid2, [], function(txs){
-                console.log("made contracts");
-
-                view2(txs, X, Y, original_limit_order_size, available_to_match);
-            });
+            return(view2([], X, Y, original_limit_order_size, available_to_match));
+        }else{
+            contract2 = await contract_text(
+                Y.cid2, Y.type2);
+            //contract2 = ("contract ")
+            //.concat(Y.cid2)
+            //.concat(" type ")
+            //.concat(Y.type2);
+        }
+        update_display(Y, now, contract1, contract2, available_to_match, original_limit_order_size);
+        console.log("amount to make contracts");
+        maybe_make_contracts(Y.cid2, [], function(txs){
+            console.log("made contracts");
+            
+            view2(txs, X, Y, original_limit_order_size, available_to_match);
         });
+        //});
+    };
+
+    async function contract_text(cid, type) {
+        var contract = await rpc.apost(
+            ["read", 3, cid], default_ip(), 8090);
+        console.log(JSON.stringify(contract));
+        if((contract[0] === "scalar") &&
+           (contract[6] === 0) &&//priced in veo
+           (contract[3] === 1)//binary contract
+          ){
+            var win_string;
+            if(type === 1){
+                win_string = "veo if this is true: "
+            } else {
+                win_string = "veo if this is false: "
+            }
+            return(win_string
+                   .concat(atob(contract[1])));
+        } else {
+            var s = "contract: "
+                .concat(cid)
+                .concat(" type: ")
+                .concat(type);
+            return(s);
+        };
+
     };
     function maybe_make_contracts(cid, Txs, callback) {
         console.log("maybe making contracts");
@@ -176,8 +207,8 @@ function swap_viewer_creator(div2){
     };
     function update_display(Y, now, contract1, contract2, available_to_match, original_limit_order_size){
         console.log(JSON.stringify([available_to_match, original_limit_order_size]));
-        var A1 = Math.round(Y.amount1 * available_to_match / original_limit_order_size);
-        var A2 = Math.round(Y.amount2 * available_to_match / original_limit_order_size);
+        var A1 = Math.round(Y.amount1 * available_to_match / original_limit_order_size) / token_units();
+        var A2 = Math.round(Y.amount2 * available_to_match / original_limit_order_size) / token_units();
         amount_to_match_input.value = A1.toString();
         var warning = "";
         if(original_limit_order_size === 1){
@@ -186,13 +217,13 @@ function swap_viewer_creator(div2){
             warning = "<p>Warning: this limit order can only be matched in unusually large chunks. This may be a trick to get you to trade at a bad price.</p>";
         }
         display.innerHTML =
-            "<p>expires "
+            "<p>expires in  "
             .concat(Y.end_limit - now)
-            .concat("</p><p>you gain up to: ")
+            .concat(" blocks.</p><p>you gain: ")
             .concat(A1)
             .concat(" of ")
             .concat(contract1)
-            .concat("</p><p>you lose up to: ")
+            .concat("</p><p>you lose: ")
             .concat(A2)
             .concat(" of ")
             .concat(contract2)

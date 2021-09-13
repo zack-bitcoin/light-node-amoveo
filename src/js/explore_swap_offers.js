@@ -144,9 +144,9 @@ function explore_swap_offers_creator(div2, hide_server_select) {
         var tid = order[3];
         //-record(order, {price, amount, tid}).
         var name = "price is "
-            .concat(price)
+            .concat(price.toFixed(4))
             .concat(" amount is ")
-            .concat(amount)
+            .concat(amount / token_units())
             .concat(". click to see more details.");
         var button = button_maker2(name, function(){
             trade_details(tid);
