@@ -1,8 +1,8 @@
 
 
 function default_ip() {
-    return("159.89.87.58");
-    //return("0.0.0.0");
+    //return("159.89.87.58");
+    return("0.0.0.0");
 };
 
 
@@ -618,6 +618,28 @@ async function apost_txs(txs) {
     }else{
         return("published tx. the tx id is ".concat(x));
     };
+};
+async function apost_offer(
+    display, IP, offer, second_offer
+){
+    var signed_second_offer;
+    if(!(second_offer)){
+        signed_second_offer = 0;
+    } else {
+        signed_second_offer = swaps.pack(second_offer);
+    }
+    var signed_offer;
+    if(!(offer[0] === "signed")){
+        signed_offer = swaps.pack(offer);
+    } else {
+        signed_offer = offer;
+    };
+    var z = await rpc.apost(
+        ["add", signed_offer,
+         signed_second_offer],
+        IP, 8090);//p2p_derivatives
+    display.innerHTML =
+        "successfully posted your crosschain offer. ";
 };
 
 var configure = {};

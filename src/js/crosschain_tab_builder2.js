@@ -334,14 +334,18 @@ no btc delivery
     };
     async function release_buttons(temp_div, callback){
         console.log("making release buttons");
+        console.log(IP);
         let txs = await rpc.apost(["txs"]);
         txs0 = txs.slice(1);
         txs = txs0.filter(function(tx){
             return(tx[1][0] === "contract_timeout_tx2");
         });
-        const sids = txs.map(function(tx){
-            return(tx[1][4]);
-        });
+        var sids = [];
+        if(IP === "0.0.0.0"){
+            sids = txs.map(function(tx){
+                return(tx[1][4]);
+            });
+        };
         let account = await rpc.apost(["account", keys.pub()], IP, 8091);
         if(account === "error"){
             return(callback());
@@ -481,7 +485,7 @@ no btc delivery
                 buy_veo_contract.proof2(), row2];
             */
             var [winnings_tx, winnings_tx2] =
-                await buy_veo_contract.both_winnings(cid);
+                await buy_veo_contract.both_winners(cid);
             swaps.make_tx(swap, 1000000, function(txs){
                 multi_tx.make(txs.concat([combine_tx, winnings_tx, winnings_tx2]), async function(tx){
                     var stx = keys.sign(tx);
@@ -586,101 +590,56 @@ no btc delivery
             //display.appendChild(link);
         }, IP, 8090);//8090 is the p2p_derivatives server
     };
-    function active_offers(temp_div, callback){
-        rpc.post(["markets"], function(markets){
-            markets = markets.slice(1);
-            //console.log(JSON.stringify(markets));
-            active_offers_from_markets(markets, temp_div, callback);
-        }, IP, 8090);
-    };
-    function active_offers_from_markets(
-        markets, temp_div, callback
-    ){
-        if(markets.length === 0) {
-            return(callback());
-        };
-        function callback2(){
-            return(active_offers_from_markets(markets.slice(1), temp_div, callback));
-        };
-        var market = markets[0];
-        var mid = market[2];
-        var cid2 = market[5];
-        var type2 = market[6];
-        if(!(type2 === 2)){
-            return(callback2());
-        };
-        rpc.post(["read", 3, cid2], function(contract){
-            //todo. only display the contract if the choose_address_timeout is in the future.
-            //todo. only display the contract if the oracle_start_height is in a reasonable timeframe.
-            if(contract === 0){
-                return(callback2());
-            };
-            console.log(JSON.stringify(contract));
-            if(!(contract[0] === "contract")){
-                console.log("not this one\n");
-                return(callback2());
-            };
-            rpc.post(["read", mid], function(market_data){
-                //console.log(JSON.stringify(market_data));
-                market_data = market_data[1];
-                var orders = market_data[7];
-                display_active_offers_orders(orders.slice(1), temp_div, contract, callback2);
-            }, IP, 8090);
-        }, IP, 8090);
-    };
-    function display_active_offers_orders(orders, temp_div, contract, callback){
-        var Source = contract[2];
-        var SourceType = contract[3];
-        var tid0 = contract[10];
+    async function active_offers(temp_div, callback){
 
-        if(orders.length === 0){
-            return(callback());
-        };
-        function callback2(){
-            return(display_active_offers_orders(orders.slice(1), temp_div, contract, callback));
-        };
-        console.log(JSON.stringify(orders));
-        var order = orders[0];
-        var price = order[1];
-        var amount = order[2];
-        var tid = order[3];
-        if(!(tid === tid0)){
-            console.log("tids not equal");
-            console.log(JSON.stringify([tid, tid0]));
+        var swap_offers =
+            await swap_offer_downloader.doit(
+                2, "buy_veo");
+            //[[contract, [[tid, signed_offer]...]]...]
+        swap_offers.map(function(offer){
+            var contract = offer[0];
+            var tids = offer[1];
+            tids.map(function(pair){
+                var tid = pair[0];
+                var trade = pair[1];
+                display_button(
+                    contract, tid, trade, temp_div);
+            });
+        });
+        callback();
+    };
+    function display_button(contract, tid, trade, temp_div){
+        var swap_offer2 = trade[1];
+        var from = swap_offer2[1];
+        var expires = swap_offer2[3];
+        var amount1 = swap_offer2[6];
+        var amount2 = swap_offer2[9];
+        var cid1 = swap_offer2[4];
+        var type1 = swap_offer2[5];
+        var cid2 = swap_offer2[7];
+        var salt = swap_offer2[10];
+        var trade_nonce = swap_offer2[11];
+        var block_height = headers_object.top()[1];
+        if(!(trade_nonce === 1)){
+            console.log("unexpected trade nonce");
             return(0);
         };
-        rpc.post(["read", 2, tid], function(trade){
-            var swap_offer2 = trade[1];
-            var from = swap_offer2[1];
-            var expires = swap_offer2[3];
-            var amount1 = swap_offer2[6];
-            var amount2 = swap_offer2[9];
-            var cid1 = swap_offer2[4];
-            var type1 = swap_offer2[5];
-            var cid2 = swap_offer2[7];
-            var salt = swap_offer2[10];
-            var trade_nonce = swap_offer2[11];
-            var block_height = headers_object.top()[1];
-            if(!(trade_nonce === 1)){
-                console.log("unexpected trade nonce");
-                return(0);
-            };
+        
+        
+        if(from === keys.pub()){
+            console.log(JSON.stringify(swap_offer2));
+            var cancel_button = button_maker2("cancel the offer", function(){
                 
-
-            if(from === keys.pub()){
-                console.log(JSON.stringify(swap_offer2));
-                var cancel_button = button_maker2("cancel the offer", function(){
-                
-                    //-record(trade_cancel_tx, {acc, nonce, fee, salt}).
-                    var trade_cancel_tx = ["trade_cancel_tx", from, 2, fee, salt];
-                    var stx = keys.sign(trade_cancel_tx);
-                    post_txs([stx], function(response){
-
-                        console.log(JSON.stringify(response));
-                        display.innerHTML = " canceled the trade. response from server: "
-                            .concat(response);
-                    });
+                //-record(trade_cancel_tx, {acc, nonce, fee, salt}).
+                var trade_cancel_tx = ["trade_cancel_tx", from, 2, fee, salt];
+                var stx = keys.sign(trade_cancel_tx);
+                post_txs([stx], function(response){
+                    
+                    console.log(JSON.stringify(response));
+                    display.innerHTML = " canceled the trade. response from server: "
+                        .concat(response);
                 });
+            });
             var description = description_maker(
                 cid1, type1, amount2 - amount1, contract);
             description.innerHTML =
@@ -693,104 +652,103 @@ no btc delivery
             temp_div.appendChild(cancel_button);
             temp_div.appendChild(br());
             temp_div.appendChild(br());
-                
-                return(callback2());
+            
+            //return(callback2());
+            return(0);
+        };
+        
+        var description = description_maker(
+            cid1, type1, amount2 - amount1, contract);
+        //ticker,
+        //   blockchain, date,
+        //  other_chain_amount);
+        
+        if(!(block_height < expires)){
+            //return(callback2());
+            return(0);
+        } 
+        description.innerHTML =
+            description.innerHTML.replace(
+                /you offered to receive/,
+                "they offered to buy")
+            .replace(/if you send/,
+                     "you will receive")
+            .concat(" ; Offer expires in ")
+            .concat(expires - block_height)
+            .concat(" blocks.");
+        temp_div.appendChild(description);
+        temp_div.appendChild(br());
+        var btc_address_input = text_input("address on other blockchain where you get paid.", temp_div);
+        btc_address_input.value = "test_address";
+        var accept_button = button_maker2("accept the offer", async function(){
+            //console.log("accepting the offer");
+            var my_acc = await rpc.apost(["account", keys.pub()]);
+            var nonce = my_acc[2] + 1;
+            var deposit_address = btc_address_input.value;
+            if(deposit_address.length < 5){
+                display.innerHTML = "you need to choose an address on the other blockchain where you want to get paid.";
+                return(0);
             };
-
-            var description = description_maker(
-                cid1, type1, amount2 - amount1, contract);
-            //ticker,
-             //   blockchain, date,
-            //  other_chain_amount);
-
-            if(!(block_height < expires)){
-                return(callback2());
-            } 
-            description.innerHTML =
-                description.innerHTML.replace(
-                        /you offered to receive/,
-                    "they offered to buy")
-                .replace(/if you send/,
-                         "you will receive")
-                .concat(" ; Offer expires in ")
-                .concat(expires - block_height)
-                .concat(" blocks.");
-            temp_div.appendChild(description);
-            temp_div.appendChild(br());
-            var btc_address_input = text_input("address on other blockchain where you get paid.", temp_div);
-            btc_address_input.value = "test_address";
-            var accept_button = button_maker2("accept the offer", function(){
-                //console.log("accepting the offer");
-                rpc.post(["account", keys.pub()], async function(my_acc){
-                    var nonce = my_acc[2] + 1;
-                    var deposit_address = btc_address_input.value;
-                    if(deposit_address.length < 5){
-                        display.innerHTML = "you need to choose an address on the other blockchain where you want to get paid.";
-                        return(0);
-                    };
-                    if(deposit_address === keys.pub()){
-                        display.innerHTML = "you need to choose an address on the other blockchain where you want to get paid.";
-                        return(0);
-                    };
-                    //var address_timeout = contract[4];
-                    var oracle_start_height = contract[5];
-                    var blockchain = atob(contract[6]);
-                    var other_chain_amount = atob(contract[7]);
-                    var ticker = atob(contract[8]);
-                    var date = atob(contract[9]);
-                    var reusable_settings = buy_veo_contract.reusable_settings(oracle_start_height, blockchain, other_chain_amount, ticker, date);
-                    //var settings = buy_veo_contract.settings(reusable_settings, address_timeout, trade_nonce, tid);
-                    //var contract1bytes = buy_veo_contract.contract1bytes(settings);
-                    var contract1bytes = await buy_veo_contract.contract_to_1bytes(contract);
-
-                    var contract_txs = buy_veo_contract.choose_deposit_address_tx(
-                        deposit_address, contract1bytes,
-                        from, reusable_settings,
-                        tid, nonce);
-                    swaps.make_tx(trade, 1, function(swap_txs){
-                        var evidence0 = contract_txs[1];
-                        evidence0[2] = nonce + 1;
-                        var evidence = keys.sign(evidence0);
-                        var timeout0 = contract_txs[2];
-                        timeout0[2] = nonce+2;
-                        var timeout = keys.sign(timeout0);
-                        var txs = [contract_txs[0]]
-                            .concat(swap_txs);
+            if(deposit_address === keys.pub()){
+                display.innerHTML = "you need to choose an address on the other blockchain where you want to get paid.";
+                return(0);
+            };
+            //var address_timeout = contract[4];
+            var oracle_start_height = contract[5];
+            var blockchain = atob(contract[6]);
+            var other_chain_amount = atob(contract[7]);
+            var ticker = atob(contract[8]);
+            var date = atob(contract[9]);
+            var reusable_settings = buy_veo_contract.reusable_settings(oracle_start_height, blockchain, other_chain_amount, ticker, date);
+            //var settings = buy_veo_contract.settings(reusable_settings, address_timeout, trade_nonce, tid);
+            //var contract1bytes = buy_veo_contract.contract1bytes(settings);
+            var contract1bytes = await buy_veo_contract.contract_to_1bytes(contract);
+            
+            var contract_txs = buy_veo_contract.choose_deposit_address_tx(
+                deposit_address, contract1bytes,
+                from, reusable_settings,
+                tid, nonce);
+            swaps.make_tx(trade, 1, async function(swap_txs){
+                var evidence0 = contract_txs[1];
+                evidence0[2] = nonce + 1;
+                var evidence = keys.sign(evidence0);
+                var timeout0 = contract_txs[2];
+                timeout0[2] = nonce+2;
+                var timeout = keys.sign(timeout0);
+                var txs = [contract_txs[0]]
+                    .concat(swap_txs);
                 console.log("making multi tx");
-                        multi_tx.make(txs, function(tx){
-                            var stx = keys.sign(tx);
-                            console.log("posting txs");
-                            console.log(JSON.stringify([stx, evidence, timeout]));
-                            post_txs([stx, evidence, timeout], function(response){
-       display.innterHTML = response;
-       var amount2_from_swap_offer = swap_offer2[9];
-       var cid2_from_swap_offer = swap_offer2[7];
-       var offer = {};
-       var block_height = headers_object.top()[1];
-       offer.start_limit = block_height - 10;
-       offer.end_limit = block_height + 2000;
-       offer.amount1 = amount2_from_swap_offer;
-       offer.cid1 = cid2_from_swap_offer;
-       offer.type1 = 1;
-       offer.amount2 = Math.round((amount2_from_swap_offer * 0.995) - (fee*5));
-       offer.cid2 = ZERO;//cid1_from_swap_offer;
-       offer.type2 = 0;//type1_from_swap_offer;
-       offer.acc1 = keys.pub();
-       offer.partial_match = true;
-       offer.nonce = nonce + 3;
-       post_offer(offer);
-   });
-                        });
-                    });
-                });
-
+                //multi_tx.make(txs, function(tx){
+                var tx = await multi_tx.amake(txs);
+                var stx = keys.sign(tx);
+                console.log("posting txs");
+                console.log(JSON.stringify([stx, evidence, timeout]));
+                var response = await apost_txs([stx, evidence, timeout])
+                display.innterHTML = response;
+                var amount2_from_swap_offer = swap_offer2[9];
+                var cid2_from_swap_offer = swap_offer2[7];
+                var offer = {};
+                var block_height = headers_object.top()[1];
+                offer.start_limit = block_height - 10;
+                offer.end_limit = block_height + 2000;
+                offer.amount1 = amount2_from_swap_offer;
+                offer.cid1 = cid2_from_swap_offer;
+                offer.type1 = 1;
+                offer.amount2 = Math.round((amount2_from_swap_offer * 0.995) - (fee*5));
+                offer.cid2 = ZERO;//cid1_from_swap_offer;
+                offer.type2 = 0;//type1_from_swap_offer;
+                offer.acc1 = keys.pub();
+                offer.partial_match = true;
+                offer.nonce = nonce + 3;
+                post_offer(offer);
             });
-            temp_div.appendChild(br());
-            temp_div.appendChild(accept_button);
-            temp_div.appendChild(br());
-            temp_div.appendChild(br());
-            return(callback2());
-        }, IP, 8090);
+        });
+        temp_div.appendChild(br());
+        temp_div.appendChild(accept_button);
+        temp_div.appendChild(br());
+        temp_div.appendChild(br());
+        //return(callback2());
+        return(0);
     };
     return({
         post_offer: post_offer

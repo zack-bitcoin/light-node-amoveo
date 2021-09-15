@@ -225,7 +225,7 @@ var swaps = (function(){
                             }
                             var Tx = ["contract_use_tx", 0, 0, 0, CID, Amount - bal, MT, Source, SourceType];
                             make_txs2(Source, SourceType, Amount - bal, function(L){return(callback(L.concat([Tx])))});
-                        }, get_ip(), "8090");
+                        }, get_ip(), 8090);
                         //}, "127.0.0.1", "8090");
                     });
                 };
@@ -260,6 +260,7 @@ var swaps = (function(){
                     atob(salt))))));
         return(TID);
     };
-    return({test: test, pack: pack, unpack: unpack, make_tx: make_tx,
+    return({test: test, pack: pack,
+            unpack: unpack, make_tx: make_tx,
             id_maker: id_maker});
 })();

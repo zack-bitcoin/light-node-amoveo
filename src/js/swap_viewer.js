@@ -157,7 +157,7 @@ function swap_viewer_creator(div2){
                             "<p>You need to teach the server about this contract before you can bet on it. Use the teach scalar contract tool. </p>";
                         return(0);
                     };
-                }, explore_swap_offer.ip_get, explore_swap_offer.port_get);
+                }, explore_swap_offer.ip_get, 8090);
             } else {
                 return(callback(Txs));
             };
