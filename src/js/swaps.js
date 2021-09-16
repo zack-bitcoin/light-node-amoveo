@@ -1,4 +1,6 @@
 var swaps = (function(){
+    var ZERO = btoa(array_to_string(integer_to_array(0, 32)));
+    var fee = 200000;
 /*
 -record(swap_offer, {
           acc1, start_limit, end_limit, salt,
@@ -260,7 +262,39 @@ var swaps = (function(){
                     atob(salt))))));
         return(TID);
     };
+    function offer_99(offer){
+        var offer99 = {};
+        offer99.start_limit = offer.start_limit;
+        offer99.end_limit = offer.end_limit + 1;
+        offer99.amount1 = offer.amount2;
+        offer99.amount2 = Math.round((offer.amount2*0.995) - (fee*5));//new oracle, oracle report, oracle close, withdraw winnings, oracle winnings
+        offer99.cid1 = offer.cid2;
+        offer99.cid2 = ZERO;
+        offer99.type2 = 0;
+        offer99.type1 = offer.type2;
+        offer99.acc1 = keys.pub();
+        offer99.partial_match = true;
+        return(offer99);
+    };
+    function accept_99(offer){
+        var offer99 = {};
+        offer99.start_limit = offer.start_limit;
+        offer99.end_limit = offer.end_limit + 1;
+        offer99.amount1 = offer.amount2;
+        offer99.amount2 = Math.round((offer.amount2*0.995) - (fee*5));//new oracle, oracle report, oracle close, withdraw winnings, oracle winnings
+        offer99.cid2 = ZERO;
+        offer99.type2 = 0;
+        offer99.cid1 = offer.cid2;
+        offer99.type1 = 3-offer.type2;
+        offer99.acc1 = keys.pub();
+        offer99.partial_match = true;
+        return(offer99);
+    };
+
+
     return({test: test, pack: pack,
+            offer_99: offer_99,
+            accept_99: accept_99,
             unpack: unpack, make_tx: make_tx,
             id_maker: id_maker});
 })();

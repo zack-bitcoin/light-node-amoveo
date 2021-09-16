@@ -88,7 +88,6 @@ function crosschain_tab_builder(div, selector){
                 receive_amount_input.value,
                 ticker_input.value,
                 date);
-        console.log(oracle_text);
         var Source, SourceType;
         if(selector.value == "veo"){
             Source = ZERO;
@@ -107,8 +106,6 @@ function crosschain_tab_builder(div, selector){
             console.log("calculated bad cid");
             return(0);
         };
-        console.log("cid is ");
-        console.log(cid);
         var my_acc = await rpc.apost(
             ["account", keys.pub()]);
         //rpc.post(["account", keys.pub()], function(my_acc){
@@ -120,9 +117,6 @@ function crosschain_tab_builder(div, selector){
             return(crosschain_offer2(spend_amount, Source, SourceType, cid));
         };
         var spend_amount = Math.round(parseFloat(spend_amount_input.value, 10)*100000000);
-        console.log(selector.value);
-        console.log(spend_amount);
-        console.log(my_acc);
         if(selector.value === "veo"){
             if (my_acc[1] < spend_amount) {
                 display.innerHTML = "insufficient veo to make that swap offer";
@@ -162,19 +156,7 @@ function crosschain_tab_builder(div, selector){
         offer.acc1 = keys.pub();
         offer.partial_match = false;
 
-        var offer99 = {};
-        offer99.start_limit = block_height - 1;
-        offer99.end_limit = offer.end_limit + 1;
-        offer99.amount1 = spend_amount;
-        offer99.cid1 = cid;
-        offer99.cid2 = Source;
-        offer99.type2 = SourceType;
-        offer99.type1 = 1;
-        offer99.acc1 = keys.pub();
-        //offer99.partial_match = true;
-        offer99.partial_match = false;
-        offer99.amount2 = Math.round((spend_amount*0.995) - (fee*5));//new oracle, oracle report, oracle close, withdraw winnings, oracle winnings
-
+        var offer99 = swaps.offer_99(offer);
         apost_offer(display, IP, offer, offer99);
         spend_amount_input.value = "";
     };
@@ -200,7 +182,6 @@ function crosschain_tab_builder(div, selector){
         });
     };
     function is_sell_veo_contract(contract){
-        console.log(JSON.stringify(contract));
         var contract_text = atob(contract[1]);
         return(contract_text
                .match(/has received less than/));
@@ -215,7 +196,6 @@ function crosschain_tab_builder(div, selector){
             1, is_sell_veo_contract, contract_api);
         //[[cid, sa, contract]...]
         l.map(function(x){
-            //console.log(JSON.stringify(x));
             var cid = x[0];
             var sa = x[1];
             var contract = x[2];
@@ -304,7 +284,6 @@ function crosschain_tab_builder(div, selector){
             var order = lowest_price_order(orders);
             var tid = order[3];
             var trade = await rpc.apost(["read", 2, tid], IP, 8090);
-            console.log(JSON.stringify(trade));
             var swap = trade;
             
             release(offer, swap, cleanup);
@@ -337,7 +316,6 @@ function crosschain_tab_builder(div, selector){
     async function delivered_buttons(temp_div, callback){
         var l = await swap_offer_downloader.subaccounts(
             2, is_sell_veo_contract, contract_api);
-        console.log(JSON.stringify(l));
         l.map(function(x){
             var cid = x[0];
             var sa = x[1];
@@ -385,7 +363,6 @@ function crosschain_tab_builder(div, selector){
         temp_div.appendChild(br());
     };
     function description_maker2(contract_text){
-        console.log(contract_text);
         var address = contract_text.match(/address \w*/)[0];
         var receive = contract_text.match(/\d[\.\d]* \w* before/)[0].slice(0,-6);
         var r = (receive)
@@ -394,8 +371,6 @@ function crosschain_tab_builder(div, selector){
         return(r);
     };
     function description_maker(cid1, type1, amount1, contract_text){
-        console.log(contract_text);
-        console.log(cid1);
         var d2 = description_maker2(contract_text);
         var description = document.createElement("span");
         var spend_stuff;
@@ -440,9 +415,9 @@ function crosschain_tab_builder(div, selector){
     async function display_active_offers_order(
         trade, temp_div, contract_text,
         tid){
-        console.log(JSON.stringify(trade));
+        var their_offer = swaps.unpack(trade);
         var swap_offer2 = trade[1];
-        var from = swap_offer2[1];
+        var from = swap_offer2[1];//instead of unpacking manually, we can grab allthis stuff from their_offer. todo
         var expires = swap_offer2[3];
         var amount1 = swap_offer2[6];
         var cid1 = swap_offer2[4];
@@ -455,10 +430,8 @@ function crosschain_tab_builder(div, selector){
         if(from === keys.pub()){
             var cancel_button = button_maker2(
                 "cancel trade", function(){
-                    console.log("canceling");
                     var tx = ["trade_cancel_tx", keys.pub(), 2000000, fee, salt];
                     var stx = keys.sign(tx);
-                    console.log(JSON.stringify(stx));
                     post_txs([stx], function(x){
                         display.innerHTML = x;
                     });
@@ -492,8 +465,6 @@ function crosschain_tab_builder(div, selector){
             var new_contract_tx = new_scalar_contract.make_tx(contract_text, 1);
             swaps.make_tx(trade, 1, function(txs){
                 multi_tx.make([new_contract_tx].concat(txs), async function(tx){
-                    console.log(JSON.stringify(txs));
-                    console.log(JSON.stringify(tx));
                     var stx = keys.sign(tx);
 	            var x = await rpc.apost(["txs", [-6, stx]]);
                     if(x == "ZXJyb3I="){
@@ -502,27 +473,7 @@ function crosschain_tab_builder(div, selector){
                         display.innerHTML = "accepted trade offer and published tx. the tx id is "
                             .concat(x)
                             .concat(" please do not send the money until this transaction has been included in a block.");//todo, maybe we could write the address to deposit to here.
-                        console.log("attempting to make the 99% sell offer");
-                        console.log(JSON.stringify(swap_offer2));
-                        var amount1_from_swap_offer = swap_offer2[6];
-                        var amount2_from_swap_offer = swap_offer2[9];
-                        var cid2 = swap_offer2[7];
-                        var cid1 = swap_offer2[4];
-                        var type1_from_swap_offer = swap_offer2[5];
-                        var offer = {};
-                        var block_height = headers_object.top()[1];
-                        offer.start_limit = block_height - 1;
-                        offer.end_limit = block_height + 2000;
-                        offer.amount1 = amount2_from_swap_offer;
-                        offer.cid1 = cid2;//contract
-                        offer.type1 = 2;
-                        offer.amount2 = Math.round((amount1_from_swap_offer * 0.995) - (fee*5));
-                        offer.cid2 = cid1;//veo
-                        offer.type2 = type1_from_swap_offer;
-                        offer.acc1 = keys.pub();
-                        offer.partial_match = true;
-                        //offer.partial_match = false;
-                        console.log(JSON.stringify(offer));
+                        var offer = swaps.accept_99(their_offer);
                         apost_offer(display, IP, offer);
                     }
                 });

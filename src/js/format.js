@@ -717,6 +717,3 @@ configure["channel_view"] = true;
         return(cid);
     };
 
-
-
-
