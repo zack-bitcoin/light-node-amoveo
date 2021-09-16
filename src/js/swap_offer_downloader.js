@@ -97,7 +97,9 @@ var swap_offer_downloader = (function(){
         return("unknown");
     };
 
-    async function subaccounts(contract_type, filter){
+    async function subaccounts(
+        contract_type, filter, contract_api, other_sids
+    ){
         //returns [[cid, sa, contract]...]
         var account = await rpc.apost(
             ["account", keys.pub()],
@@ -108,48 +110,80 @@ var swap_offer_downloader = (function(){
         };
         account = account[1];
         var subs = account[3];
-        console.log("subs 1");
-        console.log(subs);
+        //console.log("subs 1");
+        //console.log(subs);
         if(IP === "0.0.0.0"){
             var txs = await rpc.apost(["txs"]);
-            console.log(JSON.stringify(txs));
+            txs = txs.slice(1);
+            //console.log(JSON.stringify(txs));
+
+            //for the sell veo tool.
             var subs2 = txs
-                .slice(1)
                 .filter(function(stx){
                     return((stx[1][0] === "multi_tx") &&
-                           //(stx[1][1] === keys.pub()) &&
+                            //(stx[1][1] === keys.pub()) &&
                            (stx[1][4][3]) &&
-                           (stx[1][4][3][0] === "contract_use_tx")
-                          );
+                           (stx[1][4][3][0] === "contract_use_tx"));
                 })
                 .map(function(stx){
                     return(stx[1][4][3][4]);
+                           //(stx[1][0] === "contract_timeout_tx2")
                 });
-            console.log("subs 2");
-            console.log(JSON.stringify(subs2));
-                subs = subs.concat(subs2);
+
+                    
+            //console.log("subs 2");
+            //console.log(JSON.stringify(subs2));
+            subs = subs
+                .concat(subs2);
         };
-        var subs3 = await subaccounts2(
+        if(other_sids){
+            subs = subs.concat(other_sids);
+        };
+        var r = await subaccounts2(
             subs.slice(1).reverse(),
             contract_type,
             filter,
+            contract_api, 
             []);
-        console.log("subs 3");
-        console.log(JSON.stringify(subs3));
-        return(subs3);
+        return(r);
     
     };
+    function is_in(x, l){
+        if(l.length === 0){
+            return(false);
+        };
+        if(x === l[0]){
+            return(true);
+        };
+        return(is_in(x, l.slice(1)));
+    };
+    function remove_duplicates(l){
+        if(l.length === 0){
+            return([]);
+        };
+        var h = l[0];
+        var t = l.slice(1);
+        var b = is_in(h, t);
+        var r = remove_duplicates(t);
+        if(b){
+            return(r);
+        } else {
+            return([h].concat(r));
+        };
+    };
     async function subaccounts2(
-        subs, contract_type, filter, r)
+        subs, contract_type, filter, contract_api, r)
     {
         if(subs.length === 0){
             return(r);
         };
+        subs = remove_duplicates(subs);
         var callback = async function(){
             return(subaccounts2(
                 subs.slice(1),
                 contract_type,
                 filter,
+                contract_api,
                 r))};
         var cid = subs[0];
         var id = sub_accounts.normal_key(
@@ -162,18 +196,21 @@ var swap_offer_downloader = (function(){
         if(balance < 100000){
             return(callback());
         };
-        var contract = await rpc.apost(
-            ["read", 3, cid], IP, 8090);
+        var contract = await contract_api(cid);
+        //var contract = await rpc.apost(
+        //    ["read", 3, cid], IP, 8090);
+        //let contract = await buy_veo_contract.verified_p2p_contract(cid); //todo
         if(contract === 0){
             return(callback());
         };
-        var bool = filter(contract);
+    //}
+        var bool = await filter(contract);
         if(!(bool)) {
             return(callback());
         };
         return(subaccounts2(
             subs.slice(1), contract_type,
-            filter, [[cid, sa, contract]].concat(r)));
+            filter, contract_api, [[cid, sa, contract, bool]].concat(r)));
     };
 
     return({doit: doit,

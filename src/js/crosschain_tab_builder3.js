@@ -712,8 +712,6 @@ no btc delivery
         } else {
             signed_offer = offer;
         };
-        //console.log("packed offer");
-        //console.log(JSON.stringify(signed_offer));
         rpc.post(["add", signed_offer, signed_second_offer], function(z){
             display.innerHTML = "successfully posted your crosschain offer. ";
             var link = document.createElement("a");

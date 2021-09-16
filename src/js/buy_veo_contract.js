@@ -666,6 +666,8 @@ macro ] swap cons reverse ;/
         var evidence = string_to_array(atob(tx[1][6]));
         var prove = tx[1][7].slice(1);
         //spk_prove_facts(prove, function(prove_code){
+
+        //maybe this prove part is unnecessary, and slows us down without reason.
         var prove_code = await aspk_prove_facts(prove);
         if(prove_code[0] === "fail"){
             console.log("cannot make a merkle proof for the contract");

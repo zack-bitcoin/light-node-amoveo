@@ -191,7 +191,7 @@ function crosschain_tab_builder2(div, selector){
         //    console.log(JSON.stringify(y));
         //}, IP, 8090);
         console.log(JSON.stringify(offer));
-        post_offer(offer, offer99);
+        apost_offer(display, IP, offer, offer99);
     };
 
 
@@ -229,92 +229,46 @@ no btc delivery
     function refresh(){
         var temp_div = document.createElement("div");
         lists_div.innerHTML = "<h1>loading...</h1>";
-        where_to_send_indicator(temp_div, function(){//alice. 
-            release_buttons(temp_div, function(){
+        release_buttons(temp_div, function(){
+            //this is also the where to send indicator for alice.
                 //Bob
                 //once you receive the bitcoin, you can release the funds. buys the winning shares for 99% of their value and combines. 
-                active_offers(temp_div, function(){
+            active_offers(temp_div, function(){
                     //Bob
                     //accept an offer, provide a btc address, and make an offer to sell your tokens for 99% of their max value.
                     //Alice
                     //ability to cancel unmatched offers. increments your offer-nonce.
-                    console.log("done making buttons");
-                    lists_div.innerHTML = "";
-                    lists_div.appendChild(temp_div);
-                });
+                console.log("done making buttons");
+                lists_div.innerHTML = "";
+                lists_div.appendChild(temp_div);
             });
         });
+        //});
     };
 
-    async function where_to_send_indicator(temp_div, callback){
-        //the deposit address is in the evidence of the contract_evidence_tx, and it is a part of the contract_timeout_tx.
-        //we want to grab the address from the timeout tx, because false evidence could have been made.
-        //we scan the sub accounts and txs in the mempool to see if we are trying to buy veo. For every offer where we are trying to buy veo, we scan the txs related to that contract, and also check the mempool for the contract_timeout_tx for that contract.
-        console.log("where to send indicator");
-        let txs = await rpc.apost(["txs"]);
-        txs0 = txs.slice(1);
-        txs = txs0.filter(function(tx){
-            return(tx[1][0] === "contract_timeout_tx2");
-        });
-            //console.log(JSON.stringify(txs));
-        const sids = txs.map(function(tx){
-            return(tx[1][4]);
-        });
-        console.log(JSON.stringify(sids));
-
-
-        let account = await rpc.apost(["account", keys.pub()], IP, 8091);
-        if(account === "error"){
-            return(callback());
-        };
-        account = account[1];
-        var subaccounts = account[3].concat(sids);
-        //console.log(JSON.stringify(subaccounts));
-        return(where_to_send_indicator_loop(
-            temp_div, subaccounts.slice(1), txs0,
-            callback));
-    };
-    async function where_to_send_indicator_loop(
-        temp_div, subaccounts, txs, callback){
-        if(subaccounts.length === 0){
-            return(callback());
-        };
-        var callback2 = function(){
-            return(where_to_send_indicator_loop(
-                temp_div, subaccounts.slice(1),
-                txs,
-                callback));
-        };
-        var cid = subaccounts[0];
-        var id = sub_accounts.normal_key(keys.pub(), cid, 2);
-        //console.log("checking sub account for cid: ");
-        //console.log(cid);
-        let sa = await sub_accounts.arpc(id);
-        //sub_accounts.rpc(id, function(sa){
-        if(sa === 0){
-            return(callback2());
-        };
-        var balance = sa[1];
-        if(balance < 100000){
-            return(callback2());
-        };
-        //let contract = await rpc.apost(["read", 3, cid], IP, 8090);
-        let contract = await buy_veo_contract.verified_p2p_contract(cid);
-        if(contract === 0){
-            //contract doesn't exist in the p2p derivatives explorer.
-            return(callback2());
-        };
-        if(!(contract[0] === "contract")){
-            //not a buy_veo contract.
-            return(callback2());
-        };
-
+    async function is_buy_veo_contract(contract, txs){
+        var cid = contract[1];
+        var b1 = (contract[0] === "contract");
+        console.log(JSON.stringify(contract));
         var r = await buy_veo_contract.get_deposit_address(cid, txs);
-        if(!(r.address)){
-            return(callback2());
+        if(!(b1)){return(false)};
+        if(!(r.address)){return(false)};
+        return(r);
+    };
+    async function contract_api(cid){
+        var contract =
+            await buy_veo_contract
+            .verified_p2p_contract(cid);
+        return(contract);
+
+    };
+    function draw_deposit_address(
+        cid, address, contract, temp_div){
+        if(!(cid === (contract[1]))){
+            console.log("weird error. maybe someone is trying to trick us into sending money to the wrong place.");
+            return(0);
         };
         var send_to_p = document.createElement("p");
-        //console.log(JSON.stringify(contract));
         var send_amount = atob(contract[7]);
         var blockchain = atob(contract[6]);
         var ticker = atob(contract[8]);
@@ -328,75 +282,47 @@ no btc delivery
             .concat(", by date: ")
             .concat(date)
             .concat(", to address: ")
-            .concat(r.address);
+            .concat(address);
         temp_div.appendChild(send_to_p);
-        return(callback2());
     };
     async function release_buttons(temp_div, callback){
-        console.log("making release buttons");
-        console.log(IP);
-        let txs = await rpc.apost(["txs"]);
+        var txs = await rpc.apost(["txs"]);
         txs0 = txs.slice(1);
-        txs = txs0.filter(function(tx){
-            return(tx[1][0] === "contract_timeout_tx2");
+        txs = txs0.filter(function(stx){
+            return((stx[1][0] === "contract_timeout_tx2"))});
+        var timeout_subs = txs
+            .map(function(stx){return(stx[1][4])});
+        var filter = function(contract){
+            return(is_buy_veo_contract(contract, txs0))
+        };
+        var l1 = await swap_offer_downloader.subaccounts(
+            1, filter, contract_api,
+            timeout_subs);
+        var l2 = await swap_offer_downloader.subaccounts(
+            2, filter, contract_api,
+            timeout_subs);
+        //[[cid, sa, contract, r]...]
+        l1.map(function(x){
+            var cid = x[0];
+            var sa = x[1];
+            var contract = x[2];
+            var r = x[3];
+            draw_release_button(cid, r, sa, contract, temp_div);
         });
-        var sids = [];
-        if(IP === "0.0.0.0"){
-            sids = txs.map(function(tx){
-                return(tx[1][4]);
-            });
-        };
-        let account = await rpc.apost(["account", keys.pub()], IP, 8091);
-        if(account === "error"){
-            return(callback());
-        };
-        account = account[1];
-        var subaccounts = account[3].concat(sids);
-        return(release_subaccounts_loop(
-            temp_div, subaccounts.slice(1).reverse(),
-            txs0,
-            callback));
+        l2.map(function(x){
+            var cid = x[0];
+            var sa = x[1];
+            var contract = x[2];
+            var address = x[3].address;
+            return(draw_deposit_address(
+                cid, address, contract, temp_div));
+        });
+        return(callback());
     };
-
-    async function release_subaccounts_loop(
-        temp_div, subaccounts, txs, callback){
-        if(subaccounts.length === 0){
-            return(callback());
-        };
-        var callback2 = function(){
-            return(release_subaccounts_loop(
-                temp_div, subaccounts.slice(1),
-                txs,
-                callback));
-        };
-        var cid = subaccounts[0];
-        var sid = sub_accounts.normal_key(keys.pub(), cid, 1);
-        var sid2 = sub_accounts.normal_key(keys.pub(), cid, 2);
-        let sa = await sub_accounts.arpc(sid);
-        //sub_accounts.rpc(id, function(sa){
-        if(sa === 0){
-            return callback2();
-        };
+    function draw_release_button(
+        cid, r, sa, contract, temp_div
+    ){
         var balance = sa[1];
-        //console.log(JSON.stringify(cid));
-        //console.log(JSON.stringify(balance));
-        if(balance < 100000){
-            return(callback2());
-        };
-        let contract = await rpc.apost(["read", 3, cid], IP, 8090);
-        if(contract === 0){
-            return(callback2());
-        };
-        if(!(contract[0] === "contract")){
-            //not a buy_veo contract.
-            //console.log("not a buy veo contract");
-            return(callback2());
-        };
-
-        var r = await buy_veo_contract.get_deposit_address(cid, txs);
-        if(!(r.address)){
-            return(callback2());
-        };
         var send_amount = atob(contract[7]);
         var blockchain = atob(contract[6]);
         var ticker = atob(contract[8]);
@@ -438,7 +364,7 @@ no btc delivery
                 button.onclick = function(){return(0)};
             };
             function we_post_first(){
-                post_offer(offer);
+                apost_offer(display, IP, offer);
                 cleanup();
             };
             //first we should look up if they already posted an offer to sell
@@ -464,26 +390,6 @@ no btc delivery
                 r.sink,// offer.cid1,
                 -offer.amount1, 2, offer.cid2, offer.type2];
             
-            //var MAX = btoa(array_to_string(integer_to_array(-1, 4)));
-            //var MIN = btoa(array_to_string(integer_to_array(0, 4)));
-            //const matrix = [-6, [-6, MAX, MIN],[-6, MIN, MAX]];
-            /*
-            const matrix = buy_veo_contract.matrix();
-            var row = matrix[1];
-            var row2 = matrix[2];
-            var winnings_tx = [
-                "contract_winnings_tx", 0,0,0,
-                cid, balance, sid, keys.pub(),
-                buy_veo_contract.proof1(), row];
-            var sid2 = sub_accounts.normal_key(keys.pub(), cid, 2);
-            let sa2 = await sub_accounts.arpc(sid2);
-            //var balance2 = sa2[1];
-            var balance2 = balance;
-            var winnings_tx2 = [
-                "contract_winnings_tx", 0,0,0,
-                cid, balance2, sid2, keys.pub(),
-                buy_veo_contract.proof2(), row2];
-            */
             var [winnings_tx, winnings_tx2] =
                 await buy_veo_contract.both_winners(cid);
             swaps.make_tx(swap, 1000000, function(txs){
@@ -504,8 +410,7 @@ no btc delivery
         temp_div.appendChild(release_button);
         temp_div.appendChild(br());
         temp_div.appendChild(br());
-        
-        return(callback2());
+
     };
     function lowest_price_order(orders) {
         if(orders.length === 1){
@@ -565,30 +470,6 @@ no btc delivery
             .concat(" blockchain by date ")
             .concat(atob(date));
         return(description);
-    };
-    function post_offer(offer, second_offer){
-        var signed_second_offer;
-        if(!(second_offer)){
-            signed_second_offer = 0;
-        } else {
-            var signed_second_offer = swaps.pack(second_offer);
-        }
-        var signed_offer;
-        if(!(offer[0] === "signed")){
-            signed_offer = swaps.pack(offer);
-        } else {
-            signed_offer = offer;
-        };
-        //console.log("packed offer");
-        //console.log(JSON.stringify(signed_offer));
-        rpc.post(["add", signed_offer, signed_second_offer], function(z){
-            display.innerHTML = "successfully posted your crosschain offer. ";
-            var link = document.createElement("a");
-            link.href = "contracts.html";
-            link.innerHTML = "Your trade can be viewed on this page.";
-            link.target = "_blank";
-            //display.appendChild(link);
-        }, IP, 8090);//8090 is the p2p_derivatives server
     };
     async function active_offers(temp_div, callback){
 
@@ -740,7 +621,7 @@ no btc delivery
                 offer.acc1 = keys.pub();
                 offer.partial_match = true;
                 offer.nonce = nonce + 3;
-                post_offer(offer);
+                apost_offer(display, IP, offer);
             });
         });
         temp_div.appendChild(br());
@@ -751,6 +632,5 @@ no btc delivery
         return(0);
     };
     return({
-        post_offer: post_offer
     });
 };

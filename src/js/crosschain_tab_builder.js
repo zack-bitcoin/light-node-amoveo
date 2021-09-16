@@ -230,14 +230,20 @@ function crosschain_tab_builder(div, selector){
             temp_div.appendChild(br());
         };
     };
-    function is_buy_veo_contract(contract){
+    function is_sell_veo_contract(contract){
+        console.log(JSON.stringify(contract));
         var contract_text = atob(contract[1]);
         return(contract_text
                .match(/has received less than/));
-    }
+    };
+    async function contract_api(cid){
+        var r = await rpc.apost(
+            ["read", 3, cid], IP, 8090);
+        return(r);
+    };
     async function release_buttons(temp_div, callback){
         var l = await swap_offer_downloader.subaccounts(
-            1, is_buy_veo_contract);
+            1, is_sell_veo_contract, contract_api);
         //[[cid, sa, contract]...]
         l.map(function(x){
             //console.log(JSON.stringify(x));
@@ -376,7 +382,7 @@ function crosschain_tab_builder(div, selector){
     };
     async function delivered_buttons(temp_div, callback){
         var l = await swap_offer_downloader.subaccounts(
-            2, is_buy_veo_contract);
+            2, is_sell_veo_contract, contract_api);
         console.log(JSON.stringify(l));
         l.map(function(x){
             var cid = x[0];
