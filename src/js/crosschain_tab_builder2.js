@@ -106,7 +106,7 @@ function crosschain_tab_builder2(div, selector){
             settings(
                 reusable_settings, addressTimeout,
                 1, TID);
-        var amount2 = Math.round(parseFloat(security_amount_input.value, 10)*100000000);
+        var amount2 = Math.round(parseFloat(security_amount_input.value, 10)*token_units());
         
         //the swap offer
         var contract_bytes = buy_veo_contract.
@@ -136,12 +136,8 @@ function crosschain_tab_builder2(div, selector){
             console.log(Contract);
             return(0);
         };
-        console.log("this is the contract data that we teach to the p2p derivatives server.");
-        console.log(JSON.stringify(Contract));
 
         const my_acc = await rpc.apost(["account", keys.pub()]);
-        console.log(my_acc);
-            //rpc.post(["account", keys.pub()], function(my_acc){
         if(my_acc === 0){
             display.innerHTML = "Load your private key first.";
             return(0);
@@ -151,25 +147,13 @@ function crosschain_tab_builder2(div, selector){
             return(0);
             };
         var nonce = my_acc[2];
-        console.log("teaching contract");
-        console.log(JSON.stringify(Contract));
         const x = await rpc.apost(["add", 4, Contract], IP, 8090);
-        console.log(x);
-        console.log(cid);
         if(!(x === cid)){
             console.log("bad cid produced");
             return(0);
         };
-        //rpc.post(["add", 4, Contract], function(x){
-        //post the offer
-        //rpc.post(["read", 3, cid], function(y){
-                    //checking that the contract got published correctly.
-        //    console.log(JSON.stringify(y));
-        //}, IP, 8090);
-        console.log(JSON.stringify(offer));
         apost_offer(display, IP, offer, offer99);
     };
-
 
     var refresh_button = button_maker2("refresh available actions", refresh);
     div.appendChild(br());
@@ -219,7 +203,6 @@ no btc delivery
                 lists_div.appendChild(temp_div);
             });
         });
-        //});
     };
 
     async function is_buy_veo_contract(contract, txs){
@@ -236,7 +219,6 @@ no btc delivery
             await buy_veo_contract
             .verified_p2p_contract(cid);
         return(contract);
-
     };
     function draw_deposit_address(
         cid, address, contract, temp_div){
@@ -318,37 +300,17 @@ no btc delivery
         temp_div.appendChild(send_to_p);
         var Source = contract[2];
         var SourceType = contract[3];
-        var offer = {};
-        var block_height = headers_object.top()[1];
-        //todo. why are we making this offer here? shouldn't we be matching their offer they already made??
-        offer.start_limit = block_height - 1;
-        offer.end_limit = block_height + 1000;
-        offer.amount1 = balance;//amount to send
-        offer.cid2 = Source;
-        offer.cid1 = r.sink;
-        offer.type2 = SourceType;
-        offer.type1 = 1;
-        offer.acc1 = keys.pub();
-        offer.partial_match = true;
         var release_button = button_maker3("you have already been paid. release the veo.", async function(button){
-            //release button to sell for 0.2% + fee.
-            let my_acc = await rpc.apost(["account", keys.pub()]);
-            offer.nonce = my_acc[2] + 1;
-            offer.amount2 = Math.round((balance*0.002) + (fee*5));//new oracle, oracle report, oracle close, withdraw winnings, oracle winnings
             function cleanup(){
                 button.value = "done";
                 button.onclick = function(){return(0)};
             };
-            function we_post_first(){
-                apost_offer(display, IP, offer);
-                cleanup();
-            };
-            //first we should look up if they already posted an offer to sell
             let markets = await rpc.apost(["markets"], IP, 8090);
             markets = markets.slice(1);
             var market = find_market(markets, ZERO, 0, cid, 2);
             if(market === 0){
-                return(we_post_first());
+                //they didn't post their offer to sell for 99% of the value. I guess they want to use an oracle.
+                return(cleanup());
             };
             var mid = market[2];
             let market_data = await rpc.apost(["read", mid], IP, 8090);
@@ -360,8 +322,8 @@ no btc delivery
             var swap = trade;
             var combine_tx = [
                 "contract_use_tx", 0,0,0,
-                r.sink,
-                -offer.amount1, 2, offer.cid2, offer.type2];
+                r.sink, -balance, 2,
+                Source, SourceType];
             var [winnings_tx, winnings_tx2] =
                 await buy_veo_contract.both_winners(cid);
             swaps.make_tx(swap, 1000000, async function(txs){
@@ -377,11 +339,9 @@ no btc delivery
                 };
             });
         });
-        
         temp_div.appendChild(release_button);
         temp_div.appendChild(br());
         temp_div.appendChild(br());
-
     };
     function lowest_price_order(orders) {
         if(orders.length === 1){
@@ -429,7 +389,8 @@ no btc delivery
                 .concat(type1);
         };
         description.innerHTML = "you offered to receive "
-            .concat((amount1/100000000).toFixed(8))
+            .concat((amount1/token_units())
+                    .toFixed(8))
             .concat(" ")
             .concat(spend_stuff)
             .concat(" if you send ")
