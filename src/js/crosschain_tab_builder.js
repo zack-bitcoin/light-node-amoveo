@@ -176,59 +176,18 @@ function crosschain_tab_builder(div, selector){
 
     async function refresh(){
         var temp_div = document.createElement("div");
-        var swap_offers =
-            await swap_offer_downloader.doit(
-                1, "sell_veo");
-        cancel_buttons(temp_div, swap_offers, function(){
-            release_buttons(temp_div, function(){
-                delivered_buttons(temp_div, function(){
-                    active_offers(temp_div, swap_offers, function(){
-                        console.log("done making buttons");
-                        lists_div.innerHTML = "";
-                        lists_div.appendChild(temp_div);
-                    });
+        //var swap_offers =
+        //    await swap_offer_downloader.doit(
+        //        1, "sell_veo");
+        release_buttons(temp_div, function(){
+            delivered_buttons(temp_div, function(){
+                active_offers(temp_div, function(){
+                    console.log("done making buttons");
+                    lists_div.innerHTML = "";
+                    lists_div.appendChild(temp_div);
                 });
             });
         });
-    };
-    async function cancel_buttons(temp_div, swap_offers, callback){
-        console.log("making cancel buttons");
-        display_cancels_faster(
-            swap_offers, temp_div);
-        return(callback());
-    };
-    async function display_cancels_helper(
-        trade, temp_div){
-        //for canceling
-        var swap_offer2 = trade[1];
-        var from = swap_offer2[1];
-        var amount1 = swap_offer2[6];
-        var cid1 = swap_offer2[4];
-        var type1 = swap_offer2[5];
-        var cid2 = swap_offer2[7];
-        var salt = swap_offer2[10];
-        if(from === keys.pub()){
-            var contract = await rpc.apost(["read", 3, cid2], IP, 8090);
-                //console.log(JSON.stringify(contract));
-            var contract_text = atob(contract[1]);
-            console.log(contract_text);
-            var description = description_maker(cid1, type1, amount1, contract_text);
-            
-            var cancel_button = button_maker2("cancel trade", function(){
-                console.log("canceling");
-                var tx = ["trade_cancel_tx", keys.pub(), 2000000, fee, salt];
-                var stx = keys.sign(tx);
-                console.log(JSON.stringify(stx));
-                post_txs([stx], function(x){
-                    display.innerHTML = x;
-                });
-                return(0);
-            });
-            var block_height = headers_object.top()[1];
-            temp_div.appendChild(description);
-            temp_div.appendChild(cancel_button);
-            temp_div.appendChild(br());
-        };
     };
     function is_sell_veo_contract(contract){
         console.log(JSON.stringify(contract));
@@ -305,56 +264,51 @@ function crosschain_tab_builder(div, selector){
         offer.type1 = 1;
         offer.acc1 = keys.pub();
         offer.partial_match = true;
-        var release_button = button_maker3("you have already been paid", function(button){
+        var release_button = button_maker3("you have already been paid", async function(button){
             //release button to sell for 0.2% + fee.
-            rpc.post(["account", keys.pub()], function(my_acc){
-                offer.nonce = my_acc[2] + 1;
-                offer.amount2 = Math.round((balance*0.002) + (fee*5));//new oracle, oracle report, oracle close, withdraw winnings, oracle winnings
-                function cleanup(){
-                    button.value = "done";
-                    button.onclick = function(){return(0)};
-                };
-                function we_post_first(){
-                    apost_offer(display, IP, offer);
-                    cleanup();
-                };
+            var my_acc = await rpc.apost(["account", keys.pub()]);
+            offer.nonce = my_acc[2] + 1;
+            offer.amount2 = Math.round((balance*0.002) + (fee*5));//new oracle, oracle report, oracle close, withdraw winnings, oracle winnings
+            function cleanup(){
+                button.value = "done";
+                button.onclick = function(){return(0)};
+            };
+            function we_post_first(){
+                apost_offer(display, IP, offer);
+                cleanup();
+            };
             //first we should look up if they already posted an offer to sell
             //we should look in our existing swap offers instead of re-downloading. 
-                rpc.post(["markets"], function(markets){
-                    markets = markets.slice(1);
-                    var market = find_market(markets, offer.cid2, offer.type2, offer.cid1, 2);
-                    if(market === 0){
-                    //console.log("cannot find market");
-                    //return(0);
-                        return(we_post_first());
-                    } else {
-                        var mid = market[2];
-                        rpc.post(["read", mid], function(market_data){
-                            market_data = market_data[1];
-                            var orders = market_data[7].slice(1);
-                            var order = lowest_price_order(orders);
-                            var tid = order[3];
-                            rpc.post(["read", 2, tid], function(trade){
-                                console.log(JSON.stringify(trade));
-                                var swap = trade;
-                                
-                                release(offer, swap, cleanup);
-                            }, IP, 8090);
-                        }, IP, 8090);
-                    };
-                }, IP, 8090);
-            });
+            var markets = await rpc.apost(["markets"], IP, 8090);
+            markets = markets.slice(1);
+            var market = find_market(markets, offer.cid2, offer.type2, offer.cid1, 2);
+            if(market === 0){
+                //console.log("cannot find market");
+                //return(0);
+                return(we_post_first());
+            };
+            var mid = market[2];
+            //rpc.post(["read", mid], async function(market_data){
+            var market_data = await rpc.apost(["read", mid], IP, 8090);
+            market_data = market_data[1];
+            var orders = market_data[7].slice(1);
+            var order = lowest_price_order(orders);
+            var tid = order[3];
+            var trade = await rpc.apost(["read", 2, tid], IP, 8090);
+            console.log(JSON.stringify(trade));
+            var swap = trade;
+            
+            release(offer, swap, cleanup);
         });
         temp_div.appendChild(description);
         temp_div.appendChild(release_button);
         temp_div.appendChild(br());
-        var dispute_button = button_maker2("you have not been paid, and they ran out of time", function(){
-            rpc.post(["account", keys.pub()], function(my_acc){
+        var dispute_button = button_maker2("you have not been paid, and they ran out of time", async function(){
+            var my_acc = await rpc.apost(["account", keys.pub()]);
             //dispute button to sell for 99% - fee.
-                offer.nonce = my_acc[2] + 1;
-                offer.amount2 = Math.round((balance*0.995) - (fee*5));
-                apost_offer(display, IP, offer);
-            });
+            offer.nonce = my_acc[2] + 1;
+            offer.amount2 = Math.round((balance*0.995) - (fee*5));
+            apost_offer(display, IP, offer);
         });
         temp_div.appendChild(dispute_button);
         temp_div.appendChild(br());
@@ -472,26 +426,15 @@ function crosschain_tab_builder(div, selector){
             .concat(d2);
         return(description);
     };
-    async function active_offers(temp_div, swap_offers, callback){
-        display_active_offers_faster(
-            swap_offers, temp_div);
+    async function active_offers(temp_div, callback){
+        display_active_offers_faster(temp_div);
         return(callback());
     };
-    async function display_cancels_faster(
-        l, temp_div){
-        //l: [[contract, [[tid, offer]...]]...]
-        l.map(async function(a){
-            var contract = a[0];
-            var offers = a[1];
-            offers.map(async function(offer){
-                await display_cancels_helper(
-                    offers[0][1], temp_div);
-            });
-        });
-    };
 
-    async function display_active_offers_faster(
-        l, temp_div){
+    async function display_active_offers_faster(temp_div){
+        var l =
+            await swap_offer_downloader.doit(
+                1, "sell_veo");
         //l: [[contract, [[tid, offer]...]]...]
         l.map(async function(a){
             var contract = a[0];
@@ -512,18 +455,33 @@ function crosschain_tab_builder(div, selector){
         console.log(JSON.stringify(trade));
         var swap_offer2 = trade[1];
         var from = swap_offer2[1];
-        if(from === keys.pub()){
-            return(0);
-        };
         var expires = swap_offer2[3];
         var amount1 = swap_offer2[6];
         var cid1 = swap_offer2[4];
         var type1 = swap_offer2[5];
         var cid2 = swap_offer2[7];
         var salt = swap_offer2[10];
+        var description = description_maker(cid1, type1, amount1, contract_text);
         var block_height = headers_object.top()[1];
-        var description = description_maker(
-            cid1, type1, amount1, contract_text);
+
+        if(from === keys.pub()){
+            var cancel_button = button_maker2(
+                "cancel trade", function(){
+                    console.log("canceling");
+                    var tx = ["trade_cancel_tx", keys.pub(), 2000000, fee, salt];
+                    var stx = keys.sign(tx);
+                    console.log(JSON.stringify(stx));
+                    post_txs([stx], function(x){
+                        display.innerHTML = x;
+                    });
+                    return(0);
+                });
+            temp_div.appendChild(description);
+            temp_div.appendChild(cancel_button);
+            temp_div.appendChild(br());
+            return(0);
+        };
+
         description.innerHTML =
             description.innerHTML.replace(
                 /you offered to trade/,
@@ -540,9 +498,6 @@ function crosschain_tab_builder(div, selector){
         link.innerHTML = "contract offer in explorer ";
             link.target = "_blank";
         temp_div.appendChild(link);
-        
-        console.log(description.innerHTML);
-        console.log(JSON.stringify(swap_offer2));
         var accept_button = button_maker2("accept the offer", function(){
             //TODO, this should also make an offer to sell your tokens for 99% of their value. the "already delivered button" stuff.
             //var new_contract_tx = new_scalar_contract.make_tx(contract_text, 1, Source, SourceType);
