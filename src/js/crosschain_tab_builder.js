@@ -117,7 +117,7 @@ function crosschain_tab_builder(div, selector){
             return(0);
         };
         function callback2() {
-            return(crosschain_offer2(spend_amount, Source, SourceType, my_acc, cid));
+            return(crosschain_offer2(spend_amount, Source, SourceType, cid));
         };
         var spend_amount = Math.round(parseFloat(spend_amount_input.value, 10)*100000000);
         console.log(selector.value);
@@ -142,7 +142,7 @@ function crosschain_tab_builder(div, selector){
             });
         };
     };
-    function crosschain_offer2(spend_amount, Source, SourceType, my_acc, cid){
+    function crosschain_offer2(spend_amount, Source, SourceType, cid){
         var amount2;
         if(security_amount_input.value === ""){
             amount2 = Math.round(spend_amount * 1.1);
@@ -150,7 +150,6 @@ function crosschain_tab_builder(div, selector){
             amount2 = spend_amount + Math.round(parseFloat(security_amount_input.value, 10)*100000000);
         };
         var offer = {};
-        offer.nonce = my_acc[2] + 1;
         var block_height = headers_object.top()[1];
         offer.start_limit = block_height - 1;
         offer.end_limit = block_height + parseInt(many_blocks_to_match_input.value, 10);
@@ -162,7 +161,21 @@ function crosschain_tab_builder(div, selector){
         offer.type2 = 1;
         offer.acc1 = keys.pub();
         offer.partial_match = false;
-        apost_offer(display, IP, offer);
+
+        var offer99 = {};
+        offer99.start_limit = block_height - 1;
+        offer99.end_limit = offer.end_limit + 1;
+        offer99.amount1 = spend_amount;
+        offer99.cid1 = cid;
+        offer99.cid2 = Source;
+        offer99.type2 = SourceType;
+        offer99.type1 = 1;
+        offer99.acc1 = keys.pub();
+        //offer99.partial_match = true;
+        offer99.partial_match = false;
+        offer99.amount2 = Math.round((spend_amount*0.995) - (fee*5));//new oracle, oracle report, oracle close, withdraw winnings, oracle winnings
+
+        apost_offer(display, IP, offer, offer99);
         spend_amount_input.value = "";
     };
 
@@ -176,9 +189,6 @@ function crosschain_tab_builder(div, selector){
 
     async function refresh(){
         var temp_div = document.createElement("div");
-        //var swap_offers =
-        //    await swap_offer_downloader.doit(
-        //        1, "sell_veo");
         release_buttons(temp_div, function(){
             delivered_buttons(temp_div, function(){
                 active_offers(temp_div, function(){
@@ -263,11 +273,10 @@ function crosschain_tab_builder(div, selector){
         offer.type2 = SourceType;
         offer.type1 = 1;
         offer.acc1 = keys.pub();
-        offer.partial_match = true;
+        //offer.partial_match = true;
+        offer.partial_match = false;
         var release_button = button_maker3("you have already been paid", async function(button){
             //release button to sell for 0.2% + fee.
-            var my_acc = await rpc.apost(["account", keys.pub()]);
-            offer.nonce = my_acc[2] + 1;
             offer.amount2 = Math.round((balance*0.002) + (fee*5));//new oracle, oracle report, oracle close, withdraw winnings, oracle winnings
             function cleanup(){
                 button.value = "done";
@@ -302,15 +311,6 @@ function crosschain_tab_builder(div, selector){
         });
         temp_div.appendChild(description);
         temp_div.appendChild(release_button);
-        temp_div.appendChild(br());
-        var dispute_button = button_maker2("you have not been paid, and they ran out of time", async function(){
-            var my_acc = await rpc.apost(["account", keys.pub()]);
-            //dispute button to sell for 99% - fee.
-            offer.nonce = my_acc[2] + 1;
-            offer.amount2 = Math.round((balance*0.995) - (fee*5));
-            apost_offer(display, IP, offer);
-        });
-        temp_div.appendChild(dispute_button);
         temp_div.appendChild(br());
         temp_div.appendChild(br());
     };
@@ -371,29 +371,17 @@ function crosschain_tab_builder(div, selector){
         offer.type2 = SourceType;
         offer.type1 = 2;
         offer.acc1 = keys.pub();
-        offer.partial_match = true;
-        var delivered_button = button_maker3("you have already delivered the coins on the other blockchain", function(button){
-            rpc.post(["account", keys.pub()], function(my_acc){
-                offer.nonce = my_acc[2] + 1;
-                offer.amount2 = Math.round((balance*0.995) - (fee*5));
-                apost_offer(display, IP, offer);
-                button.value = "done";
-                button.onclick = function(){return(0)};
-            });
-        });
-        temp_div.appendChild(delivered_button);
+        //offer.partial_match = true;
+        offer.partial_match = false;
         var cancel_button = button_maker2("you cannot or will not deliver the coins on the other blockchain", function(){
             //TODO, this should work like the "release_button". It should match an existing offer, if possible.
-            rpc.post(["account", keys.pub()], function(my_acc){
-                offer.nonce = my_acc[2] + 1;
-                offer.amount2 = Math.round((balance*0.002) + (fee*5));
-                apost_offer(display, IP, offer);
+            offer.amount2 = Math.round((balance*0.002) + (fee*5));
+            apost_offer(display, IP, offer);
                 
-            });
         });
         temp_div.appendChild(br());
-        temp_div.appendChild(cancel_button);
-        temp_div.appendChild(br());
+        //temp_div.appendChild(cancel_button);
+        //temp_div.appendChild(br());
         temp_div.appendChild(br());
     };
     function description_maker2(contract_text){
@@ -533,8 +521,7 @@ function crosschain_tab_builder(div, selector){
                         offer.type2 = type1_from_swap_offer;
                         offer.acc1 = keys.pub();
                         offer.partial_match = true;
-                        var my_acc = await rpc.apost(["account", keys.pub()]);
-                        offer.nonce = my_acc[2] + 1;
+                        //offer.partial_match = false;
                         console.log(JSON.stringify(offer));
                         apost_offer(display, IP, offer);
                     }
