@@ -253,7 +253,6 @@ function crosschain_tab_builder(div, selector){
         offer.type2 = SourceType;
         offer.type1 = 1;
         offer.acc1 = keys.pub();
-        //offer.partial_match = true;
         offer.partial_match = false;
         var release_button = button_maker3("you have already been paid", async function(button){
             //release button to sell for 0.2% + fee.
@@ -272,12 +271,9 @@ function crosschain_tab_builder(div, selector){
             markets = markets.slice(1);
             var market = find_market(markets, offer.cid2, offer.type2, offer.cid1, 2);
             if(market === 0){
-                //console.log("cannot find market");
-                //return(0);
                 return(we_post_first());
             };
             var mid = market[2];
-            //rpc.post(["read", mid], async function(market_data){
             var market_data = await rpc.apost(["read", mid], IP, 8090);
             market_data = market_data[1];
             var orders = market_data[7].slice(1);
@@ -294,24 +290,19 @@ function crosschain_tab_builder(div, selector){
         temp_div.appendChild(br());
     };
     function release(offer, swap, cleanup){
-
-        var combine_tx = ["contract_use_tx", 0,0,0,
-                          offer.cid1, -offer.amount1, 2, offer.cid2, offer.type2];
-        swaps.make_tx(swap, 1000000, function(txs){
-            multi_tx.make(txs.concat([combine_tx]), function(tx){
-                var stx = keys.sign(tx);
-	        rpc.post(["txs", [-6, stx]],
-                         function(x) {
-                             if(x == "ZXJyb3I="){
-                                 display.innerHTML = "server rejected the tx";
-                             }else{
-                                 display.innerHTML = "accepted trade offer and published tx. the tx id is "
-                                     .concat(x);
-                                 cleanup();
-                                                 }
-                         });
-            }); 
-        });
+        var combine_tx = [
+            "contract_use_tx", 0,0,0, offer.cid1,
+            -offer.amount1, 2, offer.cid2, offer.type2];
+        swaps.make_tx(swap, 1000000, async function(txs){
+            var tx = await multi_tx.amake(
+                txs.concat([combine_tx]));
+            var stx = keys.sign(tx);
+            var msg = await apost_txs([stx]);
+            display.innerHTML = msg;
+            if(!(msg === "server rejected the tx")){
+                cleanup();
+            };
+        }); 
     };
     async function delivered_buttons(temp_div, callback){
         var l = await swap_offer_downloader.subaccounts(
@@ -331,7 +322,6 @@ function crosschain_tab_builder(div, selector){
         var contract_text = atob(contract[1]);
         var Source = contract[5];
         var SourceType = contract[6];
-        //if(contract_text.match(/has received less than/)){
         var received_text = description_maker2(contract_text)
             .concat(" using contract ")
             .concat(cid);
@@ -339,27 +329,7 @@ function crosschain_tab_builder(div, selector){
         description.innerHTML = "you are selling "
             .concat(received_text);
         temp_div.appendChild(description);
-        var offer = {};
-        var block_height = headers_object.top()[1];
-        offer.start_limit = block_height - 1;
-        offer.end_limit = block_height + 1000;
-        offer.amount1 = balance;//amount to send
-        offer.cid2 = Source;
-        offer.cid1 = cid;
-        offer.type2 = SourceType;
-        offer.type1 = 2;
-        offer.acc1 = keys.pub();
-        //offer.partial_match = true;
-        offer.partial_match = false;
-        var cancel_button = button_maker2("you cannot or will not deliver the coins on the other blockchain", function(){
-            //TODO, this should work like the "release_button". It should match an existing offer, if possible.
-            offer.amount2 = Math.round((balance*0.002) + (fee*5));
-            apost_offer(display, IP, offer);
-                
-        });
         temp_div.appendChild(br());
-        //temp_div.appendChild(cancel_button);
-        //temp_div.appendChild(br());
         temp_div.appendChild(br());
     };
     function description_maker2(contract_text){
@@ -415,22 +385,14 @@ function crosschain_tab_builder(div, selector){
     async function display_active_offers_order(
         trade, temp_div, contract_text,
         tid){
-        var their_offer = swaps.unpack(trade);
-        var swap_offer2 = trade[1];
-        var from = swap_offer2[1];//instead of unpacking manually, we can grab allthis stuff from their_offer. todo
-        var expires = swap_offer2[3];
-        var amount1 = swap_offer2[6];
-        var cid1 = swap_offer2[4];
-        var type1 = swap_offer2[5];
-        var cid2 = swap_offer2[7];
-        var salt = swap_offer2[10];
-        var description = description_maker(cid1, type1, amount1, contract_text);
+        var offer = swaps.unpack(trade);
+        var description = description_maker(
+            offer.cid1, offer.type1, offer.amount1, contract_text);
         var block_height = headers_object.top()[1];
-
-        if(from === keys.pub()){
+        if(offer.acc1 === keys.pub()){
             var cancel_button = button_maker2(
                 "cancel trade", function(){
-                    var tx = ["trade_cancel_tx", keys.pub(), 2000000, fee, salt];
+                    var tx = ["trade_cancel_tx", keys.pub(), 2000000, fee, offer.salt];
                     var stx = keys.sign(tx);
                     post_txs([stx], function(x){
                         display.innerHTML = x;
@@ -442,7 +404,6 @@ function crosschain_tab_builder(div, selector){
             temp_div.appendChild(br());
             return(0);
         };
-
         description.innerHTML =
             description.innerHTML.replace(
                 /you offered to trade/,
@@ -450,7 +411,7 @@ function crosschain_tab_builder(div, selector){
             .concat(" ; The money must arrive before ")
             .concat(contract_text.slice(-21))
             .concat(" ; Offer expires in ")
-            .concat(expires - block_height)
+            .concat(offer.end_limit - block_height)
             .concat(" blocks.");
         temp_div.appendChild(description);
         var link = document.createElement("a");
@@ -460,23 +421,18 @@ function crosschain_tab_builder(div, selector){
             link.target = "_blank";
         temp_div.appendChild(link);
         var accept_button = button_maker2("accept the offer", function(){
-            //TODO, this should also make an offer to sell your tokens for 99% of their value. the "already delivered button" stuff.
-            //var new_contract_tx = new_scalar_contract.make_tx(contract_text, 1, Source, SourceType);
             var new_contract_tx = new_scalar_contract.make_tx(contract_text, 1);
-            swaps.make_tx(trade, 1, function(txs){
-                multi_tx.make([new_contract_tx].concat(txs), async function(tx){
-                    var stx = keys.sign(tx);
-	            var x = await rpc.apost(["txs", [-6, stx]]);
-                    if(x == "ZXJyb3I="){
-                        display.innerHTML = "server rejected the tx";
-                    }else{
-                        display.innerHTML = "accepted trade offer and published tx. the tx id is "
-                            .concat(x)
-                            .concat(" please do not send the money until this transaction has been included in a block.");//todo, maybe we could write the address to deposit to here.
-                        var offer = swaps.accept_99(their_offer);
-                        apost_offer(display, IP, offer);
-                    }
-                });
+            swaps.make_tx(trade, 1, async function(txs){
+                var tx = await multi_tx.amake([new_contract_tx].concat(txs));
+                var stx = keys.sign(tx);
+                var msg = apost_txs([stx]);
+                if(msg === "server rejected the tx"){
+                    display.innerHTML = msg;
+                } else {
+                    display.innerHTML = "accepted trade offer and " .concat(msg);
+                    var offer99 = swaps.accept_99(offer);
+                    apost_offer(display, IP, offer99);
+                }
             });
         });
         temp_div.appendChild(accept_button);

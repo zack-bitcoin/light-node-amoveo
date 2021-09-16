@@ -290,8 +290,6 @@ var swaps = (function(){
         offer99.partial_match = true;
         return(offer99);
     };
-
-
     return({test: test, pack: pack,
             offer_99: offer_99,
             accept_99: accept_99,
