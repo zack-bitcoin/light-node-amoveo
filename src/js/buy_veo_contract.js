@@ -291,13 +291,19 @@ var Address Date Ticker Amount Blockchain
         var result = chalang_object.run5(code, d);
         return(result.stack);
     };
-    function new_contract_tx(ch) {
+    function new_contract_tx(ch, source, source_type) {
+        if(!(source)){
+            source = ZERO;
+        };
+        if(!(source_type)){
+            source_type = 0;
+        };
         //var ch = scalar_derivative.hash(
         //    contract_bytes);
         //var cid = binary_derivatives.id_maker(
         //    ch, 2, ZERO, 0);
         var tx = ["contract_new_tx", keys.pub(),
-                  ch, fee, 2, ZERO, 0];
+                  ch, fee, 2, source, source_type];
         return(tx);
     };
 
@@ -349,11 +355,19 @@ var Address Date Ticker Amount Blockchain
     };
     function make_txs_to_choose_deposit_address(
         deposit_address, contract1bytes, their_pub,
-        reusable_settings, trade_id, nonce
+        reusable_settings, trade_id, nonce,
+        source, source_type
     ){
+        if(!(source)){
+            source = ZERO;
+        };
+        if(!(source_type)){
+            source_type = 0;
+        };
         var ch = btoa(array_to_string(
             hash(contract1bytes)));
-        var cid = make_cid(contract1bytes, 2, ZERO, 0);
+        var cid = make_cid(contract1bytes, 2,
+                           source, source_type);
         var rid = rid_maker(trade_id, keys.pub());
         var sig = keys.raw_sign(serialize(btoa(deposit_address)));
         var evidence = ` binary `
@@ -363,7 +377,7 @@ var Address Date Ticker Amount Blockchain
             .concat(`" `);
         evidence = chalang_compiler.doit(evidence);
         //console.log(JSON.stringify(btoa(array_to_string(evidence))));
-        var new_tx = new_contract_tx(ch);
+        var new_tx = new_contract_tx(ch, source, source_type);
         //contract2bytesv);
         var tx = ["contract_evidence_tx", keys.pub(),
                   nonce, fee,
@@ -371,7 +385,7 @@ var Address Date Ticker Amount Blockchain
                   btoa(array_to_string(evidence)),
                   //evidence,
                   [-6, ["receipts", rid]]];
-        var timeout_tx = first_timeout(cid, ch, reusable_settings, deposit_address, nonce+1);
+        var timeout_tx = first_timeout(cid, ch, reusable_settings, deposit_address, nonce+1, source, source_type);
         //console.log("about to return from buy veo contract");
         return([new_tx, tx, timeout_tx]);
     };
@@ -486,7 +500,13 @@ var Address Date Ticker Amount Blockchain
     function contract_evidence_proof() {
         return([-7,"DuuMB6kmlzrtq7xvpJZC01BrGSojmrRIiQH+n9oU2cM=","cqT6NUTkOoNv/LJozgbM28VdRNXmsbHBkhalPqmDAf0=",[-6,[-7,"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","69C/42A2nzhjBR3hE6PxPhdn/FY060N1dMOt2RIVMVo=","/0URezACy63B5htZN80FCOUC1ZyUPvbLaCwqIV3LP80=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="]]]);
     };
-    function first_timeout(CID, CH, reusable_settings, deposit_address, nonce) {
+    function first_timeout(CID, CH, reusable_settings, deposit_address, nonce, source, source_type) {
+        if(!(source)){
+            source = ZERO;
+        };
+        if(!(source_type)){
+            source_type = 0;
+        };
         var Matrix = matrix();
         //console.log(JSON.stringify(Matrix));//[[[255,255,255,255],[0,0,0,0]],[[0,0,0,0],[255,255,255,255]]]
 
@@ -500,7 +520,7 @@ var Address Date Ticker Amount Blockchain
         var CH2 = scalar_derivative.hash(btoa(array_to_string(c2b)));
         //console.log("contract 2 bytes");
         //console.log(JSON.stringify(c2b));
-        var child_cid = make_cid(c2b, 2, ZERO, 0);
+        var child_cid = make_cid(c2b, 2, source, source_type);
         var tx = ["contract_timeout_tx2", keys.pub(),
                   nonce, fee, CID, proofs, CH2,
                   row, child_cid];
@@ -578,7 +598,6 @@ macro , swap cons ;/
 macro ] swap cons reverse ;/
 [`;
         var b = await aprove_facts2(prove, "");
-        console.log(b);
         if(b[0] === "fail"){
             return b;
         };
@@ -758,6 +777,14 @@ macro ] swap cons reverse ;/
         };
         return(p2p_contract);
     };
+    async function is_buy_veo_contract(contract, txs){
+        var cid = contract[1];
+        var b1 = (contract[0] === "contract");
+        var r = await buy_veo_contract.get_deposit_address(cid, txs);
+        if(!(b1)){return(false)};
+        if(!(r.address)){return(false)};
+        return(r);
+    };
         
 
     function test(){
@@ -800,6 +827,7 @@ macro ] swap cons reverse ;/
         matrix: matrix,
         contract_to_1bytes: contract_to_1bytes,
         verified_p2p_contract: verified_p2p_contract,
-        both_winners: both_winners
+        both_winners: both_winners,
+        is_buy_veo_contract: is_buy_veo_contract
     });
 })();

@@ -716,4 +716,3 @@ configure["channel_view"] = true;
         var cid = merkle.contract_id_maker(CH, MT, Source, SourceType);
         return(cid);
     };
-

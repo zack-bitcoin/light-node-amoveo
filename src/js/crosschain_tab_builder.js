@@ -74,11 +74,13 @@ function crosschain_tab_builder(div, selector){
 
     async function crosschain_offer(button){
         var d = new Date();
-        if(parseFloat(hours_input.value, 10) > (24*7)){
+        var hours = parseFloat(hours_input.value, 10);
+        if(hours > (24*7)){
             display.innerHTML = "you cannot make a trade that needs to wait more than a week to run the oracle.";
             return(0);
         };
-        d.setTime(d.getTime() + (parseFloat(hours_input.value, 10) * 60 * 60 * 1000)); 
+        d.setTime(d.getTime() +
+                  (hours * 60 * 60 * 1000)); 
         var date = d.toUTCString();
         var date = date.slice(5, 22).concat(" GMT");
         var [cid, oracle_text] =
@@ -101,14 +103,12 @@ function crosschain_tab_builder(div, selector){
         var unused_cid = await rpc.apost(
            ["add", 3, btoa(oracle_text), 0, 1,
             Source, SourceType], IP, 8090);
-        //rpc.post(["add", 3, btoa(oracle_text), 0, 1, Source, SourceType], function(unused_cid){
         if(!(cid === unused_cid)){
             console.log("calculated bad cid");
             return(0);
         };
         var my_acc = await rpc.apost(
             ["account", keys.pub()]);
-        //rpc.post(["account", keys.pub()], function(my_acc){
         if(my_acc === 0){
             display.innerHTML = "Load your private key first.";
             return(0);
@@ -171,15 +171,12 @@ function crosschain_tab_builder(div, selector){
 
     async function refresh(){
         var temp_div = document.createElement("div");
-        release_buttons(temp_div, function(){
-            delivered_buttons(temp_div, function(){
-                active_offers(temp_div, function(){
-                    console.log("done making buttons");
-                    lists_div.innerHTML = "";
-                    lists_div.appendChild(temp_div);
-                });
-            });
-        });
+        await release_buttons(temp_div);
+        await where_to_send(temp_div);
+        await cancel_accept_buttons(temp_div);
+        console.log("done making buttons");
+        lists_div.innerHTML = "";
+        lists_div.appendChild(temp_div);
     };
     function is_sell_veo_contract(contract){
         var contract_text = atob(contract[1]);
@@ -191,7 +188,7 @@ function crosschain_tab_builder(div, selector){
             ["read", 3, cid], IP, 8090);
         return(r);
     };
-    async function release_buttons(temp_div, callback){
+    async function release_buttons(temp_div){
         var l = await swap_offer_downloader.subaccounts(
             1, is_sell_veo_contract, contract_api);
         //[[cid, sa, contract]...]
@@ -199,130 +196,62 @@ function crosschain_tab_builder(div, selector){
             var cid = x[0];
             var sa = x[1];
             var contract = x[2];
-            return(release_dispute_buttons(
+            return(release_buttons2(
                 cid, sa, contract, temp_div))});
-        return(callback());
     };
-    function lowest_price_order(orders) {
-        if(orders.length === 1){
-            return(orders[0]);
-        };
-        var order0 = orders[0];
-        var order1 = orders[1];
-        var price0 = order0[1];
-        var price1 = order1[1];
-        if(price0 < price1){
-            return(lowest_price_order([order0].concat(orders.slice(2))));
-        } else {
-            return(lowest_price_order([order1].concat(orders.slice(2))));
-        };
-    };
-    function find_market(markets, cid2, type2, cid1, type1){
-        if(markets.length === 0){
-            return(0);
-        };
-        var market = markets[0];
-        var mcid1 = market[3];
-        var mtype1 = market[4];
-        var mcid2 = market[5];
-        var mtype2 = market[6];
-        if((cid2 === mcid2) &&
-           (type2 === mtype2) &&
-           (cid1 === mcid1) &&
-           (type1 === mtype1)){
-            return(market);
-        }
-        return(find_market(markets.slice(1), cid2, type2, cid1, type1));
-    };
-    function release_dispute_buttons(cid, sa, contract, temp_div){
+    function release_buttons2(
+        cid, sa, contract, temp_div
+    ){
         var balance = sa[1];
-        var contract_text = atob(contract[1]);
-        var Source = contract[5];
-        var SourceType = contract[6];
-        var received_text = description_maker2(contract_text);
+        var dc = dex_tools.sell_veo_contract_decoder(
+            contract);
+        var received_text = new_description_maker2(dc);
         var description = document.createElement("span");
         description.innerHTML = "you are buying "
             .concat(received_text);
-        var offer = {};
-        var block_height = headers_object.top()[1];
-        offer.start_limit = block_height - 1;
-        offer.end_limit = block_height + 1000;
-        offer.amount1 = balance;//amount to send
-        offer.cid2 = Source;
-        offer.cid1 = cid;
-        offer.type2 = SourceType;
-        offer.type1 = 1;
-        offer.acc1 = keys.pub();
-        offer.partial_match = false;
         var release_button = button_maker3("you have already been paid", async function(button){
             //release button to sell for 0.2% + fee.
-            offer.amount2 = Math.round((balance*0.002) + (fee*5));//new oracle, oracle report, oracle close, withdraw winnings, oracle winnings
             function cleanup(){
                 button.value = "done";
                 button.onclick = function(){return(0)};
             };
-            function we_post_first(){
-                apost_offer(display, IP, offer);
-                cleanup();
-            };
-            //first we should look up if they already posted an offer to sell
-            //we should look in our existing swap offers instead of re-downloading. 
-            var markets = await rpc.apost(["markets"], IP, 8090);
-            markets = markets.slice(1);
-            var market = find_market(markets, offer.cid2, offer.type2, offer.cid1, 2);
-            if(market === 0){
-                return(we_post_first());
-            };
-            var mid = market[2];
-            var market_data = await rpc.apost(["read", mid], IP, 8090);
-            market_data = market_data[1];
-            var orders = market_data[7].slice(1);
-            var order = lowest_price_order(orders);
-            var tid = order[3];
-            var trade = await rpc.apost(["read", 2, tid], IP, 8090);
-            var swap = trade;
-            
-            release(offer, swap, cleanup);
+            var swap = await dex_tools.lowest2(
+                dc.source, dc.source_type, cid, IP);
+            var combine_tx = [
+                "contract_use_tx", 0,0,0, cid,
+                -balance, 2, dc.source, dc.source_type];
+            swaps.make_tx(swap, 1000000, async function(txs){
+                var tx = await multi_tx.amake(
+                    txs.concat([combine_tx]));
+                var stx = keys.sign(tx);
+                var msg = await apost_txs([stx]);
+                display.innerHTML = msg;
+                if(!(msg === "server rejected the tx")){
+                    cleanup();
+                };
+            }); 
         });
         temp_div.appendChild(description);
         temp_div.appendChild(release_button);
         temp_div.appendChild(br());
         temp_div.appendChild(br());
     };
-    function release(offer, swap, cleanup){
-        var combine_tx = [
-            "contract_use_tx", 0,0,0, offer.cid1,
-            -offer.amount1, 2, offer.cid2, offer.type2];
-        swaps.make_tx(swap, 1000000, async function(txs){
-            var tx = await multi_tx.amake(
-                txs.concat([combine_tx]));
-            var stx = keys.sign(tx);
-            var msg = await apost_txs([stx]);
-            display.innerHTML = msg;
-            if(!(msg === "server rejected the tx")){
-                cleanup();
-            };
-        }); 
-    };
-    async function delivered_buttons(temp_div, callback){
+    async function where_to_send(temp_div){
         var l = await swap_offer_downloader.subaccounts(
             2, is_sell_veo_contract, contract_api);
         l.map(function(x){
             var cid = x[0];
             var sa = x[1];
             var contract = x[2];
-            return(delivered_canceled_buttons(
+            return(draw_where_to_send(
                 temp_div, cid, sa, contract))});
-        return(callback());
     };
-    function delivered_canceled_buttons(
+    function draw_where_to_send(
         temp_div, cid, sa, contract)
     {
-        var balance = sa[1];
-        var contract_text = atob(contract[1]);
-        var Source = contract[5];
-        var SourceType = contract[6];
-        var received_text = description_maker2(contract_text)
+        var dc = dex_tools.sell_veo_contract_decoder(
+            contract);
+        var received_text = new_description_maker2(dc)
             .concat(" using contract ")
             .concat(cid);
         var description = document.createElement("span");
@@ -332,6 +261,12 @@ function crosschain_tab_builder(div, selector){
         temp_div.appendChild(br());
         temp_div.appendChild(br());
     };
+    function new_description_maker2(dc){
+        var r = dc.receive
+            .concat(" to ")
+            .concat(dc.address);
+        return(r);
+    };
     function description_maker2(contract_text){
         var address = contract_text.match(/address \w*/)[0];
         var receive = contract_text.match(/\d[\.\d]* \w* before/)[0].slice(0,-6);
@@ -340,8 +275,9 @@ function crosschain_tab_builder(div, selector){
             .concat(address);
         return(r);
     };
-    function description_maker(cid1, type1, amount1, contract_text){
-        var d2 = description_maker2(contract_text);
+    function description_maker(
+        cid1, type1, amount1, dc){
+        var d2 = new_description_maker2(dc);
         var description = document.createElement("span");
         var spend_stuff;
         if(cid1 === ZERO){
@@ -359,12 +295,7 @@ function crosschain_tab_builder(div, selector){
             .concat(d2);
         return(description);
     };
-    async function active_offers(temp_div, callback){
-        display_active_offers_faster(temp_div);
-        return(callback());
-    };
-
-    async function display_active_offers_faster(temp_div){
+    async function cancel_accept_buttons(temp_div){
         var l =
             await swap_offer_downloader.doit(
                 1, "sell_veo");
@@ -372,22 +303,23 @@ function crosschain_tab_builder(div, selector){
         l.map(async function(a){
             var contract = a[0];
             var offers = a[1];
-            var contract_text = atob(contract[1]);
+            var dc = dex_tools
+                .sell_veo_contract_decoder(
+                    contract);
             offers.map(async function(offer_x){
                 var tid = offer_x[0];
                 var trade = offer_x[1];
-                display_active_offers_order(
-                    trade, temp_div, contract_text,
-                    tid);
+                cancel_accept_buttons2(
+                    trade, temp_div, dc, tid);
             });
         });
     };
-    async function display_active_offers_order(
-        trade, temp_div, contract_text,
-        tid){
+    async function cancel_accept_buttons2(
+        trade, temp_div, dc, tid){
         var offer = swaps.unpack(trade);
         var description = description_maker(
-            offer.cid1, offer.type1, offer.amount1, contract_text);
+            offer.cid1, offer.type1,
+            offer.amount1, dc);
         var block_height = headers_object.top()[1];
         if(offer.acc1 === keys.pub()){
             var cancel_button = button_maker2(
@@ -409,7 +341,7 @@ function crosschain_tab_builder(div, selector){
                 /you offered to trade/,
                 "they offered to give")
             .concat(" ; The money must arrive before ")
-            .concat(contract_text.slice(-21))
+            .concat(dc.date)
             .concat(" ; Offer expires in ")
             .concat(offer.end_limit - block_height)
             .concat(" blocks.");
@@ -421,7 +353,7 @@ function crosschain_tab_builder(div, selector){
             link.target = "_blank";
         temp_div.appendChild(link);
         var accept_button = button_maker2("accept the offer", function(){
-            var new_contract_tx = new_scalar_contract.make_tx(contract_text, 1);
+            var new_contract_tx = new_scalar_contract.make_tx(dc.text, 1);
             swaps.make_tx(trade, 1, async function(txs){
                 var tx = await multi_tx.amake([new_contract_tx].concat(txs));
                 var stx = keys.sign(tx);

@@ -43,7 +43,7 @@ function explore_swap_offers_creator(div2, hide_server_select) {
         txs = txs.slice(1);
         var r = await buy_veo_contract.get_deposit_address(cid, txs);
         var address = r.address;
-        console.log(address);
+        //console.log(address);
         var contract_string = " type 2 wins if "
             .concat(atob(contract[7]))
             .concat(" of ")

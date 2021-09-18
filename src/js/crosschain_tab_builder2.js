@@ -128,8 +128,6 @@ function crosschain_tab_builder2(div, selector){
             btoa(ticker), btoa(date),
             TID, 0];
         var contract1bytes = await buy_veo_contract.contract_to_1bytes(Contract);
-        console.log(date);
-        console.log(JSON.stringify(contract1bytes));
         var cid2 = buy_veo_contract.make_cid(contract1bytes, 2, ZERO, 0);
         if(!(cid === cid2)){
             console.log("made bad contract");
@@ -186,72 +184,41 @@ no btc delivery
 
     */
 
-    function refresh(){
+    async function refresh(){
         var temp_div = document.createElement("div");
         lists_div.innerHTML = "<h1>loading...</h1>";
-        release_buttons(temp_div, function(){
+        await release_button_and_where_to_send(temp_div);
             //this is also the where to send indicator for alice.
                 //Bob
                 //once you receive the bitcoin, you can release the funds. buys the winning shares for 99% of their value and combines. 
-            active_offers(temp_div, function(){
+        await cancel_accept_buttons(temp_div);
                     //Bob
                     //accept an offer, provide a btc address, and make an offer to sell your tokens for 99% of their max value.
                     //Alice
                     //ability to cancel unmatched offers. increments your offer-nonce.
-                console.log("done making buttons");
-                lists_div.innerHTML = "";
-                lists_div.appendChild(temp_div);
-            });
-        });
+        console.log("done making buttons");
+        lists_div.innerHTML = "";
+        lists_div.appendChild(temp_div);
     };
 
-    async function is_buy_veo_contract(contract, txs){
-        var cid = contract[1];
-        var b1 = (contract[0] === "contract");
-        console.log(JSON.stringify(contract));
-        var r = await buy_veo_contract.get_deposit_address(cid, txs);
-        if(!(b1)){return(false)};
-        if(!(r.address)){return(false)};
-        return(r);
-    };
     async function contract_api(cid){
         var contract =
             await buy_veo_contract
             .verified_p2p_contract(cid);
         return(contract);
     };
-    function draw_deposit_address(
-        cid, address, contract, temp_div){
-        if(!(cid === (contract[1]))){
-            console.log("weird error. maybe someone is trying to trick us into sending money to the wrong place.");
-            return(0);
-        };
-        var send_to_p = document.createElement("p");
-        var send_amount = atob(contract[7]);
-        var blockchain = atob(contract[6]);
-        var ticker = atob(contract[8]);
-        var date = atob(contract[9]);
-        send_to_p.innerHTML = "send amount "
-            .concat(send_amount)
-            .concat(" of ")
-            .concat(ticker)
-            .concat(", on blockchain: ")
-            .concat(blockchain)
-            .concat(", by date: ")
-            .concat(date)
-            .concat(", to address: ")
-            .concat(address);
-        temp_div.appendChild(send_to_p);
-    };
-    async function release_buttons(temp_div, callback){
+    async function release_button_and_where_to_send(
+        temp_div
+    ){
         var txs = await rpc.apost(["txs"]);
         txs0 = txs.slice(1);
         txs = txs0.filter(function(stx){
             return((stx[1][0] === "contract_timeout_tx2"))});
+
         var timeout_subs = txs
             .map(function(stx){return(stx[1][4])});
         var filter = function(contract){
-            return(is_buy_veo_contract(contract, txs0))
+            return(buy_veo_contract.is_buy_veo_contract(contract, txs0))
         };
         var l1 = await swap_offer_downloader.subaccounts(
             1, filter, contract_api,
@@ -275,110 +242,9 @@ no btc delivery
             return(draw_deposit_address(
                 cid, address, contract, temp_div));
         });
-        return(callback());
-    };
-    function draw_release_button(
-        cid, r, sa, contract, temp_div
-    ){
-        var balance = sa[1];
-        var send_amount = atob(contract[7]);
-        var blockchain = atob(contract[6]);
-        var ticker = atob(contract[8]);
-        var date = atob(contract[9]);
-        var send_to_p = document.createElement("span");
-        send_to_p.innerHTML = "if you have received "
-                .concat(send_amount)
-            .concat(" of ")
-            .concat(ticker)
-            .concat(", on blockchain: ")
-            .concat(blockchain)
-            .concat(", by date: ")
-            .concat(date)
-            .concat(", in address: ")
-            .concat(r.address)
-            .concat(", then click this button to release the veo.");
-        temp_div.appendChild(send_to_p);
-        var Source = contract[2];
-        var SourceType = contract[3];
-        var release_button = button_maker3("you have already been paid. release the veo.", async function(button){
-            function cleanup(){
-                button.value = "done";
-                button.onclick = function(){return(0)};
-            };
-            let markets = await rpc.apost(["markets"], IP, 8090);
-            markets = markets.slice(1);
-            var market = find_market(markets, ZERO, 0, cid, 2);
-            if(market === 0){
-                //they didn't post their offer to sell for 99% of the value. I guess they want to use an oracle.
-                return(cleanup());
-            };
-            var mid = market[2];
-            let market_data = await rpc.apost(["read", mid], IP, 8090);
-            market_data = market_data[1];
-            var orders = market_data[7].slice(1);
-            var order = lowest_price_order(orders);
-            var tid = order[3];
-            let trade = await rpc.apost(["read", 2, tid], IP, 8090);
-            var swap = trade;
-            var combine_tx = [
-                "contract_use_tx", 0,0,0,
-                r.sink, -balance, 2,
-                Source, SourceType];
-            var [winnings_tx, winnings_tx2] =
-                await buy_veo_contract.both_winners(cid);
-            swaps.make_tx(swap, 1000000, async function(txs){
-                var tx = await multi_tx.amake(txs.concat([combine_tx, winnings_tx, winnings_tx2]));
-                var stx = keys.sign(tx);
-                let x = await rpc.apost(["txs", [-6, stx]]);
-                if(x == "ZXJyb3I="){
-                    display.innerHTML = "server rejected the tx";
-                }else{
-                    display.innerHTML = "accepted trade offer and published tx. the tx id is "
-                        .concat(x);
-                    cleanup();
-                };
-            });
-        });
-        temp_div.appendChild(release_button);
-        temp_div.appendChild(br());
-        temp_div.appendChild(br());
-    };
-    function lowest_price_order(orders) {
-        if(orders.length === 1){
-            return(orders[0]);
-        };
-        var order0 = orders[0];
-        var order1 = orders[1];
-        var price0 = order0[1];
-        var price1 = order1[1];
-        if(price0 < price1){
-            return(lowest_price_order([order0].concat(orders.slice(2))));
-        } else {
-            return(lowest_price_order([order1].concat(orders.slice(2))));
-        };
-    };
-    function find_market(markets, cid2, type2, cid1, type1){
-        if(markets.length === 0){
-            return(0);
-        };
-        var market = markets[0];
-        var mcid1 = market[3];
-        var mtype1 = market[4];
-        var mcid2 = market[5];
-        var mtype2 = market[6];
-        if((cid2 === mcid2) &&
-           (type2 === mtype2) &&
-           (cid1 === mcid1) &&
-           (type1 === mtype1)){
-            return(market);
-        }
-        return(find_market(markets.slice(1), cid2, type2, cid1, type1));
     };
     function description_maker(cid1, type1, amount1, contract){
-        var blockchain = contract[6];
-        var other_chain_amount = contract[7];
-        var ticker = contract[8];
-        var date = contract[9];
+        var dc = dex_tools.buy_veo_contract_decoder(contract);
         var description = document.createElement("span");
         var spend_stuff;
         if(cid1 === ZERO){
@@ -394,16 +260,16 @@ no btc delivery
             .concat(" ")
             .concat(spend_stuff)
             .concat(" if you send ")
-            .concat(atob(other_chain_amount))
+            .concat(dc.amount)
             .concat(" of ")
-            .concat(atob(ticker))
+            .concat(dc.ticker)
             .concat(" on the ")
-            .concat(atob(blockchain))
+            .concat(dc.blockchain)
             .concat(" blockchain by date ")
-            .concat(atob(date));
+            .concat(dc.date);
         return(description);
     };
-    async function active_offers(temp_div, callback){
+    async function cancel_accept_buttons(temp_div){
 
         var swap_offers =
             await swap_offer_downloader.doit(
@@ -419,7 +285,6 @@ no btc delivery
                     contract, tid, trade, temp_div);
             });
         });
-        callback();
     };
     function display_button(contract, tid, trade, temp_div){
         var offer = swaps.unpack(trade);
@@ -480,12 +345,8 @@ no btc delivery
                 display.innerHTML = "you need to choose an address on the other blockchain where you want to get paid.";
                 return(0);
             };
-            var oracle_start_height = contract[5];
-            var blockchain = atob(contract[6]);
-            var other_chain_amount = atob(contract[7]);
-            var ticker = atob(contract[8]);
-            var date = atob(contract[9]);
-            var reusable_settings = buy_veo_contract.reusable_settings(oracle_start_height, blockchain, other_chain_amount, ticker, date);
+            var dc = dex_tools.buy_veo_contract_decoder(contract);
+            var reusable_settings = buy_veo_contract.reusable_settings(dc.oracle_start_height, dc.blockchain, dc.amount, dc.ticker, dc.date);
             var contract1bytes = await buy_veo_contract.contract_to_1bytes(contract);
             
             var contract_txs = buy_veo_contract.choose_deposit_address_tx(
@@ -514,6 +375,72 @@ no btc delivery
         temp_div.appendChild(br());
         temp_div.appendChild(br());
         return(0);
+    };
+
+    function draw_deposit_address(
+        cid, address, contract, temp_div){
+        if(!(cid === (contract[1]))){
+            console.log("weird error. maybe someone is trying to trick us into sending money to the wrong place.");
+            return(0);
+        };
+        var send_to_p = document.createElement("p");
+        var dc = dex_tools.buy_veo_contract_decoder(contract);
+        send_to_p.innerHTML = "send amount "
+            .concat(dc.amount)
+            .concat(" of ")
+            .concat(dc.ticker)
+            .concat(", on blockchain: ")
+            .concat(dc.blockchain)
+            .concat(", by date: ")
+            .concat(dc.date)
+            .concat(", to address: ")
+            .concat(address);
+        temp_div.appendChild(send_to_p);
+    };
+    function draw_release_button(
+        cid, r, sa, contract, temp_div
+    ){
+        var balance = sa[1];
+        var dc = dex_tools.buy_veo_contract_decoder(contract);
+        var send_to_p = document.createElement("span");
+        send_to_p.innerHTML = "if you have received "
+                .concat(dc.amount)
+            .concat(" of ")
+            .concat(dc.ticker)
+            .concat(", on blockchain: ")
+            .concat(dc.blockchain)
+            .concat(", by date: ")
+            .concat(dc.date)
+            .concat(", in address: ")
+            .concat(r.address)
+            .concat(", then click this button to release the veo.");
+        temp_div.appendChild(send_to_p);
+        var release_button = button_maker3("you have already been paid. release the veo.", async function(button){
+            function cleanup(){
+                button.value = "done";
+                button.onclick = function(){return(0)};
+            };
+            var swap = await dex_tools.lowest2(
+                ZERO, 0, cid, IP);
+            var combine_tx = [
+                "contract_use_tx", 0,0,0,
+                r.sink, -balance, 2,
+                dc.source, dc.source_type];
+            var [winnings_tx, winnings_tx2] =
+                await buy_veo_contract.both_winners(cid);
+            swaps.make_tx(swap, 1000000, async function(txs){
+                var tx = await multi_tx.amake(txs.concat([combine_tx, winnings_tx, winnings_tx2]));
+                var stx = keys.sign(tx);
+                var msg = await apost_txs([stx]);
+                display.innerHTML = msg;
+                if(!(msg === "server rejected the tx")){
+                    cleanup();
+                }
+            });
+        });
+        temp_div.appendChild(release_button);
+        temp_div.appendChild(br());
+        temp_div.appendChild(br());
     };
     return({
     });
