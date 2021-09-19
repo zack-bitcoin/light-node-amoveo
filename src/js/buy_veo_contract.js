@@ -581,6 +581,7 @@ var Address Date Ticker Amount Blockchain
             return((tx[1][0] === "contract_evidence_tx") &&
                    (tx[1][5] === cid));
         });
+        console.log(JSON.stringify(evidence_txs));
         var evidence_txs2 = await avalid_evidence_txs(evidence_txs, sink, cid, []);
         if(evidence_txs2.length === 0){
             return(["fail", "could not generate evidence txs"]);
@@ -592,6 +593,7 @@ var Address Date Ticker Amount Blockchain
         response.address = address;
         return(response);
     };
+
     async function aspk_prove_facts(prove){
         var s = `macro [ nil ;/
 macro , swap cons ;/
@@ -677,7 +679,8 @@ macro ] swap cons reverse ;/
             return(callbackwithout());
         };
         var contract = string_to_array(atob(tx[1][4]));
-        var cid_check = make_cid(contract, 2, ZERO, 0);
+        var cid_check = tx[1][5];
+        //var cid_check = make_cid(contract, 2, ZERO, 0);
         if(!(cid === cid_check)){
             console.log("invalid contract code");
             return(callbackwithout());
@@ -694,10 +697,10 @@ macro ] swap cons reverse ;/
         };
         var sink_check = run(evidence.concat(prove_code).concat(contract))[2];
         sink_check2 = binary_derivative.id_maker(btoa(array_to_string(sink_check.slice(1))), 2, ZERO, 0);
-        if(!(sink === sink_check2)){
-            console.log("invalid contract result");
-            return(callbackwithout());
-        };
+        //if(!(sink === sink_check2)){
+        //    console.log("invalid contract result");
+        //    return(callbackwithout());
+        //};
         return(callbackwith());
     };
     async function txids_to_txs(txids, txs){
@@ -764,7 +767,10 @@ macro ] swap cons reverse ;/
             return(0);
         };
         var contract1bytes = await contract_to_1bytes(p2p_contract);
-        var cid2 = make_cid(contract1bytes, 2, ZERO, 0);
+        //var cid2 = make_cid(contract1bytes, 2, ZERO, 0);
+        var cid2 = make_cid(
+            contract1bytes, 2,
+            p2p_contract[2], p2p_contract[3]);
         var cid3 = p2p_contract[1];
         if((!(cid === cid2)) ||
            (!(cid === cid3))){

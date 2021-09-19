@@ -218,92 +218,35 @@ todo: plan what swap offers we need so that beginner users don't need to deal wi
         sell_offer.partial_match = false;
 
         var sell_offer99 = swaps.offer_99(sell_offer);
-        /*
-        var sell_offer99 = {};
-        sell_offer99.start_limit = block_height - 1;
-        sell_offer99.end_limit = sell_offer.end_limit + 1000;
-        sell_offer99.amount1 = veo_all;
-        sell_offer99.amount2 = Math.round((veo_all * 0.998) + (fee*5));//todo, maybe this should be a minus? in crosschain_tab_builder2 as well.
-        sell_offer99.cid1 = sell_cid;
-        sell_offer99.cid2 = ZERO;
-        sell_offer99.type1 = 1;
-        sell_offer99.type2 = 0;
-        sell_offer99.acc1 = keys.pub();
-        sell_offer99.partial_match = false;
-        */
-
-        //todo, also make an offer to sell type 1 for 99% of it's maximum possible value.
-        //todo post_offer(offer);
-
-
-
-
-
-
+        console.log(JSON.stringify(buy_offer));
+        console.log(JSON.stringify(buy_offer99));
         
-        //the swap offer
         var contract_bytes = buy_veo_contract.
             contract1bytes(settings);
-        //oracle: "address has received less than X by date D"
-        //true oracle goes to type 1.
-        //if the btc is delivered, goes to type 2.
         var buy_cid = buy_veo_contract.
             make_cid(contract_bytes, 2, sell_cid, 2);
-            //make_cid(contract_bytes, 2, ZERO, 0);
-        //should send (security amount) units of veo for (1 + (2 * security amount)) units of contract2 type 2.
         var buy_offer = buy_veo_contract.buy_veo_offer(
             blocks_till_expires,
             security_lockup, veo_collateral + security_lockup, 
             buy_cid, salt);
-        //todo, also make an offer to sell buy_contract type 2 for 99% of it's value
-
-        //this is an example, we need 2.
-        var buy_offer99 = swaps.offer_99(buy_offer);
-        /*
-        var buy_offer99 = {};
-        buy_offer99.start_limit = block_height - 1;
-        buy_offer99.end_limit = block_height + 1000;
-        //buy_offer99.end_limit = buy_offer.end_limit + 1000;
-        //buy_offer99.amount1 = amount1 + amount2;//should be 10% bigger??
-        buy_offer99.amount1 = veo_all;//should be 10% bigger??
-        //buy_offer99.amount2 = Math.round((amount1*0.998) + (fee*5));
-        buy_offer99.amount2 = Math.round((veo_all * 0.998) + (fee*5));
-        buy_offer99.cid1 = buy_cid;
-        buy_offer99.cid2 = ZERO;
-        buy_offer99.type1 = 2;
-        buy_offer99.type2 = 0;
-        buy_offer99.acc1 = keys.pub();
-        buy_offer99.partial_match = false;
-        */
-
-
-
-
-
+        var buy_offer99 = swaps.offer_99(swaps.unpack(buy_offer));
 
         //this is the contract data we teach the p2p derivatives server.
         var BuyContract = [
-            "contract", buy_cid, //Source, SourceType,
+            "contract", buy_cid,
             sell_cid, 2,
             addressTimeout, oracleStartHeight,
             btoa(spend_blockchain), btoa(spend_amount),
             btoa(spend_ticker), btoa(date),
             TID, 0];
         var contract1bytes = await buy_veo_contract.contract_to_1bytes(BuyContract);
-        console.log(date);
-        console.log(JSON.stringify(contract1bytes));
         var cid2 = buy_veo_contract.make_cid(contract1bytes, 2, sell_cid, 2);
         if(!(buy_cid === cid2)){
             console.log("made bad contract");
             console.log(BuyContract);
             return(0);
         };
-        console.log("this is the contract data that we teach to the p2p derivatives server.");
-        console.log(JSON.stringify(BuyContract));
-
         const my_acc = await rpc.apost(["account", keys.pub()]);
-        console.log(my_acc);
-            //rpc.post(["account", keys.pub()], function(my_acc){
         if(my_acc === 0){
             display.innerHTML = "Load your private key first.";
             return(0);
@@ -315,24 +258,10 @@ todo: plan what swap offers we need so that beginner users don't need to deal wi
             return(0);
             };
         var nonce = my_acc[2];
-        console.log("teaching contract");
-        console.log(JSON.stringify(BuyContract));
         const add_contract_response = await rpc.apost(["add", 4, BuyContract], IP, 8090);
-        console.log(add_contract_response);
 
-        //const sell_cid_confirm = rpc.apost(["add", 3, btoa(oracle_text), 0, 1, Source, SourceType], IP, 8090);
-        //if(!(sell_cid_confirm === sell_cid)){
-        //    console.log("calculated bad sell cid");
-        //    return(0);
-        //};
-
-        console.log("posting the 4 swap offers");
-        console.log(JSON.stringify(buy_offer));
-        console.log(JSON.stringify(buy_offer99));
-        console.log(JSON.stringify(sell_offer));
-        console.log(JSON.stringify(sell_offer99));
-        post_offer(buy_offer, buy_offer99);
-        post_offer(sell_offer, sell_offer99);
+        await apost_offer(display, IP, buy_offer, buy_offer99);
+        await apost_offer(display, IP, sell_offer, sell_offer99);
 
         rpc.post(["read", 3, buy_cid], function(y){
             rpc.post(["read", 3, sell_cid], function(y2){
@@ -356,7 +285,7 @@ todo: plan what swap offers we need so that beginner users don't need to deal wi
         var temp_div = document.createElement("div");
         lists_div.innerHTML = "<h1>loading...</h1>";
         where_to_send_indicator(temp_div, function(){//alice and bob both need to see addresses for where to send.
-            release_buttons(temp_div, function(){
+            //release_buttons(temp_div, function(){
                 //Bob
                 //once you receive the bitcoin, you can release the funds. buys the winning shares for 99% of their value and combines. 
                 accept_cancel_buttons(temp_div, function(){
@@ -368,7 +297,7 @@ todo: plan what swap offers we need so that beginner users don't need to deal wi
                     lists_div.innerHTML = "";
                     lists_div.appendChild(temp_div);
                 });
-            });
+            //});
         });
     };
 
@@ -377,6 +306,11 @@ todo: plan what swap offers we need so that beginner users don't need to deal wi
             await buy_veo_contract
             .verified_p2p_contract(cid);
         return(contract);
+    };
+    async function sell_contract_api(cid){
+        var r = await rpc.apost(
+            ["read", 3, cid], IP, 8090);
+        return(r);
     };
     async function where_to_send_indicator(temp_div, callback){
         //the deposit address is in the evidence of the contract_evidence_tx, and it is a part of the contract_timeout_tx.
@@ -392,113 +326,234 @@ todo: plan what swap offers we need so that beginner users don't need to deal wi
         const sids = txs.map(function(tx){
             return(tx[1][4]);
         });
-        console.log(JSON.stringify(sids));
+        //console.log(JSON.stringify(sids));
 
         var filter = function(contract){
-            return(buy_veo_contract.is_buy_veo_contract(contract, txs0))
+            return(buy_veo_contract.is_buy_veo_contract(contract, txs0) && is_child_of_scalar(contract));
         };
 
-        var l = await swap_offer_downloader.subaccounts(
-            1, filter, buy_contract_api,
-            sids);
+        var l = await swap_offer_downloader
+            .subaccounts(
+                1, filter, buy_contract_api, sids);
+        var l2 = await swap_offer_downloader
+            .subaccounts(
+                2, filter, buy_contract_api, sids);
+        //console.log(JSON.stringify(l));
         //is type 2 in the other page...
         //[[cid, sa, contract, r]...]
 
-        l.map(function(x){
-            //this is the buy veo contract. we also need to display the deposit address for selling veo.
+        l.map(async function(x){
+            //the account that Accepted the swap offer.
+            //this is for buying the winnings and losings from the other account, and combining them all back to veo.
             var cid = x[0];
             var sa = x[1];
             var contract = x[2];
             var r = x[3];
-            //draw_release_button(cid, r, sa, contract, temp_div);
-            draw_deposit_address(
-                cid, r.address, contract, temp_div);
+            await draw_deposit_address1(
+                cid, r.address, contract,
+                txs0, temp_div);
+            await draw_release_button(cid, r, sa, contract, temp_div);
         });
-
-       // crosschain_tab_builder.where_to_send(
-            //todo. we need to export enough of this so it can be used from here.
-       //     temp_div, function(){return(0)});
-        
-        //l: [[contract, [[tid, offer]...]]...]
-
+        l2.map(async function(x){
+            //the account that Publish the swap offer.
+            //this is for making an offer to sell your losing shares for the cost of using the oracle.
+            var cid = x[0];
+            var sa = x[1];
+            var contract = x[2];
+            var r = x[3];
+            await draw_deposit_address2(
+                cid, r.address, contract,
+                txs0, temp_div);
+            await draw_release_sub_button(cid, r, sa, contract, temp_div);
+        });
         return(callback());
-        /*
+    };
+    async function draw_release_sub_button(
+        cid, r, sa, contract, temp_div
+    ){
+        // make an offer to sell sell_contract type 1 for the cost of using the oracle.
+        // if the offer already exists, don't display the button todo
+        var balance = sa[1];
+        var dc = dex_tools.buy_veo_contract_decoder(contract);
+        var sell_contract = await sell_contract_api(dc.source);
+        var dcs = dex_tools.sell_veo_contract_decoder(
+            sell_contract);
+        var release_button = button_maker3("you have already been paid. release the subcurrency.", async function(button){
+            function cleanup(){
+                button.value = "done";
+                button.onclick = function(){return(0)};
+            };
+            var offer01 = {};
+            var block_height = headers_object.top()[1];
+            offer01.start_limit = block_height - 1;
+            offer01.end_limit = block_height + 2000;
+            offer01.amount1 = balance;
+            offer01.amount2 = Math.round((balance * 0.005) + (fee*5));
+            offer01.cid1 = dc.source;
+            offer01.cid2 = ZERO;
+            offer01.type2 = 0;
+            offer01.type1 = 1;
+            offer01.acc1 = keys.pub();
+            offer01.partial_match = true;
+            await apost_offer(display, IP, offer01);
+        });
+        temp_div.appendChild(release_button);
+    };
+    async function draw_release_button(
+        cid, r, sa, contract, temp_div
+    ){
+        //the account that Accepted the swap offer.
+        //this is for buying the winnings and losings from the other account with 2 swap offers, and combining them all back to veo.
+        console.log(JSON.stringify(r));
+        console.log(JSON.stringify(r.address));
+        var balance = sa[1];
+        var dc = dex_tools.buy_veo_contract_decoder(contract);
+        var sell_contract = await sell_contract_api(dc.source);
+        var dcs = dex_tools.sell_veo_contract_decoder(
+            sell_contract);
+        //temp_div.appendChild(send_to_p);
+        var release_button = button_maker3("you have already been paid. release the veo.", async function(button){
+            //todo. should accept _both_ of the swap offers, and do _2_ combine tx to get back to veo.
 
-        let account = await rpc.apost(["account", keys.pub()], IP, 8091);
-        if(account === "error"){
-            return(callback());
+            function cleanup(){
+                button.value = "done";
+                button.onclick = function(){return(0)};
+            };
+            //var swap = await dex_tools.lowest2(
+            //    ZERO, 0, dc.source, IP, 1);//01%
+            var swap = await dex_tools.lowest2(
+                ZERO, 0, dc.source, IP, 1);//01%
+            var swap2 = await dex_tools.lowest2(
+                ZERO, 0, dc.cid, IP, 2);//99%
+            console.log(JSON.stringify(swap));
+            console.log(JSON.stringify(swap2));//this is empty.
+            var consensus_state_contract =
+                await rpc.apost(["contracts", cid]);
+            var sink = consensus_state_contract[10];
+            console.log(JSON.stringify([
+                sink, cid, dc.cid]));
+            var buy_combine_tx = [
+                "contract_use_tx", 0,0,0,
+                //dc.cid, -balance, 2,
+                sink, -balance, 2,
+                //cid, -balance, 2,
+                dc.source, dc.source_type];
+            var sell_combine_tx = [
+                "contract_use_tx", 0,0,0,
+                dc.source, -balance, 2,
+                ZERO, 0];
+            var [winnings_tx, winnings_tx2] =
+                //await buy_veo_contract.both_winners(sink);
+                await buy_veo_contract.both_winners(dc.cid);
+            console.log(JSON.stringify([cid, dc.cid, dc.source]));
+            swaps.make_tx(swap, 1000000, async function(txs){
+            swaps.make_tx(swap2, 1000000, async function(txs2){
+                var tx = await multi_tx.amake(
+                    txs
+                        .concat(txs2)
+                        .concat([
+                            buy_combine_tx,
+                            winnings_tx,
+                            winnings_tx2,
+                            sell_combine_tx
+                        ]));
+                console.log(JSON.stringify(tx));
+                var stx = keys.sign(tx);
+                var msg = await apost_txs([stx]);
+                display.innerHTML = msg;
+                if(!(msg === "server rejected the tx")){
+                    cleanup();
+                }
+            });
+            });
+        });
+        temp_div.appendChild(release_button);
+        //temp_div.appendChild(br());
+        //temp_div.appendChild(br());
+    };
+    function is_child_of_scalar(contract){
+        var dc = dex_tools
+            .buy_veo_contract_decoder(contract);
+        var Source = dc.source;
+        var SourceType = dc.source_type;
+        if(Source === ZERO) {
+            return(false);
         };
-        account = account[1];
-        var subaccounts = account[3].concat(sids);
-        //console.log(JSON.stringify(subaccounts));
-        return(where_to_send_indicator_loop(
-            temp_div, subaccounts.slice(1), txs0,
-            callback));
-            */
+        return(true);
+    }
+    async function draw_deposit_address2(
+        cid, address, contract, txs, temp_div
+    ){
+        //the account that Publish the swap offer.
+        var dcb = dex_tools.buy_veo_contract_decoder(
+            contract);
+        var sell_contract = await sell_contract_api(dcb.source);
+        var dcs = dex_tools.sell_veo_contract_decoder(
+            sell_contract);
+        var description = document.createElement("span");
+        var buy_address = await buy_veo_contract.
+            get_deposit_address(dcb.cid, txs);
+        description.innerHTML = "first confirm that you have received "
+            .concat(dcs.receive)
+            .concat(" at ")
+            .concat(dcs.address)
+            .concat(" by ")
+            .concat(dcs.date)
+            .concat(" with enough confirmations. Then send ")
+            .concat(dcb.amount)
+            .concat(" of ")
+            .concat(dcb.ticker)
+            .concat(" in blockchain ")
+            .concat(dcb.blockchain)
+            .concat(" at address ")
+            .concat(buy_address.address)
+            .concat(" by date ")
+            .concat(dcb.date)
+            .concat(" and release your subcurrency so that they can release the veo to you. ")
+        ;
+        temp_div.appendChild(description);
+    };
+    async function draw_deposit_address1(
+        cid, address, contract, txs, temp_div
+    ){
+        //this is for buying buy_contract type 2 for 99% of it's max, so you can combine cancel back to veo.
+        //the account that Accepted the swap offer.
+        var dcb = dex_tools.buy_veo_contract_decoder(
+            contract);
+        var sell_contract = await sell_contract_api(dcb.source);
+        console.log(JSON.stringify(dcb.source));
+        console.log(JSON.stringify(sell_contract));
+        var dcs = dex_tools.sell_veo_contract_decoder(
+            sell_contract);
+        var description = document.createElement("span");
+        var buy_address = await buy_veo_contract.
+            get_deposit_address(dcb.cid, txs);
+        description.innerHTML = "send "
+            .concat(dcs.receive)
+            .concat(" to ")
+            .concat(dcs.address)
+            .concat(" by ")
+            .concat(dcs.date)
+            .concat(" then wait to receive ")
+            .concat(dcb.amount)
+            .concat(" of ")
+            .concat(dcb.ticker)
+            .concat(" in blockchain ")
+            .concat(dcb.blockchain)
+            .concat(" at address ")
+            .concat(buy_address.address)
+            .concat(" by date ")
+            .concat(dcb.date)
+            .concat(" before releasing the veo ")
+        ;
+        temp_div.appendChild(description);
+        //temp_div.appendChild(br());
+        //temp_div.appendChild(br());
     };
     /*
-    async function where_to_send_indicator_loop(
-        temp_div, subaccounts, txs, callback){
-        if(subaccounts.length === 0){
-            return(callback());
-        };
-        var callback2 = function(){
-            return(where_to_send_indicator_loop(
-                temp_div, subaccounts.slice(1),
-                txs,
-                callback));
-        };
-        var cid = subaccounts[0];
-        var id = sub_accounts.normal_key(keys.pub(), cid, 2);
-        //console.log("checking sub account for cid: ");
-        //console.log(cid);
-        let sa = await sub_accounts.arpc(id);
-        //sub_accounts.rpc(id, function(sa){
-        if(sa === 0){
-            return(callback2());
-        };
-        var balance = sa[1];
-        if(balance < 100000){
-            return(callback2());
-        };
-        //let contract = await rpc.apost(["read", 3, cid], IP, 8090);
-        let contract = await buy_veo_contract.verified_p2p_contract(cid);
-        if(contract === 0){
-            //contract doesn't exist in the p2p derivatives explorer.
-            return(callback2());
-        };
-        if(!(contract[0] === "contract")){
-            //not a buy_veo contract.
-            return(callback2());
-        };
-
-
-        
-        var r = await buy_veo_contract.get_deposit_address(cid, txs);
-        if(!(r.address)){
-            return(callback2());
-        };
-        var send_to_p = document.createElement("p");
-        //console.log(JSON.stringify(contract));
-        var send_amount = atob(contract[7]);
-        var blockchain = atob(contract[6]);
-        var ticker = atob(contract[8]);
-        var date = atob(contract[9]);
-        send_to_p.innerHTML = "send amount "
-            .concat(send_amount)
-            .concat(" of ")
-            .concat(ticker)
-            .concat(", on blockchain: ")
-            .concat(blockchain)
-            .concat(", by date: ")
-            .concat(date)
-            .concat(", to address: ")
-            .concat(r.address);
-        temp_div.appendChild(send_to_p);
-        return(callback2());
-    };
-    */
-    async function release_buttons(temp_div, callback){
+    async function release_buttons(
+        temp_div, callback
+    ){
         console.log("making release buttons");
         let txs = await rpc.apost(["txs"]);
         txs0 = txs.slice(1);
@@ -508,7 +563,7 @@ todo: plan what swap offers we need so that beginner users don't need to deal wi
         const sids = txs.map(function(tx){
             return(tx[1][4]);
         });
-        var filter = function(){
+        var filter = function(contract){
             return(buy_veo_contract.is_buy_veo_contract(contract, txs0))
         };
         var l1 = await swap_offer_downloader.subaccounts(
@@ -519,25 +574,13 @@ todo: plan what swap offers we need so that beginner users don't need to deal wi
             var sa = x[1];
             var contract = x[2];
             var r = x[3];
-            draw_release_button(cid, r, sa, contract, temp_div);
+            console.log("draw release button");
+            //draw_release_button(cid, r, sa, contract, temp_div);
         });
         return(callback());
-
-
-        /*
-        let account = await rpc.apost(["account", keys.pub()], IP, 8091);
-        if(account === "error"){
-            return(callback());
-        };
-        account = account[1];
-        var subaccounts = account[3].concat(sids);
-        return(release_subaccounts_loop(
-            temp_div, subaccounts.slice(1).reverse(),
-            txs0,
-            callback));
-        */
     };
-
+*/
+    /*
     async function release_subaccounts_loop(
         temp_div, subaccounts, txs, callback){
         if(subaccounts.length === 0){
@@ -647,23 +690,6 @@ todo: plan what swap offers we need so that beginner users don't need to deal wi
             //var MAX = btoa(array_to_string(integer_to_array(-1, 4)));
             //var MIN = btoa(array_to_string(integer_to_array(0, 4)));
             //const matrix = [-6, [-6, MAX, MIN],[-6, MIN, MAX]];
-            /*
-            const matrix = buy_veo_contract.matrix();
-            var row = matrix[1];
-            var row2 = matrix[2];
-            var winnings_tx = [
-                "contract_winnings_tx", 0,0,0,
-                cid, balance, sid, keys.pub(),
-                buy_veo_contract.proof1(), row];
-            var sid2 = sub_accounts.normal_key(keys.pub(), cid, 2);
-            let sa2 = await sub_accounts.arpc(sid2);
-            //var balance2 = sa2[1];
-            var balance2 = balance;
-            var winnings_tx2 = [
-                "contract_winnings_tx", 0,0,0,
-                cid, balance2, sid2, keys.pub(),
-                buy_veo_contract.proof2(), row2];
-            */
             var [winnings_tx, winnings_tx2] =
                 await buy_veo_contract.both_winnings(cid);
             swaps.make_tx(swap, 1000000, function(txs){
@@ -686,7 +712,8 @@ todo: plan what swap offers we need so that beginner users don't need to deal wi
         temp_div.appendChild(br());
         
         return(callback2());
-    };
+};
+*/
     function description_maker2(contract_text){
         console.log(contract_text);
         var address = contract_text.match(/address \w*/)[0];
@@ -697,9 +724,7 @@ todo: plan what swap offers we need so that beginner users don't need to deal wi
         return(r);
     };
     function new_description_maker(sell_contract, sell_offer, buy_contract, buy_offer){
-        //var buy2 = dex_tools.buy_veo_contract_decoder(buy_contract);
         var buy2 = buy_contract;
-        //var sell2 = dex_tools.sell_veo_contract_decoder(sell_contract);
         var sell2 = sell_contract;
         var description = document.createElement("span");
         var block_height = headers_object.top()[1];
@@ -720,62 +745,6 @@ todo: plan what swap offers we need so that beginner users don't need to deal wi
         description.innerHTML = r;
         return(description);
     };
-    function description_maker(cid1, type1, amount1, contract){
-        console.log(JSON.stringify(contract));
-        //var contract_text = atob(contract[1]);
-        //var d2 = description_maker2(contract_text);
-        //for buy veo contracts
-        var blockchain = contract[6];
-        var other_chain_amount = contract[7];
-        var ticker = contract[8];
-        var date = contract[9];
-        var description = document.createElement("span");
-        var spend_stuff;
-        if(cid1 === ZERO){
-            spend_stuff = "VEO";
-        } else {
-            spend_stuff = cid1
-                .concat(" type ")
-                .concat(type1);
-        };
-        console.log(JSON.stringify(contract));
-        description.innerHTML = "you offered to receive "
-            .concat((amount1/100000000).toFixed(8))
-            .concat(" ")
-            .concat(spend_stuff)
-            .concat(" if you send ")
-            .concat(atob(other_chain_amount))
-            .concat(" of ")
-            .concat(atob(ticker))
-            .concat(" on the ")
-            .concat(atob(blockchain))
-            .concat(" blockchain by date ")
-            .concat(atob(date));
-        return(description);
-    };
-    function post_offer(offer, second_offer){
-        var signed_second_offer;
-        if(!(second_offer)){
-            signed_second_offer = 0;
-        } else {
-            var signed_second_offer = swaps.pack(second_offer);
-        }
-        var signed_offer;
-        if(!(offer[0] === "signed")){
-            signed_offer = swaps.pack(offer);
-        } else {
-            signed_offer = offer;
-        };
-        rpc.post(["add", signed_offer, signed_second_offer], function(z){
-            display.innerHTML = "successfully posted your crosschain offer. ";
-            var link = document.createElement("a");
-            link.href = "contracts.html";
-            link.innerHTML = "Your trade can be viewed on this page.";
-            link.target = "_blank";
-            //display.appendChild(link);
-        }, IP, 8090);//8090 is the p2p_derivatives server
-    };
-    //todo. the act of scanning for offers that have certain properties, we should abstract this so it is usable in all the ways we need. because it is being used 4 times. crosschain, crosschain2, and twice in crosschain3.
     async function accept_cancel_buttons(
         temp_div, callback
     ){
@@ -834,7 +803,7 @@ todo: plan what swap offers we need so that beginner users don't need to deal wi
                 temp_div.appendChild(description);
                 temp_div.appendChild(br());
                 var btc_address_input = text_input("address on other blockchain where you get paid.", temp_div);
-                btc_address_input.value = "test_address";
+                btc_address_input.value = "address2";
                 var accept_button = button_maker2("accept the offer", async function(){
                     var my_acc = await rpc.apost(
                         ["account", keys.pub()]);
@@ -848,7 +817,6 @@ todo: plan what swap offers we need so that beginner users don't need to deal wi
                         display.innerHTML = "you need to choose an address on the other blockchain where you want to get paid.";
                         return(0);
                     };
-                    //sell_contract, sell_offer, buy_contract, buy_offer
                     var oracle_start_height = buy_contract.oracle_start_height;
                     var reusable_settings =
                         buy_veo_contract
@@ -864,17 +832,6 @@ todo: plan what swap offers we need so that beginner users don't need to deal wi
                         await buy_veo_contract
                         .contract_to_1bytes(
                             buy_contract.raw);
-                    //sell veo: new_contract_tx, swaps.make_tx
-                    //buy_veo: buy_veo_contract:choose_deposit_address, swaps.make_tx
-
-                    //swaps.make_tx: swaps_tx2, maybe use_tx
-                    //buy_veo_contract.choose_deposit_address: new_contract_tx, contract_evidence, timeout_tx
-
-                    //sell test: [swap_tx2, contract_use_tx], [contract_new_tx, swap_tx2, contract_use_tx]
-                    //buy test: [swap_tx2, contract_use_tx, contract_winnings, contract_winnings], contract_timeout_tx2, contract_evidence_tx, [contract_new_tx, swap_tx2, contract_use_tx]
-
-                    //has now [contract_new_tx, swap_tx2, contract_use_tx], contract_evidence_tx, contract_timeout_tx2
-                    //needs other contract_new_tx, other swap_tx2, and other contract_use_tx
                     var contract_txs = buy_veo_contract.choose_deposit_address_tx(
                         deposit_address, contract1bytes,
                         buy_offer.acc1, reusable_settings,
@@ -883,30 +840,19 @@ todo: plan what swap offers we need so that beginner users don't need to deal wi
                     var sell_new_contract_tx =
                         new_scalar_contract.make_tx(
                             sell_contract.text, 1);
-                           // buy_offer.cid2, 2);
                     swaps.make_tx(raw_sell_offer, 1, async function(sell_swap_txs){
                         
                         swaps.make_tx(raw_buy_offer, 1, async function(swap_txs){
-                            console.log("sell swaps txs");
-                            console.log(JSON.stringify(sell_swap_txs));
-                            console.log("buy swaps txs");
-                            console.log(JSON.stringify(swap_txs));
                         var evidence0 = contract_txs[1];
                         evidence0[2] = nonce + 1;
                         var evidence = keys.sign(evidence0);
                         var timeout0 = contract_txs[2];
                         timeout0[2] = nonce+2;
                         var timeout = keys.sign(timeout0);
-                        //var txs = [contract_txs[0]]
-                        //    .concat(swap_txs);
                             var txs = [contract_txs[0]]
                                 .concat([sell_new_contract_tx])
                                 .concat(sell_swap_txs.slice(0,-1))
                                 .concat(swap_txs);
-                            console.log(JSON.stringify(sell_offer));
-                            console.log(JSON.stringify(sell_swap_txs));
-                            console.log(JSON.stringify(sell_swap_txs.slice(0,-1)));
-                            console.log(JSON.stringify(txs));//todo. print the cid from the contract_new_tx that are the first 2 in this list.
                             var f = function(tx){
                                 var CH = tx[2];
                                 var MT = tx[4];
@@ -915,16 +861,11 @@ todo: plan what swap offers we need so that beginner users don't need to deal wi
                                 var cid = binary_derivative.id_maker(CH, MT, Source, SourceType);
                                 return(cid);
                             };
-                            console.log(JSON.stringify([f(txs[0]), f(txs[1])]));
-                                
-                        console.log("making multi tx");
                         var tx = await multi_tx.amake(txs);
-                        //todo. this multi-tx is failing because the contract_new_tx doesn't have the same id as the contract_use_tx.
                         var stx = keys.sign(tx);
-                        console.log(JSON.stringify([tx, evidence, timeout]));
                         var response = await apost_txs([stx, evidence, timeout]);
-                        //display.innterHTML = response;
-                        var offer99 = swaps.accept_99(sell_offer);
+                        //var offer99 = swaps.accept_99(sell_offer);
+                        var offer99 = swaps.accept_99(buy_offer);
                         await apost_offer(display, IP, offer99);
                         display.innerHTML = display.innerHTML
                             .concat("; ")
@@ -967,23 +908,14 @@ todo: plan what swap offers we need so that beginner users don't need to deal wi
             var soffer = swaps.unpack(so[2]);
             buy_offers.map(async function(bo){
                 var boffer = swaps.unpack(bo[2]);
-                //console.log(JSON.stringify(
-                //    [soffer.acc1, boffer.acc1]));
                 if(soffer.acc1 === boffer.acc1){
                     var sell_cid = soffer.cid2;
                     var buy_cid = boffer.cid2;
-                    //contract for buy_cid should have a source of contract1 type2.
-                    //var buy_contract =
-                    //    await rpc.apost([
-                    //        "contracts", buy_cid]);
                     var buy_contract = bo[0];
                     var source = buy_contract[2];
                     var source_type = buy_contract[3];
-                    //console.log(JSON.stringify(
-                    //    [buy_contract, source, source_type, sell_cid]));
                     if((source_type === 2) &&
                        (source === sell_cid)){
-                        //console.log("one more");
                         r = r.concat(
                             [[so, soffer,
                               bo, boffer]]);
@@ -993,213 +925,6 @@ todo: plan what swap offers we need so that beginner users don't need to deal wi
         });
         return(r);
     };
-    function old_accept_cancel_buttons(
-        temp_div, callback
-    ){
-        rpc.post(["markets"], function(markets){
-            markets = markets.slice(1);
-            //console.log(JSON.stringify(markets));
-            active_offers_from_markets(markets, temp_div, callback);
-        }, IP, 8090);
-    };
-    function active_offers_from_markets(
-        markets, temp_div, callback
-    ){
-        if(markets.length === 0) {
-            return(callback());
-        };
-        function callback2(){
-            return(active_offers_from_markets(markets.slice(1), temp_div, callback));
-        };
-        var market = markets[0];
-        var mid = market[2];
-        var cid2 = market[5];
-        var type2 = market[6];
-        if(!(type2 === 1)){
-            return(callback2());
-        };
-        rpc.post(["read", 3, cid2], function(contract){
-            if(contract === 0){
-                return(callback2());
-            };
-            console.log(JSON.stringify(contract));
-            var Source = contract[5];
-            var SourceType = contract[6];
-            var contract_text = atob(contract[1]);
-            if(!(contract_text.match(/has received less than/))){
-                return(callback2());
-            };
-            rpc.post(["read", mid], function(market_data){
-                //console.log(JSON.stringify(market_data));
-                market_data = market_data[1];
-                var orders = market_data[7];
-                display_active_offers_orders(orders.slice(1), temp_div, contract, Source, SourceType, callback2);
-            }, IP, 8090);
-        }, IP, 8090);
-    };
-    function display_active_offers_orders(orders, temp_div, contract, Source, SourceType, callback){
-        var contract_text = atob(contract[1]);
-        //var Source = contract[2];
-        //var SourceType = contract[3];
-        //var tid0 = contract[10];
-
-        if(orders.length === 0){
-            return(callback());
-        };
-        function callback2(){
-            return(display_active_offers_orders(orders.slice(1), temp_div, contract, Source, SourceType, callback));
-        };
-        //todo. if there is not a corresponding order for the buy_veo half of the crosschain swap, then ignore it.
-        console.log(JSON.stringify(orders));
-        var order = orders[0];
-        var price = order[1];
-        var amount = order[2];
-        var tid = order[3];
-        rpc.post(["read", 2, tid], function(trade){
-            var swap_offer2 = trade[1];
-            var from = swap_offer2[1];
-            var expires = swap_offer2[3];
-            var amount1 = swap_offer2[6];
-            var amount2 = swap_offer2[9];
-            var cid1 = swap_offer2[4];
-            var type1 = swap_offer2[5];
-            var cid2 = swap_offer2[7];
-            var salt = swap_offer2[10];
-            var trade_nonce = swap_offer2[11];
-            var block_height = headers_object.top()[1];
-            if(!(trade_nonce === 1)){
-                console.log("unexpected trade nonce");
-                return(0);
-            };
-                
-
-            if(from === keys.pub()){
-                console.log(JSON.stringify(swap_offer2));
-                var cancel_button = button_maker2("cancel the offer", function(){
-                
-                    //-record(trade_cancel_tx, {acc, nonce, fee, salt}).
-                    var trade_cancel_tx = ["trade_cancel_tx", from, 2, fee, salt];//we should cancel the offer related to the sell veo contract. once it is canceled, then the second trade is unmatchable, because you wont have the subcurrency to complete it.
-                    var stx = keys.sign(trade_cancel_tx);
-                    post_txs([stx], function(response){
-
-                        console.log(JSON.stringify(response));
-                        display.innerHTML = " canceled the trade. response from server: "
-                            .concat(response);
-                    });
-                });
-                var description = description_maker(
-                    cid1, type1, amount2 - amount1, contract);
-                description.innerHTML =
-                    description.innerHTML
-                    .concat(" ; Offer expires in ")
-                    .concat(expires - block_height)
-                    .concat(" blocks.");
-                temp_div.appendChild(description);
-                temp_div.appendChild(br());
-                temp_div.appendChild(cancel_button);
-                temp_div.appendChild(br());
-                temp_div.appendChild(br());
-                
-                return(callback2());
-            };
-
-            //var description = description_maker(
-            //    cid1, type1, amount2 - amount1, contract);
-            //ticker,
-             //   blockchain, date,
-            //  other_chain_amount);
-
-            if(!(block_height < expires)){
-                return(callback2());
-            } 
-            description.innerHTML =
-                description.innerHTML.replace(
-                        /you offered to receive/,
-                    "they offered to buy")
-                .concat(" ; Offer expires in ")
-                .concat(expires - block_height)
-                .concat(" blocks.");
-            temp_div.appendChild(description);
-            temp_div.appendChild(br());
-            var btc_address_input = text_input("address on other blockchain where you get paid.", temp_div);
-            btc_address_input.value = "test_address";
-            var accept_button = button_maker2("accept the offer", function(){
-                //we should do a big multitx to accept both swap offers.
-
-
-                //console.log("accepting the offer");
-                rpc.post(["account", keys.pub()], async function(my_acc){
-                    var nonce = my_acc[2] + 1;
-                    var deposit_address = btc_address_input.value;
-                    if(deposit_address.length < 5){
-                        display.innerHTML = "you need to choose an address on the other blockchain where you want to get paid.";
-                        return(0);
-                    };
-                    if(deposit_address === keys.pub()){
-                        display.innerHTML = "you need to choose an address on the other blockchain where you want to get paid.";
-                        return(0);
-                    };
-                    //var address_timeout = contract[4];
-                    var oracle_start_height = contract[5];
-                    var blockchain = atob(contract[6]);
-                    var other_chain_amount = atob(contract[7]);
-                    var ticker = atob(contract[8]);
-                    var date = atob(contract[9]);
-                    var reusable_settings = buy_veo_contract.reusable_settings(oracle_start_height, blockchain, other_chain_amount, ticker, date);
-                    //var settings = buy_veo_contract.settings(reusable_settings, address_timeout, trade_nonce, tid);
-                    //var contract1bytes = buy_veo_contract.contract1bytes(settings);
-                    var contract1bytes = await buy_veo_contract.contract_to_1bytes(contract);
-
-                    var contract_txs = buy_veo_contract.choose_deposit_address_tx(
-                        deposit_address, contract1bytes,
-                        from, reusable_settings,
-                        tid, nonce);
-                    swaps.make_tx(trade, 1, function(swap_txs){
-                        var evidence0 = contract_txs[1];
-                        evidence0[2] = nonce + 1;
-                        var evidence = keys.sign(evidence0);
-                        var timeout0 = contract_txs[2];
-                        timeout0[2] = nonce+2;
-                        var timeout = keys.sign(timeout0);
-                        var txs = [contract_txs[0]]
-                            .concat(swap_txs);
-                console.log("making multi tx");
-                        multi_tx.make(txs, function(tx){
-                            var stx = keys.sign(tx);
-                            console.log("posting txs");
-                            console.log(JSON.stringify([stx, evidence, timeout]));
-                            post_txs([stx, evidence, timeout], function(response){
-       display.innterHTML = response;
-       var amount2_from_swap_offer = swap_offer2[9];
-       var cid2_from_swap_offer = swap_offer2[7];
-       var offer = {};
-       var block_height = headers_object.top()[1];
-       offer.start_limit = block_height - 10;
-       offer.end_limit = block_height + 2000;
-       offer.amount1 = amount2_from_swap_offer;
-       offer.cid1 = cid2_from_swap_offer;
-       offer.type1 = 1;
-       offer.amount2 = Math.round((amount2_from_swap_offer * 0.995) - (fee*5));
-       offer.cid2 = ZERO;//cid1_from_swap_offer;
-       offer.type2 = 0;//type1_from_swap_offer;
-       offer.acc1 = keys.pub();
-       offer.partial_match = true;
-       offer.nonce = nonce + 3;
-       post_offer(offer);
-   });
-                        });
-                    });
-                });
-
-            });
-            temp_div.appendChild(br());
-            temp_div.appendChild(accept_button);
-            temp_div.appendChild(br());
-            temp_div.appendChild(br());
-            return(callback2());
-        }, IP, 8090);
-    };
     return({
-        post_offer: post_offer
     });
 };
