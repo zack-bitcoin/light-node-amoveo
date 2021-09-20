@@ -564,7 +564,6 @@ todo: plan what swap offers we need so that beginner users don't need to deal wi
             .concat(" ; Offer expires in ")
             .concat(sell_offer.end_limit - block_height)
             .concat(" blocks.");
-        console.log(r);
         description.innerHTML = r;
         return(description);
     };
@@ -587,7 +586,6 @@ todo: plan what swap offers we need so that beginner users don't need to deal wi
             to_triples(sell_offers),
             to_triples(buy_offers));
         //[[[scontract, tid, offer], sswap, [bcontract, tid, offer], bswap]...]
-        console.log(JSON.stringify(pairs));
         //todo, find lots more relationships between pairs of offers that can be enforced for security. Some amounts need to match for example.
         pairs.map(function(f){
             var raw_sell_contract = f[0][0];
@@ -609,8 +607,7 @@ todo: plan what swap offers we need so that beginner users don't need to deal wi
                     var stx = keys.sign(trade_cancel_tx);
                     var response = await apost_txs([stx]);
                     display.innerHTML = response;
-                    refresh();
-                
+                    setTimeout(refresh, 1000);
                 });
                 description.innerHTML =
                     "you made this offer; "
@@ -622,10 +619,38 @@ todo: plan what swap offers we need so that beginner users don't need to deal wi
                 temp_div.appendChild(br());
             } else {
                 console.log("accept button");
-                temp_div.appendChild(description);
-                temp_div.appendChild(br());
                 var btc_address_input = text_input("address on other blockchain where you get paid.", temp_div);
                 btc_address_input.value = "address2";
+                var buy_coll = ((buy_offer.amount2) / (buy_offer.amount2 - buy_offer.amount1));
+                var sell_coll = (sell_offer.amount2 / sell_offer.amount1);
+                description.innerHTML =
+                    description.innerHTML
+                    .concat(" sell offer has collateralization: ")
+                    .concat(sell_coll.toFixed(2))
+                    .concat("; buy offer has collateralization: ")
+                    .concat(buy_coll.toFixed(2))
+                    .concat("; implied value of veo is ")
+                    //.concat(sell_contract.ticker)
+                    //.concat(" is ")
+                    .concat(parseFloat(sell_contract.receive) * token_units()/ sell_offer.amount1)
+                    .concat(" ")
+                    .concat(sell_contract.ticker)
+                    .concat(" or ")
+                    .concat(parseFloat(buy_contract.amount) * token_units()/ sell_offer.amount1)
+                    .concat(" ")
+                    .concat(buy_contract.ticker)
+                    .concat(". You need to verify that this is the actual price of VEO before accepting this trade. ")
+                ;
+                if(!(buy_offer.amount2 === sell_offer.amount2)){
+                    console.log("blocking offer that doesn't use the same amount of veo collateral for both steps");
+                    return(0);
+                };
+                if((buy_coll > 2) || (sell_coll > 2)){
+                    console.log("blocking excessively collateralized offer");
+                    return(0);
+                };
+                temp_div.appendChild(description);
+                temp_div.appendChild(br());
                 var accept_button = button_maker2("accept the offer", async function(){
                     var my_acc = await rpc.apost(
                         ["account", keys.pub()]);

@@ -76,6 +76,7 @@ var dex_tools = (function(){
     };
     function sell_veo_contract_decoder(contract){
         var contract_text = atob(contract[1]);
+        console.log(contract_text);
         if(!(contract_text
              .match(/has received less than/))){
             console.log("this is not a sell veo contract");
@@ -89,6 +90,7 @@ var dex_tools = (function(){
         var bytes = scalar_derivative.maker(contract_text, 1, 0);
         var CH = scalar_derivative.hash(bytes);
         var cid = binary_derivative.id_maker(CH, 2, source, source_type);
+        var ticker = receive.split(" ")[1];
         return({
             text: contract_text,
             source: source,
@@ -96,7 +98,8 @@ var dex_tools = (function(){
             address: address,
             receive: receive,
             date: date,
-            cid: cid
+            cid: cid,
+            ticker: ticker
         });
     };
 

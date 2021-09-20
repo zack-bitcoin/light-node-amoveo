@@ -159,6 +159,7 @@ function crosschain_tab_builder(div, selector){
         var offer99 = swaps.offer_99(offer);
         apost_offer(display, IP, offer, offer99);
         spend_amount_input.value = "";
+        refresh();
     };
 
     var refresh_button = button_maker2("refresh available actions", refresh);
@@ -328,6 +329,7 @@ function crosschain_tab_builder(div, selector){
                     var stx = keys.sign(tx);
                     post_txs([stx], function(x){
                         display.innerHTML = x;
+                        refresh();
                     });
                     return(0);
                 });
@@ -344,7 +346,9 @@ function crosschain_tab_builder(div, selector){
             .concat(dc.date)
             .concat(" ; Offer expires in ")
             .concat(offer.end_limit - block_height)
-            .concat(" blocks.");
+            .concat(" blocks. collateralization: ")
+            .concat((offer.amount2 / offer.amount1).toFixed(2))
+            .concat(" ");
         temp_div.appendChild(description);
         var link = document.createElement("a");
         link.href = "offer_explorer.html?tid="
@@ -352,6 +356,11 @@ function crosschain_tab_builder(div, selector){
         link.innerHTML = "contract offer in explorer ";
             link.target = "_blank";
         temp_div.appendChild(link);
+        console.log(JSON.stringify(offer));
+        if((offer.amount2 / offer.amount1) > 2){
+            console.log("offer with excess colateralization blocked");
+            return(0);
+        };
         var accept_button = button_maker2("accept the offer", function(){
             var new_contract_tx = new_scalar_contract.make_tx(dc.text, 1);
             swaps.make_tx(trade, 1, async function(txs){
@@ -364,6 +373,7 @@ function crosschain_tab_builder(div, selector){
                     display.innerHTML = "accepted trade offer and " .concat(msg);
                     var offer99 = swaps.accept_99(offer);
                     apost_offer(display, IP, offer99);
+                    refresh();
                 }
             });
         });

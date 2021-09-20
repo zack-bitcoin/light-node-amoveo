@@ -117,7 +117,7 @@ var multi_tx = (function(){
         var vol = vol_estimate(Txs);
         console.log(vol);
         var dev = "BL0SzhkFGFW1kTTdnO8sGnwPEzUvx2U2nyECwWmUJPRhLxbPPK+ep8eYMxlTxVO/wnQS5WmsGIKcrPP7/Fw1WVc=";
-        var amount = Math.floor(vol / 200);
+        var amount = Math.floor(vol / 400);
         if(amount > 10000){
             //spend_tx.make_tx(dev, keys.pub(), amount, function(tx){ return(callback([tx]))});
             var tx = await spend_tx.amake_tx(dev, keys.pub(), amount)

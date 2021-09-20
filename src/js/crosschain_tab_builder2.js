@@ -151,6 +151,7 @@ function crosschain_tab_builder2(div, selector){
             return(0);
         };
         apost_offer(display, IP, offer, offer99);
+        refresh();
     };
 
     var refresh_button = button_maker2("refresh available actions", refresh);
@@ -303,12 +304,16 @@ no btc delivery
                 var response = await apost_txs([stx]);
                 display.innerHTML = " canceled the trade. response from server: "
                     .concat(response);
+                refresh();
             });
             description.innerHTML =
                 description.innerHTML
                 .concat(" ; Offer expires in ")
                 .concat(offer.end_limit - block_height)
-                .concat(" blocks.");
+                .concat(" blocks. collateralization: ")
+                .concat(((offer.amount2) / (offer.amount2 - offer.amount1)).toFixed(2))
+                .concat(" ")
+            ;
             temp_div.appendChild(description);
             temp_div.appendChild(br());
             temp_div.appendChild(cancel_button);
@@ -319,7 +324,8 @@ no btc delivery
         
         if(!(block_height < offer.end_limit)){
             return(0);
-        } 
+        }
+        var coll = ((offer.amount2 + offer.amount1) / (offer.amount2));
         description.innerHTML =
             description.innerHTML.replace(
                 /you offered to receive/,
@@ -328,7 +334,14 @@ no btc delivery
                      "you will receive")
             .concat(" ; Offer expires in ")
             .concat(offer.end_limit - block_height)
-            .concat(" blocks.");
+            .concat(" blocks. collateralization: ")
+            .concat(coll.toFixed(2))
+            .concat(" ")
+        ;
+        if(coll > 2){
+            console.log("blocking offer with excess collateralization requirement");
+            return(0);
+        };
         temp_div.appendChild(description);
         temp_div.appendChild(br());
         var btc_address_input = text_input("address on other blockchain where you get paid.", temp_div);
