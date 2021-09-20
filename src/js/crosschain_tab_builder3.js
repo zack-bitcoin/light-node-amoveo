@@ -49,7 +49,7 @@ todo: plan what swap offers we need so that beginner users don't need to deal wi
     div.appendChild(trade_offer_title);
     var spend_blockchain_input = text_input("Name of the other blockchain where you want to sell value. (i.e. Ethereum)", div);
     div.appendChild(br());
-    var spend_ticker_input = text_input("Name of the currency that you want to sell. (i.e. Eth)", div);
+    var spend_ticker_input = text_input("Name of the currency that you want to sell. (i.e. ETH)", div);
     div.appendChild(br());
     /*
     var selector_label = document.createElement("span");
@@ -58,7 +58,7 @@ todo: plan what swap offers we need so that beginner users don't need to deal wi
     div.appendChild(contract_to_buy);
     div.appendChild(br());
     */
-    var spend_amount_input = text_input("Amount of currency you want to send. (i.e. 0.15)", div);
+    var spend_amount_input = text_input("Amount of currency you want to send. (i.e. 0.15 ETH)", div);
     div.appendChild(br());
 
     
@@ -66,11 +66,11 @@ todo: plan what swap offers we need so that beginner users don't need to deal wi
     div.appendChild(br());
     var receive_ticker_input = text_input("Name of the currency that you want to receive. (i.e. BTC)", div);
     div.appendChild(br());
-    var receive_amount_input = text_input("Amount of currency you want to receive. (i.e. 0.03)", div);
+    var receive_amount_input = text_input("Amount of currency you want to receive. (i.e. 0.03 BTC)", div);
     div.appendChild(br());
     var receive_address_input = text_input("Your address on the other blockchain where you will get paid. Needs to be a fresh address that has never received currency before", div);
     div.appendChild(br());
-    var veo_amount_input = text_input("Amount of veo to collateralize the contracts. Should be worth a little more than either of the other 2 currencies. (i.e. 1.25)", div);
+    var veo_amount_input = text_input("Amount of veo to collateralize the contracts. Should be worth a little more than either of the other 2 currencies. (i.e. 1.25). The VEO leaves your wallet once someone accepts the trade.", div);
     div.appendChild(br());
 
 
@@ -152,8 +152,8 @@ todo: plan what swap offers we need so that beginner users don't need to deal wi
         var receive_blockchain = receive_blockchain_input.value;
         var spend_ticker = spend_ticker_input.value;
         var receive_ticker = receive_ticker_input.value;
-        var spend_amount = spend_amount_input.value;
-        var receive_amount = receive_amount_input.value;
+        var spend_amount = read_float(spend_amount_input.value);
+        var receive_amount = read_float(receive_amount_input.value);
         var receive_address = receive_address_input.value;
         var veo_collateral = Math.round(parseFloat(veo_amount_input.value, 10) * 100000000);
         var blocks_till_expires = parseInt(blocks_till_expires_text.value, 10);
@@ -185,7 +185,8 @@ todo: plan what swap offers we need so that beginner users don't need to deal wi
             await sell_veo_contract.oid(
                 receive_blockchain_input.value,
                 receive_address_input.value,
-                receive_amount_input.value,
+                //receive_amount_input.value,
+                receive_amount,
                 receive_ticker_input.value,
                 date)
 
@@ -499,7 +500,7 @@ todo: plan what swap offers we need so that beginner users don't need to deal wi
             .concat(dcs.date)
             .concat(" with enough confirmations. Then send ")
             .concat(dcb.amount)
-            .concat(" of ")
+            .concat(" ")
             .concat(dcb.ticker)
             .concat(" in blockchain ")
             .concat(dcb.blockchain)
