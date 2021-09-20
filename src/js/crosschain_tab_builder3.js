@@ -112,7 +112,7 @@ todo: plan what swap offers we need so that beginner users don't need to deal wi
     spend_amount_input.value = "0.002";
     receive_amount_input.value = "0.000001";
     receive_address_input.value = "test_address";
-    veo_amount_input.value = "1.25";
+    veo_amount_input.value = "1.00";
     veo_cooperation_deposit_input.value = "";
     /*
     //security_amount_input.value = "0.3";
@@ -192,7 +192,8 @@ todo: plan what swap offers we need so that beginner users don't need to deal wi
         var sell_offer = {};
         //should send 1 unit of veo in exchange for (1 + (security * 2)) units of contract1 type1
         var block_height = headers_object.top()[1];
-        var veo_all = veo_collateral + (2 * security_lockup);
+        //var veo_all = veo_collateral + (2 * security_lockup);
+        var veo_all = veo_collateral + (security_lockup);
         sell_offer.start_limit = block_height - 1;
         sell_offer.end_limit = block_height + parseInt(blocks_till_expires_text.value, 10);
         sell_offer.amount1 = veo_collateral;
@@ -214,7 +215,8 @@ todo: plan what swap offers we need so that beginner users don't need to deal wi
             make_cid(contract_bytes, 2, sell_cid, 2);
         var buy_offer = buy_veo_contract.buy_veo_offer(
             blocks_till_expires,
-            security_lockup, veo_collateral + security_lockup, 
+            //security_lockup, veo_collateral + security_lockup, 
+            security_lockup, veo_collateral, 
             buy_cid, salt);
         var buy_offer99 = swaps.offer_99(swaps.unpack(buy_offer));
 
@@ -366,10 +368,10 @@ todo: plan what swap offers we need so that beginner users don't need to deal wi
             sell_contract);
         var swap = await dex_tools.lowest2(
             ZERO, 0, dc.source, IP, 1);//01%
-        var price = (swap[1][9] + (5 * fee)) / swap[1][6];
+        var price = (swap[1][9] - (5 * fee)) / swap[1][6];
         console.log(JSON.stringify(swap));
         console.log(JSON.stringify(price));
-        if(price < 0.02){
+        if(price < 0.051){
             var p = document.createElement("p");
             p.innerHTML = "you have already released the subcurrency.";
             temp_div.appendChild(p);
@@ -413,9 +415,9 @@ todo: plan what swap offers we need so that beginner users don't need to deal wi
         var swap = await dex_tools.lowest2(
             ZERO, 0, dc.source, IP, 1);//01%
         console.log(JSON.stringify(swap));
-        var price = (swap[1][9] + (5 * fee)) / swap[1][6];
+        var price = (swap[1][9] - (5 * fee)) / swap[1][6];
         console.log(price);
-        if(price > 0.02){
+        if(price > 0.051){
             var p = document.createElement("p");
             p.innerHTML = "waiting for them to release the subcurrency.";
             temp_div.appendChild(p);
@@ -444,24 +446,23 @@ todo: plan what swap offers we need so that beginner users don't need to deal wi
             var [winnings_tx, winnings_tx2] =
                 await buy_veo_contract.both_winners(dc.cid);
             swaps.make_tx(swap, 1000000, async function(txs){
-            swaps.make_tx(swap2, 1000000, async function(txs2){
-                var tx = await multi_tx.amake(
-                    txs
-                        .concat(txs2)
-                        .concat([
-                            buy_combine_tx,
-                            winnings_tx,
-                            winnings_tx2,
-                            sell_combine_tx
-                        ]));
-                var stx = keys.sign(tx);
-                var msg = await apost_txs([stx]);
-                display.innerHTML = msg;
-                if(!(msg === "server rejected the tx")){
-                    cleanup();
-                };
-                setTimeout(refresh, 1000);
-            });
+                swaps.make_tx(swap2, 1000000, async function(txs2){
+                    var tx = await multi_tx.amake(
+                        txs
+                            .concat(txs2)
+                            .concat([
+                                buy_combine_tx,
+                                winnings_tx,
+                                winnings_tx2,
+                                sell_combine_tx
+                            ]));
+                    var stx = keys.sign(tx);
+                    var msg = await apost_txs([stx]);
+                    display.innerHTML = msg;
+                    if(!(msg === "server rejected the tx")){
+                        cleanup();
+                    };
+                });
             });
         });
         temp_div.appendChild(release_button);
