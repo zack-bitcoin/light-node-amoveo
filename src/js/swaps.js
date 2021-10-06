@@ -265,29 +265,32 @@ var swaps = (function(){
     function offer_99(offer){
         var offer99 = {};
         offer99.start_limit = offer.start_limit;
-        offer99.end_limit = offer.end_limit + 1;
+        offer99.end_limit = offer.end_limit + 12000;
         offer99.amount1 = offer.amount2;
         offer99.amount2 = Math.round((offer.amount2 * 0.995) - (fee*5));//new oracle, oracle report, oracle close, withdraw winnings, oracle winnings
         offer99.cid1 = offer.cid2;
         offer99.cid2 = ZERO;
         offer99.type2 = 0;
-        offer99.type1 = offer.type2;
         offer99.acc1 = keys.pub();
         offer99.partial_match = true;
+        offer99.type1 = offer.type2;
         return(offer99);
     };
     function accept_99(offer){
+        /*
         var offer99 = {};
         offer99.start_limit = offer.start_limit;
         offer99.end_limit = offer.end_limit + 1;
         offer99.amount1 = offer.amount2;
         offer99.amount2 = Math.round((offer.amount2*0.995) - (fee*5));//new oracle, oracle report, oracle close, withdraw winnings, oracle winnings
+        offer99.cid1 = offer.cid2;
         offer99.cid2 = ZERO;
         offer99.type2 = 0;
-        offer99.cid1 = offer.cid2;
-        offer99.type1 = 3-offer.type2;
         offer99.acc1 = keys.pub();
         offer99.partial_match = true;
+        */
+        var offer99 = offer_99(offer);
+        offer99.type1 = 3 - offer.type2;
         return(offer99);
     };
     return({test: test, pack: pack,
