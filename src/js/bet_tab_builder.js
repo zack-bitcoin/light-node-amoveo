@@ -68,6 +68,8 @@ function bet_tab_builder(div, selector){
         swap.partial_match = false;
         swap.acc1 = keys.pub();
         swap.end_limit = headers_object.top()[1] + expires;
+        var offer99 = swaps.offer_99(swap);
+        /*
         var offer99 = {};
         offer99.type1 = 1;
         offer99.type2 = 0;
@@ -78,6 +80,7 @@ function bet_tab_builder(div, selector){
         offer99.partial_match = false;
         offer99.acc1 = keys.pub();
         offer99.end_limit = headers_object.top()[1] + expires + 1;
+        */
         console.log(expires);
         console.log(JSON.stringify(swap));
         var signed_offer = swaps.pack(swap);
@@ -121,8 +124,8 @@ function bet_tab_builder(div, selector){
 
 
     //TODO. if it is your own bet offer., would be nice to have a button to cancel that bet offer.
-
-    function accept(text, swap_offer) {
+    /*
+    async function accept(text, swap_offer) {
         var new_contract_tx =
             new_scalar_contract.make_tx(
                 Text, MP, Source, SourceType);
@@ -134,10 +137,19 @@ function bet_tab_builder(div, selector){
              Zero, 0],
             swap_offer
         ];
-        var tx = multi_tx.amake(txs);
+        var tx = await multi_tx.amake(txs);
         var stx = keys.sign(tx);
-        var response = apost_txs([stx]);
-        display.innerHTML = "response ";
+        var response = await apost_txs([stx]);
+        var offer99 = swaps.accept_99(swap_offer);
+        var signed_99 = swaps.pack(offer99);
+        var response2 = await rpc.apost(
+            ["add", signed_99, 0],
+            IP, 8090);
+        display.innerHTML = "response "
+            .concat(response)
+            .concat(" </br> ")
+            .concat(response2)
+        ;
     };
-
+    */
 };

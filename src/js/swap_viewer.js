@@ -198,6 +198,8 @@ function swap_viewer_creator(div2){
                 if(!(response === "server rejected the tx")){
                     if(Y.type1 === 0){//only if you are paying veo for a subcurrency that is priced in veo.
                         //todo. publish an offer to sell your winnings for 99% of the max possible value.
+                        var offer99 = swaps.accept_99(Y);
+                        /*
                         var offer99 = {};
                         offer99.type1 = 3-Y.type2;
                         offer99.type2 = 0;
@@ -208,6 +210,7 @@ function swap_viewer_creator(div2){
                         offer99.partial_match = false;
                         offer99.acc1 = keys.pub();
                         offer99.end_limit = Y.end_limit + 1;
+                        */
                         var signed_offer = swaps.pack(offer99);
                         var response = await rpc.apost(
                             ["add", signed_offer, 0],
