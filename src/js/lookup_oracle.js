@@ -16,8 +16,10 @@
 	list_oracles1();
 	lookup_oracle1();
 	var button = document.getElementById("show_markets_button");
-	button.value = "hide markets";
-	button.onclick = hide_markets;
+        if(button){
+	    button.value = "hide markets";
+	    button.onclick = hide_markets;
+        };
     }
     function hide_markets() {
 	div.innerHTML = "";

@@ -20,13 +20,15 @@
     balance_text.innerHTML = "your balance: ?";
     div.appendChild(balance_text);
 
-    var account = await rpc.apost(["account", pubkey]);
+    var account = await rpc.apost(
+        ["account", pubkey]);
     var balance = account[1];
         
     balance_text.innerHTML = "your balance: "
         .concat((balance/100000000).toFixed(8));
 
-    var account = await rpc.apost(["account", pubkey], get_ip(), 8091);
+    var account = await rpc.apost(
+        ["account", pubkey], get_ip(), 8091);
     var acc = account[1];
     var txs = acc[2];
     var sub_accs = acc[3];

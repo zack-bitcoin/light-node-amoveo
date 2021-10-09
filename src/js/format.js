@@ -11,7 +11,9 @@ function write_veo(x) {
     return((s2c(x)).toFixed(8));
 };
 function read_veo(X) {
-    return Math.floor(parseFloat(X.value, 10) * token_units());
+    return Math.floor(
+        parseFloat(X.value, 10) *
+            token_units());
 }
 
 function array_to_int(l) {

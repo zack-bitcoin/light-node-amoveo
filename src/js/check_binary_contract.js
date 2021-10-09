@@ -17,7 +17,7 @@ var check_binary_contract = (function(){
     var button = button_maker2("lookup", lookup);
     div.appendChild(button);
     async function lookup(){
-        var z = await rpc.apost(["read", 3, cid.value], s_ip.value, parseInt(s_port.value));
+        var z = await rpc.apost(["read", 3, cid.value], s_ip.value, parseInt(s_port.value));//i think it is looking in the p2p derivatives tool.
         if(z == 0){
             display.innerHTML = "the server does not yet know about that contract";
             return(0);

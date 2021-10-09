@@ -118,7 +118,7 @@ function swap_viewer_creator(div2){
         var Contract = await merkle.arequest_proof("contracts", cid);
         if(!(Contract === "empty")){
             return(callback(Txs));
-        };
+        }
         var z = await rpc.apost(["read", 3, cid], explore_swap_offer.ip_get, 8090);
         if(z[0] == "scalar"){
             console.log("is scalar ");
