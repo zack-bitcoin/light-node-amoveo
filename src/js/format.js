@@ -1,7 +1,7 @@
 
 function default_ip() {
-    //return("159.89.87.58");
-    return("0.0.0.0");
+    return("159.89.87.58");
+    //return("0.0.0.0");
 };
 
 
@@ -273,14 +273,14 @@ async function price_estimate_read(cid, source, source_type, callback){
     var liq = total_liquidity(market1, market2, market3);
     return([p_est, liq]);
 };
-    function contract_to_cid(Contract) {
-        var Source = Contract[8];
-        var SourceType = Contract[9];
-        var MT = Contract[2];
-        var CH = Contract[1];
-        var cid = merkle.contract_id_maker(CH, MT, Source, SourceType);
-        return(cid);
-    };
+function contract_to_cid(Contract) {
+    var Source = Contract[8];
+    var SourceType = Contract[9];
+    var MT = Contract[2];
+    var CH = Contract[1];
+    var cid = merkle.contract_id_maker(CH, MT, Source, SourceType);
+    return(cid);
+};
 
 function read_float(s){
     return(s.replace(/[^\d|\.]/g,''));
@@ -322,6 +322,5 @@ function newhash2integer(h) {
         }
         return x;
     }
-    
     return hash2integer2(h.concat([255]), 0, 0);
 }
