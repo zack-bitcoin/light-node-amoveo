@@ -99,83 +99,6 @@ function array_to_string(x) {
     }
     return a;
 }
-function hash2integer(h) {
-    function hash2integer2(h, i, n) {
-        var x = h[i];
-        if  ( x == 0 ) {
-            return hash2integer2(h, i+1, n+(256*8));
-        } else {
-            return n + hash2integer3(x, h[i+1]);
-        }
-    }
-    function dec2bin(dec){
-        n = (dec).toString(2);
-        n="00000000".substr(n.length)+n;
-        return n;
-    }
-    function hash2integer3(byte1, byte2) {
-        var x = dec2bin(byte1).concat(dec2bin(byte2));
-        return hash2integer4(x, 0, 0);
-    }
-    function hash2integer4(binary, i, n) {
-        var x = binary[i];
-        if ( x == "0" ) { return hash2integer4(binary, i+1, n+256) }
-        else {
-            var b2 = binary.slice(i, i+8);
-            var y = hash2integer5(b2) + n;
-            return y;
-        }
-    }
-    function hash2integer5(bin) {
-        var x = 0;
-        for (var i=0; i < bin.length; i++) {
-            var y = bin[i];
-            if ( y == "0" ) { x = x * 2; }
-            else { x = 1 + (x * 2) }
-        }
-        return x;
-    }
-    return hash2integer2(h.concat([255]), 0, 0);
-}
-function newhash2integer(h) {
-    function hash2integer2(h, i, n) {
-        var x = h[i];
-        if  ( x == 0 ) {
-            return hash2integer2(h, i+1, n+(256*8));
-        } else {
-            return n + hash2integer3(x, h[i+1]);
-        }
-    }
-    function dec2bin(dec){
-        n = (dec).toString(2);
-        n="00000000".substr(n.length)+n;
-        return n;
-    }
-    function hash2integer3(byte1, byte2) {
-        var x = dec2bin(byte1).concat(dec2bin(byte2));
-        return hash2integer4(x, 0, 0);
-    }
-    function hash2integer4(binary, i, n) {
-        var x = binary[i];
-        if ( x == "0" ) { return hash2integer4(binary, i+1, n+256) }
-        else {
-            var b2 = binary.slice(i+1, i+9);//this is the only line that is different between hash2integer and newhash2integer
-            var y = hash2integer5(b2) + n;
-            return y;
-        }
-    }
-    function hash2integer5(bin) {
-        var x = 0;
-        for (var i=0; i < bin.length; i++) {
-            var y = bin[i];
-            if ( y == "0" ) { x = x * 2; }
-            else { x = 1 + (x * 2) }
-        }
-        return x;
-    }
-    
-    return hash2integer2(h.concat([255]), 0, 0);
-}
 function button_maker3(val, fun) {
     var button = document.createElement("input");
     button.type = "button";
@@ -273,41 +196,6 @@ function read_veo(X) {
     return Math.floor(parseFloat(X.value, 10) * token_units());
 }
 
-
-function send_encrypted_message(imsg, to, callback) {
-    var emsg = keys.encrypt(imsg, to);
-    rpc.messenger(["account", keys.pub()], function(account) {
-        //console.log("account is ");
-        //console.log(JSON.stringify(account));
-        var nonce = account[3] + 1;
-        //nonce = 0;//look up nonce from account, add 1 to it.
-        //var r = [53412, keys.pub(), nonce, emsg];
-        var r = [-7, 53412, keys.pub(),nonce,emsg];
-        //console.log(JSON.stringify(r));
-        var sr = keys.sign(r);
-        //console.log("check signature");
-        //console.log(verify1(sr));
-        return rpc.messenger(["send", 0, to, sr], function(x) {
-            return callback();
-        });
-    });
-};
-/*
-function verify_exists(oid, n, callback) {
-    //console.log(oid);
-    if (n == 0) {
-        return callback();
-    }
-    return merkle.request_proof("oracles", oid, function(x) {
-        var result = x[2];
-        if (!(result == 0)) {
-            status.innerHTML = "status: <font color=\"red\">Error: That oracle does not exist.</font>";
-            return 0;
-        };
-        return verify_exists(btoa(next_oid(atob(oid))), n-1, callback);
-    });
-};
-*/
 function random_cid(n) {
     if (n == 0) { return ""; }
     else {
@@ -315,19 +203,6 @@ function random_cid(n) {
         var rl = String.fromCharCode(rn);
         return rl.concat(random_cid(n-1))}
 };
-
-/*
-function next_oid(oid) {
-    //oid starts in binary format. we want to add 1 to the binary being encoded by oid.
-    var ls = oid[oid.length - 1];
-    var n = ls.charCodeAt(0);
-    if (n == 255) {
-        return next_oid(oid.slice(0, oid.length - 1)).concat(String.fromCharCode(0));
-    }
-    return oid.slice(0, oid.length - 1).concat(String.fromCharCode(n+1));
-};
-*/
-
 
 
 
@@ -352,15 +227,16 @@ function make_bytes(bytes, b) {
     }
 };
 
-    
-function oracle_limit(oid, callback) {
-    return rpc.post(["oracle", oid], function(x) {
-        var question = atob(x[2]);
+   /* 
+async function oracle_limit(oid, callback) {
+    //return rpc.post(["oracle", oid], function(x) {
+    var x = await rpc.apost(["oracle", oid]);
+    var question = atob(x[2]);
         //console.log(question);
         //measured_upper.value = (largest_number(question, 0, 0)).toString();
-        return callback(oracle_limit_grabber(question));
-    });
-    function oracle_limit_grabber(question) {
+    return callback(oracle_limit_grabber(question));
+});
+function oracle_limit_grabber(question) {
         console.log("oracle limit grabber");
         if (question.length < 4) {
             return "";
@@ -398,7 +274,7 @@ function oracle_limit(oid, callback) {
         }
     };
 };
-
+*/
 
 
 function check_spk_sig(pub, ch, sig) {
@@ -505,17 +381,6 @@ function scalar_to_prove2(ks) {
         return(["oracles", x]);
     });
 };
-//function scalar_to_prove(oid, start) {
-//    var ks = scalar_keys(oid, start);
-//    console.log(JSON.stringify(ks));
-//    return scalar_to_prove2(ks);
-//};
-    
-    //if (n == 0) { return []; }
-    //var noid = btoa(next_oid(atob(oid)));
-    //var rest = scalar_to_prove(noid, n-1);
-    //return [["oracles", oid]].concat(rest);
-//};
 function rcs_to_prove(otv, oid, callback) {
     var to_prove;
     if (otv == 2) {//scalar
@@ -570,37 +435,6 @@ function id_maker(start, gov1, gov2, question) {
     return(btoa(array_to_string(hash(x))));//is array
 };
 /*
-function question_maker(id, bit) {
-    if (bit < 1) {return 0;}
-    if (bit > 9) {return 0;}
-    return("scalar ".concat
-           (id).concat
-           (" bit number ").concat
-           ((bit).toString()));
-}
-function scalar_keys2(id, start, I, out) {
-    if (I == 10) {return out;}
-    var QN = question_maker(id, I);
-    console.log("question maker");
-    console.log(JSON.stringify(QN));
-    var id2 = id_maker(start, 0, 0, QN);
-    //console.log(btoa(id2));
-    return scalar_keys2(id, start, I+1, [id2].concat(out));
-};
-function scalar_keys(id, start) {
-    return scalar_keys2(id, start, 1, [id]).reverse();
-};
-function scalar_keys1(id, callback) {
-    merkle.request_proof("oracles", id, function(Oracle) {
-        var starts = Oracle[4];
-        console.log("scalar keys 1 oracle starts is ");
-        console.log(starts);
-        console.log(id);
-        return callback(scalar_keys(id, starts));
-    });
-};
-*/
-
 function post_txs(txs, callback) {
     rpc.post(["txs", [-6].concat(txs)],
              function(x) {
@@ -611,6 +445,7 @@ function post_txs(txs, callback) {
                  }
              });
 };
+*/
 async function apost_txs(txs) {
     var x = await rpc.apost(["txs", [-6].concat(txs)]);
     if(x == "ZXJyb3I="){
@@ -693,21 +528,24 @@ configure["channel_view"] = true;
         //console.log(P);
         return(P);
     };
-    function price_estimate_read(cid, source, source_type, callback){
-        var mid1 = new_market.mid(source, cid, source_type, 1);
-        var mid2 = new_market.mid(source, cid, source_type, 2);
-        var mid3 = new_market.mid(cid, cid, 1, 2);
-        rpc.post(["markets", mid1], function(market1){
-            rpc.post(["markets", mid2], function(market2){
-                rpc.post(["markets", mid3], function(market3){
-                    var p_est = price_estimate(market1, market2, market3);
+async function price_estimate_read(cid, source, source_type, callback){
+    var mid1 = new_market.mid(source, cid, source_type, 1);
+    var mid2 = new_market.mid(source, cid, source_type, 2);
+    var mid3 = new_market.mid(cid, cid, 1, 2);
+    //rpc.post(["markets", mid1], function(market1){
+    var market1 = await rpc.apost(["markets", mid1]);
+    var market2 = await rpc.apost(["markets", mid2]);
+                //rpc.post(["markets", mid3], function(market3){
+    var market3 = await rpc.apost(["markets", mid3]);
+    var p_est = price_estimate(market1, market2, market3);
                     //console.log(JSON.stringify([cid, source_type, market1, market2]));
-                    var liq = total_liquidity(market1, market2, market3);
-                    return(callback(p_est, liq));
-                });
-            });
-        });
-    };
+    var liq = total_liquidity(market1, market2, market3);
+    //return(callback(p_est, liq));
+    return([p_est, liq));
+//});
+//});
+//});
+};
     function contract_to_cid(Contract) {
         var Source = Contract[8];
         var SourceType = Contract[9];

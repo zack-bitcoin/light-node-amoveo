@@ -35,8 +35,10 @@
 	lookup_oracle_button.appendChild(lookup_oracle_text_node);
 	lookup_oracle_button.onclick = lookup_helper;
 	//div.appendChild(lookup_oracle_button);
-	function lookup_helper() {
-            rpc.post(["list_oracles"], lookup_helper2);
+	async function lookup_helper() {
+            //rpc.post(["list_oracles"], lookup_helper2);
+            var x = await rpc.apost(["list_oracles"]);
+            lookup_helper2(x);
 	}
     }
     function lookup_helper2(x) {
@@ -73,10 +75,12 @@
 	canvas.height = 500;
 	div.appendChild(canvas);
     }
-    function lookup_oracle_helper(x) {
+    async function lookup_oracle_helper(x) {
 	console.log("lookup oracle x is ");
 	console.log(x);
-	rpc.post(["oracle", x], function(y) { return lookup_oracle_helper2(y, x)});
+	//rpc.post(["oracle", x], function(y) { return lookup_oracle_helper2(y, x)});
+	var y = await rpc.apost(["oracle", x]);
+        return(lookup_oracle_helper2(y, x));
     }
     function lookup_oracle_helper2(l, oid) {
 	price.innerHTML = "";

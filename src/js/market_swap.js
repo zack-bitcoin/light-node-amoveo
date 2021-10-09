@@ -17,7 +17,7 @@ var market_swap = (function(){
     function doit(){
         var Fee = 152050;
         merkle.request_proof("accounts", keys.pub(), function(Acc){
-            merkle.request_proof("markets", mid.value, function(market){
+            merkle.request_proof("markets", mid.value, async function(market){
                 //-record(market, {id, cid1, type1, amount1, cid2, type2, amount2, shares}).
                 var CID1 = market[2];
                 var Type1 = market[3];
@@ -34,9 +34,10 @@ var market_swap = (function(){
                           CID2, Type2];
                 console.log(tx);
                 var stx = keys.sign(tx);
-                post_txs([stx], function(msg){
-                    display.innerHTML = msg
-                });
+                //post_txs([stx], function(msg){
+                var msg = await apost_txs([stx]);
+                display.innerHTML = msg
+                //});
             });
         });
     };

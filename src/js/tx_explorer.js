@@ -1,4 +1,4 @@
-(function(){
+(async function(){
     var ZERO = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=";
     var div = document.createElement("div");
     document.body.appendChild(div);
@@ -17,22 +17,23 @@
     div.appendChild(block_height_div);
     div.appendChild(br());
 
-    rpc.post(["txs", txid], function(tx){
-        var tx = tx[1];
-        var block = tx[2];
-        var height = tx[4];
-        link = document.createElement("a");
-        link.href = "block_explorer.html?hash="
-            .concat(block);
-        link.innerHTML = height;//block;
-        link.target = "_blank";
-        block_height_div.innerHTML = "this tx was included in block number ";
-        //.concat(block.toString());
-        block_height_div.appendChild(link);
-        var raw = tx[3];
-        console.log(JSON.stringify(raw[1]));
-        display_txs([raw[1]]);
-    }, get_ip(), 8091); 
+    //rpc.post(["txs", txid], function(tx){
+    var tx = await rpc.apost(["txs", txid], get_ip(), 8091); 
+    var tx = tx[1];
+    var block = tx[2];
+    var height = tx[4];
+    link = document.createElement("a");
+    link.href = "block_explorer.html?hash="
+        .concat(block);
+    link.innerHTML = height;//block;
+    link.target = "_blank";
+    block_height_div.innerHTML = "this tx was included in block number ";
+    //.concat(block.toString());
+    block_height_div.appendChild(link);
+    var raw = tx[3];
+    console.log(JSON.stringify(raw[1]));
+    display_txs([raw[1]]);
+    //}, get_ip(), 8091); 
 
     function display_txs(txs){
         if(txs.length === 0) {
@@ -211,7 +212,7 @@
             var many_types = tx[4];
             var source = tx[5];
             var source_type = tx[6];
-            var cid = binary_derivative.id_maker(
+            var cid = merkle.contract_id_maker(
                 contract_hash, many_types,
                 source, source_type);
             tx_text.innerHTML = "New Contract. <br> cid: ";

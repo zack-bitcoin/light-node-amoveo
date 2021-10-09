@@ -6,10 +6,7 @@ var rpc = (function() {
         var u = url(8088, get_ip());
         return talk(cmd, u, callback, 10000);
     };
-    function default_explorer(cmd, callback) {
-        var u = "http://159.89.87.58:8090/";
-        return talk(cmd, u, callback, 10000);
-    };
+    /*
     function main(cmd, callback, ip, port) {
         if (ip == undefined){
             ip = get_ip();
@@ -20,6 +17,7 @@ var rpc = (function() {
         var u = url(port, ip);
         return talk(cmd, u, callback, 10000);//use up to 10 seconds for this request
     }
+    */
     async function main2(cmd, ip, port) {
         if (ip == undefined){
             ip = get_ip();
@@ -47,12 +45,13 @@ var rpc = (function() {
             xmlhttp.onerror = function () {
                 reject({
                     status: this.status,
-                statusText: xmlhttp.statusText
+                    statusText: xmlhttp.statusText
                 });
             };
             xmlhttp.send(JSON.stringify(cmd));
         });
     };
+    /*
     function talk(cmd, u, callback, n) {
         var xmlhttp=new XMLHttpRequest();
         xmlhttp.open("POST",u,true);
@@ -88,8 +87,8 @@ var rpc = (function() {
             if(verbose){console.log("unhandled state. wait a bit and hopefully it ends.");}
             setTimeout(function() {return listen(x, cmd, u, callback, n-50);}, 50);}
     };
-    return {post: main,
-            apost: main2,
-            default_explorer: default_explorer,
-            messenger: messenger};
+    */
+    return {//post: main,
+            apost: main2
+           };
 })();

@@ -39,77 +39,78 @@ var swap_offer = (function(){
     div.appendChild(create_button);
     div.appendChild(br());
 
-    function doit(){
-        rpc.post(["account", keys.pub()], function(my_acc){
-            if(my_acc === 0){
-                display.innerHTML = "error: no key loaded. ";
+    async function doit(){
+        //rpc.post(["account", keys.pub()], function(my_acc){
+        var my_acc = await rpc.apost(["account", keys.pub()])
+        if(my_acc === 0){
+            display.innerHTML = "error: no key loaded. ";
+            return(0);
+        };
+        var offer = {};
+        offer.nonce = my_acc[2] + 1;
+        var now = headers_object.top()[1];
+        offer.start_limit = now - 1;
+        var TimeLimit = parseInt(timelimit.value);
+        offer.end_limit = now + TimeLimit;
+        offer.amount1 = parseInt(amount1.value);
+        offer.amount2 = parseInt(amount2.value);
+        offer.cid1 = cid1.value;
+        offer.cid2 = cid2.value;
+        if("" === offer.cid1){
+            offer.cid1 = ZERO;
+        }
+        if("" === offer.cid2){
+            offer.cid2 = ZERO;
+        }
+        offer.type1 = (parseInt(type1.value) || 0);
+        offer.type2 = (parseInt(type2.value) || 0);
+        
+        offer.fee1 = fee;
+        offer.fee2 = fee;
+        offer.acc1 = keys.pub();
+        offer.partial_match = partial_match.checked;
+        var signed_offer;
+        
+        if(offer.type1 == 0){
+            var bal = my_acc[1];
+            if(my_acc == "empty"){
+                display.innerHTML = "not enough veo to make this offer. (possibly no key loaded?) ";
                 return(0);
             };
-            var offer = {};
-            offer.nonce = my_acc[2] + 1;
-            var now = headers_object.top()[1];
-            offer.start_limit = now - 1;
-            var TimeLimit = parseInt(timelimit.value);
-            offer.end_limit = now + TimeLimit;
-            offer.amount1 = parseInt(amount1.value);
-            offer.amount2 = parseInt(amount2.value);
-            offer.cid1 = cid1.value;
-            offer.cid2 = cid2.value;
-            if("" === offer.cid1){
-                offer.cid1 = ZERO;
+            if(offer.amount1 > bal){
+                display.innerHTML = "not enough veo to make this offer";
+                return(0);
+            } else {
+                console.log(JSON.stringify(offer));
+                signed_offer = swaps.pack(offer);
+                display.innerHTML = JSON.stringify(signed_offer);
+                publish_swap_offer.offer(JSON.stringify(signed_offer));
             }
-            if("" === offer.cid2){
-                offer.cid2 = ZERO;
-            }
-            offer.type1 = (parseInt(type1.value) || 0);
-            offer.type2 = (parseInt(type2.value) || 0);
-            
-            offer.fee1 = fee;
-            offer.fee2 = fee;
-            offer.acc1 = keys.pub();
-            offer.partial_match = partial_match.checked;
-            var signed_offer;
-
-            if(offer.type1 == 0){
-                var bal = my_acc[1];
-                if(my_acc == "empty"){
-                    display.innerHTML = "not enough veo to make this offer. (possibly no key loaded?) ";
+        } else {
+            var key = btoa(array_to_string(sub_accounts.key(keys.pub(), offer.cid1, offer.type1)));
+            return(merkle.request_proof("sub_accounts", key, function(sub_acc){
+                if(sub_acc == "empty"){
+                    display.innerHTML = "not enough subcurrency to  make this offer (possibly no key loaded?)";
                     return(0);
                 };
+                bal = sub_acc[1];
                 if(offer.amount1 > bal){
-                    display.innerHTML = "not enough veo to make this offer";
+                    display.innerHTML = "not enough subcurrency to  make this offer";
                     return(0);
                 } else {
-                    console.log(JSON.stringify(offer));
+                    
                     signed_offer = swaps.pack(offer);
                     display.innerHTML = JSON.stringify(signed_offer);
                     publish_swap_offer.offer(JSON.stringify(signed_offer));
-                }
-            } else {
-                var key = btoa(array_to_string(sub_accounts.key(keys.pub(), offer.cid1, offer.type1)));
-                return(merkle.request_proof("sub_accounts", key, function(sub_acc){
-                    if(sub_acc == "empty"){
-                        display.innerHTML = "not enough subcurrency to  make this offer (possibly no key loaded?)";
-                        return(0);
-                    };
-                    bal = sub_acc[1];
-                    if(offer.amount1 > bal){
-                        display.innerHTML = "not enough subcurrency to  make this offer";
-                        return(0);
-                    } else {
-                        
-                        signed_offer = swaps.pack(offer);
-                        display.innerHTML = JSON.stringify(signed_offer);
-                        publish_swap_offer.offer(JSON.stringify(signed_offer));
-                    };
-                }));
-            };
+                };
+            }));
+        };
             //console.log("about to publish");
             //publish_swap_offer.offer(JSON.stringify(signed_offer));
 
 //            var signed_offer = swaps.pack(offer);
  //           display.innerHTML = JSON.stringify(signed_offer);
-        });
+    //});
     };
     return({
         timelimit: function(x){timelimit.value = x},

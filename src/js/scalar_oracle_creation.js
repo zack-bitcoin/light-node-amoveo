@@ -26,7 +26,7 @@ var scalar_oracle_creation = (function(){
             .concat(final_price);
         return(FullText);
     };
-    function make_oracle(){
+    async function make_oracle(){
         var Start = parseInt(oracle_start_height.value);
         var FullText = fulltext(final_price_text.value,
                                 max_price_text.value,
@@ -44,16 +44,18 @@ var scalar_oracle_creation = (function(){
         var bet_amount = 2220000;
         var tx2 = ["oracle_bet", 0, 0, 0,
                    oid, 1, bet_amount];
-        multi_tx.make([tx1, tx2], function(tx){
-            console.log(tx);
-            var stx = keys.sign(tx);
-            post_txs([stx], function(msg){
-                display.innerHTML = msg
-                    .concat("<br>")
-                    .concat("with oracle id ")
-                    .concat(oid);
-            });
-        });
+        //multi_tx.make([tx1, tx2], async function(tx){
+        var tx = await multi_tx.amake([tx1, tx2]);
+        console.log(tx);
+        var stx = keys.sign(tx);
+        //post_txs([stx], function(msg){
+        var msg = await apost_txs([stx]);
+        display.innerHTML = msg
+            .concat("<br>")
+            .concat("with oracle id ")
+            .concat(oid);
+        //});
+        //});
     };
     return({
         height: function(x){oracle_start_height.value = x},

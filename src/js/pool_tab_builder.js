@@ -52,83 +52,89 @@ function pool_tab_builder(pool_tab, selector, hide_non_standard) {
     pool_tab.appendChild(pool_sell_button);
     pool_tab.appendChild(publish_tx_button);
 
-    function sell_all(){
+    async function sell_all(){
         console.log("sell all");
         //var GoalCID = contract_id.value;
         var GoalCID = contract_to_buy.value;
-        rpc.post(
-            ["contracts", GoalCID],
-            function(contract){
-                var SourceCID = contract[8];
-                var SourceType = contract[9];
-                var CID = GoalCID;
-                console.log(SourceCID);
-                console.log(SourceType);
-                var mid1 = new_market.mid(SourceCID, CID, SourceType, 1);
-                var mid2 = new_market.mid(SourceCID, CID, SourceType, 2);
-                var mid3 = new_market.mid(CID, CID, 1, 2);
-                console.log(JSON.stringify([mid1, mid2, mid3]));
-                merkle.request_proof("markets", mid1, function(market1){
-                    merkle.request_proof("markets", mid2, function(market2){
-                        merkle.request_proof("markets", mid3, function(market3){
-                            var markets = [market1, market2, market3];
-                            var mid2key = function(m){
-                                return(btoa(array_to_string(sub_accounts.key(keys.pub(), m, 0))));
-                            };
-                            var key1 = mid2key(mid1);
-                            var key2 = mid2key(mid2);
-                            var key3 = mid2key(mid3);
-                            var txs = [];
-                            rpc.post(["sub_accounts", key1], function(sa1) {
-                                rpc.post(["sub_accounts", key2], function(sa2) {
-                                    rpc.post(["sub_accounts", key3], function(sa3) {
-                            //merkle.request_proof("sub_accounts", key1, function(sa1) {
-                             //   merkle.request_proof("sub_accounts", key2, function(sa2) {
-                              //      merkle.request_proof("sub_accounts", key3, function(sa3) {
-                                        console.log(JSON.stringify([CID, sa1, sa2, sa3, key1, key2, key3]));
-                                        var make_tx = function(mid, sa, market){
-                                            if(sa === 0){
-                                                return([]);
-                                            //} else if(market === "empty"){
-                                            //    return([]);
-                                            } else {
-                                                return([["market_liquidity_tx", 0,0,0,
-                                                         mid, 1-sa[1], market[2], market[3],
-                                                         market[5], market[6]]]);
-                                            };
-                                        };
-                                        txs = txs.concat(make_tx(mid1, sa1, market1));
-                                        txs = txs.concat(make_tx(mid2, sa2, market2));
-                                        txs = txs.concat(make_tx(mid3, sa3, market3));
-                                        display.innerHTML = sell_ls_msg(txs, markets);
-                                        var cid_link = document.createElement("a");
-                                        cid_link.href = "contract_explorer.html?cid="
-                                            .concat(txs[0][8]);
-
-                                        cid_link.innerHTML = "lookup contract";
-                                        cid_link.target = "_blank";
-                                        display.appendChild(cid_link);
-
-                                        
-                                        console.log(JSON.stringify(txs));
-                                        multi_tx.make(txs, function(tx){
-                                            console.log(JSON.stringify(tx));
-                                            var stx = keys.sign(tx);
-                                            publish_tx_button.onclick = function(){
-                                                post_txs([stx], function(msg){
-                                                    display.innerHTML = msg;
-                                                    keys.update_balance();
-                                                });
-                                            };
-                                            
-                                        });
-                                    })
-                                });
-                            });
-                        });
-                    });
-                });
-            });
+        //rpc.post(
+        //    ["contracts", GoalCID],
+        //    function(contract){
+        var contract = await rpc.apost(
+            ["contracts", GoalCID]);
+//            function(contract){
+        var SourceCID = contract[8];
+        var SourceType = contract[9];
+        var CID = GoalCID;
+        console.log(SourceCID);
+        console.log(SourceType);
+        var mid1 = new_market.mid(SourceCID, CID, SourceType, 1);
+        var mid2 = new_market.mid(SourceCID, CID, SourceType, 2);
+        var mid3 = new_market.mid(CID, CID, 1, 2);
+        console.log(JSON.stringify([mid1, mid2, mid3]));
+        //merkle.request_proof("markets", mid1, function(market1){
+        var market1 = await merkle.arequest_proof("markets", mid1);
+            //merkle.request_proof("markets", mid2, function(market2){
+        var market2 = await merkle.arequest_proof("markets", mid2);
+                //merkle.request_proof("markets", mid3, function(market3){
+        var market3 = await merkle.arequest_proof("markets", mid3);
+        var markets = [market1, market2, market3];
+        var mid2key = function(m){
+            return(btoa(array_to_string(sub_accounts.key(keys.pub(), m, 0))));
+        };
+        var key1 = mid2key(mid1);
+        var key2 = mid2key(mid2);
+        var key3 = mid2key(mid3);
+        var txs = [];
+        //rpc.post(["sub_accounts", key1], function(sa1) {
+        var sa1 = await rpc.apost(["sub_accounts", key1]);
+        //rpc.post(["sub_accounts", key2], function(sa2) {
+        var sa2 = await rpc.apost(["sub_accounts", key2]);
+                //rpc.post(["sub_accounts", key3], function(sa3) {
+        var sa3 = await rpc.apost(["sub_accounts", key3]);
+        console.log(JSON.stringify([CID, sa1, sa2, sa3, key1, key2, key3]));
+        var make_tx = function(mid, sa, market){
+            if(sa === 0){
+                return([]);
+            } else {
+                return([["market_liquidity_tx", 0,0,0,
+                         mid, 1-sa[1], market[2], market[3],
+                         market[5], market[6]]]);
+            };
+        };
+        txs = txs.concat(make_tx(mid1, sa1, market1));
+        txs = txs.concat(make_tx(mid2, sa2, market2));
+        txs = txs.concat(make_tx(mid3, sa3, market3));
+        display.innerHTML = sell_ls_msg(txs, markets);
+        var cid_link = document.createElement("a");
+        cid_link.href = "contract_explorer.html?cid="
+            .concat(txs[0][8]);
+        
+        cid_link.innerHTML = "lookup contract";
+        cid_link.target = "_blank";
+        display.appendChild(cid_link);
+        
+        
+        console.log(JSON.stringify(txs));
+        //multi_tx.make(txs, function(tx){
+        var tx = await multi_tx.amake(txs);
+        console.log(JSON.stringify(tx));
+        var stx = keys.sign(tx);
+        publish_tx_button.onclick = async function(){
+            //post_txs([stx], function(msg){
+            var msg = await apost_txs([stx]);
+            display.innerHTML = msg;
+            keys.update_balance();
+            //});
+        };
+            
+    //});
+    //})
+//});
+//});
+//});
+//});
+//});
+//});
     };
     function sell_ls_msg(txs, markets) {
         var r = "";
@@ -179,7 +185,7 @@ function pool_tab_builder(pool_tab, selector, hide_non_standard) {
 */
         return(r);
     };
-    function lookup_price(){
+    async function lookup_price(){
         console.log("lookup price");
         var C1 = selector.value;
         var CID1, Type1;
@@ -194,22 +200,25 @@ function pool_tab_builder(pool_tab, selector, hide_non_standard) {
         };
         //var GoalCID = contract_id.value;
         var GoalCID = contract_to_buy.value;
-        rpc.post(
-            ["contracts", GoalCID],
-            function(contract){
-                var SourceCID = contract[8];
-                var SourceType = contract[9];
-                var A = Math.round(parseFloat(amount_input.value) * token_units());
-                if((CID1 == SourceCID) && (Type1 == SourceType)){
-                    return(lookup_price2(A, [], SourceCID, SourceType, GoalCID, [CID1, Type1]));
-                };
-                tabs.tabs.swap.tab.txs_maker(A, CID1, Type1, SourceCID, SourceType, function(swap_txs){
-                    var A2 = tabs.tabs.swap.tab.calculate_gain([SourceCID, SourceType], swap_txs, []);
-                    return(lookup_price2(A2, swap_txs, SourceCID, SourceType, GoalCID, [CID1, Type1]));
-                });
-            });
+        //rpc.post(
+        //    ["contracts", GoalCID],
+        //    function(contract){
+        var contract = await rpc.apost(
+            ["contracts", GoalCID]);
+        //function(contract){
+        var SourceCID = contract[8];
+        var SourceType = contract[9];
+        var A = Math.round(parseFloat(amount_input.value) * token_units());
+        if((CID1 == SourceCID) && (Type1 == SourceType)){
+            return(lookup_price2(A, [], SourceCID, SourceType, GoalCID, [CID1, Type1]));
+        };
+        tabs.tabs.swap.tab.txs_maker(A, CID1, Type1, SourceCID, SourceType, function(swap_txs){
+            var A2 = tabs.tabs.swap.tab.calculate_gain([SourceCID, SourceType], swap_txs, []);
+            return(lookup_price2(A2, swap_txs, SourceCID, SourceType, GoalCID, [CID1, Type1]));
+        //});
+        });
     };
-    function lookup_price2(Amount, swap_txs, SourceCID, SourceType, CID, SpentCurrency){
+    async function lookup_price2(Amount, swap_txs, SourceCID, SourceType, CID, SpentCurrency){
         //move all 3 markets to the same price in such a way that you are left profiting in source currency terms.
         //console.log(SourceCID);
         //console.log(SourceType);
@@ -218,10 +227,13 @@ function pool_tab_builder(pool_tab, selector, hide_non_standard) {
         var mid1 = new_market.mid(CID, SourceCID, 1, SourceType);
         var mid2 = new_market.mid(SourceCID, CID, SourceType, 2);
         var mid3 = new_market.mid(CID, CID, 1, 2);
-        rpc.post(["markets", mid1], function(market1){
-            rpc.post(["markets", mid2], function(market2){
-                rpc.post(["markets", mid3], function(market3){
-                    var db = JSON.parse(JSON.stringify([market1, market2, market3]));
+        //rpc.post(["markets", mid1], function(market1){
+        var market1 = await rpc.apost(["markets", mid1]);
+            //rpc.post(["markets", mid2], function(market2){
+        var market2 = await rpc.apost(["markets", mid2]);
+                //rpc.post(["markets", mid3], function(market3){
+        var market3 = await rpc.apost(["markets", mid3]);
+        var db = JSON.parse(JSON.stringify([market1, market2, market3]));
                     /*
 definition of constant product
 K1 = A00 * A10 = A01 * A11
@@ -281,168 +293,168 @@ since E3 is concave downwards, we know that the best value will be at one of the
 
 So we only need to check the 2 limits of the range, and go with whichever price is better.
                       */
-                    var A00 = market1[4];
-                    var A10 = market1[7];
-                    var B00 = market2[4];
-                    var B10 = market2[7];
-                    var C00 = market3[4];
-                    var C10 = market3[7];
-                    //console.log(JSON.stringify([[A00, A10], [B00, B10], [C00, C10]]));
-                    var K1 = A00 * A10;
-                    var K2 = B00 * B10;
-                    var K3 = C00 * C10;
-
-                    var A = C00 + A10;
-                    var B = K1;
-                    var C = K3;
-                    var P_lower_limit = (1/(Math.pow(A, 4) + 2*A*A*C + C*C))*(A*A*B + A*A*C - B*C + C*C + 2*Math.sqrt(A*A*A*A*B*C - A*A*B*B*C + A*A*B*C*C));
-
-                    A = B10 + C10;
-                    B = K2;
-                    C = K3;
-                    var P_upper_limit = (1/(Math.pow(A, 4) + 2*A*A*C + C*C))*(Math.pow(A, 4) - A*A*B + A*A*C + B*C - 2*Math.sqrt(Math.pow(A, 4)*B*C - A*A*B*B*C + A*A*B*C*C));
-
-                    if(P_lower_limit > (0.003 + P_upper_limit)) {
-                        console.log(P_lower_limit);
-                        console.log(P_upper_limit);
-                        console.log("impossible error");
-                        return(0);
-                    };
-                    var Pl = P_lower_limit;
-                    var Pu = P_upper_limit;
-                    console.log(JSON.stringify([Pl, Pu]));
-                    var C1 = Math.sqrt(Pl*K1) + Math.sqrt((1-Pl)*K2);//A01 + B01
-                    var C2 = Math.sqrt(Pu*K1) + Math.sqrt((1-Pu)*K2);
-                    var A1 = Math.sqrt((1-Pl)*K3/Pl) + Math.sqrt(K1/Pl);//C01 + A11
-                    var A2 = Math.sqrt((1-Pu)*K3/Pu) + Math.sqrt(K1/Pu);
-                    var B1 = Math.sqrt(K2/(1-Pl)) + Math.sqrt(K3*Pl/(1-Pl));//B11 + C11
-                    var B2 = Math.sqrt(K2/(1-Pu)) + Math.sqrt(K3*Pu/(1-Pu));
-                    var P;
-                    //console.log("how much the market's ownership in each share type changes, looking at either price.");
-                    //console.log(JSON.stringify([
-                    //    [A1 - (C00 + A10), A2 - (C00 + A10)],
-                    //    [B1 - (C10 + B10), B2 - (C10 + B10)],
-                    //    [C1 - (A00 + B00), C2 - (A00 + B00)],
-                    //]));
-                    //console.log(JSON.stringify([A00 + B00, C1, C2]));
-                    if(C1 > C2) {
-                        P = Pu;
-                    } else {
-                        P = Pl;
-                    };
-
-                    A01 = Math.sqrt(P*K1);
-                    B01 = Math.sqrt((1-P)*K2);
-                    C01 = Math.sqrt((1-P)*K3/P);
-                    A11 = Math.sqrt(K1/P);
-                    B11 = Math.sqrt(K2/(1-P));
-                    C11 = Math.sqrt(K3*P/(1-P));
-
-                    market1[4] = A01;
-                    market1[7] = A11;
-                    market2[4] = B01;
-                    market2[7] = B11;
-                    market3[4] = C01;
-                    market3[7] = C11;
-                    //console.log(JSON.stringify(
-                    //    [[A01, A11],[B01, B11],[C01,C11]]));
-                    var price1 = A01/A11;
-                    var price2 = B01/B11;
-                    var price3 = C11 / C01;
-                    var price3b = price1/price2;
-                    if(Math.abs(price3-price3b)>0.0001){
-                        console.log(price3);
-                        console.log(price3b);
-                        console.log("bad market mix");
-                        return(0);
-                    }
-                    var txs2 = [];
-                    if((A01 > A00)&&((A01 - A00)>1)){
-                        console.log("buy type 2 in market 1");
-                        console.log(A01 - A00);
-                        txs2 = txs2.concat([
-                            ["market_swap_tx",
-                             0,0,0, mid1,
-                             Math.ceil(A01 - A00),
-                             Math.floor((A10 - A11)*trading_fee),
-                             1,
-                             SourceCID, SourceType,
-                             CID, 1]]);
-                    } else if ((A01 < A00)&&((A00 - A01)>1)){
-                        console.log("buy type 1 in market 1");
-                        console.log(A11 - A10);
-                        txs2 = txs2.concat([
-                            ["market_swap_tx",
-                             0,0,0, mid1,
-                             Math.ceil(A11 - A10),
-                             Math.floor((A00 - A01)*trading_fee),
-                             2,
-                             SourceCID, SourceType,
-                             CID, 1]]);
-                    };
-                    if((B01 > B00)&&((B01 - B00)>1)){
-                        console.log("buy type 2 in market 2");
-                        console.log(B01 - B00);
-                        txs2 = txs2.concat([
-                            ["market_swap_tx",
-                             0,0,0, mid2,
-                             Math.ceil(B01 - B00),
-                             Math.floor((B10 - B11)*trading_fee),
-                             1,
-                             SourceCID, SourceType,
-                             CID, 2]]);
-                    } else if ((B01 < B00)&&((B00 - B01)>1)){
-                        console.log("buy type 1 in market 2");
-                        console.log(B11 - B10);
-                        txs2 = txs2.concat([
-                            ["market_swap_tx",
-                             0,0,0, mid2,
-                             Math.ceil(B11 - B10),
-                             Math.floor((B00 - B01)*trading_fee),
-                             2,
-                             SourceCID, SourceType,
-                             CID, 2]]);
-                    };
-                    if((C01 > C00)&&((C01 - C00)>1)){
-                        console.log("buy type 2 in market 3");
-                        console.log(C01 - C00);
-                        txs2 = txs2.concat([
-                            ["market_swap_tx",
-                             0,0,0, mid3,
-                             Math.ceil(C01 - C00),
-                             Math.floor((C10 - C11)*trading_fee),
-                             1,
-                             CID, 1,
-                             CID, 2]]);
-                    } else if ((C01 < C00)&&((C00 - C01)>1)){
-                        console.log("buy type 1 in market 3");
-                        console.log(C11 - C10);
-                        txs2 = txs2.concat([
-                            ["market_swap_tx",
-                             0,0,0, mid3,
-                             Math.ceil(C11 - C10),
-                             Math.floor((C00 - C01)*trading_fee),
-                             2,
-                             CID, 1,
-                             CID, 2]]);
-                    };
-                    var spendmax = 0;
-                    txs2.map(function(tx){
-                        spendmax = Math.max(spendmax, tx[5]);
-                        spendmax = Math.max(spendmax, tx[6]);
-                    });
-                    txs2 = txs2.concat([
-                        ["contract_use_tx",0,0,0,
-                         //CID, spendmax*2, 2, SourceCID, SourceType]
-                         CID, spendmax, 2, SourceCID, SourceType]
-                    ]);
-                    
-                    return(lookup_price3(swap_txs, txs2, Amount, (A01/A11), mid1, mid2, mid3, CID, SourceCID, SourceType, market1, market2, market3, SpentCurrency, db));
-                });
-            });
+        var A00 = market1[4];
+        var A10 = market1[7];
+        var B00 = market2[4];
+        var B10 = market2[7];
+        var C00 = market3[4];
+        var C10 = market3[7];
+        //console.log(JSON.stringify([[A00, A10], [B00, B10], [C00, C10]]));
+        var K1 = A00 * A10;
+        var K2 = B00 * B10;
+        var K3 = C00 * C10;
+        
+        var A = C00 + A10;
+        var B = K1;
+        var C = K3;
+        var P_lower_limit = (1/(Math.pow(A, 4) + 2*A*A*C + C*C))*(A*A*B + A*A*C - B*C + C*C + 2*Math.sqrt(A*A*A*A*B*C - A*A*B*B*C + A*A*B*C*C));
+        
+        A = B10 + C10;
+        B = K2;
+        C = K3;
+        var P_upper_limit = (1/(Math.pow(A, 4) + 2*A*A*C + C*C))*(Math.pow(A, 4) - A*A*B + A*A*C + B*C - 2*Math.sqrt(Math.pow(A, 4)*B*C - A*A*B*B*C + A*A*B*C*C));
+        
+        if(P_lower_limit > (0.003 + P_upper_limit)) {
+            console.log(P_lower_limit);
+            console.log(P_upper_limit);
+            console.log("impossible error");
+            return(0);
+        };
+        var Pl = P_lower_limit;
+        var Pu = P_upper_limit;
+        console.log(JSON.stringify([Pl, Pu]));
+        var C1 = Math.sqrt(Pl*K1) + Math.sqrt((1-Pl)*K2);//A01 + B01
+        var C2 = Math.sqrt(Pu*K1) + Math.sqrt((1-Pu)*K2);
+        var A1 = Math.sqrt((1-Pl)*K3/Pl) + Math.sqrt(K1/Pl);//C01 + A11
+        var A2 = Math.sqrt((1-Pu)*K3/Pu) + Math.sqrt(K1/Pu);
+        var B1 = Math.sqrt(K2/(1-Pl)) + Math.sqrt(K3*Pl/(1-Pl));//B11 + C11
+        var B2 = Math.sqrt(K2/(1-Pu)) + Math.sqrt(K3*Pu/(1-Pu));
+        var P;
+        //console.log("how much the market's ownership in each share type changes, looking at either price.");
+        //console.log(JSON.stringify([
+        //    [A1 - (C00 + A10), A2 - (C00 + A10)],
+        //    [B1 - (C10 + B10), B2 - (C10 + B10)],
+        //    [C1 - (A00 + B00), C2 - (A00 + B00)],
+        //]));
+        //console.log(JSON.stringify([A00 + B00, C1, C2]));
+        if(C1 > C2) {
+            P = Pu;
+        } else {
+            P = Pl;
+        };
+        
+        A01 = Math.sqrt(P*K1);
+        B01 = Math.sqrt((1-P)*K2);
+        C01 = Math.sqrt((1-P)*K3/P);
+        A11 = Math.sqrt(K1/P);
+        B11 = Math.sqrt(K2/(1-P));
+        C11 = Math.sqrt(K3*P/(1-P));
+        
+        market1[4] = A01;
+        market1[7] = A11;
+        market2[4] = B01;
+        market2[7] = B11;
+        market3[4] = C01;
+        market3[7] = C11;
+        //console.log(JSON.stringify(
+        //    [[A01, A11],[B01, B11],[C01,C11]]));
+        var price1 = A01/A11;
+        var price2 = B01/B11;
+        var price3 = C11 / C01;
+        var price3b = price1/price2;
+        if(Math.abs(price3-price3b)>0.0001){
+            console.log(price3);
+            console.log(price3b);
+            console.log("bad market mix");
+            return(0);
+        }
+        var txs2 = [];
+        if((A01 > A00)&&((A01 - A00)>1)){
+            console.log("buy type 2 in market 1");
+            console.log(A01 - A00);
+            txs2 = txs2.concat([
+                ["market_swap_tx",
+                 0,0,0, mid1,
+                 Math.ceil(A01 - A00),
+                 Math.floor((A10 - A11)*trading_fee),
+                 1,
+                 SourceCID, SourceType,
+                 CID, 1]]);
+        } else if ((A01 < A00)&&((A00 - A01)>1)){
+            console.log("buy type 1 in market 1");
+            console.log(A11 - A10);
+            txs2 = txs2.concat([
+                ["market_swap_tx",
+                 0,0,0, mid1,
+                 Math.ceil(A11 - A10),
+                 Math.floor((A00 - A01)*trading_fee),
+                 2,
+                 SourceCID, SourceType,
+                 CID, 1]]);
+        };
+        if((B01 > B00)&&((B01 - B00)>1)){
+            console.log("buy type 2 in market 2");
+            console.log(B01 - B00);
+            txs2 = txs2.concat([
+                ["market_swap_tx",
+                 0,0,0, mid2,
+                 Math.ceil(B01 - B00),
+                 Math.floor((B10 - B11)*trading_fee),
+                 1,
+                 SourceCID, SourceType,
+                 CID, 2]]);
+        } else if ((B01 < B00)&&((B00 - B01)>1)){
+            console.log("buy type 1 in market 2");
+            console.log(B11 - B10);
+            txs2 = txs2.concat([
+                ["market_swap_tx",
+                 0,0,0, mid2,
+                 Math.ceil(B11 - B10),
+                 Math.floor((B00 - B01)*trading_fee),
+                 2,
+                 SourceCID, SourceType,
+                 CID, 2]]);
+        };
+        if((C01 > C00)&&((C01 - C00)>1)){
+            console.log("buy type 2 in market 3");
+            console.log(C01 - C00);
+            txs2 = txs2.concat([
+                ["market_swap_tx",
+                 0,0,0, mid3,
+                 Math.ceil(C01 - C00),
+                 Math.floor((C10 - C11)*trading_fee),
+                 1,
+                 CID, 1,
+                 CID, 2]]);
+        } else if ((C01 < C00)&&((C00 - C01)>1)){
+            console.log("buy type 1 in market 3");
+            console.log(C11 - C10);
+            txs2 = txs2.concat([
+                ["market_swap_tx",
+                 0,0,0, mid3,
+                 Math.ceil(C11 - C10),
+                 Math.floor((C00 - C01)*trading_fee),
+                 2,
+                 CID, 1,
+                 CID, 2]]);
+        };
+        var spendmax = 0;
+        txs2.map(function(tx){
+            spendmax = Math.max(spendmax, tx[5]);
+            spendmax = Math.max(spendmax, tx[6]);
         });
+        txs2 = txs2.concat([
+            ["contract_use_tx",0,0,0,
+             //CID, spendmax*2, 2, SourceCID, SourceType]
+             CID, spendmax, 2, SourceCID, SourceType]
+        ]);
+        
+        return(lookup_price3(swap_txs, txs2, Amount, (A01/A11), mid1, mid2, mid3, CID, SourceCID, SourceType, market1, market2, market3, SpentCurrency, db));
+    //});
+//});
+    //});
     };
-    function lookup_price3(swap_txs, arb_txs, amount, price, mid1, mid2, mid3, cid, source_cid, source_type, market1, market2, market3, SpentCurrency, db) {
+    async function lookup_price3(swap_txs, arb_txs, amount, price, mid1, mid2, mid3, cid, source_cid, source_type, market1, market2, market3, SpentCurrency, db) {
         var mida;
         var typea;
         var marketa;
@@ -515,83 +527,86 @@ IA = B*(2PA-1)
         var full_txs = swap_txs
             .concat(arb_txs)
             .concat(liquidity_txs);
-        multi_tx.make(full_txs, function(tx){
-            console.log(JSON.stringify(tx));
-            //calculate loss/gain info, and display it.
-            //var markets = db;
-            var markets = [market1, market2, market3];
-            var loss = tabs.tabs.swap.tab.calculate_loss(SpentCurrency, full_txs, markets) - tabs.tabs.swap.tab.calculate_gain(SpentCurrency, full_txs, markets);
-            var loss1 = tabs.tabs.swap.tab.calculate_loss([cid, 1], full_txs, markets) - tabs.tabs.swap.tab.calculate_gain([cid, 1], full_txs, markets);
-            var loss2 = tabs.tabs.swap.tab.calculate_loss([cid, 2], full_txs, markets) - tabs.tabs.swap.tab.calculate_gain([cid, 2], full_txs, markets);
-
-            var gain1 = tabs.tabs.swap.tab.calculate_gain([mid1, 0], full_txs, markets);
-            var gain2 = tabs.tabs.swap.tab.calculate_gain([mid2, 0], full_txs, markets);
-            var gain3 = tabs.tabs.swap.tab.calculate_gain([mid3, 0], full_txs, markets);
-            console.log(JSON.stringify([loss, loss1, loss2//,
-                                        //gain1, gain2, gain3
-                                       ]));
-            var source_worth = 0;
-            var sub1_worth = 0;
+        //multi_tx.make(full_txs, function(tx){
+        var tx = await multi_tx.amake(full_txs);
+        console.log(JSON.stringify(tx));
+        //calculate loss/gain info, and display it.
+        //var markets = db;
+        var markets = [market1, market2, market3];
+        var loss = tabs.tabs.swap.tab.calculate_loss(SpentCurrency, full_txs, markets) - tabs.tabs.swap.tab.calculate_gain(SpentCurrency, full_txs, markets);
+        var loss1 = tabs.tabs.swap.tab.calculate_loss([cid, 1], full_txs, markets) - tabs.tabs.swap.tab.calculate_gain([cid, 1], full_txs, markets);
+        var loss2 = tabs.tabs.swap.tab.calculate_loss([cid, 2], full_txs, markets) - tabs.tabs.swap.tab.calculate_gain([cid, 2], full_txs, markets);
+        
+        var gain1 = tabs.tabs.swap.tab.calculate_gain([mid1, 0], full_txs, markets);
+        var gain2 = tabs.tabs.swap.tab.calculate_gain([mid2, 0], full_txs, markets);
+        var gain3 = tabs.tabs.swap.tab.calculate_gain([mid3, 0], full_txs, markets);
+        console.log(JSON.stringify([loss, loss1, loss2//,
+                                    //gain1, gain2, gain3
+                                   ]));
+        var source_worth = 0;
+        var sub1_worth = 0;
             var sub2_worth = 0;
-
-            source_worth += gain1*market1[4]/market1[8];
-            sub1_worth += gain1*market1[7]/market1[8];
-            source_worth += gain2*market2[4]/market2[8];
-            sub2_worth += gain2*market2[7]/market2[8];
-            sub1_worth += gain3*market3[4]/market3[8];
-            sub2_worth += gain3*market3[7]/market3[8];
-
-            var sk = sub_accounts.key(keys.pub(), cid, 1);
-            sk = btoa(array_to_string(sk));
-            console.log(cid);
-            console.log(sk);
-            console.log(JSON.stringify(Object.keys(tabs.balances_db)));
-            console.log(JSON.stringify(tabs.balances_db[sk]));
-            var type1string = ""
-                .concat((sub1_worth / token_units()).toString())
-                .concat(" of subcurrency type 1. <br>");
-            
-            if((tabs.balances_db[sk] &&
-                tabs.balances_db[sk].ticker_symbol))
-            {
-                var limit = tabs.balances_db[sk].limit;
-                type1string = ""
-                    .concat((limit * sub1_worth / token_units()).toString())
-                    .concat(" of ")
-                    .concat(tabs.balances_db[sk].ticker_symbol)
-                    .concat(" <br>");
-            };
-            
-            display.innerHTML = "you can sell "
-                .concat((loss / token_units()).toString())
-                .concat(" of the source currency to gain liquidity shares that are currently worth: <br>")
-                .concat((source_worth / token_units()).toString())
-                .concat(" of source currency. <br>")
-                .concat(type1string)
-                //.concat((sub1_worth / token_units()).toString())
-                //.concat(" of subcurrency type 1. <br>")
-                .concat((sub2_worth / token_units()).toString())
-                .concat(" of subcurrency type 2. <br>")
-                .concat("");
-            var stx = keys.sign(tx);
-            console.log(tx);
-            //return(0);
-            publish_tx_button.onclick = function(){
-                post_txs([stx], function(msg){
-                    display.innerHTML = msg;
-                    keys.update_balance();
-                });
-            };
-        });
+        
+        source_worth += gain1*market1[4]/market1[8];
+        sub1_worth += gain1*market1[7]/market1[8];
+        source_worth += gain2*market2[4]/market2[8];
+        sub2_worth += gain2*market2[7]/market2[8];
+        sub1_worth += gain3*market3[4]/market3[8];
+        sub2_worth += gain3*market3[7]/market3[8];
+        
+        var sk = sub_accounts.key(keys.pub(), cid, 1);
+        sk = btoa(array_to_string(sk));
+        console.log(cid);
+        console.log(sk);
+        console.log(JSON.stringify(Object.keys(tabs.balances_db)));
+        console.log(JSON.stringify(tabs.balances_db[sk]));
+        var type1string = ""
+            .concat((sub1_worth / token_units()).toString())
+            .concat(" of subcurrency type 1. <br>");
+        
+        if((tabs.balances_db[sk] &&
+            tabs.balances_db[sk].ticker_symbol))
+        {
+            var limit = tabs.balances_db[sk].limit;
+            type1string = ""
+                .concat((limit * sub1_worth / token_units()).toString())
+                .concat(" of ")
+                .concat(tabs.balances_db[sk].ticker_symbol)
+                .concat(" <br>");
+        };
+        
+        display.innerHTML = "you can sell "
+            .concat((loss / token_units()).toString())
+            .concat(" of the source currency to gain liquidity shares that are currently worth: <br>")
+            .concat((source_worth / token_units()).toString())
+            .concat(" of source currency. <br>")
+            .concat(type1string)
+        //.concat((sub1_worth / token_units()).toString())
+        //.concat(" of subcurrency type 1. <br>")
+            .concat((sub2_worth / token_units()).toString())
+            .concat(" of subcurrency type 2. <br>")
+            .concat("");
+        var stx = keys.sign(tx);
+        console.log(tx);
+        //return(0);
+        publish_tx_button.onclick = async function(){
+            //post_txs([stx], function(msg){
+            var msg = await apost_txs([stx]);
+            display.innerHTML = msg;
+            keys.update_balance();
+            //});
+        };
+    //});
     };
-    function display_contracts(div) {
-        rpc.post(["contracts"], function(contracts){
+    async function display_contracts(div) {
+        //rpc.post(["contracts"], function(contracts){
+        var contracts = await rpc.apost(["contracts"], get_ip(), 8091);
             //console.log(JSON.stringify(contracts));
-            var s = "<h4>existing contracts</h4>";
-            return(display_contracts2(div, contracts.slice(1), s));
-        }, get_ip(), 8091);//8091 is explorer
+        var s = "<h4>existing contracts</h4>";
+        return(display_contracts2(div, contracts.slice(1), s));
+    //}, get_ip(), 8091);//8091 is explorer
     };
-    function display_contracts2(div, contracts, s) {
+    async function display_contracts2(div, contracts, s) {
         //console.log(JSON.stringify(contracts));
         if(contracts.length < 1) {
             //console.log(s);
@@ -603,56 +618,57 @@ IA = B*(2PA-1)
         var cid = tabs.tabs.swap.tab.contract_to_cid(contracts[0]);
         var source = contracts[0][8];
         var source_type = contracts[0][9];
-        rpc.post(["read", 3, cid], function(oracle_text) {
-            //tabs.swap.price_estimate_read(cid, source, source_type, function(p_est){
-            //tabs.tabs.swap.tab.price_estimate_read(cid, source, source_type, function(p_est){
-            price_estimate_read(cid, source, source_type, function(p_est){
-            //console.log(contracts[0]);
-            //console.log(cid);
-            if(!(oracle_text == 0)) {
-                var type = oracle_text[0];
-                var text = atob(oracle_text[1]);
-                //console.log(text);
-                //console.log(JSON.stringify(oracle_text));
-                var TickerBool =
+        //rpc.post(["read", 3, cid], async function(oracle_text) {
+        var oracle_text = await rpc.apost(["read", 3, cid], get_ip(), 8090);
+        //tabs.swap.price_estimate_read(cid, source, source_type, function(p_est){
+        //tabs.tabs.swap.tab.price_estimate_read(cid, source, source_type, function(p_est){
+        //price_estimate_read(cid, source, source_type, function(p_est){
+        [p_est, unused] = await price_estimate_read(cid, source, source_type);
+        //console.log(contracts[0]);
+        //console.log(cid);
+        if(!(oracle_text == 0)) {
+            var type = oracle_text[0];
+            var text = atob(oracle_text[1]);
+            //console.log(text);
+            //console.log(JSON.stringify(oracle_text));
+            var TickerBool =
                     tabs.is_ticker_format(text);
-                if(TickerBool){
-                    text = tabs.decode_ticker(text, p_est, "stablecoin");
-                } else {
-                    //text = atob(oracle_text[1]);
-                }
-
-
-                if((!(hide_non_standard)) || TickerBool){
-                    var mid = new_market.mid(cid, cid, 1, 2);
-                    var option = document.createElement("option");
-                    option.value = cid;
-                    contract_to_buy.appendChild(option);
-                    option.innerHTML = ""
-                        .concat("\"")
-                        .concat(text)
-                        .concat("\"~ ")
-                        .concat("; volume: ")
-                        .concat((contracts[0][11] / token_units()).toString());
-                    s = s
-                        .concat("\"")
-                        .concat(text)
-                        .concat("\"~ ")
-                        .concat("; volume: ")
-                        .concat((contracts[0][11] / token_units()).toString())
-                        //.concat("<button onclick=\"tabs.pool.cid('")
-                        .concat("<button onclick=\"tabs.tabs.pool.tab.cid('")
-                        .concat(cid)
-                        .concat("');\"> pool</button>")
-                        .concat("<br>")
-                        .concat("");
-                };
+            if(TickerBool){
+                text = tabs.decode_ticker(text, p_est, "stablecoin");
+            } else {
+                //text = atob(oracle_text[1]);
             }
-                setTimeout(function(){
-                    display_contracts2(div, contracts.slice(1), s);
-                }, 100);
-            });
-        }, get_ip(), 8090);
+            
+            
+            if((!(hide_non_standard)) || TickerBool){
+                var mid = new_market.mid(cid, cid, 1, 2);
+                var option = document.createElement("option");
+                option.value = cid;
+                contract_to_buy.appendChild(option);
+                option.innerHTML = ""
+                    .concat("\"")
+                    .concat(text)
+                    .concat("\"~ ")
+                    .concat("; volume: ")
+                    .concat((contracts[0][11] / token_units()).toString());
+                s = s
+                    .concat("\"")
+                    .concat(text)
+                    .concat("\"~ ")
+                    .concat("; volume: ")
+                    .concat((contracts[0][11] / token_units()).toString())
+                //.concat("<button onclick=\"tabs.pool.cid('")
+                    .concat("<button onclick=\"tabs.tabs.pool.tab.cid('")
+                    .concat(cid)
+                    .concat("');\"> pool</button>")
+                    .concat("<br>")
+                    .concat("");
+            };
+        }
+        setTimeout(function(){
+            display_contracts2(div, contracts.slice(1), s);
+        }, 100);
+    //}, get_ip(), 8090);
     };
     
     return({

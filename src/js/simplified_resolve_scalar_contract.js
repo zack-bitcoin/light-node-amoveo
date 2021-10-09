@@ -18,27 +18,30 @@ var simplified_resolve_scalar_contract = (function(){
     var button = button_maker2("resolve", doit);
     div.appendChild(button);
     div.appendChild(br());
-    function doit(){
+    async function doit(){
         var cid = cid_input.value;
         var oid = oid_input.value;
-        rpc.post(["read", 3, cid], function(contract){
-            var oracle_question = atob(contract[1]);
-            var max_price = contract[3];
-            rpc.post(["oracles", oid], function(oracle){
+        //rpc.post(["read", 3, cid], function(contract){
+        var contract = await rpc.apost(["read", 3, cid], get_ip(), 8090);
+        var oracle_question = atob(contract[1]);
+        var max_price = contract[3];
+        //rpc.post(["oracles", oid], function(oracle){
+        var oracle = await rpc.apost(["oracles", oid]);
                 var oracle_height = oracle[4];
                 var question_hash = oracle[3];
-                rpc.post(["oracle", 2, question_hash], function(text){
-                    console.log(oracle_question);
-                    console.log(atob(text));
-                    var is = atob(text).match(/max.0, min.MaxVal, .B . MaxVal . MaxPrice.. is \d*/)[0].match(/\d*$/)[0];
-                    var final_price = parseInt(is, 10);
-                    final_price = Math.round(is*max_price/MaxMeasurable);
-                    return(resolve(
-                        oracle_question, oracle_height,
-                        max_price, final_price, oid));
-                });
-            });
-        }, get_ip(), 8090);
+                //rpc.post(["oracle", 2, question_hash], function(text){
+        var text = await rpc.apost(["oracle", 2, question_hash]);
+        console.log(oracle_question);
+        console.log(atob(text));
+        var is = atob(text).match(/max.0, min.MaxVal, .B . MaxVal . MaxPrice.. is \d*/)[0].match(/\d*$/)[0];
+        var final_price = parseInt(is, 10);
+        final_price = Math.round(is*max_price/MaxMeasurable);
+        return(resolve(
+            oracle_question, oracle_height,
+            max_price, final_price, oid));
+    //});
+            //});
+        //}, get_ip(), 8090);
         return(0);
     }
 
@@ -54,7 +57,7 @@ var simplified_resolve_scalar_contract = (function(){
     div.appendChild(br());
     */
 
-    function resolve(Text, Start, MP, FP, oid0){
+    async function resolve(Text, Start, MP, FP, oid0){
         console.log(JSON.stringify([MP, FP]));
         console.log(JSON.stringify(Text));
         //var Start = parseInt(oracle_height.value);
@@ -92,75 +95,81 @@ var simplified_resolve_scalar_contract = (function(){
         var CH = scalar_derivative.hash(contract);
         console.log(JSON.stringify(CH));
         //console.log(JSON.stringify([oracle_question.value, parseInt(max_price.value), Start]));
-        var cid = binary_derivative.id_maker(CH, 2);
+        var cid = merkle.contract_id_maker(CH, 2);
         console.log(JSON.stringify(cid));
-        merkle.request_proof("contracts", cid, function(c){
-            console.log("contract");
-            if(c=="empty"){
-                display.innerHTML = "that contract does not exist ".concat(cid);
-                return(0);
+        //merkle.request_proof("contracts", cid, function(c){
+        var c = await merkle.arequest_proof("contracts", cid);
+        console.log("contract");
+        if(c=="empty"){
+            display.innerHTML = "that contract does not exist ".concat(cid);
+            return(0);
+        };
+        //merkle.request_proof("oracles", oid, async function(oracle){
+        var oracle = await merkle.arequest_proof("oracles", oid);
+        console.log("oracle");
+        if(oracle == "empty"){
+            display.innerHTML = "oracle does not exist";
+            console.log(oid);
+            return(0);
             };
-            merkle.request_proof("oracles", oid, function(oracle){
-                console.log("oracle");
-                if(oracle == "empty"){
-                    display.innerHTML = "oracle does not exist";
-                    console.log(oid);
-                    return(0);
-                };
-                /*
-                if(oracle[2] == 0){
-                    display.innerHTML = "oracle is not yet resolved";
-                    console.log(oracle);
-                    return(0);
-                }
-                */
-                console.log(JSON.stringify(oracle));
-//" int 4294967295 int1 3 / ">>), 
-                rpc.post(["account", keys.pub()], function(Acc){
-                    var Nonce = Acc[2] + 1;
-                    var fee = 152050;
-
-                    var tx0 = ["oracle_close", keys.pub(), Nonce, fee, oid];
-                    var stx0 = keys.sign(tx0);
-
-                    var evidence =
-                        //string_to_array(atob("AJmZmZk="))
-                        ([0])
-                        .concat(integer_to_array(Math.round(MaxMeasurable*FP/MP), 4))
-                        .concat([0])
-                        .concat(integer_to_array(Start, 4));
-                    var evidence = btoa(array_to_string(evidence));
-                    var tx1 = ["contract_evidence_tx",
-                               keys.pub(), Nonce+1, fee*2, contract,
-                               cid, evidence,//"AJmZmZk=",
-                               [-6, ["oracles", oid]]];
-                    console.log(JSON.stringify(tx1));
-                    var stx1 = keys.sign(tx1);
-                    
-                    var tx2 = ["contract_timeout_tx2",
-                               keys.pub(), Nonce+2, fee,
-                               cid, 0, 0, 0, 0];
-                    var stx2 = keys.sign(tx2);
-                    console.log(JSON.stringify(tx2));
-                    //return(0);
-                    post_txs([stx0], function(msg0){
-                        display.innerHTML = msg0;
-                        post_txs([stx1], function(msg){
-                            display.innerHTML = msg0
-                                .concat("<br>")
-                                .concat(msg);
-                            post_txs([stx2], function(msg2){
-                                display.innerHTML = msg0
-                                    .concat("<br>")
-                                    .concat(msg)
-                                    .concat("<br>")
-                                    .concat(msg2);
-                            });
-                        });
-                    });
-                });
-            });
-        });
+        /*
+          if(oracle[2] == 0){
+          display.innerHTML = "oracle is not yet resolved";
+          console.log(oracle);
+          return(0);
+          }
+        */
+        console.log(JSON.stringify(oracle));
+        //" int 4294967295 int1 3 / ">>), 
+        //rpc.post(["account", keys.pub()], async function(Acc){
+        var Acc = await rpc.apost(["account", keys.pub()]);
+        var Nonce = Acc[2] + 1;
+            var fee = 152050;
+        
+        var tx0 = ["oracle_close", keys.pub(), Nonce, fee, oid];
+        var stx0 = keys.sign(tx0);
+        
+        var evidence =
+            //string_to_array(atob("AJmZmZk="))
+            ([0])
+            .concat(integer_to_array(Math.round(MaxMeasurable*FP/MP), 4))
+            .concat([0])
+            .concat(integer_to_array(Start, 4));
+        var evidence = btoa(array_to_string(evidence));
+        var tx1 = ["contract_evidence_tx",
+                   keys.pub(), Nonce+1, fee*2, contract,
+                   cid, evidence,//"AJmZmZk=",
+                   [-6, ["oracles", oid]]];
+        console.log(JSON.stringify(tx1));
+        var stx1 = keys.sign(tx1);
+        
+        var tx2 = ["contract_timeout_tx2",
+                   keys.pub(), Nonce+2, fee,
+                   cid, 0, 0, 0, 0];
+        var stx2 = keys.sign(tx2);
+        console.log(JSON.stringify(tx2));
+        //return(0);
+        //post_txs([stx0], function(msg0){
+        var msg0 = await apost_txs([stx0]);
+        display.innerHTML = msg0;
+        //post_txs([stx1], function(msg){
+        var msg = await apost_txs([stx1]);
+        display.innerHTML = msg0
+            .concat("<br>")
+            .concat(msg);
+        //post_txs([stx2], function(msg2){
+        var msg2 = await apost_txs([stx2]);
+        display.innerHTML = msg0
+            .concat("<br>")
+            .concat(msg)
+            .concat("<br>")
+            .concat(msg2);
+        //});
+        //});
+        //});
+        //});
+        //});
+        //});
     };
     
     return({

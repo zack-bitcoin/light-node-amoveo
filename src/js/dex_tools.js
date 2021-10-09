@@ -89,7 +89,7 @@ var dex_tools = (function(){
         var date = contract_text.slice(-21);
         var bytes = scalar_derivative.maker(contract_text, 1, 0);
         var CH = scalar_derivative.hash(bytes);
-        var cid = binary_derivative.id_maker(CH, 2, source, source_type);
+        var cid = merkle.contract_id_maker(CH, 2, source, source_type);
         var ticker = receive.split(" ")[1];
         return({
             text: contract_text,

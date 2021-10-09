@@ -111,6 +111,7 @@ function keys_function1() {
         }
     };
     function decompress_pub(pub) {
+        //unused, and does not work.
         //pub = "AhEuaxBNwXiTpEMTZI2gExMGpxCwAapTyFrgWMu5n4cI";
         //var p = 115792089237316195423570985008687907853269984665640564039457584007908834671663n;
         var p = 0;
@@ -130,6 +131,7 @@ function keys_function1() {
         return btoa(array_to_string(pub));
     }
     function compress_pub(p) {
+        //unused and might not work.
         var b = atob(p);
         var a = string_to_array(b);
         var x = a.slice(1, 33);
@@ -291,8 +293,7 @@ function keys_function1() {
             keys_internal: (function() {return keys_internal;}),
             update_balance:update_balance,
             update_balance_callback: (function (x) {
-                update_balance_callback = x;}),
-            compress: compress_pub,
-            decompress: decompress_pub };
+                update_balance_callback = x;})
+           };
 }
 var keys = keys_function1();

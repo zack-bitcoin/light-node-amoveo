@@ -21,7 +21,7 @@ var new_scalar_contract = (function(){
     var button = button_maker2("make contract", make_contract);
     div.appendChild(button);
 
-    function make_contract(){
+    async function make_contract(){
         //var Start = parseInt(oracle_start_height.value);
         var Text = oracle_text.value;
         var MP = parseInt(max_price_text.value);
@@ -40,27 +40,29 @@ var new_scalar_contract = (function(){
         var tx = make_tx(Text, MP, Source, SourceType);
         var CH = tx[2];
         console.log(CH);
-        var cid = binary_derivative.id_maker(CH, 2);
+        var cid = merkle.contract_id_maker(CH, 2);
 
-        setTimeout(function(){
+        setTimeout(async function(){
             var msg =
                 ["add", 3, btoa(Text),
                  0, MP, Source,
                  SourceType];
             console.log(msg);
-            rpc.post(msg, function(x){
-                console.log(x);
-                console.log("taught a scalar contract.");
-                return(0);
-            }, get_ip(), 8090);
+            //rpc.post(msg, function(x){
+            var x = await rpc.apost(msg, get_ip(), 8090);
+            console.log(x);
+            console.log("taught a scalar contract.");
+            return(0);
+        //}, get_ip(), 8090);
         }, 0);
 
         var stx = keys.sign(tx);
-        post_txs([stx], function(msg){
-            display.innerHTML = msg
-                .concat("<br>the contract id is <br>")
-                .concat(cid);
-        });
+        //post_txs([stx], function(msg){
+        var msg = await apost_txs([stx]);
+        display.innerHTML = msg
+            .concat("<br>the contract id is <br>")
+            .concat(cid);
+        //});
     };
     function make_tx(text, max_price, Source, SourceType){
         var contract = scalar_derivative.maker(text, max_price);

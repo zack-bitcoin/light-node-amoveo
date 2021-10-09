@@ -53,7 +53,7 @@ function bet_tab_builder(div, selector){
             new_scalar_contract.make_tx(
                 Text, MP);
         var CH = new_contract_tx[2];
-        var cid = binary_derivative.id_maker(CH, 2);
+        var cid = merkle.contract_id_maker(CH, 2);
 
         //make the binary bet contract CID.
         //make an offer where you give veo, and they pay in the side of the contract that you want.

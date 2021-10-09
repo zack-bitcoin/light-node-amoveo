@@ -45,7 +45,7 @@ var resolve_scalar_contract = (function(){
         var CH = scalar_derivative.hash(contract);
         console.log(JSON.stringify(CH));
         console.log(JSON.stringify([oracle_question.value, parseInt(max_price.value), parseInt(oracle_height.value)]));
-        var cid = binary_derivative.id_maker(CH, 2);
+        var cid = merkle.contract_id_maker(CH, 2);
         merkle.request_proof("contracts", cid, function(c){
             if(c=="empty"){
                 display.innerHTML = "that contract does not exist ".concat(cid);
@@ -64,7 +64,7 @@ var resolve_scalar_contract = (function(){
                 }
                 console.log(JSON.stringify(oracle));
 //" int 4294967295 int1 3 / ">>), 
-                merkle.request_proof("accounts", keys.pub(), function(Acc){
+                merkle.request_proof("accounts", keys.pub(), async function(Acc){
                     var Nonce = Acc[2] + 1;
                     var fee = 152050;
 
@@ -86,14 +86,16 @@ var resolve_scalar_contract = (function(){
                                keys.pub(), Nonce+1, fee,
                                cid, 0, 0, 0, 0];
                     var stx2 = keys.sign(tx2);
-                    post_txs([stx1], function(msg){
-                        display.innerHTML = msg;
-                        post_txs([stx2], function(msg2){
-                            display.innerHTML = msg
-                                .concat("<br>")
-                                .concat(msg2);
-                        });
-                    });
+                    //post_txs([stx1], function(msg){
+                    var msg = await apost_txs([stx1]);
+                    display.innerHTML = msg;
+                        //post_txs([stx2], function(msg2){
+                    var msg2 = await apost_txs([stx2]);
+                    display.innerHTML = msg
+                        .concat("<br>")
+                        .concat(msg2);
+                        //});
+                    //});
                 });
             });
         });

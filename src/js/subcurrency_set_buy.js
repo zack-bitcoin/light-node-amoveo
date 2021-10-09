@@ -14,43 +14,46 @@ var subcurrency_set_buy = (function(){
     div.appendChild(button);
     div.appendChild(br());
 
-    function doit(){
+    async function doit(){
         //merkle.request_proof("accounts", keys.pub(), function(account){
-        rpc.post(["account", keys.pub()], function(account){
-            if(account == "empty"){
-                display.innerHTML = "load an account first";
-                return(0);
-            };
-            merkle.request_proof("contracts", contract_id.value, function(contract){
+        //rpc.post(["account", keys.pub()], function(account){
+        var account = await rpc.apost(["account", keys.pub()]);
+        if(account == "empty"){
+            display.innerHTML = "load an account first";
+            return(0);
+        };
+        var contract = await merkle.arequest_proof("contracts", contract_id.value);
+        //merkle.request_proof("contracts", contract_id.value, async function(contract){
             //rpc.post(["contracts", contract_id.value], function(contract){
             
-                if(contract == "empty"){
-                    display.innerHTML = "that contract does not exist";
-                    return(0);
-                };
-                var nonce = account[2] + 1;
-                var fee = 152050;
-                var many_types = contract[2];
-                var amount = parseInt(amount_input.value);
-                var source = contract[8];
-                var source_type = contract[9];
-                var tx = ["contract_use_tx",
-                          keys.pub(),
-                          nonce,
-                          fee,
-                          contract_id.value,
-                          amount,
-                          many_types,
-                          source,
-                          source_type
-                         ];
-                console.log(tx);
-                var stx = keys.sign(tx);
-                post_txs([stx], function(msg){
-                    display.innerHTML = msg;
-                });
-            });
-        });
+        if(contract == "empty"){
+            display.innerHTML = "that contract does not exist";
+            return(0);
+        };
+        var nonce = account[2] + 1;
+        var fee = 152050;
+        var many_types = contract[2];
+        var amount = parseInt(amount_input.value);
+        var source = contract[8];
+        var source_type = contract[9];
+        var tx = ["contract_use_tx",
+                  keys.pub(),
+                  nonce,
+                  fee,
+                  contract_id.value,
+                  amount,
+                  many_types,
+                  source,
+                  source_type
+                 ];
+        console.log(tx);
+        var stx = keys.sign(tx);
+        //post_txs([stx], function(msg){
+        var msg = await apost_txs([stx]);
+            display.innerHTML = msg;
+        //});
+        //});
+    //});
     };
     function amount_calc(N, amount, cid, callback) {
         if(N == 0){

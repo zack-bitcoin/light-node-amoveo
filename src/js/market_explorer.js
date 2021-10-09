@@ -1,4 +1,4 @@
-var market_explorer = (function(){
+var market_explorer= (function(){
     var ZERO = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=";
     //var div = document.createElement("div");
     var div = document.getElementById("market");
@@ -9,27 +9,31 @@ var market_explorer = (function(){
         server_ip.value = default_ip();
         //server_ip.value = "0.0.0.0";
     };
-
+    (async function(){
     if(auto_draw_config === true){
         const urlParams = new URLSearchParams(window.location.search);
         var mid = urlParams.get('mid');
         mid = mid.replace(/\ /g, "+");
         var canvas = document.getElementById("myCanvas");
         var main_ctx = canvas.getContext("2d");
-        rpc.post(["market", mid], function(market){
-            market = market[1];
-            console.log(JSON.stringify(market));
-            rpc.post(["markets", mid], function(market2){
-                draw_internal(mid, market2);
-                console.log(JSON.stringify(market2));
-                });
-        
-            var liquidities = market[11].slice(1);
-            draw(market, liquidities, canvas.width, canvas.height, function(temp_canvas){
-                main_ctx.drawImage(temp_canvas, 0, 0, canvas.width, canvas.height);
-            });
-        }, get_ip(), 8091);
+        //rpc.post(["market", mid], function(market){
+        var market = await rpc.apost(["market", mid], get_ip(), 8091);
+        market = market[1];
+        console.log(JSON.stringify(market));
+            //rpc.post(["markets", mid], function(market2){
+        var market2 = await rpc.apost(["markets", mid]);
+        draw_internal(mid, market2);
+        console.log(JSON.stringify(market2));
     };
+    if(market){
+        var liquidities = market[11].slice(1);
+        draw(market, liquidities, canvas.width, canvas.height, function(temp_canvas){
+            main_ctx.drawImage(temp_canvas, 0, 0, canvas.width, canvas.height);
+        });
+    };
+    })();
+//}, get_ip(), 8091);
+//};
 
     function draw_internal(mid, market){
         var cid1 = market[2];
@@ -89,7 +93,7 @@ var market_explorer = (function(){
         div.appendChild(br());
     };
     
-    function draw(e_market, liquidities, width, height, callback){
+    async function draw(e_market, liquidities, width, height, callback){
         //draw returns a temporary canvas in a callback function, so we can store an image for later use.
         //rpc.post(["markets", mid], function(market){
         //full node
@@ -117,66 +121,67 @@ var market_explorer = (function(){
         //market = market[1];
         //console.log(get_ip());
         //console.log(JSON.stringify(e_market[10]));
-        rpc.post(["height"], function(height){
-            var prices = e_market[10].slice(1);
-            console.log(JSON.stringify(prices));
-            for(var i = 0; i<prices.length; i++){
-                var n = prices[i][2];
-                if(cid1 === cid2){
-                    prices[i][2] = n/(1+n);
-                } else if((cid1 === ZERO) &&
-                          (type2 === 1)){
-                    prices[i][2] = 1/n;
-                } else if((cid1 === ZERO) &&
-                          (type2 === 2)){
-                    prices[i][2] = 1 - (1/n);
-                } else {
-                    console.log("unhandled price");
-                }
-            };
-            console.log(JSON.stringify(prices));
-            var start_height = Math.min(prices.reverse()[0][1], liquidities.reverse()[0][1]);
-            var end_height = height;
-            console.log(JSON.stringify(liquidities));
-            console.log(JSON.stringify(height));
-            for(var i = 0; i<liquidities.length; i++){
-                console.log(JSON.stringify(i - liquidities.length - 1));
-                var liq = liquidities[i];
-                var l = liq[2];
-                if(l < 10000000){//0.1 veo
-                    end_height =
+        //rpc.post(["height"], function(height){
+        var height = await rpc.apost(["height"]);
+        var prices = e_market[10].slice(1);
+        console.log(JSON.stringify(prices));
+        for(var i = 0; i<prices.length; i++){
+            var n = prices[i][2];
+            if(cid1 === cid2){
+                prices[i][2] = n/(1+n);
+            } else if((cid1 === ZERO) &&
+                      (type2 === 1)){
+                prices[i][2] = 1/n;
+            } else if((cid1 === ZERO) &&
+                      (type2 === 2)){
+                prices[i][2] = 1 - (1/n);
+            } else {
+                console.log("unhandled price");
+            }
+        };
+        console.log(JSON.stringify(prices));
+        var start_height = Math.min(prices.reverse()[0][1], liquidities.reverse()[0][1]);
+        var end_height = height;
+        console.log(JSON.stringify(liquidities));
+        console.log(JSON.stringify(height));
+        for(var i = 0; i<liquidities.length; i++){
+            console.log(JSON.stringify(i - liquidities.length - 1));
+            var liq = liquidities[i];
+            var l = liq[2];
+            if(l < 10000000){//0.1 veo
+                end_height =
                         Math.min(end_height,
                                  liq[1]+10);
-                };
-                if(l > 10000000){
-                    end_height = height;
-                };
             };
-            console.log(JSON.stringify(end_height));
-            var max_prob = 1;
-            draw_graph(prices,
-                       start_height,
-                       end_height,
-                       max_prob,
-                       colors[4],
-                       temp_canvas,
-                       ctx);
-            var max_liquidity = liquidities
-                .reduce(function(a, b){
-                    return(Math.max(a, b[2]));
-                }, 0);
-            //console.log(max_liquidity);
-            draw_graph(liquidities,
-                       start_height-Math.round(0.005*(end_height - start_height)),
-                       end_height,
-                       max_liquidity*1.01,
-                       colors[9],
-                       temp_canvas,
-                       ctx);
-            draw_grid(6, 4, start_height, end_height, max_prob, max_liquidity, temp_canvas, ctx, function(){
-                callback(temp_canvas);
-            });
+            if(l > 10000000){
+                end_height = height;
+            };
+        };
+        console.log(JSON.stringify(end_height));
+        var max_prob = 1;
+        draw_graph(prices,
+                   start_height,
+                   end_height,
+                   max_prob,
+                   colors[4],
+                   temp_canvas,
+                   ctx);
+        var max_liquidity = liquidities
+            .reduce(function(a, b){
+                return(Math.max(a, b[2]));
+            }, 0);
+        //console.log(max_liquidity);
+        draw_graph(liquidities,
+                   start_height-Math.round(0.005*(end_height - start_height)),
+                   end_height,
+                   max_liquidity*1.01,
+                   colors[9],
+                   temp_canvas,
+                   ctx);
+        draw_grid(6, 4, start_height, end_height, max_prob, max_liquidity, temp_canvas, ctx, function(){
+            callback(temp_canvas);
         });
+    //});
         //}, get_ip(), 8091);
     };
     //});
@@ -324,36 +329,39 @@ var market_explorer = (function(){
                 return(draw_dates(time_start, time_range, i+1, columns, w, h, ctx, callback));
             });
     }; 
-    function block_to_date(N, callback){
-        rpc.post(["block", N], function(block){
-            var time = block[4];
-            console.log(time);
-            var start_time = 15192951759;
-            var n = (time + start_time);//10 * seconds since jan 1 1970
-            console.log(n);
-            var curdate = new Date(null);
-            curdate.setTime(n*100);
-            //var final_now = curdate.toLocaleString();
+    async function block_to_date(N, callback){
+        //rpc.post(["block", N], function(block){
+        var block = await rpc.apost(["block", N]);
+        var time = block[4];
+        console.log(time);
+        var start_time = 15192951759;
+        var n = (time + start_time);//10 * seconds since jan 1 1970
+        console.log(n);
+        var curdate = new Date(null);
+        curdate.setTime(n*100);
+        //var final_now = curdate.toLocaleString();
             var final_now = curdate.toGMTString();
-            //curdate.toGMTString();
-            //"Sun, 26 Apr 1970 17:46:40 GMT"
-            console.log(final_now);
-            //time_now = final_now.split(" ");
-            //time_now = time_now[1]
-            //    .concat(time_now[2])
-            //    .concat(time_now[4].slice(0, -3));
-            final_now = final_now.match(/\d\d? \w\w\w /g)[0].trim().split(" ").reverse().reduce(function(a, b){return(a.concat(b))}, "");
-            console.log(final_now);
-            return(callback(final_now));
-        });
+        //curdate.toGMTString();
+        //"Sun, 26 Apr 1970 17:46:40 GMT"
+        console.log(final_now);
+        //time_now = final_now.split(" ");
+        //time_now = time_now[1]
+        //    .concat(time_now[2])
+        //    .concat(time_now[4].slice(0, -3));
+        final_now = final_now.match(/\d\d? \w\w\w /g)[0].trim().split(" ").reverse().reduce(function(a, b){return(a.concat(b))}, "");
+        console.log(final_now);
+        return(callback(final_now));
+    //});
     };
     //block_to_date(100000, function(date){
     //    return(0);
     //});
 
 
-
+    market_explorer = {draw: draw};
     return({
         draw: draw
     });
 })();
+
+//var market_explorer = await market_explorer_fun();

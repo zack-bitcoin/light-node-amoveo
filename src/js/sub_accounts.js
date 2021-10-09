@@ -48,6 +48,7 @@ sub_accounts = (function(){
             };
         };
     };
+    /*
     function memoized_rpc(id, callback){
         var x = memoized_sub_accounts[id];
         //console.log(x);
@@ -68,10 +69,12 @@ sub_accounts = (function(){
             });
         };
     };
+    */
 
     return({key: key,
             normal_key: normal_key,
             amrpc: memoized_merkle_rpc,
-            arpc: amemoized_rpc,
-            rpc: memoized_rpc});
+            arpc: amemoized_rpc
+            //rpc: memoized_rpc
+           });
 })();

@@ -1,4 +1,4 @@
-(function(){
+(async function(){
     var div = document.createElement("div");
     document.body.appendChild(div);
     server_port.value = "8080";
@@ -27,76 +27,78 @@
     tx_links.innerHTML = "Txs related to this oracle<br>";
 
     //blocks until closable
-    rpc.post(["oracles", oid], function(oracle){
-        rpc.post(["height"], function(height){
+    //rpc.post(["oracles", oid], function(oracle){
+    var oracle = await rpc.apost(["oracles", oid]);
+    var height = await rpc.apost(["height"]);
 
-            var closable_text = "";
-
-            var type;
-            if(oracle[5] === 1){
-                type = "true";
-            } else if (oracle[5] === 2){
-                type = "false";
-            } else if (oracle[5] === 3){
-                type = "bad question";
-            }
-            closable_text = "<br>current type: "
-                .concat(type)
-                .concat("<br>");
-            
-
-            if(oracle[2] === 0){
-                closable_text = closable_text
-                    //closable.innerHTML =
-                        .concat("<br>closable in: ")
-                .concat((oracle[9]-height).toString())
-                    .concat(" blocks<br><br>");
-            } else {
-                var result;
-                if(oracle[2] === 1){
-                    result = "true";
-                } else if (oracle[2] === 2){
-                    result = "false";
-                } else if (oracle[2] === 3){
-                    result = "bad question";
-                };
-                closable_text = closable_text
-                //closable.innerHTML =
-                    .concat("<br> result was: ")
-                    .concat(result)
-                    .concat("<br><br>");
-            }
-            closable.innerHTML = closable_text;
-        });
-    });
+    var closable_text = "";
     
-    rpc.post(["oracles", oid], function(oracle){
-        console.log(oracle);
-        oracle = oracle[1];
-        var height = oracle[2];
-        var txs = oracle[3];
-        var question = atob(oracle[4]);
-        var stake = oracle[5];
-        var type = oracle[6];
-        if(type === 1){
-            type = "true";
-        } else if (type === 2){
-            type = "false";
-        } else if (type === 3){
-            type = "bad question";
+    var type;
+    if(oracle[5] === 1){
+        type = "true";
+    } else if (oracle[5] === 2){
+        type = "false";
+    } else if (oracle[5] === 3){
+        type = "bad question";
+    }
+    closable_text = "<br>current type: "
+        .concat(type)
+        .concat("<br>");
+    
+    
+    if(oracle[2] === 0){
+        closable_text = closable_text
+        //closable.innerHTML =
+            .concat("<br>closable in: ")
+            .concat((oracle[9]-height).toString())
+            .concat(" blocks<br><br>");
+    } else {
+        var result;
+        if(oracle[2] === 1){
+            result = "true";
+        } else if (oracle[2] === 2){
+            result = "false";
+        } else if (oracle[2] === 3){
+            result = "bad question";
         };
-        var closed = oracle[7];
-        info.innerHTML = "oracle asks: "
-            .concat(question)
-            //.concat("<br><br>type: ")
-            //.concat(type)
-            .concat("<br><br>stake: ")
-            .concat((stake / 100000000).toFixed(8))
-            .concat("<br><br>last referenced in block height: ")
-            .concat(height.toString());
-            //.concat("<br><br>Txs related to this oracle");
-        make_tx_links(txs.slice(1));
-    }, get_ip(), 8091);
+        closable_text = closable_text
+        //closable.innerHTML =
+            .concat("<br> result was: ")
+            .concat(result)
+            .concat("<br><br>");
+    }
+    closable.innerHTML = closable_text;
+//});
+//});
+    
+    //rpc.post(["oracles", oid], function(oracle){
+    var oracle = await rpc.apost(["oracles", oid], get_ip(), 8091);
+    console.log(oracle);
+    oracle = oracle[1];
+    var height = oracle[2];
+    var txs = oracle[3];
+    var question = atob(oracle[4]);
+    var stake = oracle[5];
+    var type = oracle[6];
+    if(type === 1){
+        type = "true";
+    } else if (type === 2){
+        type = "false";
+    } else if (type === 3){
+        type = "bad question";
+    };
+    var closed = oracle[7];
+    info.innerHTML = "oracle asks: "
+        .concat(question)
+    //.concat("<br><br>type: ")
+    //.concat(type)
+        .concat("<br><br>stake: ")
+        .concat((stake / 100000000).toFixed(8))
+        .concat("<br><br>last referenced in block height: ")
+        .concat(height.toString());
+    //.concat("<br><br>Txs related to this oracle");
+    make_tx_links(txs.slice(1));
+    //}, get_ip(), 8091);
 
     function make_tx_links(txs){
         if(txs.length === 0){

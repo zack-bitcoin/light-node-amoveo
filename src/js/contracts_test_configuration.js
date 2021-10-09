@@ -14,7 +14,7 @@
     subcurrency_spender.contract_id(cid)
     subcurrency_balance.value(cid);
 //    new_contract.oracle_text(binary_question);
-    new_contract.start_height(start_height);
+    //new_contract.start_height(start_height);
     subcurrency_combiner.contract_id(cid);
 
     swap_offer.timelimit("10");
@@ -32,7 +32,6 @@
 
 //    teach_binary_contract.oracle_text(binary_question);
 
-//    check_binary_contract.cid(cid);
 
 //    new_scalar_contract.height(start_height);
 //    new_scalar_contract.text(scalar_question);

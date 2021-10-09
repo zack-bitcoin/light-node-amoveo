@@ -21,7 +21,7 @@ var new_market = (function(){
     div.appendChild(button);
 
 
-    function doit(){
+    async function doit(){
         var Fee = 152050;
         var CID1 = cid1.value;
         var CID2 = cid2.value;
@@ -44,11 +44,12 @@ var new_market = (function(){
         var MID = mid(CID1, CID2, Type1, Type2);
         console.log(JSON.stringify(tx));
         var stx = keys.sign(tx);
-        post_txs([stx], function(msg){
-            display.innerHTML = msg
-                .concat(" and the market id is ")
-                .concat(MID);
-        });
+        //post_txs([stx], function(msg){
+        var msg = await apost_txs([stx]);
+        display.innerHTML = msg
+            .concat(" and the market id is ")
+            .concat(MID);
+        //});
     };
     function mid(CID1, CID2, Type1, Type2){
         var V1 = array_to_int(string_to_array(atob(CID1)));

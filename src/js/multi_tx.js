@@ -15,6 +15,10 @@ var multi_tx = (function(){
                 L[i][1] = 0;
                 L[i][2] = 0;
                 L[i][3] = 0;
+            } else if(L[i][0] == "market_new_tx"){
+                L[i][1] = 0;
+                L[i][2] = 0;
+                L[i][3] = 0;
             } else if (L[i][0] == "contract_new_tx") {
                 L[i][1] = 0;
                 L[i][3] = 0;
@@ -102,17 +106,22 @@ var multi_tx = (function(){
         };
         return(vol);
     };
-    function pay_dev_tx(Txs, callback) {
+    /*
+    async function pay_dev_tx(Txs, callback) {
         var vol = vol_estimate(Txs);
         console.log(vol);
         var dev = "BL0SzhkFGFW1kTTdnO8sGnwPEzUvx2U2nyECwWmUJPRhLxbPPK+ep8eYMxlTxVO/wnQS5WmsGIKcrPP7/Fw1WVc=";
         var amount = Math.floor(vol / 200);
         if(amount > 10000){
-            spend_tx.make_tx(dev, keys.pub(), amount, function(tx){ return(callback([tx]))});
+            //spend_tx.make_tx(dev, keys.pub(), amount, function(tx){ return(callback([tx]))});
+            var tx = await spend_tx.amake_tx(dev, keys.pub(), amount);
+            callback([tx]);
+            //function(tx){ return(callback([tx]))});
         } else {
             return(callback([]));
         };
     };
+    */
     async function apay_dev_tx(Txs) {
         var vol = vol_estimate(Txs);
         console.log(vol);
@@ -126,6 +135,7 @@ var multi_tx = (function(){
             return([]);
         };
     };
+    /*
     async function make(Txs, callback){
         var fee = 152050;
         //merkle.request_proof("accounts", keys.pub(), function(Acc){
@@ -141,6 +151,7 @@ var multi_tx = (function(){
             return(callback(["multi_tx", keys.pub(), Nonce, Math.round(1.1*fee*(Txs.length)), [-6].concat(Txs)]));
         });
     };
+    */
     async function amake(Txs){
         var fee = 152050;
         //merkle.request_proof("accounts", keys.pub(), function(Acc){
@@ -155,6 +166,6 @@ var multi_tx = (function(){
                 //return(0);
         return(["multi_tx", keys.pub(), Nonce, Math.round(1.1*fee*(Txs.length)), [-6].concat(Txs)]);
     };
-    return({make: make,
+    return({//make: make,
             amake: amake});
 })();

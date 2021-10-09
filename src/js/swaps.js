@@ -127,45 +127,46 @@ var swaps = (function(){
             return(R);
         };
     };
-    function make_tx(SO, matched_parts, callback) {
+    async function make_tx(SO, matched_parts, callback) {
         var fee = 200000;
 //-record(swap_tx, {from, offer, fee}).
 //-record(swap_tx2, {from, nonce, fee, offer, match_parts}).
         //var swap_tx = ["swap_tx", keys.pub(), SO, fee];
-        rpc.post(["account", keys.pub()], function(from_acc){
-            var Nonce = from_acc[2] + 1;
-            var swap_tx = ["swap_tx2", keys.pub(), Nonce, fee, SO, matched_parts];
+        //rpc.post(["account", keys.pub()], function(from_acc){
+        var from_acc = await rpc.apost(["account", keys.pub()]);
+        var Nonce = from_acc[2] + 1;
+        var swap_tx = ["swap_tx2", keys.pub(), Nonce, fee, SO, matched_parts];
         //instead of immediately accepting the swap, we should check what currencies this person owns.
         //sell as much as you can of your own, and buy more as needed to complete their trade. If you do not have the source currency to buy more, then fail and give an error message.
-            var R = unpack(SO);
-            console.log(JSON.stringify(R));
-            var CID = R.cid2;
-            var Type = R.type2;
-            var Amount = R.amount2;
-            console.log("make txs1");
-            console.log(CID);
-            make_txs2(CID, Type, Amount, function(Txs){
-                if(Txs == "error"){
-                    console.log("error");
-                    return(0);
-                };
-                if(Txs == []) {
-                    callback(swap_tx);
-                } else {
-                    console.log(JSON.stringify(Txs));
-                    Txs = [swap_tx].concat(Txs);
-                    callback(Txs);
-                };
-            });
+        var R = unpack(SO);
+        console.log(JSON.stringify(R));
+        var CID = R.cid2;
+        var Type = R.type2;
+        var Amount = R.amount2;
+        console.log("make txs1");
+        console.log(CID);
+        make_txs2(CID, Type, Amount, function(Txs){
+            if(Txs == "error"){
+                console.log("error");
+                return(0);
+            };
+            if(Txs == []) {
+                callback(swap_tx);
+            } else {
+                console.log(JSON.stringify(Txs));
+                Txs = [swap_tx].concat(Txs);
+                callback(Txs);
+            };
         });
     };
-    function make_txs2(CID, Type, Amount, callback){
+    async function make_txs2(CID, Type, Amount, callback){
         console.log("make txs2");
         console.log(CID);
         var fee = 200000;
         if(Type == 0){//they want veo
-            merkle.request_proof("accounts", keys.pub(), function(Acc){
-                callback([]);
+            //merkle.request_proof("accounts", keys.pub(), function(Acc){
+            var Acc = await merkle.arequest_proof("accounts", keys.pub());
+            callback([]);
                // if(Acc[1] > Amount){
                 //callback([]);//we have enough of the veo they want.
                 /*} else {
@@ -175,63 +176,66 @@ var swaps = (function(){
                     callback("error");
                 }
                 */
-            });
+        //});
         } else {//they want a subcurrency
             console.log([keys.pub(), CID, Type]);
             var SKey = btoa(array_to_string(sub_accounts.key(keys.pub(), CID, Type)));
             console.log(SKey);
-            merkle.request_proof("sub_accounts", SKey, function(SA){
-                console.log(SA);
-                var bal;
-                if(SA == "empty"){
-                    bal = 0
+            //merkle.request_proof("sub_accounts", SKey, function(SA){
+            var SA = await merkle.arequest_proof("sub_accounts", SKey);
+            console.log(SA);
+            var bal;
+            if(SA == "empty"){
+                bal = 0
+            } else {
+                bal = SA[1];
+            }
+            if(bal >= Amount){//we have enough of the subcurrency they want
+                callback([]);
+            } else {//we don't have enough of what they want. maybe we can buy more?
+                    //merkle.request_proof("contracts", CID, function(Contract){
+                var Contract = await merkle.arequest_proof("contracts", CID);
+                //rpc.post(["read", 3, CID], function(z){
+                var z = await rpc.apost(["read", 3, CID], get_ip(), 8090);
+                console.log(z);
+                console.log(CID);
+                var Source, SourceType, MT;
+                if(Contract == "empty"){
+                    if(!(z)){
+                        console.log("need to teach the contract to the server first.")
+                        return(0);
+                    };
+                    console.log("contract doesn't yet exist");
+                    if(z[0] == "scalar"){
+                        MT = 2;
+                        Source = z[5];
+                        SourceType = z[6];
+                    } else if (z[0] == "binary"){
+                        MT = 3;
+                        Source = z[4];
+                        SourceType = z[5];
+                    } else if (z[0] === "contract"){
+                        //buy veo offer
+                        MT = 2;
+                        Source = z[2];
+                        SourceType = z[3];
+                    } else {
+                        console.log("server gave us a contract format we don't understand.");
+                        return(0);
+                    };
                 } else {
-                    bal = SA[1];
+                    console.log(Contract);
+                    Source = Contract[8];
+                    SourceType = Contract[9];
+                    MT = Contract[2];
                 }
-                if(bal >= Amount){//we have enough of the subcurrency they want
-                    callback([]);
-                } else {//we don't have enough of what they want. maybe we can buy more?
-                    merkle.request_proof("contracts", CID, function(Contract){
-                        rpc.post(["read", 3, CID], function(z){
-                            console.log(z);
-                            console.log(CID);
-                            var Source, SourceType, MT;
-                            if(Contract == "empty"){
-                                if(!(z)){
-                                    console.log("need to teach the contract to the server first.")
-                                    return(0);
-                                };
-                                console.log("contract doesn't yet exist");
-                                if(z[0] == "scalar"){
-                                    MT = 2;
-                                    Source = z[5];
-                                    SourceType = z[6];
-                                } else if (z[0] == "binary"){
-                                    MT = 3;
-                                    Source = z[4];
-                                    SourceType = z[5];
-                                } else if (z[0] === "contract"){
-                                    //buy veo offer
-                                    MT = 2;
-                                    Source = z[2];
-                                    SourceType = z[3];
-                                } else {
-                                    console.log("server gave us a contract format we don't understand.");
-                                    return(0);
-                                };
-                            } else {
-                                console.log(Contract);
-                                Source = Contract[8];
-                                SourceType = Contract[9];
-                                MT = Contract[2];
-                            }
-                            var Tx = ["contract_use_tx", 0, 0, 0, CID, Amount - bal, MT, Source, SourceType];
-                            make_txs2(Source, SourceType, Amount - bal, function(L){return(callback(L.concat([Tx])))});
-                        }, get_ip(), 8090);
-                        //}, "127.0.0.1", "8090");
-                    });
-                };
-            });
+                var Tx = ["contract_use_tx", 0, 0, 0, CID, Amount - bal, MT, Source, SourceType];
+                make_txs2(Source, SourceType, Amount - bal, function(L){return(callback(L.concat([Tx])))});
+                //}, get_ip(), 8090);
+                //}, "127.0.0.1", "8090");
+                //});
+            };
+            //});
         };
     };
 

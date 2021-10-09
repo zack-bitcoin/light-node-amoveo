@@ -97,7 +97,7 @@
         status.innerHTML = "status: <font color=\"green\">successfully generated the id: ".concat(id).concat("<br /> Save the red data, you need it when creating the oracle on-chain:</font><br /><font color=\"red\"> ").concat(rest).concat("</font>");
     };
     function new_scalar_oracle(start, question, n, callback) {
-        merkle.request_proof("accounts", keys.pub(), function (acc) {
+        merkle.request_proof("accounts", keys.pub(), async function (acc) {
             
             var id = id_maker(start, 0, 0, question);
             var nonce = acc[2]+n;
@@ -106,10 +106,11 @@
             var txs = new_scalar_oracle2(question, start, ks, nonce, id, 9);
             console.log(JSON.stringify(txs));
 
-            return rpc.post(["txs", [-6].concat(txs)], function(x) {
-                status.innerHTML = "status: <font color=\"green\">successfully attempted to make a scalar oracle with id: ".concat(id).concat("</font>");
-                return callback();
-            });
+            //return rpc.post(["txs", [-6].concat(txs)], function(x) {
+            var x = await rpc.apost(["txs", [-6].concat(txs)]);
+            status.innerHTML = "status: <font color=\"green\">successfully attempted to make a scalar oracle with id: ".concat(id).concat("</font>");
+            return callback();
+            //});
         });
     };
     function new_scalar_oracle2(question, start, ks, nonce, id, many) {
@@ -152,29 +153,31 @@
         }
         var question = "";
         var start = 0;
-        merkle.request_proof("accounts", keys.pub(), function (acc) {
+        merkle.request_proof("accounts", keys.pub(), async function (acc) {
             var nonce = acc[2]+1;
             var id = id_maker(start, giv, ga, question);
             var tx = ["oracle_new", keys.pub(), nonce, fee, btoa(question), start, id, 0, giv, ga];
             var stx = keys.sign(tx);
-            return rpc.post(["txs", [-6, stx]], function(x) {
-                status.innerHTML = "status: <font color=\"green\">successfully attempted to make a binary oracle with OID: ".concat(id).concat("</font>");
-                return 0;
-            });
+            //return rpc.post(["txs", [-6, stx]], function(x) {
+            var x = await rpc.apost(["txs", [-6, stx]]);
+            status.innerHTML = "status: <font color=\"green\">successfully attempted to make a binary oracle with OID: ".concat(id).concat("</font>");
+            return 0;
+            //});
         });
     };
     function new_question_oracle(start, question) {
-        merkle.request_proof("accounts", keys.pub(), function (acc) {
+        merkle.request_proof("accounts", keys.pub(), async function (acc) {
             var nonce = acc[2]+1;
             //var id = random_cid(32);
             var id = id_maker(start, 0, 0, question);
             var tx = ["oracle_new", keys.pub(), nonce, fee, btoa(question), start, id, 0, 0, 0];
             var stx = keys.sign(tx);
             console.log(JSON.stringify(stx));
-            return rpc.post(["txs", [-6, stx]], function(x) {
-                status.innerHTML = "status: <font color=\"green\">successfully attempted to make a binary oracle with OID: ".concat(id).concat("</font>");
-                return 0;
-            });
+            //return rpc.post(["txs", [-6, stx]], function(x) {
+            var x = await rpc.apost(["txs", [-6, stx]]);
+            status.innerHTML = "status: <font color=\"green\">successfully attempted to make a binary oracle with OID: ".concat(id).concat("</font>");
+            return 0;
+            //});
         });
     };
     //console.log(JSON.stringify(next_oid(r)));

@@ -23,7 +23,7 @@ var teach_scalar_contract = (function(){
     div.appendChild(br());
     var button = button_maker2("teach", teach);
     div.appendChild(button);
-    function teach() {
+    async function teach() {
         var msg = ["add", 3,
                    btoa(oracle_text.value),
                    //parseInt(oracle_height.value),
@@ -36,15 +36,17 @@ var teach_scalar_contract = (function(){
                  parseInt(source_type.value)]);
         };
         console.log(msg);
-        rpc.post(msg,
-                 function(x){
-                     console.log(x);
-                     display.innerHTML = "successfully taught contract with id: "
-                         .concat(x);
-                     return(0);
-                 },
-                 s_ip.value,
-                 parseInt(s_port.value));
+        //rpc.post(msg,
+        //         function(x){
+        var x = await rpc.apost(
+            msg,
+            s_ip.value,
+            parseInt(s_port.value));
+                                //function(x){
+        console.log(x);
+        display.innerHTML = "successfully taught contract with id: "
+            .concat(x);
+        return(0);
     };
     return({
         oracle_text: function(x){oracle_text.value = x},

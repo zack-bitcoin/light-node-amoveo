@@ -12,11 +12,13 @@ function lookup_block1() {
     lookup_block_button.id = "lookup block number";
     var lookup_block_button_text = document.createTextNode("lookup block");
     lookup_block_button.appendChild(lookup_block_button_text);
-    lookup_block_button.onclick = function() {
+    lookup_block_button.onclick = async function() {
 	var num = parseInt(lookup_block_height.value, 10);
 	//rpc.post(["height"], function(x) {height_f(x)});
 	//Lets maybe check to see if height is too height?
-	rpc.post(["block", num], function(x) {lookup_block2(x)});
+	//rpc.post(["block", num], function(x) {lookup_block2(x)});
+	var x = await rpc.apost(["block", num]);
+        lookup_block2(x);
     };
     document.body.appendChild(lookup_block_button);
     var current_block = document.createElement("div");

@@ -1,4 +1,4 @@
-(function(){
+(async function(){
     var ZERO = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=";
     //var div = document.createElement("div");
     var div = document.getElementById("contract_div");
@@ -29,188 +29,194 @@
     div.appendChild(cid_text);
     div.appendChild(text_div);
     var open_interest_div = document.createElement("div");
-    //var volume_div = document.createElement("div");
-    /*
-    rpc.post(["contracts", cid], function(contract){
-        //from the full node
-        contract[11];
-        volume_div.innerHTML = "total money invested in this contract: "
-            .concat((contract[11] / 100000000).toFixed(8).toString());
-    console.log(contract);
-    });
-    */
-    rpc.post(["contracts", cid], function(main_contract){
-        var x = main_contract[11]/100000000;
-        open_interest_div.innerHTML =
-            "open interest: "
-            .concat(x.toFixed(8));
-    });
-    rpc.post(["read", 3, cid], function(contract){
-        if(contract[0] === "contract"){
-            //buy veo contract
-            var s = ""
-                .concat(cid)
-                .concat(": ")
-                .concat(atob(contract[7]))
-                .concat(" of ")
-                .concat(atob(contract[8]))
-                .concat(" in blockchain ")
-                .concat(atob(contract[6]))
-                .concat(". by date: ")
-                .concat(atob(contract[9]));
-            text_div.innerHTML = (s);
+    //rpc.post(["contracts", cid], function(main_contract){
+    var main_contract = await rpc.apost(["contracts", cid]);
+    var closed = main_contract[6];
+    console.log(JSON.stringify(main_contract));
+    var x = main_contract[11]/100000000;
+    open_interest_div.innerHTML =
+        "open interest: "
+        .concat(x.toFixed(8));
+    //});
+    //rpc.post(["read", 3, cid], function(contract){
+    var contract = await rpc.apost(["read", 3, cid], get_ip(), 8090); 
+    if(contract[0] === "contract"){
+        //buy veo contract
+        var s = ""
+            .concat(cid)
+            .concat(": ")
+            .concat(atob(contract[7]))
+            .concat(" of ")
+            .concat(atob(contract[8]))
+            .concat(" in blockchain ")
+            .concat(atob(contract[6]))
+            .concat(". by date: ")
+            .concat(atob(contract[9]));
+        text_div.innerHTML = (s);
+    } else {
+        //scalar veo contract
+        console.log(JSON.stringify(contract));
+        //from p2p derivatives explorer
+        //console.log(get_ip());
+        //console.log(contract);
+        var text = atob(contract[1]);
+        max_range = contract[3];
+        
+        lower_limit = text.match(/minus -?\d+/g);
+        //console.log(lower_limit);
+        if(lower_limit){
+            lower_limit = lower_limit
+                .reverse()[0];
+            lower_limit = lower_limit.match(/-?\d+/g);
+            lower_limit = parseInt(lower_limit, 10);
         } else {
-            console.log(JSON.stringify(contract));
-            //from p2p derivatives explorer
-            //console.log(get_ip());
-            //console.log(contract);
-            var text = atob(contract[1]);
-            max_range = contract[3];
-            
-            lower_limit = text.match(/minus -?\d+/g);
-            //console.log(lower_limit);
-            if(lower_limit){
-                lower_limit = lower_limit
-                    .reverse()[0];
-                lower_limit = lower_limit.match(/-?\d+/g);
-                lower_limit = parseInt(lower_limit, 10);
-            } else {
-                lower_limit = 0;
-            };
-            
-            text_div.innerHTML = "oracle text: "
-                .concat(text)
-                .concat("<br> in the range from ")
-                .concat(lower_limit)
-                .concat(" to ")
-                .concat(max_range + lower_limit);
-        }
-    }, get_ip(), 8090); 
-
-
+            lower_limit = 0;
+        };
+        
+        text_div.innerHTML = "oracle text: "
+            .concat(text)
+            .concat("<br> in the range from ")
+            .concat(lower_limit)
+            .concat(" to ")
+            .concat(max_range + lower_limit);
+    }
+//}, get_ip(), 8090); 
         //console.log(text);
         //console.log(max_price);
    
     var e_market_mirror;
-    rpc.post(["contract", cid], function(contract){
-        //from the explorer
-            contract = contract[1];
-        //console.log(JSON.stringify(contract));
-            var source = contract[2];
-            var source_type = contract[6];
-        //var swap_tab = swap_tab_builder();
+    //rpc.post(["contract", cid], function(contract){
+    //var contract = await rpc.post(["contract", cid], get_ip(), 8091);//8091 is explorer
+    var contract = await rpc.apost(["contract", cid], get_ip(), 8091);//8091 is explorer
 
-            setTimeout(function(){
-                price_estimate_read(
-                    cid, source, source_type,
-                    function(price, liquidity){
-                        price_div.innerHTML = "current price: "
-                            .concat(price.toFixed(3).toString())
-                            .concat("<br> estimated result of: ")
-                            .concat(((price * max_range) + lower_limit).toFixed(2).toString())
-                            .concat("<br> liquidity: ")
-                            .concat((liquidity/100000000).toFixed(8).toString());
-                    });
-            }, 0);
+    //from the explorer
+    console.log(JSON.stringify(contract));
+    contract = contract[1];
+    //console.log(JSON.stringify(contract));
+    var source = contract[2];
+    var source_type = contract[6];
+    //var swap_tab = swap_tab_builder();
+    
+    setTimeout(async function(){
+        [price, liquidity] = await price_estimate_read(
+            cid, source, source_type);
+        //function(price, liquidity){
+        if(closed === 0){
+            price_div.innerHTML = "current price: "
+                .concat(price.toFixed(3).toString())
+                .concat("<br> estimated result of: ")
+                .concat(((price * max_range) + lower_limit).toFixed(2).toString())
+                        .concat("<br> liquidity: ")
+                .concat((liquidity/100000000).toFixed(8).toString());
+        } else {
+            price_div.innerHTML = "contract has finalized. There is still "
+                .concat((liquidity/100000000).toFixed(8).toString())
+                .concat(" of veo left in the contract </br>")
             
-            var source_div = document.createElement("div");
-            div.appendChild(source_div);
-            div.appendChild(open_interest_div);
-            //div.appendChild(volume_div);
-            var price_div = document.createElement("div");
-            div.appendChild(price_div);
-            //console.log(source);
-            
-            if(source === ZERO) {
-                source_text = "collateral currency: veo";
-                source_div.innerHTML = source_text;
-            } else {
-                var link = document.createElement("a");
-                link.href = "?cid=".concat(source);
-                link.innerHTML = "source contract";
-                link.innerHTML = "collateral: "
-                    .concat(source)
-                    .concat(" type: ")
-                    .concat(source_type);
-                source_div.appendChild(link);
-                //source_div.appendChild(source_text);
-                //div.appendChild(link);
-            };
-            var many_types = contract[3];
-            var markets = contract[4];
-            var markets_title = document.createElement("h4");
-            markets_title.innerHTML = "Markets that involve this contract";
-        div.appendChild(markets_title);
-        //console.log(JSON.stringify(markets));
-        make_market_links(
+            ;
+        };
+    //});
+    }, 0);
+    
+    var source_div = document.createElement("div");
+    div.appendChild(source_div);
+    div.appendChild(open_interest_div);
+    //div.appendChild(volume_div);
+    var price_div = document.createElement("div");
+    div.appendChild(price_div);
+    //console.log(source);
+    
+    if(source === ZERO) {
+        source_text = "collateral currency: veo";
+        source_div.innerHTML = source_text;
+    } else {
+        var link = document.createElement("a");
+        link.href = "?cid=".concat(source);
+        link.innerHTML = "source contract";
+        link.innerHTML = "collateral: "
+            .concat(source)
+            .concat(" type: ")
+            .concat(source_type);
+        source_div.appendChild(link);
+        //source_div.appendChild(source_text);
+        //div.appendChild(link);
+    };
+    var many_types = contract[3];
+    var markets = contract[4];
+    var markets_title = document.createElement("h4");
+    markets_title.innerHTML = "Markets that involve this contract";
+    div.appendChild(markets_title);
+    //console.log(JSON.stringify(markets));
+    var liquidity_lists =
+        await make_market_links(
             markets.slice(1),
-            [],
-            function(liquidity_lists){
-                make_bet_links(div, cid);
-                var canvas = document.getElementById("theCanvas");
-                var ctx = canvas.getContext("2d");
-                var liquidities =
-                    combine_liquidities(
-                        liquidity_lists.map(function(x){
-                            return(x.reverse())
-                        })
-                    );
-                liquidities = liquidities.reverse();
-                //console.log(JSON.stringify(liquidities));
-                //console.log(JSON.stringify(liquidity_lists));
-                market_explorer.draw(e_market_mirror, liquidities, canvas.width, canvas.height, function(
-                    temp_canvas){
-                    ctx.drawImage(
-                        temp_canvas, 0, 0,
-                        canvas.width, canvas.height
-                    );
-                });
-                //console.log(JSON.stringify(
+            []);
+    //function(liquidity_lists){
+    make_bet_links(div, cid);
+    var canvas = document.getElementById("theCanvas");
+    var ctx = canvas.getContext("2d");
+    var liquidities =
+        combine_liquidities(
+            liquidity_lists.map(function(x){
+                return(x.reverse())
+            })
+        );
+    liquidities = liquidities.reverse();
+            //console.log(JSON.stringify(liquidities));
+            //console.log(JSON.stringify(liquidity_lists));
+    market_explorer.draw(e_market_mirror, liquidities, canvas.width, canvas.height, function(
+        temp_canvas){
+        ctx.drawImage(
+            temp_canvas, 0, 0,
+            canvas.width, canvas.height
+        );
+    });
+            //console.log(JSON.stringify(
                     //    liquidity_lists));
-            });
             //var txids = contract[5].slice(1);
-            //console.log(JSON.stringify(txids));
-            //var txs = [];
-            /*
-            for(var i = 0; i<txids.length; i++){
-                rpc.post(["txs", txids[i]], function(tx){
-                    console.log(JSON.stringify(tx));
-                }, get_ip(), 8091);
-            };
-            */
-            //-record(contract, {cid, source = <<0:256>>, types, markets = [], txs = []}).
-            //return(display_contracts2(div, contracts.slice(1), []));
-    }, get_ip(), 8091);//8091 is explorer
-    function make_market_links(markets, LLs, callback){
+    //console.log(JSON.stringify(txids));
+    //var txs = [];
+    /*
+      for(var i = 0; i<txids.length; i++){
+      rpc.post(["txs", txids[i]], function(tx){
+      console.log(JSON.stringify(tx));
+      }, get_ip(), 8091);
+      };
+    */
+    //-record(contract, {cid, source = <<0:256>>, types, markets = [], txs = []}).
+    //return(display_contracts2(div, contracts.slice(1), []));
+    //}, get_ip(), 8091);//8091 is explorer
+    async function make_market_links(markets, LLs){
         //console.log(markets);
         if(markets.length === 0){
-            return(callback(LLs));
+            return(LLs);
         };
         //console.log(markets[0]);
         //rpc.post(["market", markets[0]], function(market){
-        rpc.post(["markets", markets[0]], function(market){
+        var market = await rpc.apost(["markets", markets[0]]);//, get_ip(), 8091);
             //market = market[1];
 
             //-record(market, {id, cid1, type1, amount1, cid2, type2, amount2, shares}).
-            var mid = market[1];
-            var cid1 = market[2];
-            var type1 = market[3];
-            var amount1 = market[4];
-            var cid2 = market[5];
-            var type2 = market[6];
-            var amount2 = market[7];
-            var volume = (Math.sqrt(amount1*amount2) / 100000000).toFixed(8).toString();
+        var mid = market[1];
+        var cid1 = market[2];
+        var type1 = market[3];
+        var amount1 = market[4];
+        var cid2 = market[5];
+        var type2 = market[6];
+        var amount2 = market[7];
+        var volume = (Math.sqrt(amount1*amount2) / 100000000).toFixed(8).toString();
 
             //if(cid1===cid2){
              //   var canvas = document.getElementById("theCanvas");
               //  var ctx = canvas.getContext("2d");
-            rpc.post(["market", mid], function(e_market){
-                e_market = e_market[1];
-                var liquidities = e_market[11].slice(1);
-                if(cid1===cid2){
-                    console.log("cid match");
-                    e_market_mirror = e_market;
-                };
+            //rpc.post(["market", mid], function(e_market){
+        var e_market = await rpc.apost(["market", mid], get_ip(), 8091);
+        e_market = e_market[1];
+        var liquidities = e_market[11].slice(1);
+        if(cid1===cid2){
+            console.log("cid match");
+            e_market_mirror = e_market;
+        };
                 /*
                     market_explorer.draw(e_market, liquidities, canvas.width, canvas.height, function(
                         temp_canvas){
@@ -236,51 +242,47 @@
             */
             //console.log(market);
 
-            if(cid1 === cid){
-                cid1 = "type";
-            };
-            if(cid1 === ZERO){
-                cid1 = "veo";
-                type1 = "";
-            };
-            if(cid2 === cid){
-                cid2 = "type";
-            };
-            if(cid2 === ZERO){
-                cid2 = "veo";
-                type2 = "";
-            }
-
-            var link = document.createElement("a");
-            link.href = "market_explorer.html?mid="
-                .concat(mid);
-            link.innerHTML = ""
-                .concat(mid.slice(0, 5))
-                .concat("... ")
-                //.concat(" cid1: ")
-                .concat(cid1)
-                .concat(" ")
-                //.concat(" type1: ")
-                .concat(type1)
-                .concat(", ")
-                //.concat(" cid2: ")
-                .concat(cid2)
-                .concat(" ")
-                //.concat(" type2: ")
-                .concat(type2)
-                .concat(", liquidity: ")
-                .concat(volume)
-                .concat("");
-            div.appendChild(link);
-            div.appendChild(br());
-                
-                return(make_market_links(
-                    markets.slice(1),
-                    LLs.concat([liquidities]),
-                    callback));
-            }, get_ip(), 8091);
-        });
-    };//, get_ip(), 8091);
+        if(cid1 === cid){
+            cid1 = "type";
+        };
+        if(cid1 === ZERO){
+            cid1 = "veo";
+            type1 = "";
+        };
+        if(cid2 === cid){
+            cid2 = "type";
+        };
+        if(cid2 === ZERO){
+            cid2 = "veo";
+            type2 = "";
+        }
+        
+        var link = document.createElement("a");
+        link.href = "market_explorer.html?mid="
+            .concat(mid);
+        link.innerHTML = ""
+            .concat(mid.slice(0, 5))
+            .concat("... ")
+        //.concat(" cid1: ")
+            .concat(cid1)
+            .concat(" ")
+        //.concat(" type1: ")
+            .concat(type1)
+            .concat(", ")
+        //.concat(" cid2: ")
+            .concat(cid2)
+            .concat(" ")
+        //.concat(" type2: ")
+            .concat(type2)
+            .concat(", liquidity: ")
+            .concat(volume)
+            .concat("");
+        div.appendChild(link);
+        div.appendChild(br());
+        return(make_market_links(
+            markets.slice(1),
+            LLs.concat([liquidities])));
+    };
     function make_bet_links(div){
 
         var bet_links_title = document.createElement("h4");
@@ -368,5 +370,4 @@
             [next_head].concat(LLs.slice(2))
         ));
     };
-
 })();

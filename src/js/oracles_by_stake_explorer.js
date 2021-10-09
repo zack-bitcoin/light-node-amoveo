@@ -1,4 +1,4 @@
-(function(){
+(async function(){
     var div = document.createElement("div");
     document.body.appendChild(div);
     server_port.value = "8080";
@@ -10,11 +10,12 @@
 
     div.appendChild(br());
 
-    rpc.post(["oracles", 4], function(oracles){
-        oracles = oracles.slice(1);
-        console.log(JSON.stringify(oracles));
-        loop(oracles);
-    }, get_ip(), 8091);
+    //rpc.post(["oracles", 4], function(oracles){
+    var oracles = await rpc.apost(["oracles", 4], get_ip(), 8091);
+    oracles = oracles.slice(1);
+    console.log(JSON.stringify(oracles));
+    loop(oracles);
+    //}, get_ip(), 8091);
 
     function loop(oracles) {
         if(oracles.length === 0){

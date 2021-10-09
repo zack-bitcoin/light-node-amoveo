@@ -1,4 +1,4 @@
-(function(){
+(async function(){
     var div = document.createElement("div");
     document.body.appendChild(div);
     server_port.value = "8080";
@@ -17,19 +17,19 @@
         .concat(hash);
     div.appendChild(hash_text);
 
-    rpc.post(["block", hash], function(block){
-        console.log(JSON.stringify(block));
-        var block = block[1];
-        var height = block[1];
-        var height_div = document.createElement("div");
-        height_div.innerHTML = "block height: "
-            .concat(height);
-        div.appendChild(br());
-        div.appendChild(height_div);
-        div.appendChild(br());
-        var txs = block[3];
-        make_tx_links(txs.slice(1));
-    }, get_ip(), 8091);
+    var block = await rpc.apost(["block", hash], get_ip(), 8091);
+    console.log(JSON.stringify(block));
+    var block = block[1];
+    var height = block[1];
+    var height_div = document.createElement("div");
+    height_div.innerHTML = "block height: "
+        .concat(height);
+    div.appendChild(br());
+    div.appendChild(height_div);
+    div.appendChild(br());
+    var txs = block[3];
+    make_tx_links(txs.slice(1));
+    //}, get_ip(), 8091);
 
     function make_tx_links(txs){
         if(txs.length === 0){

@@ -253,14 +253,16 @@ todo: plan what swap offers we need so that beginner users don't need to deal wi
         await apost_offer(display, IP, buy_offer, buy_offer99);
         await apost_offer(display, IP, sell_offer, sell_offer99);
 
-        rpc.post(["read", 3, buy_cid], function(y){
-            rpc.post(["read", 3, sell_cid], function(y2){
+        //rpc.post(["read", 3, buy_cid], function(y){
+            //rpc.post(["read", 3, sell_cid], function(y2){
+        var y = await rpc.apost(["read", 3, buy_cid], IP, 8090);
+        var y2 = await rpc.apost(["read", 3, sell_cid], IP, 8090);
                     //checking that the contract got published correctly.
-                console.log(JSON.stringify(y));
-                console.log(JSON.stringify(y2));
-                refresh();
-            }, IP, 8090);
-        }, IP, 8090);
+        console.log(JSON.stringify(y));
+        console.log(JSON.stringify(y2));
+        refresh();
+    //}, IP, 8090);
+    //    }, IP, 8090);
     };
 
 
@@ -706,7 +708,7 @@ todo: plan what swap offers we need so that beginner users don't need to deal wi
                                 var MT = tx[4];
                                 var Source = tx[5];
                                 var SourceType = tx[6];
-                                var cid = binary_derivative.id_maker(CH, MT, Source, SourceType);
+                                var cid = merkle.contract_id_maker(CH, MT, Source, SourceType);
                                 return(cid);
                             };
                             var tx = await multi_tx.amake(txs);

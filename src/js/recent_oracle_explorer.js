@@ -10,11 +10,14 @@
 
     div.appendChild(br());
 
-    rpc.post(["oracles", 3], function(oracles){
+    //rpc.post(["oracles", 3], function(oracles){
+    (async function(){
+        var oracles = await rpc.apost(["oracles", 3], get_ip(), 8091);
         oracles = oracles.slice(1);
         console.log(JSON.stringify(oracles));
         loop(oracles);
-    }, get_ip(), 8091);
+    })();
+    //}, get_ip(), 8091);
 
     function loop(oracles) {
         if(oracles.length === 0){

@@ -145,25 +145,26 @@ function combine_cancel_assets_maker() {
 	spk[8] = spk[8] + m;
         return {"sspk": keys.sign(spk), "ss": combine2.ss.reverse()};
     }
-    function main(server_pubkey) {
+    async function main(server_pubkey) {
         var oldCD = channels_object.read(server_pubkey);
         var canceled = combine_cancel_common(oldCD);
         var sspk = canceled.sspk;
         var ss = canceled.ss;
-        rpc.post(["combine_cancel_assets", keys.pub(), canceled.sspk], function(sspk2) {
-            //verify that sspk2 is signed by them.
-            if (JSON.stringify(sspk2[1]) == JSON.stringify(sspk[1])) {
-                oldCD.them = sspk2;
-                oldCD.me = sspk[1];
-                oldCD.ssme = ss;
-                oldCD.ssthem = ss;
-                channels_object.write(server_pubkey, oldCD);
-            } else {
-                console.log(JSON.stringify(sspk[1]));
-                console.log(JSON.stringify(sspk2[1]));
-                throw("combine cancel spks do not match");
-            }
-        });
+        //rpc.post(["combine_cancel_assets", keys.pub(), canceled.sspk], function(sspk2) {
+        var sspk2 = await rpc.post(["combine_cancel_assets", keys.pub(), canceled.sspk]);
+        //verify that sspk2 is signed by them.
+        if (JSON.stringify(sspk2[1]) == JSON.stringify(sspk[1])) {
+            oldCD.them = sspk2;
+            oldCD.me = sspk[1];
+            oldCD.ssme = ss;
+            oldCD.ssthem = ss;
+            channels_object.write(server_pubkey, oldCD);
+        } else {
+            console.log(JSON.stringify(sspk[1]));
+            console.log(JSON.stringify(sspk2[1]));
+            throw("combine cancel spks do not match");
+        }
+    //});
     }
     return {"main": main};
 }

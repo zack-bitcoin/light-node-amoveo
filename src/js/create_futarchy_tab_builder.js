@@ -40,7 +40,7 @@ function create_futarchy_tab_builder(div, selector){
     var button = button_maker2("make contract", make_contract);
     div.appendChild(button);
 
-    function make_contract(){
+    async function make_contract(){
         var MaxVal = 4294967295;
         var min = parseInt(min_text.value, 10);
         var MP = parseInt(max_text.value, 10) -
@@ -99,51 +99,58 @@ function create_futarchy_tab_builder(div, selector){
             Source = V[0];
             SourceType = V[1];
         };
-        var bin_cid = binary_derivative.id_maker(bin_ch, 2, Source, SourceType);
+        var bin_cid = merkle.contract_id_maker(bin_ch, 2, Source, SourceType);
         //var bin_txs =
-        tabs.tabs.create.tab.make_txs(
+        //tabs.tabs.create.tab.make_txs(
+        var bin_txs = await tabs.tabs.create.tab.make_txs(
             binary_text, 1, binary_price, amount,
-            display, selector.value,
-            function(bin_txs){
+            display, selector.value);
+        //function(bin_txs){
 
-                var contract_buy_tx =
-                    ["contract_use_tx", 0, 0, 0, bin_cid,
-                     scalar_amount, 2, Source, SourceType];
-                console.log([true_price, scalar_amount]);
-                console.log([false_price, scalar_amount]);
+        var contract_buy_tx =
+            ["contract_use_tx", 0, 0, 0, bin_cid,
+             scalar_amount, 2, Source, SourceType];
+        console.log([true_price, scalar_amount]);
+        console.log([false_price, scalar_amount]);
         //var scalar_true_txs =
-                tabs.tabs.create.tab.make_txs(
-                    scalar_text, MaxVal, true_price, scalar_amount,
-                    display, JSON.stringify([bin_cid, 1]),
-                    function(scalar_true_txs){
-                    
-                    //var scalar_false_txs =
-                        tabs.tabs.create.tab.make_txs(
-                            scalar_text, MaxVal, false_price, scalar_amount,
-                            display, JSON.stringify([bin_cid, 2]),
-                            function(scalar_false_txs){
-
-                                var txs = bin_txs
-                                    .concat([contract_buy_tx])
-                                    .concat(scalar_true_txs)
-                                    .concat(scalar_false_txs);
-                                console.log(JSON.stringify(txs));
-                                var details = generate_message(txs);
+        //tabs.tabs.create.tab.make_txs(
+        var scalar_true_txs = await tabs.tabs.create.tab.make_txs(
+            scalar_text, MaxVal, true_price, scalar_amount,
+            display, JSON.stringify([bin_cid, 1]));
+        //function(scalar_true_txs){
+                
+                //var scalar_false_txs =
+        //tabs.tabs.create.tab.make_txs(
+        var scalar_false_txs = await tabs.tabs.create.tab.make_txs(
+            scalar_text, MaxVal, false_price, scalar_amount,
+            display, JSON.stringify([bin_cid, 2]));
+        //async function(scalar_false_txs){
+                        
+        var txs = bin_txs
+            .concat([contract_buy_tx])
+            .concat(scalar_true_txs)
+            .concat(scalar_false_txs);
+        console.log(JSON.stringify(txs));
+        var details = generate_message(txs);
         //return(0);
-                                multi_tx.make(txs, function(tx){
-                                    var stx = keys.sign(tx);
-                                    console.log(JSON.stringify(stx));
-                                    post_txs([stx], function(msg){
-                                        display.innerHTML = msg
-                                            .concat(details);
-                                        if(!(msg == "server rejected the tx")){
-                                            keys.update_balance();
-                                        };
-                                    });
-                                });
-                            });
-                    });
-            });
+        //multi_tx.make(txs, async function(tx){
+        var tx = await multi_tx.amake(txs);
+        var stx = keys.sign(tx);
+        console.log(JSON.stringify(stx));
+        //post_txs([stx], function(msg){
+        var msg = await apost_txs([stx]);
+        display.innerHTML = msg
+            .concat(details)
+            .concat("</br>")
+            .concat(msg);
+        if(!(msg == "server rejected the tx")){
+            keys.update_balance();
+        };
+        //});
+        //});
+    //});
+    //});
+    //});
     };
     function generate_message(txs){
         if(txs.length === 0){
@@ -153,7 +160,7 @@ function create_futarchy_tab_builder(div, selector){
         var s = "";
         if(tx[0] === "contract_new_tx"){
 //-record(contract_new_tx, {from, contract_hash, fee, many_types, source, source_type}).
-            var cid = binary_derivative.id_maker(tx[2], tx[4], tx[5], tx[6]);
+            var cid = merkle.contract_id_maker(tx[2], tx[4], tx[5], tx[6]);
             s = "<br>creating contract "
                 .concat(cid);
         } else if(tx[0] === "market_new_tx"){

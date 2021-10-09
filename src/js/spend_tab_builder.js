@@ -43,93 +43,51 @@ function spend_tab_builder(div, selector){
             });
         };
     };
-    function send(){
+    async function send(){
         var to = parse_address(recipient_text.value);
         var from = keys.pub();
         var amount = Math.round(parseFloat(amount_text.value, 10)* token_units());
         if(selector.value == "veo"){
-            spend_tx.make_tx(to, from, amount, function(tx){
-                var stx = keys.sign(tx);
-                post_txs([stx], function(msg){
-                    display.innerHTML = msg;
-                });
-            });
+            //spend_tx.make_tx(to, from, amount, async function(tx){
+            var tx = await spend_tx.amake_tx(to, from, amount);
+            var stx = keys.sign(tx);
+            //post_txs([stx], function(msg){
+            var msg = await apost_txs([stx]);
+            display.innerHTML = msg;
+            //});
+            //});
         } else {
-            rpc.post(["account", keys.pub()], function(ma) {
-                var V = JSON.parse(selector.value);
-                var cid = V[0];
-                var type = parseInt(V[1]);
-                var sk = sub_accounts.key(keys.pub(), cid, type);
-                var sk = btoa(array_to_string(sk));
-                var balances_db = tabs.balances_db;
-                console.log(sk);
-                console.log(balances_db);
-                if(balances_db[sk] &&
-                   balances_db[sk].limit){
-                    amount = Math.floor(
-                        amount /
-                            balances_db[sk].limit);
-                };
-                var Nonce = ma[2] + 1;
-                var fee = 152050;
-                var tx = ["sub_spend_tx",
-                          keys.pub(),
+            //rpc.post(["account", keys.pub()], async function(ma) {
+            var ma = await rpc.apost(["account", keys.pub()]);
+            var V = JSON.parse(selector.value);
+            var cid = V[0];
+            var type = parseInt(V[1]);
+            var sk = sub_accounts.key(keys.pub(), cid, type);
+            var sk = btoa(array_to_string(sk));
+            var balances_db = tabs.balances_db;
+            console.log(sk);
+            console.log(balances_db);
+            if(balances_db[sk] &&
+               balances_db[sk].limit){
+                amount = Math.floor(
+                    amount /
+                        balances_db[sk].limit);
+            };
+            var Nonce = ma[2] + 1;
+            var fee = 152050;
+            var tx = ["sub_spend_tx",
+                      keys.pub(),
                       Nonce,
                       fee, to, amount,
                       cid, type];
-                //console.log(JSON.stringify(tx));
-                //return(0);
-                var stx = keys.sign(tx);
-                post_txs([stx], function(msg){
-                    display.innerHTML = msg;
-                });
-            });
+            //console.log(JSON.stringify(tx));
+            //return(0);
+            var stx = keys.sign(tx);
+            //post_txs([stx], function(msg){
+            var msg = await apost_txs([stx]);
+            display.innerHTML = msg;
+            //});
+            //});
         };
     };
-    /*
-    function send_old(){
-        rpc.post(["account", keys.pub()], function(ma) {
-        //merkle.request_proof("accounts", keys.pub(), function(ma) {
-            var Nonce = ma[2] + 1;
-            var fee = 152050;
-            var to = recipient_text.value;
-            to = parse_address(to);
-            var amount = Math.round(parseFloat(amount_text.value)* token_units());
-            if(selector.value == "veo"){
-                if(to == 0){
-                    display.innerHTML = "badly formatted recipient's address";
-                    return(0);
-                };
-                //merkle.request_proof("accounts", to, function(them) {
-                rpc.post(["account", to], function(them) {
-                    var tx;
-                    if(them == "empty"){
-		        tx = ["create_acc_tx", keys.pub(), Nonce, fee, to, amount];
-                    } else {
-		        tx = ["spend", keys.pub(), Nonce, fee, to, amount, 0];
-                    };
-                    console.log(JSON.stringify(tx));
-                    var stx = keys.sign(tx);
-                    post_txs([stx], function(msg){
-                        display.innerHTML = msg;
-                    });
-                });
-            } else {
-                var V = JSON.parse(selector.value);
-                var cid = V[0];
-                var type = parseInt(V[1]);
-                var tx = ["sub_spend_tx",
-                          keys.pub(),
-                          Nonce,
-                          fee, to, amount,
-                          cid, type];
-                console.log(JSON.stringify(tx));
-                var stx = keys.sign(tx);
-                post_txs([stx], function(msg){
-                    display.innerHTML = msg;
-                });
-            };
-        });
-    };
-    */
 };

@@ -20,7 +20,7 @@ var publish_swap_offer = (function() {
     div.appendChild(button);
     div.appendChild(br());
 
-    function publish(){
+    async function publish(){
         var x = JSON.parse(offer.value);
         console.log(offer.value);
         var cid1 = x[1][4];
@@ -30,62 +30,61 @@ var publish_swap_offer = (function() {
         console.log(zero);
         if(!(cid1 == zero)){
             console.log("about to post");
-            rpc.post(["read", 3, cid1], function(first){
+            //rpc.post(["read", 3, cid1], function(first){
+            var first = await rpc.apost(["read", 3, cid1], s_ip.value, parseInt(s_port.value));
             console.log("just posted");
-                if(first == 0){
-                    display.innerHTML = "contract "
-                        .concat(cid1)
-                        .concat(" is unknown to the server");
-                    return(0);
-                } else {
-                    return(publish2(zero, x));
-                }
-            }, s_ip.value, parseInt(s_port.value));
+            if(first == 0){
+                display.innerHTML = "contract "
+                    .concat(cid1)
+                    .concat(" is unknown to the server");
+                return(0);
+            } else {
+                return(publish2(zero, x));
+            }
+            //}, s_ip.value, parseInt(s_port.value));
         } else {
             return(publish2(zero, x));
         };
     };
-    function publish2(zero, x) {
+    async function publish2(zero, x) {
         var cid2 = x[1][7];
         var second_offer = 0;
         if(!(cid2 == zero)){
             console.log("about to post");
-            rpc.post(["read", 3, cid2], function(second){
+            //rpc.post(["read", 3, cid2], function(second){
+            var second = await rpc.apost(["read", 3, cid2], s_ip.value, parseInt(s_port.value));
             console.log("just posted");
-                if(second == 0) {
-                    display.innerHTML = "contract "
-                        .concat(cid2)
-                        .concat(" is unknown to the server");
-                    return(0);
-                } else {
-                    if(second[0] == "binary"){
-                        var f = swaps.unpack(x);
-                        var C = {
-                            acc1: keys.pub(),
-                            end_limit: 9999999999,
-                            amount1: f.amount2,
-                            cid1: f.cid2,
-                            type1: f.type2,
-                            amount2: Math.floor(f.amount2 * 0.99),
-                            fee1: 200000,
-                            nonce: f.nonce
+            if(second == 0) {
+                display.innerHTML = "contract "
+                    .concat(cid2)
+                    .concat(" is unknown to the server");
+                return(0);
+            } else {
+                if(second[0] == "binary"){
+                    var f = swaps.unpack(x);
+                    var C = {
+                        acc1: keys.pub(),
+                        end_limit: 9999999999,
+                        amount1: f.amount2,
+                        cid1: f.cid2,
+                        type1: f.type2,
+                        amount2: Math.floor(f.amount2 * 0.99),
+                        fee1: 200000,
+                        nonce: f.nonce
                         };
-                        second_offer = swaps.pack(C);
-                    };
-                    return(publish3(x, second_offer));
-                }
-            }, s_ip.value, parseInt(s_port.value));
+                    second_offer = swaps.pack(C);
+                };
+                return(publish3(x, second_offer));
+            }
+        //}, s_ip.value, parseInt(s_port.value));
         } else {
             return(publish3(x, 0));
         }
     };
-    function publish3(x, second_offer){
-        rpc.post(["add", x, second_offer], function(z)
-                 {
-                     display.innerHTML = "successfully sent the swap offer to the server.";
-                 },
-                 s_ip.value,
-                 parseInt(s_port.value));
+    async function publish3(x, second_offer){
+        //rpc.post(["add", x, second_offer], function(z)
+        var z = await rpc.apost(["add", x, second_offer], s_ip.value, parseInt(s_port.value));
+        display.innerHTML = "successfully sent the swap offer to the server.";
     };
 
     return({ip: function(x){ s_ip.value = x},

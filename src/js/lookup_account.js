@@ -22,10 +22,12 @@ function lookup_account1() {
     document.body.appendChild(zeroth_confirmation);
     document.body.appendChild(document.createElement("br"));
 
-    function lookup_account_helper() {
+    async function lookup_account_helper() {
         var x = lookup_account_address.value.trim();
 	console.log("lookup account");
-        rpc.post(["account", x], lookup_account_helper2);
+        //rpc.post(["account", x], lookup_account_helper2);
+        var y = await rpc.apost(["account", x]);
+        lookup_accounts_helper2(y);
     }
     function lookup_account_helper2(x) {
         lookup_account.innerHTML = "balance: ".concat(x[1] / token_units()).concat(" VEO");

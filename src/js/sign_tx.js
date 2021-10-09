@@ -36,11 +36,13 @@
 	signed_tx.innerHTML = s;
 	tx.value = "";
     }
-    function push_tx() {
+    async function push_tx() {
 	var t = JSON.parse(tx_push.value);
 	//console.log(t);
 	//var t2 = keys.sign(t);
-	rpc.post(["txs", [-6, t]], function(x) {});
+        var c = apost_txs([t]);
+        console.log(c);
+	//rpc.post(["txs", [-6, t]], function(x) {});
 	tx_push.value = "";
     }
 })();

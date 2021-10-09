@@ -26,7 +26,7 @@ function s2c(x) { return x / token_units(); }
 function c2s(x) {
     return Math.floor(parseFloat(x.value, 10) * token_units());
 }
-
+/*
 function oracle_limit(oid, callback) {
     return rpc.post(["oracle", oid], function(x) {
         console.log(atob(x[1][4]));
@@ -73,4 +73,4 @@ function oracle_limit(oid, callback) {
         }
     };
 };
-
+*/

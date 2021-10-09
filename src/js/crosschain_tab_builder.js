@@ -126,14 +126,15 @@ function crosschain_tab_builder(div, selector){
             }
         } else {
             var sub_id = sub_accounts.normal_key(keys.pub(), Source, SourceType);
-            sub_accounts.rpc(sub_id, function(sa){
-                if(sa[1] < spend_amount){
-                    display.innerHTML = "insufficient subcurrency to make that swap offer";
-                    return(0);
-                } else {
-                    return(callback2());
-                };
-            });
+            //sub_accounts.rpc(sub_id, function(sa){
+            var sa = await sub_accounts.arpc(sub_id);
+            if(sa[1] < spend_amount){
+                display.innerHTML = "insufficient subcurrency to make that swap offer";
+                return(0);
+            } else {
+                return(callback2());
+            };
+            //});
         };
     };
     function crosschain_offer2(spend_amount, Source, SourceType, cid){
@@ -324,13 +325,13 @@ function crosschain_tab_builder(div, selector){
         var block_height = headers_object.top()[1];
         if(offer.acc1 === keys.pub()){
             var cancel_button = button_maker2(
-                "cancel trade", function(){
+                "cancel trade", async function(){
                     var tx = ["trade_cancel_tx", keys.pub(), 2000000, fee, offer.salt];
                     var stx = keys.sign(tx);
-                    post_txs([stx], function(x){
-                        display.innerHTML = x;
-                        refresh();
-                    });
+                    var x = await apost_txs([stx]);
+                    display.innerHTML = x;
+                    refresh();
+                    //});
                     return(0);
                 });
             temp_div.appendChild(description);
@@ -366,7 +367,7 @@ function crosschain_tab_builder(div, selector){
             swaps.make_tx(trade, 1, async function(txs){
                 var tx = await multi_tx.amake([new_contract_tx].concat(txs));
                 var stx = keys.sign(tx);
-                var msg = apost_txs([stx]);
+                var msg = await apost_txs([stx]);
                 if(msg === "server rejected the tx"){
                     display.innerHTML = msg;
                 } else {

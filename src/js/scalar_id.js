@@ -33,7 +33,7 @@ var scalar_id = (function(){
             SourceType = parseInt(source_type.value);
         };
         console.log([CH, MT, Source, SourceType]);
-        var cid = binary_derivative.id_maker(CH, MT, Source, SourceType);
+        var cid = merkle.contract_id_maker(CH, MT, Source, SourceType);
         display.innerHTML = cid;
         return(0);
     };

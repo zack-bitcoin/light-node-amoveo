@@ -406,7 +406,7 @@ function headers_main() {
             wallet_text.innerHTML = "Current height: " + top_header[1];
         }
     }
-    function more_headers() {
+    async function more_headers() {
         //console.log("more headers");
         var n;
         if ( top_header == 0 ) {
@@ -414,7 +414,9 @@ function headers_main() {
         } else {
             n = top_header[1];
         }
-        rpc.post(["headers", headers_batch + 1, n], absorb_headers);
+        //rpc.post(["headers", headers_batch + 1, n], absorb_headers);
+        var x = await rpc.apost(["headers", headers_batch + 1, n]);
+        absorb_headers(x);
     }
     function serialize_header(x) {
         var height = x[1]; //4 bytes
@@ -451,8 +453,10 @@ function headers_main() {
         console.log(JSON.stringify(hash(g)));
         console.log(JSON.stringify(hash(f)));
     }
-    function header_test() {
-        rpc.post(["headers", 10, 0], header_test2);
+    async function header_test() {
+        //rpc.post(["headers", 10, 0], header_test2);
+        var x = await rpc.apost(["headers", 10, 0]);
+        header_test2(x);
     }
     function header_test2(hl) {
         console.log(hl);

@@ -231,7 +231,7 @@ function make_contract(){
         var amount = Math.round(parseFloat(amount_text.value)*token_units());
         return(make_contract2(Text, MaxVal, price, amount, display, selector));
     };
-    function make_txs(Text, MP, price, amount, display2, selector2_value, callback) {
+    async function make_txs(Text, MP, price, amount, display2, selector2_value, callback) {
     
         //function make_contract2(Text, MP, price, amount, display2, selector2) {
         //console.log(MP);
@@ -260,8 +260,8 @@ function make_contract(){
             new_scalar_contract.make_tx(
                 Text, MP, Source, SourceType);
         var CH = new_contract_tx[2];
-        //var cid = binary_derivative.id_maker(CH, 2);
-        var cid = binary_derivative.id_maker(CH, 2, Source, SourceType);
+        //var cid = merkle.contract_id_maker(CH, 2);
+        var cid = merkle.contract_id_maker(CH, 2, Source, SourceType);
         var txs = [new_contract_tx];
         
         if (amount1 == amount2) {
@@ -378,32 +378,31 @@ function make_contract(){
              0, MP, Source,
              SourceType];
             //console.log(msg);
-        rpc.post(msg, function(x){
-            console.log(x);
-            console.log("taught a scalar contract.");
-            return(callback(txs));
-        }, get_ip(), 8090);
+        //rpc.post(msg, function(x){
+        var x = await rpc.apost(msg, get_ip(), 8090);
+        console.log(x);
+        console.log("taught a scalar contract.");
+        return(txs);
+    //}, get_ip(), 8090);
        // }, 0);
         //return(txs);
     };
         
-    function make_contract2(Text, MP, price, amount, display2, selector2) {
+    async function make_contract2(Text, MP, price, amount, display2, selector2) {
         //var txs = make_txs(Text, MP, price, amount, display2, selector2.value);
-        make_txs(Text, MP, price, amount, display2, selector2.value, function(txs){
+        //make_txs(Text, MP, price, amount, display2, selector2.value, function(txs){
+        var txs = await make_txs(Text, MP, price, amount, display2, selector2.value);
 
-            console.log(JSON.stringify(txs));
-            //return(0);
-            multi_tx.make(txs, function(tx){
-                var stx = keys.sign(tx);
-                console.log(JSON.stringify(stx));
-                post_txs([stx], function(msg){
-                    display2.innerHTML = msg;
-                    if(!(msg == "server rejected the tx")){
-                        keys.update_balance();
-                    };
-                });
-            });
-        });
+        console.log(JSON.stringify(txs));
+        var tx = await multi_tx.amake(txs);
+        var stx = keys.sign(tx);
+        console.log(JSON.stringify(stx));
+        //post_txs([stx], function(msg){
+        var msg = await apost_txs([stx]);
+        display2.innerHTML = msg;
+        if(!(msg == "server rejected the tx")){
+            keys.update_balance();
+        };
     };
     return({
         website:(function(x){website_text.value = x}),

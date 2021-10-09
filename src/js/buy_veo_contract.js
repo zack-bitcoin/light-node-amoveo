@@ -268,10 +268,8 @@ var Address Date Ticker Amount Blockchain
         return(" binary ".concat(btoa(array_to_string(run(bytes)[0].slice(1)))));
     };
     function part1static_bytes(){
-        //error here. it is including all of part2 instead of just the id.
         var s = ` macro part2 `
-            .concat(part2id()) //currently is this: [binary,175,253,78,9,75,163,111,26,134,13,23,56,91,85,6,12,230,0,96,60,129,52,162,153,129,12,234,64,108,186,152,132].
-        //needs to be changed to valid chalang code.
+            .concat(part2id())
             .concat(` ; `)
             .concat(contract1);
         s = chalang_compiler.doit(s);
@@ -279,8 +277,6 @@ var Address Date Ticker Amount Blockchain
     };
     function contract1bytes(settings){
         var s = chalang_compiler.doit(settings);
-        //console.log(settings);
-        //console.log(JSON.stringify(s));
         var r = s.concat(part1static_bytes());
         return(r);
     };
@@ -298,10 +294,6 @@ var Address Date Ticker Amount Blockchain
         if(!(source_type)){
             source_type = 0;
         };
-        //var ch = scalar_derivative.hash(
-        //    contract_bytes);
-        //var cid = binary_derivatives.id_maker(
-        //    ch, 2, ZERO, 0);
         var tx = ["contract_new_tx", keys.pub(),
                   ch, fee, 2, source, source_type];
         return(tx);
@@ -331,8 +323,7 @@ var Address Date Ticker Amount Blockchain
 
     function rid_maker(trade_id, their_pub){
         //receipt id maker:
-        //HEI = 32,
-        //hash:doit(<<T/binary, P/binary, N:HEI>>).
+        //hash:doit(<<T/binary, P/binary, N:32>>).
         //assume swap nonce is 1
         var rid = btoa(array_to_string(hash(
             string_to_array(atob(trade_id))
@@ -376,17 +367,13 @@ var Address Date Ticker Amount Blockchain
             .concat(deposit_address)
             .concat(`" `);
         evidence = chalang_compiler.doit(evidence);
-        //console.log(JSON.stringify(btoa(array_to_string(evidence))));
         var new_tx = new_contract_tx(ch, source, source_type);
-        //contract2bytesv);
         var tx = ["contract_evidence_tx", keys.pub(),
                   nonce, fee,
                   btoa(array_to_string(contract1bytes)), cid,
                   btoa(array_to_string(evidence)),
-                  //evidence,
                   [-6, ["receipts", rid]]];
         var timeout_tx = first_timeout(cid, ch, reusable_settings, deposit_address, nonce+1, source, source_type);
-        //console.log("about to return from buy veo contract");
         return([new_tx, tx, timeout_tx]);
     };
 
@@ -397,7 +384,6 @@ var Address Date Ticker Amount Blockchain
             .concat(contract2)
             .concat(s);
         var s = s.replace("BA", bitcoin_address);
-        //console.log(s);
         var bytes = chalang_compiler.doit(s);
         var b = run(bytes)[0];
         b = b.slice(1);
@@ -406,7 +392,7 @@ var Address Date Ticker Amount Blockchain
     };
     function make_cid(bytes, type, Source, SourceType) {
         var ch = scalar_derivative.hash(btoa(array_to_string(bytes)));
-        var cid = binary_derivative.id_maker(
+        var cid = merkle.contract_id_maker(
             ch, type, Source, SourceType);
         return(cid);
     };
@@ -432,16 +418,6 @@ var Address Date Ticker Amount Blockchain
         var simplify = simplify_tx(cid1, cid2, result, nonce+2);
         return([evidence_tx, timeout_tx, simplify]);
     };
-    /*
-    function matrix(){
-        var full = integer_to_array(4294967295, 4);
-        var empty = integer_to_array(0, 4);
-        var matrix =
-            [[full, empty],
-             [empty, full]];
-        return(matrix);
-    };
-    */
     function vector(Matrix, result){
         var vector;
         if(result === 1){ vector = Matrix[1];
@@ -450,7 +426,6 @@ var Address Date Ticker Amount Blockchain
         return(vector);
     };
     function simplify_tx(CID, CID2, result, nonce) {
-        //Tx11 = contract_simplify_tx:make_dict(MP, CID, CID2, 0, Matrix, [Empty, Full], Fee),
         var Matrix = matrix();
         var Vector = vector(Matrix, result);
         var tx = ["contract_simplify_tx", keys.pub(),
@@ -477,7 +452,8 @@ var Address Date Ticker Amount Blockchain
             proof2(), row2];
         return([winnings_tx, winnings_tx2]);
     };
-    function winnings_tx(cid, result, callback){
+    /*
+    async function winnings_tx(cid, result, callback){
         var Vector = vector(matrix(), result);
         var result2;
         if(result){  result2 = 1;
@@ -485,7 +461,7 @@ var Address Date Ticker Amount Blockchain
         };
         var sub_account = sub_accounts.normal_key(
             keys.pub(), cid, result2);
-        rpc.post(["sub_accounts", sub_account], function(sa) {
+        var sa = await rpc.post(["sub_accounts", sub_account], function(sa) {
             rpc.post(["accounts", keys.pub()], function(acc) {
                 var nonce = acc[2] + 1;
                 var amount = sa[1];
@@ -497,6 +473,7 @@ var Address Date Ticker Amount Blockchain
             });
         });
     };
+    */
     function contract_evidence_proof() {
         return([-7,"DuuMB6kmlzrtq7xvpJZC01BrGSojmrRIiQH+n9oU2cM=","cqT6NUTkOoNv/LJozgbM28VdRNXmsbHBkhalPqmDAf0=",[-6,[-7,"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","69C/42A2nzhjBR3hE6PxPhdn/FY060N1dMOt2RIVMVo=","/0URezACy63B5htZN80FCOUC1ZyUPvbLaCwqIV3LP80=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="]]]);
     };
@@ -508,18 +485,11 @@ var Address Date Ticker Amount Blockchain
             source_type = 0;
         };
         var Matrix = matrix();
-        //console.log(JSON.stringify(Matrix));//[[[255,255,255,255],[0,0,0,0]],[[0,0,0,0],[255,255,255,255]]]
-
         var proofs = contract_evidence_proof();
         var row = Matrix[1];
-        //CID2 = contracts:make_id(CH2, 2, <<0:256>>, 0),
-        //var child_cid = binary_derivative.id_maker(
-        //    CH2, 2, ZERO, 0);
         var c2b = contract2bytes(
             reusable_settings, deposit_address);
         var CH2 = scalar_derivative.hash(btoa(array_to_string(c2b)));
-        //console.log("contract 2 bytes");
-        //console.log(JSON.stringify(c2b));
         var child_cid = make_cid(c2b, 2, source, source_type);
         var tx = ["contract_timeout_tx2", keys.pub(),
                   nonce, fee, CID, proofs, CH2,
@@ -546,7 +516,6 @@ var Address Date Ticker Amount Blockchain
         var sink = consensus_state_contract[10];
         let contract2 = await rpc.apost(["contract", cid], IP, 8091);
         contract2 = contract2[1];
-        //console.log(JSON.stringify(contract2));
         let contract_txs;
         if(contract2 === 0){
             contract_txs = [];
@@ -557,7 +526,6 @@ var Address Date Ticker Amount Blockchain
         };
         contract_txs = await txids_to_txs(contract_txs, []);
         txs = txs.concat(contract_txs);
-        //console.log(JSON.stringify(txs));
         var timeout_txs = txs.filter(function(tx){
             return((tx[1][0] === "contract_timeout_tx2") &&
                    (tx[1][4] === cid))
@@ -680,7 +648,6 @@ macro ] swap cons reverse ;/
         };
         var contract = string_to_array(atob(tx[1][4]));
         var cid_check = tx[1][5];
-        //var cid_check = make_cid(contract, 2, ZERO, 0);
         if(!(cid === cid_check)){
             console.log("invalid contract code");
             return(callbackwithout());
@@ -696,7 +663,7 @@ macro ] swap cons reverse ;/
             return(callbackwithout());
         };
         var sink_check = run(evidence.concat(prove_code).concat(contract))[2];
-        sink_check2 = binary_derivative.id_maker(btoa(array_to_string(sink_check.slice(1))), 2, ZERO, 0);
+        sink_check2 = merkle.contract_id_maker(btoa(array_to_string(sink_check.slice(1))), 2, ZERO, 0);
         //if(!(sink === sink_check2)){
         //    console.log("invalid contract result");
         //    return(callbackwithout());
@@ -809,7 +776,7 @@ macro ] swap cons reverse ;/
         run: run,
         part2id: part2id,
         part1static_bytes: part1static_bytes,
-        winnings_tx: winnings_tx,
+        //winnings_tx: winnings_tx,
         simplify_tx: simplify_tx,
 
         //configuration

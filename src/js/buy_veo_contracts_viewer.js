@@ -175,13 +175,12 @@
                 evidence = keys.sign(evidence);
                 multi = keys.sign(multi);
                 console.log(JSON.stringify(evidence));
-                post_txs([evidence, multi], function(response){
-                    var span = document.createElement("span");
-                    span.innerHTML = response;
-                    option_div.appendChild(br());
-                    option_div.appendChild(span);
-                    option_div.appendChild(br());
-                });
+                var response = await apost_txs([evidence, multi]);
+                var span = document.createElement("span");
+                span.innerHTML = response;
+                option_div.appendChild(br());
+                option_div.appendChild(span);
+                option_div.appendChild(br());
                 return(0);
             });
             option_div.append(out_of_time_button);
@@ -312,19 +311,18 @@
         var txs = [new_tx, bet_tx];
         tx = await multi_tx.amake(txs);
         var stx = keys.sign(tx);
-        post_txs([stx], function(response){
-            var span = document.createElement("span");
-            span.innerHTML = response;
-            option_div.appendChild(br());
-            option_div.appendChild(span);
-            option_div.appendChild(br());
-            var link = document.createElement("a");
-            link.innerHTML = "oracle with id: ".concat(oid);
-            link.target = "_blank";
-            link.href = "oracle_explorer.html?oid=".concat(oid);
-            option_div.appendChild(link);
-            option_div.appendChild(br());
-        });
+        var response = await apost_txs([stx]);
+        var span = document.createElement("span");
+        span.innerHTML = response;
+        option_div.appendChild(br());
+        option_div.appendChild(span);
+        option_div.appendChild(br());
+        var link = document.createElement("a");
+        link.innerHTML = "oracle with id: ".concat(oid);
+        link.target = "_blank";
+        link.href = "oracle_explorer.html?oid=".concat(oid);
+        option_div.appendChild(link);
+        option_div.appendChild(br());
     };
     async function combine_to_veo(cid, sa1, sa2, consensus_contract, option_div){
         console.log("combine_to_veo");
@@ -365,14 +363,15 @@
                 
             };
             var stx = keys.sign(tx);
-            post_txs([stx], function(response){
-                console.log(JSON.stringify(response));
-                var span = document.createElement("span");
-                span.innerHTML = response;
-                option_div.appendChild(br());
-                option_div.appendChild(span);
-                option_div.appendChild(br());
-            });
+            //post_txs([stx], function(response){
+            var response = await apost_txs([stx]);
+            console.log(JSON.stringify(response));
+            var span = document.createElement("span");
+            span.innerHTML = response;
+            option_div.appendChild(br());
+            option_div.appendChild(span);
+            option_div.appendChild(br());
+            //});
         });
         option_div.appendChild(button);
     };

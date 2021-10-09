@@ -72,12 +72,13 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
 
     var amount_input = text_input("amount to sell: ", swap_tab);
     amount_input.value = "0.01";
-    var sell_all_button = button_maker2("sell all", function(){
+    var sell_all_button = button_maker2("sell all", async function(){
         var currency = selector.value;
         if(currency == "veo") {
-            rpc.post(["account", keys.pub()], function(acc){
-                amount_input.value = (acc[1] / token_units()).toFixed(8);
-            });
+            //rpc.post(["account", keys.pub()], function(acc){
+            var acc = await rpc.apost(["account", keys.pub()]);
+            amount_input.value = (acc[1] / token_units()).toFixed(8);
+        //});
         } else {
             currency = JSON.parse(currency);
             //console.log(currency);
@@ -122,11 +123,12 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
     swap_tab.appendChild(swap_price_button);
     swap_tab.appendChild(publish_tx_button);
 
-    function display_contracts(div) {
-        rpc.post(["contracts"], function(contracts){
-            var s = "";
-            return(display_contracts2(div, contracts.slice(1), []));
-        }, get_ip(), 8091);//8091 is explorer
+    async function display_contracts(div) {
+        //rpc.post(["contracts"], function(contracts){
+        var contracts = await rpc.apost(["contracts"], get_ip(), 8091);//8091 is explorer
+        var s = "";
+        return(display_contracts2(div, contracts.slice(1), []));
+        //}, get_ip(), 8091);//8091 is explorer
     };
     function display_contracts2(div, contracts, pairs, callback) {
         if(contracts.length < 1) {
@@ -142,34 +144,35 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
         var source = contracts[0][8];
         var source_type = contracts[0][9];
         //rpc.post(["read", 3, cid], function(oracle_text) {
-        memoized_oracle_text_post(cid, function(oracle_text){
+        memoized_oracle_text_post(cid, async function(oracle_text){
             //console.log("read oracle text");
             if(oracle_text[1] && (atob(oracle_text[1]))){
                 //console.log(atob(oracle_text[1]));
             };
             //console.log(cid, source_type);
-            price_estimate_read(cid, source, source_type, function(p_est, liquidity){
+            //price_estimate_read(cid, source, source_type, function(p_est, liquidity){
+            [p_est, liquidity] = await price_estimate_read(cid, source, source_type);
                 //console.log("estimated price");
                 //console.log([cid, p_est, liquidity]);
-                if(!(oracle_text == 0)) {
-                    var type = oracle_text[0];
-                    var text = atob(oracle_text[1]);
-                    var text0 = text;
+            if(!(oracle_text == 0)) {
+                var type = oracle_text[0];
+                var text = atob(oracle_text[1]);
+                var text0 = text;
                 //console.log(text);
                 //console.log(JSON.stringify(oracle_text));
-                    var ticker_bool =
-                        tabs.is_ticker_format(text);
+                var ticker_bool =
+                    tabs.is_ticker_format(text);
                 //console.log(hide_non_standard);
-                    var option = document.createElement("option");
-                    option.innerHTML = "";
-                    option.value = JSON.stringify([cid, 1]);
-                    var option2 = document.createElement("option");
-                    option2.innerHTML = "";
-                    option2.value = JSON.stringify([cid, 2]);
-                    var open_interest = (contracts[0][11] / token_units()).toFixed(2).toString();
-                    var liquidity = (liquidity/100000000).toFixed(2).toString();
-                    if(liquidity > 0.009){
-                        if(ticker_bool){
+                var option = document.createElement("option");
+                option.innerHTML = "";
+                option.value = JSON.stringify([cid, 1]);
+                var option2 = document.createElement("option");
+                option2.innerHTML = "";
+                option2.value = JSON.stringify([cid, 2]);
+                var open_interest = (contracts[0][11] / token_units()).toFixed(2).toString();
+                var liquidity = (liquidity/100000000).toFixed(2).toString();
+                if(liquidity > 0.009){
+                    if(ticker_bool){
                         contract_to_buy.appendChild(option);
                         contract_to_buy.appendChild(option2);
                         var button1_text = " contract ";
@@ -184,25 +187,25 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                             .concat("\"")
                             .concat(stable_text)
                             .concat("\"~ ")
-                            //.concat("; open interest: ")
-                            //.concat(open_interest)
+                        //.concat("; open interest: ")
+                        //.concat(open_interest)
                             .concat("; liquidity: ")
                             .concat(liquidity)
-                            //.concat((contracts[0][11] / token_units()).toFixed(2).toString())
+                        //.concat((contracts[0][11] / token_units()).toFixed(2).toString())
                             .concat("");
                         var s2 = ""
                             .concat("\"")
                             .concat(long_text)
                             .concat("\"~ ")
-                            //.concat("; open interest: ")
-                            //.concat(open_interest)
+                        //.concat("; open interest: ")
+                        //.concat(open_interest)
                             .concat("; liquidity: ")
                             .concat(liquidity)
-                            //.concat((contracts[0][11] / token_units()).toFixed(2).toString())
+                        //.concat((contracts[0][11] / token_units()).toFixed(2).toString())
                             .concat("");
                         option.innerHTML = s1;
                         option2.innerHTML = s2;
-                        } else {//if (!(hide_non_standard)){
+                    } else {//if (!(hide_non_standard)){
                         contract_to_buy.appendChild(option);
                         contract_to_buy.appendChild(option2);
                         var short_text = text.slice(0, 64);
@@ -211,11 +214,11 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                         };
                         option.innerHTML =
                             ""
-                            //.concat(button1_text)
+                        //.concat(button1_text)
                             .concat("TRUE: ")
                             .concat(short_text)
-                            //.concat("; open interest: ")
-                            //.concat(open_interest)
+                        //.concat("; open interest: ")
+                        //.concat(open_interest)
                             .concat("; price: ")
                             .concat(p_est.toFixed(2))
                             .concat("; liquidity: ")
@@ -223,25 +226,25 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                             .concat("");
                         option2.innerHTML =
                             ""
-                            //.concat(button2_text)
+                        //.concat(button2_text)
                             .concat("FALSE: ")
                             .concat(short_text)
-                            //.concat("; open interest: ")
-                            //.concat(open_interest)
+                        //.concat("; open interest: ")
+                        //.concat(open_interest)
                             .concat("; price: ")
                             .concat((1-p_est).toFixed(2))
                             .concat("; liquidity: ")
                             .concat(liquidity)
                             .concat("");
                     };
-                    };
-                }
+                };
+            }
                 setTimeout(function(){
                     display_contracts2(div, contracts.slice(1), pairs, callback);
                 }, 200);
-            });
-            //}, get_ip(), 8090);//p2p derivatives server
         });
+            //}, get_ip(), 8090);//p2p derivatives server
+    //});
     };
     
     function swap_price() {
@@ -1260,7 +1263,7 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
         get_oracle_text(gain_currency[0], function(gain_oracle_text){
             get_contract(gain_currency[0], function(gain_contract){
                 get_oracle_text(spend_currency[0], function(spend_oracle_text){
-                    get_contract(spend_currency[0], function(spend_contract){
+                    get_contract(spend_currency[0], async function(spend_contract){
                         //TODO, before calling the slow multi_tx, we can display price information for the user.
                             //console.log(JSON.stringify(txs));
                         var gain_db = decode_oracle(gain_oracle_text, gain_contract, gain_currency, markets);
@@ -1307,31 +1310,33 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                         };
                             
                         console.log(JSON.stringify(txs));
-                        multi_tx.make(txs, function(tx){
-                            var fee_span = document.createElement("span");
-                            fee_span.innerHTML = "<br>veo fees: "
-                                .concat(((trading_fees + (slippage * loss) + tx[3])/token_units()).toFixed(8).toString());
-                            display.appendChild(fee_span);
+                        //multi_tx.make(txs, function(tx){
+                        var tx = await multi_tx.make(txs);
+                        var fee_span = document.createElement("span");
+                        fee_span.innerHTML = "<br>veo fees: "
+                            .concat(((trading_fees + (slippage * loss) + tx[3])/token_units()).toFixed(8).toString());
+                        display.appendChild(fee_span);
 
-
-
-                            var stx = keys.sign(tx);
-                            //console.log(JSON.stringify(tx));
-                            //console.log(JSON.stringify(txs));
-                            //return(0);
-                            publish_tx_button.onclick = function(){
-                                post_txs([stx], function(msg){
-                                    memoized_markets = {};
-                                    display.innerHTML = msg
-                                        .concat("<br>clearing cache of market data.");
-                                    keys.update_balance();
-                                });
-                            };
-                        });
+                        
+                        
+                        var stx = keys.sign(tx);
+                        //console.log(JSON.stringify(tx));
+                        //console.log(JSON.stringify(txs));
+                        //return(0);
+                        publish_tx_button.onclick = async function(){
+                            //post_txs([stx], function(msg){
+                            var msg = await apost_txs([stx]);
+                            memoized_markets = {};
+                            display.innerHTML = msg
+                                .concat("<br>clearing cache of market data.");
+                            keys.update_balance();
+                            //});
+                        };
                     });
                 });
             });
         });
+        //});
     };
     function decode_oracle(text, contract, currency, markets){
         if(contract === 0){
@@ -1708,68 +1713,73 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
         };
     };
     var memoized_contracts = {};
-    function memoized_contract_post(cid, callback){
+    async function memoized_contract_post(cid, callback){
         var x = memoized_contracts[cid];
         if(x){
             return(callback(x));
         } else {
-            rpc.post(["contracts", cid], function(contract){
+            //rpc.post(["contracts", cid], function(contract){
+            var contract = await rpc.apost(["contracts", cid]);
                 //console.log("memoize contract slow");
-                memoized_contracts[cid] = contract;
-                return(callback(contract));
-            });
+            memoized_contracts[cid] = contract;
+            return(callback(contract));
+        //});
         };
     };
     var memoized_sub_accounts = {};
-    function memoized_sub_account_post(id, callback){
+    async function memoized_sub_account_post(id, callback){
         var x = memoized_sub_accounts[id];
         if(x || (x === 0)){
             return(callback(x));
         } else {
-            rpc.post(["sub_accounts", id], function(acc){
+            //rpc.post(["sub_accounts", id], function(acc){
+            var acc = await rpc.apost(["sub_accounts", id]);
                 //console.log("memoize sub account slow");
-                memoized_sub_accounts[id] = acc;
-                return(callback(acc));
-            });
+            memoized_sub_accounts[id] = acc;
+            return(callback(acc));
+        //});
         };
     };
     var memoized_r_paths = {};
-    function memoized_r_paths_post(cid1, cid2, callback){
+    async function memoized_r_paths_post(cid1, cid2, callback){
         var x = memoized_r_paths[[cid1, cid2]];
         if(x){
             return(callback(x));
         } else {
-            rpc.post(["r", cid1, cid2], function(r){
+            //rpc.post(["r", cid1, cid2], function(r){
+            var r = await rpc.apost(["r", cid1, cid2], get_ip(), 8091);
                 //console.log("memoize r path slow");
-                memoized_r_paths[[cid1, cid2]] = r;
-                return(callback(r));
-            }, get_ip(), 8091);
+            memoized_r_paths[[cid1, cid2]] = r;
+            return(callback(r));
+        //}, get_ip(), 8091);
         };
     };
     var memoized_oracle_text = {};
-    function memoized_oracle_text_post(cid, callback){
+    async function memoized_oracle_text_post(cid, callback){
         var x = memoized_oracle_text[cid];
         if(x){
             return(callback(x));
         } else {
-            rpc.post(["read", 3, cid], function(x){
-                //console.log("oracle text slow");
-                memoized_oracle_text[cid] = x;
-                return(callback(x));
-            }, get_ip(), 8090);
+            //rpc.post(["read", 3, cid], function(x){
+            var x = await rpc.apost(["read", 3, cid], get_ip(), 8090);
+            //console.log("oracle text slow");
+            memoized_oracle_text[cid] = x;
+            return(callback(x));
+            //}, get_ip(), 8090);
         };
     };
     var memoized_markets = {};
-    function memoized_markets_post(mid, callback){
+    async function memoized_markets_post(mid, callback){
         var x = memoized_markets[mid];
         if(x){
             return(callback(x));
         } else {
-            rpc.post(["markets", mid], function(x){
+            //rpc.post(["markets", mid], function(x){
+            var x = await rpc.apost(["markets", mid]);
                 //console.log("memoized markets slow");
-                memoized_markets[mid] = x;
-                return(callback(x));
-            });
+            memoized_markets[mid] = x;
+            return(callback(x));
+        //});
         };
     };
 

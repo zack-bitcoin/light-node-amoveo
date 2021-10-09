@@ -13,7 +13,7 @@
     var oracleOutput = document.createElement("div");
     div.appendChild(oracleOutput);
     div.appendChild(br());
-    function lookup() {
+    async function lookup() {
 	oracleOutput.innerHTML = "";
 	var v = oid.value;
 	return merkle.request_proof("oracles", v, function(x) {
@@ -52,23 +52,24 @@
 		gov_div.appendChild(br());
 		//var asks_txt = "asks: ".concat(btoa(btoa(question_hash)));
                 console.log(v);
-                rpc.post(["oracles", v], function(x) {
-                    //this fails
+                //rpc.post(["oracles", v], function(x) {
+                var x = await rpc.apost(["oracles", v]);
                     
                     //public_get["oracle, OID]
                     //we should verify that hash(q) == v;
-                    console.log(x);
-                    var question_hash = x[3];
-                    rpc.post(["oracle", 2, question_hash], function(t){
-                        var q = "asks: "
-                            .concat(atob(t));
-                        //var q = atob(x[2]);
+                console.log(x);
+                var question_hash = x[3];
+                //rpc.post(["oracle", 2, question_hash], function(t){
+                var t = await rpc.apost(["oracle", 2, question_hash]);
+                var q = "asks: "
+                    .concat(atob(t));
+                //var q = atob(x[2]);
                     //var question = q.slice(0, q.length);
 		    //var asks_txt = "asks: ".concat(question);
 		        //   gov_div.appendChild(text(asks_txt));
-                        gov_div.appendChild(text(q));
-                    });
-                });
+                gov_div.appendChild(text(q));
+            //});
+             //   });
 	    } else {
 		oracleOutput.appendChild(text("this is a governance oracle"));
 		oracleOutput.appendChild(br());

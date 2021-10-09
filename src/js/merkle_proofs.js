@@ -11,11 +11,13 @@ function merkle_proofs_main() {
 	const top_hash = hash(headers_object.serialize(headers_object.top()));
         
 	const proof = await rpc.apost(["proof", btoa(tree), key, btoa(array_to_string(top_hash))]);
+	//rpc.post(["proof", btoa(tree), key, btoa(array_to_string(top_hash))], function(proof){
         if ((proof[3] == "empty")||(proof[3]==0)) { return callback("empty"); };
 	var val = verify_merkle(key, proof);
         console.log("merkle proofs");
         console.log(val);
-	return callback(val);
+	return(callback(val));
+        //});
     }
     function hash_member(hash, members) {
         for (var i = 0; i < members.length; i++) {
