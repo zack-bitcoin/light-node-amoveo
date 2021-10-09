@@ -12,14 +12,11 @@ var market_liquidity = (function(){
     div.appendChild(button);
     async function doit(){
         var Fee = 152050;
-        //merkle.request_proof("accounts", keys.pub(), function(Acc){
-        //rpc.post(["accounts", keys.pub()], function(Acc){
         var Acc = await rpc.apost(["accounts", keys.pub()]);
         if(Acc == "empty") {
             display.innerHTML = "load an account first";
             return(0);
         };
-        //merkle.request_proof("markets", mid.value, async function(market){
         var market = await merkle.arequest_proof("markets", mid.value);
         if(market === "empty"){
             display.innerHTML = "that market does not exist";
@@ -36,14 +33,10 @@ var market_liquidity = (function(){
                   mid.value, parseInt(amount.value),
                   CID1, Type1, CID2, Type2];
         var txs = [tx];
-        //multi_tx.make(txs, function(tx){
-        console.log(JSON.stringify(tx));
         var stx = keys.sign(tx);
-        //post_txs([stx], function(msg){
         var msg = await apost_txs([stx]);
         display.innerHTML = msg;
         keys.update_balance();
-        //});
     };
     return({
         mid: function(x){mid.value = x},

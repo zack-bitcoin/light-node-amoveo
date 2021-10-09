@@ -24,23 +24,11 @@ var swap_offer = (function(){
     partial_match.checked = true;
     div.appendChild(br());
     
-    /*
-    var partial_match = document.createElement("input");
-    partial_match.type = "checkbox";
-    partial_match.checked = true;
-    var partial_match_label = document.createElement("label");
-    partial_match_label.innerHTML = "allow partially matching this limit order";
-    div.appendChild(partial_match_label);
-    div.appendChild(partial_match);
-    div.appendChild(br());
-    */
-
     var create_button = button_maker2("make swap offer", doit);
     div.appendChild(create_button);
     div.appendChild(br());
 
     async function doit(){
-        //rpc.post(["account", keys.pub()], function(my_acc){
         var my_acc = await rpc.apost(["account", keys.pub()])
         if(my_acc === 0){
             display.innerHTML = "error: no key loaded. ";
@@ -88,7 +76,6 @@ var swap_offer = (function(){
             }
         } else {
             var key = btoa(array_to_string(sub_accounts.key(keys.pub(), offer.cid1, offer.type1)));
-            //return(merkle.request_proof("sub_accounts", key, function(sub_acc){
             var sub_acc = await merkle.arequest_proof("sub_accounts", key);
             if(sub_acc == "empty"){
                 display.innerHTML = "not enough subcurrency to  make this offer (possibly no key loaded?)";
@@ -104,14 +91,7 @@ var swap_offer = (function(){
                 display.innerHTML = JSON.stringify(signed_offer);
                 publish_swap_offer.offer(JSON.stringify(signed_offer));
             };
-            //}));
         };
-            //console.log("about to publish");
-            //publish_swap_offer.offer(JSON.stringify(signed_offer));
-
-//            var signed_offer = swaps.pack(offer);
- //           display.innerHTML = JSON.stringify(signed_offer);
-    //});
     };
     return({
         timelimit: function(x){timelimit.value = x},

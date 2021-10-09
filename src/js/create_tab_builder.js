@@ -8,17 +8,6 @@ function create_tab_builder(div, selector){
     div.appendChild(br());
     div.appendChild(display);
     div.appendChild(br());
-    //var normal_button = button_maker2("normal mode", function(){
-    //    current_div.innerHTML = "";
-    //    current_div.appendChild(normal_div);
-    //});
-//    div.appendChild(normal_button);
-    //var stablecoin_button = button_maker2("stablecoin mode", function(){
-    //    current_div.innerHTML = "";
-    //    current_div.appendChild(stablecoin_div);
-    //});
-    //div.appendChild(stablecoin_button);
-    //div.appendChild(br());
     var selector_label = document.createElement("span");
     selector_label.innerHTML = "source currency (i.e. the collateral backing the synthetic asset): ";
     div.appendChild(selector_label);
@@ -29,16 +18,6 @@ function create_tab_builder(div, selector){
     var stablecoin_div = document.createElement("div");
     var current_div = document.createElement("div");
     current_div.appendChild(stablecoin_div);
-
-    //var oracle_text = text_input("the question we ask the oracle", normal_div);
-    //normal_div.appendChild(br());
-    //var max_price_text = text_input("maximum value we can measure with this oracle", normal_div);
-    //normal_div.appendChild(br());
-    //var probability_text = text_input("initial value of type 1. should be between 0 and 1.", normal_div);
-    //normal_div.appendChild(br());
-
-    //var website_text = text_input("website where we look up the value for this oracle", stablecoin_div);
-    //stablecoin_div.appendChild(br());
 
     var website_text = document.createElement("select");
     var option_qtrade = document.createElement("option");
@@ -65,9 +44,6 @@ function create_tab_builder(div, selector){
     stablecoin_div.appendChild(website_text);
     stablecoin_div.appendChild(br());
 
-    //var time_text = text_input("the date and time when the value is measured, in China Standard Time zone. GMT + 8. example: '12:00 25-12-2020'", stablecoin_div);
-    //stablecoin_div.appendChild(br());
-
     var day_label = document.createElement("span");
     day_label.innerHTML = "day of the month when the value is measured";
     stablecoin_div.appendChild(day_label);
@@ -78,8 +54,6 @@ function create_tab_builder(div, selector){
     stablecoin_div.appendChild(select_day);
     stablecoin_div.appendChild(br());
     
-    //var day_text = text_input("the day of the month when the value is measured.", stablecoin_div);
-    //stablecoin_div.appendChild(br());
     var month_label = document.createElement("span");
     month_label.innerHTML = "month when the value is measured";
     stablecoin_div.appendChild(month_label);
@@ -89,12 +63,6 @@ function create_tab_builder(div, selector){
     select_month.value = (1 + d.getMonth()).toString();
     stablecoin_div.appendChild(select_month);
     stablecoin_div.appendChild(br());
-    
-    //var month_text = text_input("the month when the value is measured. example, for Febuary, '2'", stablecoin_div);
-    //var d = new Date();
-    //month_text.value = (1 + d.getMonth()).toString();
-    //stablecoin_div.appendChild(br());
-
     
     var year_label = document.createElement("span");
     year_label.innerHTML = "year when the value is measured";
@@ -106,32 +74,14 @@ function create_tab_builder(div, selector){
     stablecoin_div.appendChild(select_year);
     stablecoin_div.appendChild(br());
 
-    //var year_text = text_input("year when the value is measured.", stablecoin_div);
-    //year_text.value = "2020";
-    //stablecoin_div.appendChild(br());
-
     var coll_text = text_input("collateralization (i.e. \"2\" means 200%)", stablecoin_div);
     stablecoin_div.appendChild(br());
     var starting_price_text = text_input("starting price of veo in your target currency (i.e. 0.002 BTC per VEO)", stablecoin_div);
     stablecoin_div.appendChild(br());
-//    var ticker_text = text_input("the name of the thing being measured. for example: 'BTC' ", stablecoin_div);
-//    stablecoin_div.appendChild(br());
-
-    //var max_price_text = text_input("maximum value we can measure with this oracle", div);
-    //div.appendChild(br());
     var amount_text = text_input("amount of source currency to put into the market as liquidity", div);
     div.appendChild(br());
     div.appendChild(current_div);
-/*
-    var amount1_text = text_input("how many of type 1 coins to put into the initial market", div);
-    div.appendChild(br());
-    var amount2_text = text_input("how many of type 2 coins to put into the initial market", div);
-    div.appendChild(br());
-*/
 
-
-    //var button = button_maker2("make contract", make_contract);
-    //normal_div.appendChild(button);
     var stablecoin_button = button_maker2("make contract", make_stablecoin_contract);
     stablecoin_div.appendChild(stablecoin_button);
     div.appendChild(br());
@@ -166,25 +116,8 @@ function create_tab_builder(div, selector){
             select_day.appendChild(option);
         };
     };
-    /*
-function make_contract(){
-        var Text = oracle_text.value;
-        var MP = parseFloat(max_price_text.value);
-        var price = parseFloat(probability_text.value);
-        if(price<0){
-            console.log("price must be greater than 0");
-            return(0);
-        };
-        if(price>1){
-            console.log("price must be less than 1");
-            return(0);
-        };
-        return(make_contract2(Text, MP, price));
-    }
-*/
     function make_stablecoin_contract(){
         var website = website_text.value;
-    //var time = time_text.value;
         var time = "12:00 "
             //.concat(day_text.value)
             .concat(select_day.value.toString())
@@ -226,19 +159,14 @@ function make_contract(){
                 .concat(Scale)
                 .concat("; return(price * scale);");
         }
-        //var price = 1/(1 + coll);
         var price = 1/(coll);
         var amount = Math.round(parseFloat(amount_text.value)*token_units());
         return(make_contract2(Text, MaxVal, price, amount, display, selector));
     };
-    async function make_txs(Text, MP, price, amount, display2, selector2_value, callback) {
+    async function make_txs(Text, MP, price, amount, display2, selector2_value) {
     
-        //function make_contract2(Text, MP, price, amount, display2, selector2) {
-        //console.log(MP);
         var amount1 = amount*price;
         var amount2 = amount*(1-price);
-        console.log([MP, price]);
-        console.log([amount1, amount2]);
 
         if(MP<1){
             display2.innerHTML = "max price must be an integer greater than 0.";
@@ -260,7 +188,6 @@ function make_contract(){
             new_scalar_contract.make_tx(
                 Text, MP, Source, SourceType);
         var CH = new_contract_tx[2];
-        //var cid = merkle.contract_id_maker(CH, 2);
         var cid = merkle.contract_id_maker(CH, 2, Source, SourceType);
         var txs = [new_contract_tx];
         
@@ -372,32 +299,21 @@ function make_contract(){
                  V, A1]
             ]);
         };
-        //setTimeout(function(){
         var msg =
             ["add", 3, btoa(Text),
              0, MP, Source,
              SourceType];
-            //console.log(msg);
-        //rpc.post(msg, function(x){
         var x = await rpc.apost(msg, get_ip(), 8090);
         console.log(x);
         console.log("taught a scalar contract.");
         return(txs);
-    //}, get_ip(), 8090);
-       // }, 0);
-        //return(txs);
     };
         
     async function make_contract2(Text, MP, price, amount, display2, selector2) {
-        //var txs = make_txs(Text, MP, price, amount, display2, selector2.value);
-        //make_txs(Text, MP, price, amount, display2, selector2.value, function(txs){
         var txs = await make_txs(Text, MP, price, amount, display2, selector2.value);
 
-        console.log(JSON.stringify(txs));
         var tx = await multi_tx.amake(txs);
         var stx = keys.sign(tx);
-        console.log(JSON.stringify(stx));
-        //post_txs([stx], function(msg){
         var msg = await apost_txs([stx]);
         display2.innerHTML = msg;
         if(!(msg == "server rejected the tx")){
@@ -406,7 +322,6 @@ function make_contract(){
     };
     return({
         website:(function(x){website_text.value = x}),
-        //time:(function(x){time_text.value = x}),
         coll:(function(x){coll_text.value = x}),
         starting_price:(function(x){starting_price_text.value = x}),
         ticker:(function(x){ticker_text.value = x}),

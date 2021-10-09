@@ -54,7 +54,6 @@
     var gov_button = button_maker2("make governance oracle", gov_maker);
     div.appendChild(gov_button);
 
-
     div.appendChild(br());
     var amoveo_futarchy_title = document.createElement("h3");
     amoveo_futarchy_title.innerHTML = "amoveo governance futarchy oracle";
@@ -73,10 +72,8 @@
     div.appendChild(br());
     
     async function governance_futarchy_oracle() {
-        //merkle.request_proof("accounts", keys.pub(), function (acc) {
         var acc = await merkle.arequest_proof("accounts", keys.pub());
         var nonce = acc[2]+1;
-        //var id = random_cid(32);
         var start = parseInt(futarchy_bets_resolve.value);
         var fs = parseInt(futarchy_starts.value);
         var fg = futarchy_goal.value;
@@ -86,11 +83,9 @@
         var common = ", else { A = the price of USD in VEO-satoshis from 0 to ".concat(p2.toString()).concat(" at block ").concat(fs.toString()).concat("; B = the price of USD in VEO-satoshis from 0 to ").concat(p2.toString()).concat(" at block ").concat(start.toString()).concat("; return ((").concat(p.toString()).concat(" - A + B) * 1024 / ").concat(p2.toString()).concat(")}");
         var question1 = "if ".concat(fg).concat(" return 'bad'").concat(common);
         var question2 = "if it is not the case that ".concat(fg).concat(" return 'bad'").concat(common);;
-        console.log(start);
         new_scalar_oracle(start, question1, 1, function(){
             return new_scalar_oracle(start, question2, 11, function(){return 0;});
         });
-        //});
     };
     function make_id2(start, question) {
         var id = id_maker(start, 0, 0, question);
@@ -98,25 +93,17 @@
         status.innerHTML = "status: <font color=\"green\">successfully generated the id: ".concat(id).concat("<br /> Save the red data, you need it when creating the oracle on-chain:</font><br /><font color=\"red\"> ").concat(rest).concat("</font>");
     };
     async function new_scalar_oracle(start, question, n, callback) {
-        //merkle.request_proof("accounts", keys.pub(), async function (acc) {
         var acc = await merkle.arequest_proof("accounts", keys.pub());
         var id = id_maker(start, 0, 0, question);
         var nonce = acc[2]+n;
         var ks = scalar_keys(id, start).reverse();
-        console.log(question);
         var txs = new_scalar_oracle2(question, start, ks, nonce, id, 9);
-        console.log(JSON.stringify(txs));
-        
-        //return rpc.post(["txs", [-6].concat(txs)], function(x) {
         var x = await rpc.apost(["txs", [-6].concat(txs)]);
         status.innerHTML = "status: <font color=\"green\">successfully attempted to make a scalar oracle with id: ".concat(id).concat("</font>");
         return callback();
-        //});
-        //});
     };
     function new_scalar_oracle2(question, start, ks, nonce, id, many) {
         if (ks.length == 0) {return [];}
-        //var x2;
         var s;
         if (many == 0) {
             s = question;
@@ -136,7 +123,6 @@
             return 0;
         }
         var tx = ["oracle_new", keys.pub(), nonce, Math.round(fee*1.1), btoa(s), start, x, 0, 0, 0];
-        console.log(tx);
         var stx = keys.sign(tx);
         return ([stx]).concat(new_scalar_oracle2(question, start, ks.slice(1), nonce+1, id, many-1));
     }
@@ -154,34 +140,23 @@
         }
         var question = "";
         var start = 0;
-        //merkle.request_proof("accounts", keys.pub(), async function (acc) {
         var acc = await merkle.arequest_proof("accounts", keys.pub());
         var nonce = acc[2]+1;
         var id = id_maker(start, giv, ga, question);
         var tx = ["oracle_new", keys.pub(), nonce, fee, btoa(question), start, id, 0, giv, ga];
         var stx = keys.sign(tx);
-        //return rpc.post(["txs", [-6, stx]], function(x) {
         var x = await rpc.apost(["txs", [-6, stx]]);
         status.innerHTML = "status: <font color=\"green\">successfully attempted to make a binary oracle with OID: ".concat(id).concat("</font>");
         return 0;
-        //});
-        //});
     };
     async function new_question_oracle(start, question) {
-        //merkle.request_proof("accounts", keys.pub(), async function (acc) {
         var acc = await merkle.arequest_proof("accounts", keys.pub());
         var nonce = acc[2]+1;
-        //var id = random_cid(32);
         var id = id_maker(start, 0, 0, question);
         var tx = ["oracle_new", keys.pub(), nonce, fee, btoa(question), start, id, 0, 0, 0];
         var stx = keys.sign(tx);
-        console.log(JSON.stringify(stx));
-        //return rpc.post(["txs", [-6, stx]], function(x) {
         var x = await rpc.apost(["txs", [-6, stx]]);
         status.innerHTML = "status: <font color=\"green\">successfully attempted to make a binary oracle with OID: ".concat(id).concat("</font>");
         return 0;
-        //});
-        //});
     };
-    //console.log(JSON.stringify(next_oid(r)));
-    })();
+})();

@@ -14,9 +14,6 @@ function lookup_block1() {
     lookup_block_button.appendChild(lookup_block_button_text);
     lookup_block_button.onclick = async function() {
 	var num = parseInt(lookup_block_height.value, 10);
-	//rpc.post(["height"], function(x) {height_f(x)});
-	//Lets maybe check to see if height is too height?
-	//rpc.post(["block", num], function(x) {lookup_block2(x)});
 	var x = await rpc.apost(["block", num]);
         lookup_block2(x);
     };
@@ -82,11 +79,7 @@ function to_now(t) {
 }
 function lookup_block2(block) {
     block2 = block[1];
-    console.log("lookup_block2");
     var current_block = document.getElementById("block div");
-    //console.log(JSON.stringify(block));
-    //console.log(JSON.stringify(block[10]));
-    //console.log(JSON.stringify(block[10][1][1]));
     if (block == "empty") {
 	current_block.innerHTML = "this block doesn't exist.";
     } else {
@@ -96,7 +89,5 @@ function lookup_block2(block) {
 	var time = to_now(time0);
 	//acc, number, hash, txs, power, nonce, total_coins, db_root
 	current_block.innerHTML = "block: ".concat(block[1]).concat("<br />was mined by: ").concat(miner).concat("<br />has timestamp: ").concat(time).concat("<br />prev hash: ").concat(prev_hash);
-	//current_block.innerHTML = "<br/>created by account number ".concat(block2[1]).concat("<br/>at height: ").concat(block2[2]).concat("<br/>containing transactions: ").concat(txs2html(block2[4], 1, "<br/>"));
-	//console.log(block[1]);
     }
 }

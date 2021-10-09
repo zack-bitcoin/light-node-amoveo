@@ -264,7 +264,6 @@ var Address Date Ticker Amount Blockchain
     function part2id(){
         var code = contract2.concat(` part2 `);
         var bytes = chalang_compiler.doit(code);
-        //console.log(JSON.stringify(bytes));
         return(" binary ".concat(btoa(array_to_string(run(bytes)[0].slice(1)))));
     };
     function part1static_bytes(){
@@ -452,28 +451,6 @@ var Address Date Ticker Amount Blockchain
             proof2(), row2];
         return([winnings_tx, winnings_tx2]);
     };
-    /*
-    async function winnings_tx(cid, result, callback){
-        var Vector = vector(matrix(), result);
-        var result2;
-        if(result){  result2 = 1;
-        } else {     result2 = 2;
-        };
-        var sub_account = sub_accounts.normal_key(
-            keys.pub(), cid, result2);
-        var sa = await rpc.post(["sub_accounts", sub_account], function(sa) {
-            rpc.post(["accounts", keys.pub()], function(acc) {
-                var nonce = acc[2] + 1;
-                var amount = sa[1];
-                var tx = [
-                    "contract_winnings_tx", keys.pub(),
-                    nonce, fee, cid, amount, sub_account,
-                    keys.pub(), Vector, 0];
-                return(callback(tx));
-            });
-        });
-    };
-    */
     function contract_evidence_proof() {
         return([-7,"DuuMB6kmlzrtq7xvpJZC01BrGSojmrRIiQH+n9oU2cM=","cqT6NUTkOoNv/LJozgbM28VdRNXmsbHBkhalPqmDAf0=",[-6,[-7,"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","69C/42A2nzhjBR3hE6PxPhdn/FY060N1dMOt2RIVMVo=","/0URezACy63B5htZN80FCOUC1ZyUPvbLaCwqIV3LP80=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="]]]);
     };
@@ -549,7 +526,6 @@ var Address Date Ticker Amount Blockchain
             return((tx[1][0] === "contract_evidence_tx") &&
                    (tx[1][5] === cid));
         });
-        console.log(JSON.stringify(evidence_txs));
         var evidence_txs2 = await avalid_evidence_txs(evidence_txs, sink, cid, []);
         if(evidence_txs2.length === 0){
             return(["fail", "could not generate evidence txs"]);
@@ -664,10 +640,6 @@ macro ] swap cons reverse ;/
         };
         var sink_check = run(evidence.concat(prove_code).concat(contract))[2];
         sink_check2 = merkle.contract_id_maker(btoa(array_to_string(sink_check.slice(1))), 2, ZERO, 0);
-        //if(!(sink === sink_check2)){
-        //    console.log("invalid contract result");
-        //    return(callbackwithout());
-        //};
         return(callbackwith());
     };
     async function txids_to_txs(txids, txs){
@@ -776,7 +748,6 @@ macro ] swap cons reverse ;/
         run: run,
         part2id: part2id,
         part1static_bytes: part1static_bytes,
-        //winnings_tx: winnings_tx,
         simplify_tx: simplify_tx,
 
         //configuration

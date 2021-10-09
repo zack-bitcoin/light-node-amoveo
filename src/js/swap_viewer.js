@@ -47,7 +47,6 @@ function swap_viewer_creator(div2){
 //                    atob(Y.salt))))));
         var TID = swaps.id_maker(Y.acc1, Y.salt);
         console.log(TID);
-        //rpc.post(["trades", TID], function(trade){
         var trade = await rpc.apost(["trades", TID])
         console.log(trade);
         if(trade === 0){
@@ -113,34 +112,19 @@ function swap_viewer_creator(div2){
 
     };
     async function maybe_make_contracts(cid, Txs, callback) {
-        console.log("maybe making contracts");
         if(cid == "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="){
             return(callback(Txs));
         };
-        //merkle.request_proof("contracts", cid, async function(Contract){
         var Contract = await merkle.arequest_proof("contracts", cid);
-        console.log("from merkle request");
         if(!(Contract === "empty")){
             return(callback(Txs));
         };
-        //if(Contract == "empty"){
-        console.log("contract empty");
-        //rpc.post(["read", 3, cid], function(z){
         var z = await rpc.apost(["read", 3, cid], explore_swap_offer.ip_get, 8090);
-        console.log("from post ");
-        //if(z.length == 5){
         if(z[0] == "scalar"){
             console.log("is scalar ");
             //{Text, Height, MaxPrice, Now}
             var tx = new_scalar_contract.make_tx(atob(z[1]), parseInt(z[3]), z[5], parseInt(z[6]));
-            //var cid2 = merkle.contract_id_maker(tx[2], tx[4], tx[5], tx[6]);
             return(maybe_make_contracts(tx[5], [tx].concat(Txs), callback));
-            //} else if (z[0] == "binary") {
-            //console.log("is binary ");
-            //var tx = new_contract.make_tx(parseInt(z[2]), atob(z[1]), z[4], parseInt(z[5]));
-            //var cid2 = merkle.contract_id_maker(tx[2], tx[4], tx[5], tx[6]);
-            //return(maybe_make_contracts(tx[5], [tx].concat(Txs), callback));
-            //return([tx].concat(Txs));
             
         } else if (z[0] === "contract"){
             //contract hash is not in the buy_veo_contract.
@@ -162,17 +146,10 @@ function swap_viewer_creator(div2){
                 "<p>You need to teach the server about this contract before you can bet on it. Use the teach scalar contract tool. </p>";
             return(0);
         };
-        //}, explore_swap_offer.ip_get, 8090);
-        //} else {
-        //    return(callback(Txs));
-        //};
-        //});
     };
     function view2(txs, X, Y, original_limit_order_size, available_to_match) {
         //txs is the new_contracts parts.
         //swap_txs is the contract_use_txs
-        console.log("in view 2");
-        console.log(Y.acc1);
         accept_button.onclick = function(){
             var amount_to_match = Math.round(parseFloat(amount_to_match_input.value, 10) * token_units());
             if(!amount_to_match){
@@ -202,20 +179,7 @@ function swap_viewer_creator(div2){
                 display.innerHTML = response;
                 if(!(response === "server rejected the tx")){
                     if(Y.type1 === 0){//only if you are paying veo for a subcurrency that is priced in veo.
-                        //todo. publish an offer to sell your winnings for 99% of the max possible value.
                         var offer99 = swaps.accept_99(Y);
-                        /*
-                        var offer99 = {};
-                        offer99.type1 = 3-Y.type2;
-                        offer99.type2 = 0;
-                        offer99.cid1 = Y.cid2;
-                        offer99.cid2 = ZERO;
-                        offer99.amount1 = Y.amount2;
-                        offer99.amount2 = Math.round(((Y.amount2) * 0.998) - (fee * 5));
-                        offer99.partial_match = false;
-                        offer99.acc1 = keys.pub();
-                        offer99.end_limit = Y.end_limit + 1;
-                        */
                         var signed_offer = swaps.pack(offer99);
                         var response = await rpc.apost(
                             ["add", signed_offer, 0],

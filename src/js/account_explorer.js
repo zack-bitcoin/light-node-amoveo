@@ -20,23 +20,18 @@
     balance_text.innerHTML = "your balance: ?";
     div.appendChild(balance_text);
 
-
     var account = await rpc.apost(["account", pubkey]);
     var balance = account[1];
         
     balance_text.innerHTML = "your balance: "
         .concat((balance/100000000).toFixed(8));
 
-    //rpc.post(["account", pubkey], function(account){
     var account = await rpc.apost(["account", pubkey], get_ip(), 8091);
-    console.log(JSON.stringify(account));
     var acc = account[1];
     var txs = acc[2];
     var sub_accs = acc[3];
     var liquidity_shares = acc[4];
-    console.log(JSON.stringify(txs));
     make_tx_links(txs.slice(1));
-    //}, get_ip(), 8091);
 
     function make_tx_links(txs){
         if(txs.length === 0){

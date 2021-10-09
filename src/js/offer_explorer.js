@@ -3,7 +3,6 @@
     document.body.appendChild(div);
     server_port.value = "8080";
     if (server_ip.value == "") {
-        //server_ip.value = "159.89.87.58";
         server_ip.value = default_ip();
     };
     const urlParams = new URLSearchParams(window.location.search);
@@ -18,19 +17,12 @@
     div.appendChild(tid_text);
     var display = document.createElement("div");
     div.appendChild(display);
-    
-    //rpc.post(["read", 2, tid], function(signed_offer){
     var signed_offer = await rpc.apost(["read", 2, tid], get_ip(), 8090);
-    console.log(JSON.stringify(signed_offer));
-    //{"acc1":"BOxDReccZ7BlEVxnDbkivAJeXUKvgoEzOdX1AH/hLiPA9evnK5K3eU+aFn/nnGENX+vHRXZB0YhcviD62+BR5xo=","start_limit":151136,"end_limit":161137,"cid1":"OWByrUqzrM/3Zz6DkbqC4oM2/wsPgonBpESXvs4vzbc=","type1":1,"amount1":1100000000,"cid2":"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","type2":0,"amount2":3200000,"salt":"KOHU7xn43FjjE7JlOIL8jGNRofZ70Bq0HIGgKKlUscw=","nonce":1,"parts":1000000,"type":2}
     var contract1, contract2, available_to_match;
     var Y = swaps.unpack(signed_offer);
     var now = headers_object.top()[1];
     var original_limit_order_size = Y.parts;
-    console.log(JSON.stringify(Y));
-    //rpc.post(["trades", tid], function(trade){
     var trade = await rpc.apost(["trades", tid]);
-    console.log(trade);
     if(trade === 0){
         available_to_match = original_limit_order_size;
     } else {
@@ -46,8 +38,6 @@
     
     if(Y.cid2 == btoa(array_to_string(integer_to_array(0, 32)))){
         contract2 = "veo";
-        //update_display(Y, now, contract1, contract2, available_to_match, original_limit_order_size);
-        //return(view2([], X, Y, original_limit_order_size, available_to_match));
     }else{
         contract2 = ("contract ")
             .concat(Y.cid2)
@@ -56,7 +46,6 @@
     }
     var A1 = Math.round(Y.amount1 * available_to_match / original_limit_order_size);
     var A2 = Math.round(Y.amount2 * available_to_match / original_limit_order_size);
-    //amount_to_match_input.value = A1.toString();
     var warning = "";
     if(original_limit_order_size === 1){
         warning = "<p>You must either match all of this limit order, or none of it. It cannot be partially matched.</p>";
@@ -106,10 +95,4 @@
     display.appendChild(link);
     display.appendChild(br());
     display.appendChild(br());
-    
-    
-    //});
-    //}, get_ip(), 8090);
-    
-    
 })();

@@ -14,22 +14,17 @@
     div.appendChild(br());
     async function make_bet(oid) {
         var from = keys.pub();
-        //merkle.request_proof("accounts", from, function(acc) {
-        //rpc.post(["account", from], async function(acc) {
         var acc = await rpc.apost(["account", from]);
 	var nonce = acc[2] + 1;
         var tx = ["oracle_winnings", from, nonce, fee, oid];
         var tx2 = ["unmatched", from, nonce+1, fee, oid];
         var stx = keys.sign(tx);
         var stx2 = keys.sign(tx2);
-        //post_txs([stx], function(msg1){
         var msg1 = await apost_txs([stx]);
         status.innerHTML = msg1;
-        //post_txs([stx2], function(msg2){
         var msg2 = await apost_txs([stx2]);
         status.innerHTML = msg1
             .concat("<br>")
             .concat(msg2);
-        //});
     };
 })();

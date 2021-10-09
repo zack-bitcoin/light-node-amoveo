@@ -29,7 +29,6 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
             parseInt(urlParams.get('type_to_buy'),
                      10);
         //console.log(cid_to_buy);
-        //rpc.post(["contracts", cid_to_buy], function(contract){
         memoized_contract_post(cid_to_buy, function(contract){
             //console.log(JSON.stringify(contract));
             display_contracts2(
@@ -75,13 +74,10 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
     var sell_all_button = button_maker2("sell all", async function(){
         var currency = selector.value;
         if(currency == "veo") {
-            //rpc.post(["account", keys.pub()], function(acc){
             var acc = await rpc.apost(["account", keys.pub()]);
             amount_input.value = (acc[1] / token_units()).toFixed(8);
-        //});
         } else {
             currency = JSON.parse(currency);
-            //console.log(currency);
             var trie_key = sub_accounts.key(keys.pub(), currency[0], currency[1]);
             trie_key = btoa(array_to_string(trie_key));
             memoized_sub_account_post(trie_key, function(acc){
@@ -124,11 +120,9 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
     swap_tab.appendChild(publish_tx_button);
 
     async function display_contracts(div) {
-        //rpc.post(["contracts"], function(contracts){
         var contracts = await rpc.apost(["contracts"], get_ip(), 8091);//8091 is explorer
         var s = "";
         return(display_contracts2(div, contracts.slice(1), []));
-        //}, get_ip(), 8091);//8091 is explorer
     };
     function display_contracts2(div, contracts, pairs, callback) {
         if(contracts.length < 1) {
@@ -138,31 +132,21 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
             };
             return(0);
         }
-        //var cid = contracts[0][1];
         var cid = contract_to_cid(contracts[0]);
-        //console.log(cid);
         var source = contracts[0][8];
         var source_type = contracts[0][9];
-        //rpc.post(["read", 3, cid], function(oracle_text) {
         memoized_oracle_text_post(cid, async function(oracle_text){
             //console.log("read oracle text");
             if(oracle_text[1] && (atob(oracle_text[1]))){
                 //console.log(atob(oracle_text[1]));
             };
-            //console.log(cid, source_type);
-            //price_estimate_read(cid, source, source_type, function(p_est, liquidity){
             [p_est, liquidity] = await price_estimate_read(cid, source, source_type);
-                //console.log("estimated price");
-                //console.log([cid, p_est, liquidity]);
             if(!(oracle_text == 0)) {
                 var type = oracle_text[0];
                 var text = atob(oracle_text[1]);
                 var text0 = text;
-                //console.log(text);
-                //console.log(JSON.stringify(oracle_text));
                 var ticker_bool =
                     tabs.is_ticker_format(text);
-                //console.log(hide_non_standard);
                 var option = document.createElement("option");
                 option.innerHTML = "";
                 option.value = JSON.stringify([cid, 1]);
@@ -243,8 +227,6 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                     display_contracts2(div, contracts.slice(1), pairs, callback);
                 }, 200);
         });
-            //}, get_ip(), 8090);//p2p derivatives server
-    //});
     };
     
     function swap_price() {
@@ -289,7 +271,6 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
     function txs_maker(A, CID1, Type1, CID2, Type2, callback){
         var sub_acc = sub_accounts.key(keys.pub(), CID1, Type1);
         sub_acc = btoa(array_to_string(sub_acc));
-        //rpc.post(["sub_accounts", sub_acc], function(SA) {
         memoized_sub_account_post(sub_acc, function(SA){
             var amount;
             if(CID1 == ZERO ){ amount = 99999999999999999999999;}
@@ -303,7 +284,6 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
             if(!(CID1 == ZERO)){
                 A = Math.min(A, amount);
             };
-            //rpc.post(["r", CID1, CID2], function(response){
             memoized_r_paths_post(CID1, CID2, function(response){
                 //looking up every market and contract on paths between the 2 contracts.
                 var markets = response[1].slice(1);
@@ -313,7 +293,6 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                                    CID1, Type1,
                                    CID2, Type2,
                                    callback));
-            //}, get_ip(), 8091);
             });
         });
     };
@@ -1310,7 +1289,6 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                         };
                             
                         console.log(JSON.stringify(txs));
-                        //multi_tx.make(txs, function(tx){
                         var tx = await multi_tx.amake(txs);
                         var fee_span = document.createElement("span");
                         fee_span.innerHTML = "<br>veo fees: "
@@ -1395,14 +1373,12 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
 
     function get_oracle_text(cid, callback){
         if(cid === ZERO){ return(callback(0)); }
-        //rpc.post(["read", 3, cid], function(x) {
         memoized_oracle_text_post(cid, function(x){
             return(callback(x));
         }, get_ip(), 8090);
     };
     function get_contract(cid, callback){
         if(cid === ZERO){ return(callback(0)); }
-        //rpc.post(["contracts", cid], function(x){
         memoized_contract_post(cid, function(x){
             return(callback(x));
         });
@@ -1549,7 +1525,6 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
         if(MIDS.length < 1) {
             return(callback(Markets));
         };
-        //rpc.post(["markets", MIDS[0]], function(Market){
         memoized_markets_post(MIDS[0], function(Market){
             get_markets(MIDS.slice(1),
                         Markets.concat([Market]),
@@ -1560,7 +1535,6 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
         if(CIDS.length<1) {
             return(callback(Contracts));
         };
-        //rpc.post(["contracts", CIDS[0]], function(Contract){
         memoized_contract_post(CIDS[0], function(Contract){
             get_contracts(CIDS.slice(1),
                           Contracts.concat([Contract]),
@@ -1718,12 +1692,9 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
         if(x){
             return(callback(x));
         } else {
-            //rpc.post(["contracts", cid], function(contract){
             var contract = await rpc.apost(["contracts", cid]);
-                //console.log("memoize contract slow");
             memoized_contracts[cid] = contract;
             return(callback(contract));
-        //});
         };
     };
     var memoized_sub_accounts = {};
@@ -1732,12 +1703,9 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
         if(x || (x === 0)){
             return(callback(x));
         } else {
-            //rpc.post(["sub_accounts", id], function(acc){
             var acc = await rpc.apost(["sub_accounts", id]);
-                //console.log("memoize sub account slow");
             memoized_sub_accounts[id] = acc;
             return(callback(acc));
-        //});
         };
     };
     var memoized_r_paths = {};
@@ -1746,9 +1714,7 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
         if(x){
             return(callback(x));
         } else {
-            //rpc.post(["r", cid1, cid2], function(r){
             var r = await rpc.apost(["r", cid1, cid2], get_ip(), 8091);
-                //console.log("memoize r path slow");
             memoized_r_paths[[cid1, cid2]] = r;
             return(callback(r));
         //}, get_ip(), 8091);
@@ -1760,12 +1726,9 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
         if(x){
             return(callback(x));
         } else {
-            //rpc.post(["read", 3, cid], function(x){
             var x = await rpc.apost(["read", 3, cid], get_ip(), 8090);
-            //console.log("oracle text slow");
             memoized_oracle_text[cid] = x;
             return(callback(x));
-            //}, get_ip(), 8090);
         };
     };
     var memoized_markets = {};
@@ -1774,12 +1737,9 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
         if(x){
             return(callback(x));
         } else {
-            //rpc.post(["markets", mid], function(x){
             var x = await rpc.apost(["markets", mid]);
-                //console.log("memoized markets slow");
             memoized_markets[mid] = x;
             return(callback(x));
-        //});
         };
     };
 

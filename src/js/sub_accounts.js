@@ -48,33 +48,9 @@ sub_accounts = (function(){
             };
         };
     };
-    /*
-    function memoized_rpc(id, callback){
-        var x = memoized_sub_accounts[id];
-        //console.log(x);
-        if(x){
-            return(callback(x));
-        } else {
-            rpc.post(["sub_accounts", id], function(sa){
-                if((sa === "c3RvcCBzcGFtbWluZyB0aGUgc2VydmVy")){
-                    console.log("spam filter triggered.");
-                    //setTimeout(function(){
-                    //    return(memoized_rpc(id, callback));
-                    //}, 300);
-                    return(callback(sa));
-                } else {
-                    memoized_sub_accounts[id] = sa;
-                    return(callback(sa));
-                };
-            });
-        };
-    };
-    */
-
     return({key: key,
             normal_key: normal_key,
             amrpc: memoized_merkle_rpc,
             arpc: amemoized_rpc
-            //rpc: memoized_rpc
            });
 })();

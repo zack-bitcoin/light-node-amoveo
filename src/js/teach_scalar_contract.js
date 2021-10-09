@@ -26,7 +26,6 @@ var teach_scalar_contract = (function(){
     async function teach() {
         var msg = ["add", 3,
                    btoa(oracle_text.value),
-                   //parseInt(oracle_height.value),
                    0,
                    parseInt(max_val.value)
                   ];
@@ -36,13 +35,10 @@ var teach_scalar_contract = (function(){
                  parseInt(source_type.value)]);
         };
         console.log(msg);
-        //rpc.post(msg,
-        //         function(x){
         var x = await rpc.apost(
             msg,
             s_ip.value,
             parseInt(s_port.value));
-                                //function(x){
         console.log(x);
         display.innerHTML = "successfully taught contract with id: "
             .concat(x);
@@ -50,7 +46,6 @@ var teach_scalar_contract = (function(){
     };
     return({
         oracle_text: function(x){oracle_text.value = x},
-        //oracle_height: function(x){oracle_height.value = x},
         max_val: function(x){max_val.value = x},
         teach: teach
     });

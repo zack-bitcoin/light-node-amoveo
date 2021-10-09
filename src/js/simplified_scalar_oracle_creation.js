@@ -15,7 +15,6 @@ var simplified_scalar_oracle_creation = (function(){
         more_options.innerHTML = "";
         var Start = headers_object.top()[1] - 2;
         var cid = cid_text.value;
-        //rpc.post(["read", 3, cid], async function(contract){
         var contract = await rpc.apost(["read", 3, cid], get_ip(), 8090);
         console.log(cid);
         console.log(contract);
@@ -23,12 +22,8 @@ var simplified_scalar_oracle_creation = (function(){
         var max_price = contract[3];
         var source = contract[5];
         var source_type = contract[6];
-        //price_estimate_read(
-        //    cid, source, source_type,
-        //    function(price, liquidity){
         [price, liquidity] = await price_estimate_read(
             cid, source, source_type);
-        //function(price, liquidity){
         var price_guess = Math.round(price * max_price);
         var price_text = text_input("final price (for binary, 1=true, 0=false): ", more_options);
         price_text.value = price_guess;
@@ -47,36 +42,20 @@ var simplified_scalar_oracle_creation = (function(){
                 price, max_price,
                 oracle_text);
             var oid = id_maker(Start, 0,0, FullText);
-            //var fee = 152050;
             var tx1 = ["oracle_new", 0,0,0,
                        btoa(FullText), Start,
                        oid, 0, 0, 0];
             var bet_amount = 2220000;
             var tx2 = ["oracle_bet", 0, 0, 0,
                        oid, 1, bet_amount];
-            //console.log(JSON.stringify([oid, Start, FullText]));
-            //console.log(JSON.stringify([price, max_price]));
-            //return(0);
-            //multi_tx.make([tx1, tx2], function(tx){
             var tx = await multi_tx.amake([tx1, tx2]);
-            console.log(tx);
             var stx = keys.sign(tx);
-            //return(0);
-            //post_txs([stx], function(msg){
             var msg = await apost_txs([stx]);
             display.innerHTML = msg
                 .concat("<br>")
                 .concat("with oracle id ")
                 .concat(oid);
-                //});
-            //});
-            
         });
         more_options.appendChild(make_oracle_button);
-        //});
-        //}, 0);
-        //}, get_ip(), 8090); 
     };
-
-
 })();

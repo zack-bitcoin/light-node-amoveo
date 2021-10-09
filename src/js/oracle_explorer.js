@@ -3,9 +3,7 @@
     document.body.appendChild(div);
     server_port.value = "8080";
     if (server_ip.value == "") {
-        //server_ip.value = "159.89.87.58";
         server_ip.value = default_ip();
-        //server_ip.value = "0.0.0.0";
     };
     const urlParams = new URLSearchParams(window.location.search);
     var oid = urlParams.get('oid');
@@ -27,7 +25,6 @@
     tx_links.innerHTML = "Txs related to this oracle<br>";
 
     //blocks until closable
-    //rpc.post(["oracles", oid], function(oracle){
     var oracle = await rpc.apost(["oracles", oid]);
     var height = await rpc.apost(["height"]);
 
@@ -45,10 +42,8 @@
         .concat(type)
         .concat("<br>");
     
-    
     if(oracle[2] === 0){
         closable_text = closable_text
-        //closable.innerHTML =
             .concat("<br>closable in: ")
             .concat((oracle[9]-height).toString())
             .concat(" blocks<br><br>");
@@ -62,16 +57,11 @@
             result = "bad question";
         };
         closable_text = closable_text
-        //closable.innerHTML =
             .concat("<br> result was: ")
             .concat(result)
             .concat("<br><br>");
     }
     closable.innerHTML = closable_text;
-//});
-//});
-    
-    //rpc.post(["oracles", oid], function(oracle){
     var oracle = await rpc.apost(["oracles", oid], get_ip(), 8091);
     console.log(oracle);
     oracle = oracle[1];
@@ -90,15 +80,11 @@
     var closed = oracle[7];
     info.innerHTML = "oracle asks: "
         .concat(question)
-    //.concat("<br><br>type: ")
-    //.concat(type)
         .concat("<br><br>stake: ")
         .concat((stake / 100000000).toFixed(8))
         .concat("<br><br>last referenced in block height: ")
         .concat(height.toString());
-    //.concat("<br><br>Txs related to this oracle");
     make_tx_links(txs.slice(1));
-    //}, get_ip(), 8091);
 
     function make_tx_links(txs){
         if(txs.length === 0){

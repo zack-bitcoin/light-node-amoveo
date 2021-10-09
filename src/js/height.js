@@ -8,20 +8,16 @@
     height_button.onclick = height_helper;
     document.body.appendChild(height_button);
     async function height_helper() {
-	//rpc.post(["height"], height_f);
 	var x = await rpc.apost(["height"]);
         height_f(x);
     }
     async function height_f(x) {
 	height.innerHTML = "";
-	//var h = document.getElementById("height");
 	b = (x).toString();
-	//height.innerHTML = "current height: ".concat(b);
 	var p1 = document.createElement("h");
 	p1.innerHTML = "current height: ".concat(b);
 	height.appendChild(p1);
 	height.appendChild(document.createElement("br"));
-	//rpc.post(["f", 1], function(d) {
 	var d = await rpc.apost(["f", 1]);
 	var hpb = Math.round(d[1]/1000);
 	var hpb2 = document.createElement("h");
@@ -38,7 +34,5 @@
 	bp2.innerHTML = "seconds per block: ".concat((bp).toString());
 	height.appendChild(bp2);
 	height.appendChild(document.createElement("br"));
-	//hashes per block, hashes per second, block period
-	//});
     };
 })();

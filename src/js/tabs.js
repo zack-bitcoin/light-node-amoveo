@@ -59,7 +59,6 @@ var tabs = (function(){
     function load() {
         //display.innerHTML = "<h3>looking up which currencies you own.</h3>";
         setTimeout(async function(){
-            //rpc.post(["account", keys.pub()], function(response){
             const response = await rpc.apost(["account", keys.pub()], get_ip(), 8091);
             if(response == "error") {
                 //display.innerHTML = "<h3>load a key with funds.</h3>";
@@ -97,24 +96,6 @@ var tabs = (function(){
         };
                 return(contracts_to_subs2(CID, N+1, L, R.concat([[CID, N]]), callback));
     };
-    /*
-    function load_balances2(ls, s, callback){
-        if(ls.length < 1){
-            return(callback());
-        } else {
-            var mid = ls[0];
-            var sk = sub_accounts.key(keys.pub(), ls[0], 0);
-            var sk = btoa(array_to_string(sk));
-            rpc.post(["sub_accounts", sk], function(sa) {
-                var balance = 0;
-                if(!(sa == "empty")){
-                    balance = sa[1];
-                };
-                return(load_balances2(ls.slice(1), s, callback));
-            });
-        };
-    };
-    */
     var balances_db = {};
     var update_frequency = 0;//1000 * 60 * 10;//by default don't re-check the same balance if it has been less than 10 minutes.
     var loaded_into_selector = {};
@@ -189,11 +170,8 @@ var tabs = (function(){
             balances_db[sk] = {};
         };
         balances_db[sk].time = Date.now();
-        //rpc.post(["sub_accounts", sk], function(sa){
         let sa = await sub_accounts.arpc(sk);
-        //sub_accounts.rpc(sk, function(sa){
         var balance = 0;
-        //if((!(sa == "empty")) && (!(s){
         if(sa && (sa[0] === "sub_acc")){
             balance = sa[1];
         };
@@ -220,8 +198,6 @@ var tabs = (function(){
         };
         //a subcurrency then
         let oracle_text = await rpc.apost(["read", 3, sub.cid], get_ip(), 8090);
-        //console.log(JSON.stringify(oracle_text));
-
 
         var s = "";
         if(sub.type == 2){

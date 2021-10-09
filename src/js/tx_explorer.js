@@ -16,8 +16,6 @@
     block_height_div.innerHTML = "this tx was included in block ???";
     div.appendChild(block_height_div);
     div.appendChild(br());
-
-    //rpc.post(["txs", txid], function(tx){
     var tx = await rpc.apost(["txs", txid], get_ip(), 8091); 
     var tx = tx[1];
     var block = tx[2];
@@ -33,7 +31,6 @@
     var raw = tx[3];
     console.log(JSON.stringify(raw[1]));
     display_txs([raw[1]]);
-    //}, get_ip(), 8091); 
 
     function display_txs(txs){
         if(txs.length === 0) {

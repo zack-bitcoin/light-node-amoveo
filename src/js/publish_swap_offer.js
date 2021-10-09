@@ -22,17 +22,10 @@ var publish_swap_offer = (function() {
 
     async function publish(){
         var x = JSON.parse(offer.value);
-        console.log(offer.value);
         var cid1 = x[1][4];
-        console.log(JSON.stringify(x[1]));
-        console.log(cid1);
         var zero = btoa(array_to_string(integer_to_array(0,32)));
-        console.log(zero);
         if(!(cid1 == zero)){
-            console.log("about to post");
-            //rpc.post(["read", 3, cid1], function(first){
             var first = await rpc.apost(["read", 3, cid1], s_ip.value, parseInt(s_port.value));
-            console.log("just posted");
             if(first == 0){
                 display.innerHTML = "contract "
                     .concat(cid1)
@@ -41,7 +34,6 @@ var publish_swap_offer = (function() {
             } else {
                 return(publish2(zero, x));
             }
-            //}, s_ip.value, parseInt(s_port.value));
         } else {
             return(publish2(zero, x));
         };
@@ -50,10 +42,7 @@ var publish_swap_offer = (function() {
         var cid2 = x[1][7];
         var second_offer = 0;
         if(!(cid2 == zero)){
-            console.log("about to post");
-            //rpc.post(["read", 3, cid2], function(second){
             var second = await rpc.apost(["read", 3, cid2], s_ip.value, parseInt(s_port.value));
-            console.log("just posted");
             if(second == 0) {
                 display.innerHTML = "contract "
                     .concat(cid2)
@@ -76,21 +65,17 @@ var publish_swap_offer = (function() {
                 };
                 return(publish3(x, second_offer));
             }
-        //}, s_ip.value, parseInt(s_port.value));
         } else {
             return(publish3(x, 0));
         }
     };
     async function publish3(x, second_offer){
-        //rpc.post(["add", x, second_offer], function(z)
         var z = await rpc.apost(["add", x, second_offer], s_ip.value, parseInt(s_port.value));
         display.innerHTML = "successfully sent the swap offer to the server.";
     };
-
     return({ip: function(x){ s_ip.value = x},
             port: function(x){ s_port.value = x},
             offer: function(x){ offer.value = x},
             publish: publish
            });
-    
 })();

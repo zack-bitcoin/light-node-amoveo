@@ -15,17 +15,12 @@ var subcurrency_set_buy = (function(){
     div.appendChild(br());
 
     async function doit(){
-        //merkle.request_proof("accounts", keys.pub(), function(account){
-        //rpc.post(["account", keys.pub()], function(account){
         var account = await rpc.apost(["account", keys.pub()]);
         if(account == "empty"){
             display.innerHTML = "load an account first";
             return(0);
         };
         var contract = await merkle.arequest_proof("contracts", contract_id.value);
-        //merkle.request_proof("contracts", contract_id.value, async function(contract){
-            //rpc.post(["contracts", contract_id.value], function(contract){
-            
         if(contract == "empty"){
             display.innerHTML = "that contract does not exist";
             return(0);
@@ -48,12 +43,8 @@ var subcurrency_set_buy = (function(){
                  ];
         console.log(tx);
         var stx = keys.sign(tx);
-        //post_txs([stx], function(msg){
         var msg = await apost_txs([stx]);
-            display.innerHTML = msg;
-        //});
-        //});
-    //});
+        display.innerHTML = msg;
     };
     async function amount_calc(N, amount, cid, callback) {
         if(N == 0){
@@ -61,14 +52,10 @@ var subcurrency_set_buy = (function(){
         };
         var key = sub_accounts.key(keys.pub(), cid, N);
         key = btoa(array_to_string(key));
-        //merkle.request_proof("sub_accounts", key, function(sa){
         var sa = await merkle.arequest_proof("sub_accounts", key);
         var sub_amount = sa[1];
         amount_calc(N-1, Math.min(sub_amount, amount), cid, callback);
-    //});
-        
     };
-
     return({
         contract_id: function(x){ contract_id.value = x},
         amount: function(x){ amount_input.value = x},

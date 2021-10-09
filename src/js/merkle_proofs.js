@@ -7,24 +7,9 @@ function merkle_proofs_main() {
 	var val = verify_merkle(key, proof);
 	return(val);
     }
-    /*
-    async function verify_callback(tree, key, callback) {
-	const top_hash = hash(headers_object.serialize(headers_object.top()));
-        
-	const proof = await rpc.apost(["proof", btoa(tree), key, btoa(array_to_string(top_hash))]);
-	//rpc.post(["proof", btoa(tree), key, btoa(array_to_string(top_hash))], function(proof){
-        if ((proof[3] == "empty")||(proof[3]==0)) { return callback("empty"); };
-	var val = verify_merkle(key, proof);
-        console.log("merkle proofs");
-        console.log(val);
-	return(callback(val));
-        //});
-    }
-    */
     function hash_member(hash, members) {
         for (var i = 0; i < members.length; i++) {
             var h2 = members.slice(32*i, 32*(i+1));
-            //console.log("check that hash is a member");
             var b = check_equal(hash, h2);
             if (b) { return true; }
         }
@@ -41,7 +26,6 @@ function merkle_proofs_main() {
     function link_hash(l) {
         var h = [];
         for (var i = 1; i < l.length; i++) {
-            //console.log(link[i]);
             var x = string_to_array(atob(l[i]));
             h = x.concat(h);
         }
@@ -57,7 +41,6 @@ function merkle_proofs_main() {
             if (chain_links_b == false) {
                 return false;
             }
-            //out = out && chain_links_array_member(parent, lh);
         }
         return true;
     }
@@ -77,7 +60,6 @@ function merkle_proofs_main() {
         return hash(serialized);
     }
     function verify_merkle(trie_key, x) {
-    //x is {return tree_roots, tree_root, value, proof_chain}
 	var tree_roots = string_to_array(atob(x[1]));
 	var header_trees_hash = string_to_array(atob(headers_object.top()[3]));
 	var hash_tree_roots = hash(tree_roots);
@@ -119,17 +101,12 @@ function merkle_proofs_main() {
         };
 	//TODO we should learn to deal with proofs of empty data.
         return(value);
-    //}
-        //}
-	//}
     };
     function serialize_key(v, trie_key) {
 	var t = v[0];
 	if ( t == "gov" ) {
             return integer_to_array(trie_key, 8);
 	} else if ( t == "acc" ) {
-            //console.log("v is ");
-            //console.log(v);
             var pubkey = string_to_array(atob(v[3]));
             return hash(pubkey);
 	} else if ( t == "sub_acc" ) {
@@ -141,13 +118,10 @@ function merkle_proofs_main() {
             //code, source, many_types, source_types
             return(hash(string_to_array(atob(id_maker(v[1], v[2], v[8], v[9])))));
 	} else if ( t == "channel" ) {
-            //return hash(integer_to_array(v[1], 32));
             return hash(string_to_array(atob(v[1])));
 	} else if (t == "oracle") {
-            //return hash(integer_to_array(v[1], 32));
             return hash(string_to_array(atob(v[1])));
         } else if (t == "unmatched") {
-            //console.log("serialize_key unmatched ");
             if (v[2] == "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=") {//unmatched header
                 var account = trie_key[1];
                 var oid = trie_key[2];
@@ -164,9 +138,6 @@ function merkle_proofs_main() {
 	}
     }
     function serialize_tree_element(v, trie_key) {
-	//console.log("serialize tree element");
-	//console.log(JSON.stringify(v));
-	//console.log(trie_key);
 	var t = v[0];
 	if ( t == "gov" ) {
             var id = integer_to_array(v[1], 1);
@@ -291,10 +262,6 @@ function merkle_proofs_main() {
                 .concat(acc2);
             return serialized;
 	} else if (t == "oracle") {
-            //var id = integer_to_array(v[1], 32);
-            //var id = string_to_array(v[1], 32);
-	    //console.log("serialize oracle ");
-	    //console.log(JSON.stringify(v));
             var id = string_to_array(atob(v[1]));
             var result = integer_to_array(v[2], 1);
             var type = integer_to_array(v[5], 1);
@@ -359,8 +326,7 @@ function merkle_proofs_main() {
             .concat(integer_to_array(source_type, 2));
         return(btoa(array_to_string(hash(to_hash))));
     };
-    return {//request_proof: verify_callback,
-            arequest_proof: averify,
+    return {arequest_proof: averify,
 	    verify: verify_merkle,
 	    serialize: serialize_tree_element,
 	    serialize_key: serialize_key,

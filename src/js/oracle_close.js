@@ -14,19 +14,13 @@
     div.appendChild(br());
     function make_bet(oid) {
         var from = keys.pub();
-        //merkle.request_proof("accounts", from, function(acc) {
-        //rpc.post(["account", from], function(acc) {
         var acc = await rpc.apost(["account", from]);
 	var nonce = acc[2] + 1;
         var tx = ["oracle_close", from, nonce, fee, oid];
         var stx = keys.sign(tx);
         var txs = [stx];
-            //return rpc.post(["txs", [-6].concat(txs)], function(x) {
         var x = await rpc.apost(["txs", [-6].concat(txs)]);
-        console.log(x);
         status.innerHTML = "status: <font color=\"green\">successfully attempted to make a oracle_close tx.</font>";
         return 0;
-           // });
-        //});
     };
 })();

@@ -30,13 +30,9 @@ todo: plan what swap offers we need so that beginner users don't need to deal wi
     var fee = 200000;
     var display = document.createElement("div");
     display.innerHTML = "ready.";
-    var warning = document.createElement("h1");
-    warning.innerHTML = "<font color='green'>This tab is in development. To test it out, open the browser console and click 'make crosschain trade offer'. It is recommended to not use this with real money on mainnet.</font>";
-    div.appendChild(warning);
     var title = document.createElement("h3");
     title.innerHTML = "Crosschain Decentralized Exchange ";
     div.appendChild(title);
-    div.appendChild(br());
     var details = document.createElement("p");
     details.innerHTML = "Sell a currency on another blockchain to buy VEO. Manage these kinds of trades.";
     div.appendChild(details);
@@ -51,13 +47,6 @@ todo: plan what swap offers we need so that beginner users don't need to deal wi
     div.appendChild(br());
     var spend_ticker_input = text_input("Name of the currency that you want to sell. (i.e. ETH)", div);
     div.appendChild(br());
-    /*
-    var selector_label = document.createElement("span");
-    selector_label.innerHTML = "Currency you are buying: ";
-    div.appendChild(selector_label);
-    div.appendChild(contract_to_buy);
-    div.appendChild(br());
-    */
     var spend_amount_input = text_input("Amount of currency you want to send. (i.e. 0.15 ETH)", div);
     div.appendChild(br());
 
@@ -94,8 +83,6 @@ todo: plan what swap offers we need so that beginner users don't need to deal wi
     div.appendChild(br());
     div.appendChild(advanced_div);
 
-    //var security_amount_input = text_input("How much currency should you need to lock into the contract as a security deposit to enforce that you actually deliver. (default is 10% the amount you are selling) (i.e. 0.015)", advanced_interface);
-    //advanced_interface.appendChild(br());
     var hours_input = text_input("How many hours do you have until the money needs to arrive in their account on the other blockchain. Don't make it too big, we need to wait this long to run the oracle, but also don't make it too small, as if you fail to deliver the currency in time, then you lose your safety deposit. (i.e. 48)", advanced_interface);
     hours_input.value = "48";
     advanced_interface.appendChild(br());
@@ -193,7 +180,6 @@ todo: plan what swap offers we need so that beginner users don't need to deal wi
         var sell_offer = {};
         //should send 1 unit of veo in exchange for (1 + (security * 2)) units of contract1 type1
         var block_height = headers_object.top()[1];
-        //var veo_all = veo_collateral + (2 * security_lockup);
         var veo_all = veo_collateral + (security_lockup);
         sell_offer.start_limit = block_height - 1;
         sell_offer.end_limit = block_height + parseInt(blocks_till_expires_text.value, 10);
@@ -252,19 +238,10 @@ todo: plan what swap offers we need so that beginner users don't need to deal wi
 
         await apost_offer(display, IP, buy_offer, buy_offer99);
         await apost_offer(display, IP, sell_offer, sell_offer99);
-
-        //rpc.post(["read", 3, buy_cid], function(y){
-            //rpc.post(["read", 3, sell_cid], function(y2){
         var y = await rpc.apost(["read", 3, buy_cid], IP, 8090);
         var y2 = await rpc.apost(["read", 3, sell_cid], IP, 8090);
-                    //checking that the contract got published correctly.
-        console.log(JSON.stringify(y));
-        console.log(JSON.stringify(y2));
         refresh();
-    //}, IP, 8090);
-    //    }, IP, 8090);
     };
-
 
     var refresh_button = button_maker2("refresh available actions", refresh);
     div.appendChild(br());

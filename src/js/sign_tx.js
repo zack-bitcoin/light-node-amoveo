@@ -28,21 +28,14 @@
     div.appendChild(document.createElement("br"));
     function sign_tx() {
 	var t = JSON.parse(tx.value);
-	console.log(tx.value);
-	console.log(t);
 	var t2 = keys.sign(t);
-	console.log(t2);
 	var s = JSON.stringify(t2);
 	signed_tx.innerHTML = s;
 	tx.value = "";
     }
     async function push_tx() {
 	var t = JSON.parse(tx_push.value);
-	//console.log(t);
-	//var t2 = keys.sign(t);
         var c = apost_txs([t]);
-        console.log(c);
-	//rpc.post(["txs", [-6, t]], function(x) {});
 	tx_push.value = "";
     }
 })();

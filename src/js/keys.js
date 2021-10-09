@@ -28,10 +28,8 @@ function keys_function1() {
         div.appendChild(load_text);
         div.appendChild(file_selector);
     }
-    //div.appendChild(br());
     if(configure["new_account"]){
         var save_button = button_maker2("Generate new account. Saves the private key to a file.", save_keys);
-        //div.appendChild(br());
     }
     if(configure["watch_only_account"]){
         var watch_only_instructions = document.createTextNode("put your pubkey here to make a watch-only wallet that is unable to spend money.");
@@ -46,7 +44,6 @@ function keys_function1() {
         var new_pubkey_button = button_maker2("generate keys from passphrase", new_keys_check);
         div.appendChild(br());
         div.appendChild(save_name);
-        //div.appendChild(br());
         div.appendChild(save_button);
         div.appendChild(br());
     }
@@ -92,21 +89,15 @@ function keys_function1() {
         return btoa(fromHex(pubPoint));
     }
     function powrem(x, e, p) {
-        //if (e == 0n) {
         if (e == 0) {
-            //return 1n;
             return 1;
-        //} else if (e == 1n) {
         } else if (e == 1) {
             return x;
-        //} else if ((e % 2n) == 0n) {
         } else if ((e % 2) == 0) {
             return powrem(((x * x) % p),
-                          //(e / 2n),
                           (e / 2),
                           p);
         } else {
-            //return (x * powrem(x, e - 1n, p)) % p;
             return (x * powrem(x, e - 1, p)) % p;
         }
     };
@@ -157,8 +148,6 @@ function keys_function1() {
         var sig;
         var stx;
 	if (tx[0] == "signed") {
-	    console.log(JSON.stringify(tx));
-            //var sig = raw_sign(tx[1]);
 	    sig = btoa(array_to_string(sign(tx[1], keys_internal)));
 	    stx = tx;
 
@@ -221,11 +210,8 @@ function keys_function1() {
     }
     async function check_balance(Callback) {
         var trie_key = pubkey_64();
-        //var top_hash = hash(headers_object.serialize(headers_object.top()));
-        //merkle.request_proof("accounts", trie_key, function(x) {
         var x = await merkle.arequest_proof("accounts", trie_key);
 	Callback(x[1]);
-    //});
     }
     var update_balance_callback = function(){
         return(0);
@@ -238,15 +224,11 @@ function keys_function1() {
                        20);
             return(0);
         }
-        //var top_hash = hash(headers_object.serialize(headers_object.top()));
-        //rpc.post(["account", trie_key], function(unconfirmed) {
         const unconfirmed = await rpc.apost(["account", trie_key]);
         var U = unconfirmed[1] / token_units();
 
         const x = await merkle.arequest_proof("accounts", trie_key);
-        //merkle.request_proof("accounts", trie_key, function(x) {
         var C = x[1] / token_units();
-        //set_balance(C);
         var S = ("your balance ").concat(
             (C).toString()).concat(
                 " VEO");
@@ -259,7 +241,6 @@ function keys_function1() {
         bal_div.innerHTML = S;
         update_balance_callback();
         return(0);
-        //});
     };
     function set_balance(n) {
         bal_div.innerHTML = ("your balance ").concat((n).toString()) + " VEO";

@@ -28,28 +28,11 @@ var spend_tx = (function () {
             return(0);
 	};
         max_send_amount(keys.pub(), to, function(A2, tx_type){
-	    //var A2 = Amount - fee - 1;
 	    spend_amount.value = (A2 / token_units()).toString();
         });
-                        /*
-	keys.check_balance(function(Amount) {
-            var to0 = spend_address.value;
-	    var to = parse_address(to0);
-	    if (to == 0) {
-		error_msg.innerHTML = "please input the recipient's address";
-	    } else {
-		error_msg.innerHTML = "";
-	    }
-            fee_lookup(to, function(fee, tx_type){
-		var A2 = Amount - fee - 1;
-		spend_amount.value = (A2 / token_units()).toString();
-
-            });
-	});
-                        */
     });
     div.appendChild(calculate_max_send_button);
-    div.appendChild(document.createElement("br"));
+    div.appendChild(br());
     div.appendChild(spend_amount_info);
     div.appendChild(spend_amount);
     div.appendChild(input_info);
@@ -57,42 +40,21 @@ var spend_tx = (function () {
     div.appendChild(spend_button);
     div.appendChild(raw_button);
     div.appendChild(error_msg);
-    div.appendChild(document.createElement("br"));
+    div.appendChild(br());
     div.appendChild(raw_tx);
     var fee;
     async function afee_lookup(to, callback){
         var acc = await rpc.apost(["account", to]);
-        //rpc.post(["account", to], function(acc){
         var tx_type = "spend";
         var gov_id = 15;
         if((acc === 0) || (acc === "empty")){
             tx_type = "create_acc_tx";
             gov_id = 14;
         };
-	    //merkle.request_proof("governance", gov_id, function(gov_fee) {
 	var gov_fee = await merkle.arequest_proof("governance", gov_id);
 	var fee = tree_number_to_value(gov_fee[2]) + 50;
         return([fee, tx_type]);
     };
-    /*
-    async function fee_lookup(to, callback){
-        //rpc.post(["account", to], function(acc){
-        //rpc.post(["account", to], function(acc){
-        var acc = await rpc.apost(["account", to]);
-        var tx_type = "spend";
-        var gov_id = 15;
-        if((acc === 0) || (acc === "empty")){
-            tx_type = "create_acc_tx";
-            gov_id = 14;
-        };
-	//merkle.request_proof("governance", gov_id, function(gov_fee) {
-	var gov_fee = await merkle.arequest_proof("governance", gov_id);
-	var fee = tree_number_to_value(gov_fee[2]) + 50;
-        return(callback(fee, tx_type));
-        //});
-        //});
-    };
-    */
     async function amake_tx(to, from, amount){
         var from_acc = await rpc.apost(["account", from]);
         return(amake_tx2(from_acc, to, from, amount));
@@ -100,31 +62,12 @@ var spend_tx = (function () {
     async function amake_tx2(from_acc, to, from, amount){
         var nonce = from_acc[2] + 1;
         var [fee, tx_type] = await afee_lookup(to);
-        //fee_lookup(to, function(fee, tx_type){
         var tx = [tx_type, from, nonce, fee, to, amount];
         if(tx_type === "spend"){
             tx = tx.concat([0]);
         };
         return(tx);
     };
-    /*
-    function make_tx(to, from, amount, callback){
-        rpc.post(["account", from], function(from_acc){
-            return(make_tx2(from_acc, to, from, amount, callback));
-        });
-    };
-    async function make_tx2(from_acc, to, from, amount, callback){
-        var nonce = from_acc[2] + 1;
-        //fee_lookup(to, function(fee, tx_type){
-        var [fee, tx_type] = await afee_lookup(to);
-        var tx = [tx_type, from, nonce, fee, to, amount];
-        if(tx_type === "spend"){
-            tx = tx.concat([0]);
-        };
-        return(callback(tx));
-        //});
-    };
-    */
     function print_tx(){
         parse_inputs(function(tx){
             error_msg.innerHTML = JSON.stringify(tx);
@@ -134,7 +77,6 @@ var spend_tx = (function () {
 	var to = parse_address(spend_address.value);
         var amount = Math.floor(parseFloat(spend_amount.value, 10) * token_units());
         var from = keys.pub();
-        //rpc.post(["account", from], function(from_acc){
         var from_acc = await rpc.apost(["account", from]);
         console.log(from_acc);
         var bal = from_acc[1];
@@ -149,30 +91,21 @@ var spend_tx = (function () {
                 callback(tx);
             }));
         };
-        //});
     };
     async function spend_tokens() {
         parse_inputs(async function(tx){
             var stx = keys.sign(tx);
-            //post_txs([stx], function(msg){
             var msg = await apost_txs([stx]);
             error_msg.innerHTML = msg;
-        //});
         });
     };
     async function max_send_amount(pub, to, callback){
-        //rpc.post(["account", pub], function(acc){
         var acc = await rpc.apost(["account", pub]);
         var bal = acc[1];
-        //fee_lookup(to, function(fee, tx_type){
         var [fee, tx_type] = await afee_lookup(to);
         callback(bal-fee-1, tx_type);
-            //});
-            //return(fee_lookup(to, callback));//callback takes 2 inputs, fee and tx_type.
-        //});
     };
     return({
-        //make_tx:make_tx,
         amake_tx: amake_tx,
         max_send_amount: max_send_amount
     });

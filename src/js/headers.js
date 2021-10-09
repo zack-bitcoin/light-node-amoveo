@@ -1,10 +1,8 @@
 function headers_main() {
     const urlParams = new URLSearchParams(window.location.search);
     var mode = urlParams.get('mode');
-    //console.log(mode);
     if (mode == "test") {
         mode = "test";
-        //server_port.value = "3010";
         server_port.value = "8080";
         console.log(server_ip.value);
         if (server_ip.value == "") {
@@ -14,7 +12,6 @@ function headers_main() {
         mode = "testnet";
         server_port.value = "8070";
         if (server_ip.value == "") {
-            //server_ip.value = "159.89.87.58";
             server_ip.value = default_ip();
         }
     } else {
@@ -24,9 +21,6 @@ function headers_main() {
             server_ip.value = default_ip();
         }
     }
-    //console.log(mode);
-    //var mode = "test";
-    //var mode = "testnet";
     var forks;
     var retarget_frequency;
     var top_header;
@@ -96,11 +90,6 @@ function headers_main() {
         }, 60000);
     };
     auto_sync_headers();
-        /*
-    wallet_text = document.createElement("p");
-    wallet_text.innerHTML = JSON.stringify([["height", 0], ["total work", 0]]);
-    document.body.appendChild(wallet_text);
-    */
     var wallet_text = document.createElement("div");
     wallet_text.innerHTML = "Downloading blockchain data";
     document.body.appendChild(wallet_text);
@@ -190,11 +179,9 @@ function headers_main() {
 	} else if (estimate < LL) {
 	    ND = pow_recalculate(diff, LL, estimate);
 	}
-	//console.log(ND);//1
 	return Math.max(ND, INITIAL_DIFFICULTY);
     }
     function retarget2(header, n, ts) {
-	//console.log(JSON.stringify(header));
         var t = header[5];
         ts.push(t);
         //var height = header[1];
@@ -238,18 +225,13 @@ function headers_main() {
     function pow_recalculate(oldDiff, t, bottom) {
         var old = sci2int(oldDiff);
 	var n = old.times(t).divide(bottom);
-        //var n = Math.max(1, Math.floor(( old * t ) / bottom));
-        //var n = Math.max(1, Math.floor(( old / bottom) * t));
-	
         var d = int2sci(n);
         return Math.max(1, d);
     }
     function log2(x) {
 	if (x.eq(0)) { return 1; }
 	else if (x.eq(1)) { return 1; }
-        //if (x == 1) { return 1; }
         else { return 1 + log2(x.divide(2))}
-        //else { return 1 + log2(Math.floor(x / 2))}
     }
     function exponent(a, b) {//a is type bigint. b is an int.
         if (b == 0) { return bigInt(1); }
@@ -263,7 +245,6 @@ function headers_main() {
             var a = l.pop();
             var c = exponent(bigInt(2), a);//c is a bigint
 	    return c.times((256 + b)).divide(256);
-            //return Math.floor((c * (256 + b)) / 256);
         }
         function sci2pair(i) {
             var a = Math.floor(i / 256);
@@ -282,7 +263,6 @@ function headers_main() {
             var a = log2(x) - 1;
             var c = exponent(bigInt(2), a);
 	    var b = x.times(256).divide(c).minus(256).toJSNumber();
-            //var b = Math.floor((x * 256) / c) - 256;
             return [a, b];
         }
         return pair2sci(int2pair(x));
@@ -308,8 +288,6 @@ function headers_main() {
 		if (height > (forks.two - 1)) {
 		    var nonce2 = nonce.slice(-23),
 		    foo = h1.concat(string_to_array(nonce2));
-		    //console.log(foo);
-		    //console.log(nonce2);
                     h2 = hash(foo);
                     I = newhash2integer(h2);
 		} else {
@@ -345,31 +323,9 @@ function headers_main() {
 	var EWAH2 = Converter.times((N - 1)).divide(prev_ewah);
 	var EWAH0 = (Converter.divide(Hashrate0)).add(EWAH2);
 	var ewah = Converter.times(N).divide(EWAH0).toJSNumber();
-	/*
-	console.log("header number");
-	console.log(JSON.stringify(header[1]));
-	console.log("prev_ewah: ");
-	console.log(prev_ewah0);// should be 1, is 1000000
-	console.log(prev_ewah.toJSNumber());// should be 1, is 1000000
-	console.log("dt: ");
-	console.log(DT);
-	console.log("hashrate0: ");
-	console.log(Hashrate0.toJSNumber());
-	console.log("ewah0: ");
-	console.log(EWAH0.toJSNumber());//should be 20480000, is 1024019456000
-	console.log("ewah: ");
-	console.log(ewah);//should be 1, is 19
-	*/
-	
-	//var Hashrate0 = Math.floor(Math.max(1, hashrate_converter() * sci2int(prev_header[6]) / DT));
-	//var Hashrate = Math.min(Hashrate0, prev_ewah * 4);
-	//var N = 20;
-	//var ewah = Math.floor((Hashrate + ((N - 1) * prev_ewah)) / N);
 	return ewah;
     }
     function absorb_headers(h) {
-	//console.log(JSON.stringify(h[1]));
-        //console.log("absorbing headers");
         var get_more = false;
         for (var i = 1; i < h.length; i++ ) {
             var bl = check_pow(h[i]);
@@ -379,15 +335,13 @@ function headers_main() {
                 var header = h[i];
                 var height = header[1];
                 var header_hash = hash(serialize_header(header));
-		//var ewah = 1000000;
                 if ( height == 0 ) {
                     header[9] = 0;//accumulative difficulty
                 } else {
                     var prev_hash = string_to_array(atob(header[2]));
-                    var prev_header = read_header(prev_hash);//headers_db[prev_hash];
+                    var prev_header = read_header(prev_hash);
                     prev_ac = prev_header[9];
                     diff = header[6];
-                    //var ac = sci2int(diff) / 10000000000;
                     var ac = sci2int(diff);
                     header[9] = prev_ac + ac - 1;
                 }
@@ -414,7 +368,6 @@ function headers_main() {
         } else {
             n = top_header[1];
         }
-        //rpc.post(["headers", headers_batch + 1, n], absorb_headers);
         var x = await rpc.apost(["headers", headers_batch + 1, n]);
         absorb_headers(x);
     }
@@ -454,7 +407,6 @@ function headers_main() {
         console.log(JSON.stringify(hash(f)));
     }
     async function header_test() {
-        //rpc.post(["headers", 10, 0], header_test2);
         var x = await rpc.apost(["headers", 10, 0]);
         header_test2(x);
     }
@@ -473,7 +425,6 @@ function headers_main() {
         }
         return setTimeout(function() { return on_height_change2(h, callback), 1000});
     }
-    //test();
     function test() {
         console.log(sci2int(2000));//should be 232
         console.log(int2sci(2000));//should be 2804
@@ -490,4 +441,3 @@ function headers_main() {
 }
 var headers_object = headers_main();
 
-//headers_object.more_headers();

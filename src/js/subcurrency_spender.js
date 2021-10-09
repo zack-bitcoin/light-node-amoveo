@@ -23,9 +23,7 @@ var subcurrency_spender = (function(){
 
     async function send(){
         var cid_key = contract_id.value;
-        //var sub_key = btoa(array_to_string(sub_accounts.key(keys.pub(), cid_key, Type)));
         var Type = parseInt(type.value);
-        //merkle.request_proof("accounts", keys.pub(), function(account){
         var account = await merkle.arequest_proof("accounts", keys.pub());
         var nonce = account[2] + 1;
         var fee = 152050;
@@ -42,13 +40,6 @@ var subcurrency_spender = (function(){
         var stx = keys.sign(tx);
         var msg = await apost_txs([stx]);
         display.innerHTML = msg;
-                /*
-		rpc.post(["txs", [-6, stx]], function(x) {
-                    console.log(x);
-                    display.innerHTML = "successfully spent subcurrency with txid = ".concat(x);
-                });
-                */
-            //});
     };
     return({contract_id: function(x) {contract_id.value = x},
             to: function(x) { to.value = x },

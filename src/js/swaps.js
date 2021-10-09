@@ -133,7 +133,6 @@ var swaps = (function(){
 //-record(swap_tx, {from, offer, fee}).
 //-record(swap_tx2, {from, nonce, fee, offer, match_parts}).
         //var swap_tx = ["swap_tx", keys.pub(), SO, fee];
-        //rpc.post(["account", keys.pub()], function(from_acc){
         var from_acc = await rpc.apost(["account", keys.pub()]);
         var Nonce = from_acc[2] + 1;
         var swap_tx = ["swap_tx2", keys.pub(), Nonce, fee, SO, matched_parts];
@@ -165,7 +164,6 @@ var swaps = (function(){
         console.log(CID);
         var fee = 200000;
         if(Type == 0){//they want veo
-            //merkle.request_proof("accounts", keys.pub(), function(Acc){
             var Acc = await merkle.arequest_proof("accounts", keys.pub());
             callback([]);
                // if(Acc[1] > Amount){
@@ -177,12 +175,10 @@ var swaps = (function(){
                     callback("error");
                 }
                 */
-        //});
         } else {//they want a subcurrency
             console.log([keys.pub(), CID, Type]);
             var SKey = btoa(array_to_string(sub_accounts.key(keys.pub(), CID, Type)));
             console.log(SKey);
-            //merkle.request_proof("sub_accounts", SKey, function(SA){
             var SA = await merkle.arequest_proof("sub_accounts", SKey);
             console.log(SA);
             var bal;
@@ -194,12 +190,8 @@ var swaps = (function(){
             if(bal >= Amount){//we have enough of the subcurrency they want
                 callback([]);
             } else {//we don't have enough of what they want. maybe we can buy more?
-                    //merkle.request_proof("contracts", CID, function(Contract){
                 var Contract = await merkle.arequest_proof("contracts", CID);
-                //rpc.post(["read", 3, CID], function(z){
                 var z = await rpc.apost(["read", 3, CID], get_ip(), 8090);
-                console.log(z);
-                console.log(CID);
                 var Source, SourceType, MT;
                 if(Contract == "empty"){
                     if(!(z)){
@@ -232,11 +224,7 @@ var swaps = (function(){
                 }
                 var Tx = ["contract_use_tx", 0, 0, 0, CID, Amount - bal, MT, Source, SourceType];
                 make_txs2(Source, SourceType, Amount - bal, function(L){return(callback(L.concat([Tx])))});
-                //}, get_ip(), 8090);
-                //}, "127.0.0.1", "8090");
-                //});
             };
-            //});
         };
     };
 

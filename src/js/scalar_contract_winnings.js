@@ -18,10 +18,7 @@ var scalar_contract_winnings = (function(){
         var oid = oracle_id.value;
         //merkle.request_proof("contracts", cid, async function(contract){
         var contract = await merkle.arequest_proof("contracts", cid);
-        //merkle.request_proof("oracles", oid, function(oracle){
-        //rpc.post(["oracles", oid], function(oracle){
         var oracle = await rpc.apost(["oracles", oid]);
-        console.log(oracle);
         if(contract == "empty") {
             display.innerHTML = "that contract does not exist";
                 return(0);
@@ -30,8 +27,6 @@ var scalar_contract_winnings = (function(){
             display.innerHTML = "first make the oracle to enforce the outcome. the oracle does not exist yet.";
             return(0);
         };
-        //merkle.request_proof("accounts", keys.pub(), function(acc){
-        //rpc.post(["account", keys.pub()], function(acc){
         var acc = await rpc.apost(["account", keys.pub()]);
         if(acc == "empty") {
             display.innerHTML = "no account loaded.";
@@ -47,12 +42,8 @@ var scalar_contract_winnings = (function(){
             return 0;
         }
         var question_hash = oracle[3];
-        //rpc.post(["oracle", 2, question_hash], function(text){
         var text = await rpc.apost(["oracle", 2, question_hash]);
-        console.log(text);
-        console.log(atob(text));
         var is = atob(text).match(/max.0, min.MaxVal, .B . MaxVal . MaxPrice.. is \d*/)[0].match(/\d*$/)[0];
-        console.log(is);
         var price = parseInt(is, 10);
         var maximum =  4294967295; 
         payout_vector =
@@ -60,17 +51,12 @@ var scalar_contract_winnings = (function(){
              btoa(array_to_string(integer_to_array(price, 4))),
              btoa(array_to_string(integer_to_array(maximum - price, 4)))];
         claim2(many, cid, nonce, payout_vector);
-        //});
-        //});
-        //});
-        //});
     };
     async function claim2(N, cid, nonce, payout_vector){
         if(N<1){
             return(0);
         }
         var key = sub_accounts.normal_key(keys.pub(), cid, N);
-        //merkle.request_proof("sub_accounts", key, async function(sa){
         var sa = await merkle.arequest_proof("sub_accounts", key);
         console.log(sa);
         if(!(sa == "empty")){
@@ -84,13 +70,7 @@ var scalar_contract_winnings = (function(){
                     key, keys.pub(),
                     payout_vector, 0];
                 var stx = keys.sign(tx);
-		//return(rpc.post(["txs", [-6, stx]],
-                // function(x) {
                 var r = await apost_txs([stx]);
-                display.innerHTML = r;
-                
-		//var x = await rpc.apost(["txs", [-6, stx]]);
-                //function(x) {
                 if(r === "server rejected the tx"){
                     display.innerHTML = r;
                 }else{

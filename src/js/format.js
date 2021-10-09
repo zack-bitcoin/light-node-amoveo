@@ -1,7 +1,7 @@
 
 function default_ip() {
-    return("159.89.87.58");
-    //return("0.0.0.0");
+    //return("159.89.87.58");
+    return("0.0.0.0");
 };
 
 
@@ -12,33 +12,8 @@ function write_veo(x) {
 };
 function read_veo(X) {
     return Math.floor(parseFloat(X.value, 10) * token_units());
-    //return Math.round(parseFloat(X.value, 10) * token_units());
 }
 
-//function c2s(x) {
-//    return Math.floor(parseFloat(x.value, 10) * token_units());
-//}
-/*
-function new_ss(code, prove, meta) {
-    if (meta == undefined) {
-        meta = 0;
-    }
-    return {"code": code, "prove": prove, "meta": meta};
-}
-function new_cd(me, them, ssme, ssthem, expiration, cid) {
-    return {"me": me, "them": them, "ssme": ssme, "ssthem": ssthem, "cid":cid, "expiration": expiration};
-}
-*/
-function big_array_to_int(l) {
-    //var x = 0n;
-    var x = 0;
-    for (var i = 0; i < l.length; i++) {
-        //x = (x.times(256)).plus(l[i]);
-        //x = (256n * x) + BigInt(l[i]);
-        x = 0;
-    }
-    return x;
-}
 function array_to_int(l) {
     var x = 0;
     for (var i = 0; i < l.length; i++) {
@@ -190,228 +165,6 @@ function random_cid(n) {
         return rl.concat(random_cid(n-1))}
 };
 
-
-
-/*
-function pd_maker(height, price, portion, oid) {
-    //PD = <<Height:32, Price:16, PortionMatched:16, MarketID/binary>>,
-    var a = make_bytes(4, height);
-    var b = make_bytes(2, price);
-    var c = make_bytes(2, portion);
-    var d = atob(oid);
-    return a.concat(b).concat(c).concat(d);
-}
-function make_bytes(bytes, b) {
-    if (bytes == 0) {
-        return "";
-    } else {
-        var r = b % 256;
-        var d = Math.floor(b / 256);
-        var l = String.fromCharCode(r);
-        var t = make_bytes(bytes - 1, d);
-        return t.concat(l);
-    }
-};
-*/
-
-   /* 
-async function oracle_limit(oid, callback) {
-    //return rpc.post(["oracle", oid], function(x) {
-    var x = await rpc.apost(["oracle", oid]);
-    var question = atob(x[2]);
-        //console.log(question);
-        //measured_upper.value = (largest_number(question, 0, 0)).toString();
-    return callback(oracle_limit_grabber(question));
-});
-function oracle_limit_grabber(question) {
-        console.log("oracle limit grabber");
-        if (question.length < 4) {
-            return "";
-        }
-        var f = question.slice(0, 4);
-        if (f == "from") {
-            return olg2(question.slice(4));
-        }
-        return oracle_limit_grabber(question.slice(1));
-    }
-    function olg2(question) {
-        //console.log("olg2");
-        //console.log(question);
-        if (question.length < 2) {
-            return "";
-        }
-        var f = question.slice(0, 2);
-        if (f == "to") {
-            //console.log("calling olg3 ");
-            return olg3(question.slice(2), "");
-        }
-        return olg2(question.slice(1));
-    }
-    function olg3(question, n) {
-        //console.log(n);
-        if (question.length < 1) { return n; }
-        var l = question[0];
-        if (((l >= "0") && (l <= "9")) || (l == ".")) {
-            var n2 = n.concat(l);
-            return olg3(question.slice(1), n2);
-        } else if (n == "") {
-            return olg3(question.slice(1), n);
-        } else {
-            return n;
-        }
-    };
-};
-*/
-
-/*
-function check_spk_sig(pub, ch, sig) {
-    //console.log("format check spk sig");
-    //console.log(JSON.stringify([ch, sig, pub]));
-    var our_key =  keys.ec().keyFromPublic(toHex(atob(pub)), "hex");
-    return verify(ch, sig, our_key);
-}
-function spk_sig(x) {
-    if (x[0] == "spk") {
-        //console.log("format spk sig");
-        //console.log(JSON.stringify(x));
-        x = btoa(array_to_string(hash(serialize(x))));
-    }
-    var sig1 = sign(x, keys.keys_internal());
-    return btoa(array_to_string(sig1));
-};
-function encode_cid(cid, pub) {
-    var top_header = headers_object.top();
-    var blockheight = top_header[1];
-    //var f29 = 104600;
-    var f29 = headers_object.forks.twenty_nine;
-    if (blockheight > f29){//fork 29
-        return(btoa(array_to_string(hash(string_to_array(atob(cid)).concat(string_to_array(atob(pub)))))));
-    }else{
-        return(cid);
-    };
-};
-function derivatives_load_db(y) {
-    //console.log(JSON.stringify(y));
-    var db = {};
-    db.direction_val = y[1];
-    db.expires = y[2];
-    db.maxprice = y[3];
-    db.acc1 = y[4];
-    db.acc2 = y[5];
-    //if (!(keys.pub() == db.acc2)) {
-    //   console.log("wrong address");
-    //  return 0;
-    // }
-    db.period = y[6];
-    db.amount1 = y[7];
-    db.amount2 = y[8];
-    //console.log(db.amount2);
-    db.oid = y[9];
-    db.height = y[10];
-    db.delay = y[11];
-    db.contract_sig = y[12];
-    db.spd = atob(y[13]);
-    db.spk_nonce = y[14];
-    db.oracle_type_val = y[15];
-    db.oracle_type;
-    db.cid = y[16];
-    db.payment = y[20];
-    if (db.oracle_type_val == 2) {
-        db.oracle_type = "scalar";
-        db.bits = y[17];
-        db.upper_limit = y[18];
-        db.lower_limit = y[19];
-        db.knowable = y[22];
-    } else if (db.oracle_type_val == 1) {
-        db.oracle_type = "binary";
-        //db.maxprice = 1;
-        }
-    if (db.direction_val == 1) {
-        db.direction = "false or short or long-veo";
-    } else if (db.direction_val == 2) {
-        db.direction = "true or long or stablecoin";
-        }
-    //console.log("display trade");
-    return db;
-};
-function default_period() {
-    return 1000000;
-}
-*/
-/*
-function spk_maker(db, acc2, amount, period) {
-    //console.log("spk maker amount ");
-    //console.log(amount);
-    //var period = 10000000;//only one period because there is only one bet.
-    //var amount = db.amount1 + db.amount2;
-    var sc;
-    if (db.oracle_type == "scalar") {
-        console.log("creating contract");
-        console.log(JSON.stringify(db));
-        //var activates = db.oracle[4];
-        var activates = db.knowable;
-        console.log(activates);
-        sc = scalar_market_contract(db.direction_val, db.expires, db.maxprice, db.acc1, period, amount, db.oid, db.height, db.lower_limit, db.upper_limit, db.bits, activates);
-    } else if (db.oracle_type == "binary") {
-        sc = market_contract(db.direction_val, db.expires, db.maxprice, db.acc1, period, amount, db.oid, db.height);
-    }
-    //var delay = 1000;//a little over a week
-    var spk = ["spk", db.acc1, acc2, [-6], 0,0,db.cid, 0,0,db.delay];
-    var cd = new_cd(spk, [],[],[],db.expires, db.cid);
-    //console.log(JSON.stringify(spk));
-    //console.log(JSON.stringify(sc));
-    //console.log("format spk maker before market trade");
-    //console.log(amount);//2 veo
-    //console.log(db.maxprice);//5000 //if this was 0, it would probably fix it.
-    return market_trade(cd, amount, db.maxprice, sc, db.oid);
-};
-*/
- /*   
-function scalar_to_prove2(ks) {
-    return (ks).map(function(x) {
-        return(["oracles", x]);
-    });
-};
-function rcs_to_prove(otv, oid, callback) {
-    var to_prove;
-    if (otv == 2) {//scalar
-        return(scalar_keys1(oid, function(ks) {
-            console.log(JSON.stringify(ks));
-            to_prove = [-6].concat(scalar_to_prove2(ks));
-            return(callback(to_prove));
-        }));
-    } else if (otv == 1){//binary
-        to_prove = [-6, ["oracles", oid]];
-        return(callback(to_prove));
-    }
-};
-function record_channel_state(sspk2, db, acc2, callback) {
-    var meta = 0;
-    return(rcs_to_prove(
-        db.oracle_type_val,
-        db.oid,
-        function(to_prove) {
-            var spd_bytes = string_to_array(db.spd);
-            var size = spd_bytes.length;
-            var size_a = Math.floor(size / 256);
-            var size_b = size % 256;
-            var code = [2,0,0,size_a,size_b].concat(spd_bytes).concat([0,0,0,0,1]);
-            var ss = new_ss(code, to_prove, meta);
-            var expiration = 10000000;
-            var cd = new_cd(sspk2[1], sspk2, [ss], [ss], expiration, db.cid);
-            var nacc;
-            if (db.acc1 == keys.pub()) {
-                nacc = acc2;
-                //channels_object.write(acc2, cd);
-            } else {
-                nacc = db.acc1;
-                //channels_object.write(db.acc1, cd);
-            };
-            return(callback(cd, nacc));
-        }));
-};
-*/
-
 function id_maker(start, gov1, gov2, question) {
     //for oracle ids.
     if (question.length > 999) {
@@ -424,18 +177,6 @@ function id_maker(start, gov1, gov2, question) {
     (hash(string_to_array(question)));
     return(btoa(array_to_string(hash(x))));//is array
 };
-/*
-function post_txs(txs, callback) {
-    rpc.post(["txs", [-6].concat(txs)],
-             function(x) {
-                 if(x == "ZXJyb3I="){
-                     callback("server rejected the tx");
-                 }else{
-                     callback("published tx. the tx id is ".concat(x));
-                 }
-             });
-};
-*/
 async function apost_txs(txs) {
     var x = await rpc.apost(["txs", [-6].concat(txs)]);
     if(x == "ZXJyb3I="){
@@ -523,19 +264,12 @@ async function price_estimate_read(cid, source, source_type, callback){
     var mid1 = new_market.mid(source, cid, source_type, 1);
     var mid2 = new_market.mid(source, cid, source_type, 2);
     var mid3 = new_market.mid(cid, cid, 1, 2);
-    //rpc.post(["markets", mid1], function(market1){
     var market1 = await rpc.apost(["markets", mid1]);
     var market2 = await rpc.apost(["markets", mid2]);
-                //rpc.post(["markets", mid3], function(market3){
     var market3 = await rpc.apost(["markets", mid3]);
     var p_est = price_estimate(market1, market2, market3);
-                    //console.log(JSON.stringify([cid, source_type, market1, market2]));
     var liq = total_liquidity(market1, market2, market3);
-    //return(callback(p_est, liq));
     return([p_est, liq]);
-//});
-//});
-//});
 };
     function contract_to_cid(Contract) {
         var Source = Contract[8];
@@ -546,7 +280,46 @@ async function price_estimate_read(cid, source, source_type, callback){
         return(cid);
     };
 
-
 function read_float(s){
     return(s.replace(/[^\d|\.]/g,''));
 };
+
+function newhash2integer(h) {
+    function hash2integer2(h, i, n) {
+        var x = h[i];
+        if  ( x == 0 ) {
+            return hash2integer2(h, i+1, n+(256*8));
+        } else {
+            return n + hash2integer3(x, h[i+1]);
+        }
+    }
+    function dec2bin(dec){
+        n = (dec).toString(2);
+        n="00000000".substr(n.length)+n;
+        return n;
+    }
+    function hash2integer3(byte1, byte2) {
+        var x = dec2bin(byte1).concat(dec2bin(byte2));
+        return hash2integer4(x, 0, 0);
+    }
+    function hash2integer4(binary, i, n) {
+        var x = binary[i];
+        if ( x == "0" ) { return hash2integer4(binary, i+1, n+256) }
+        else {
+            var b2 = binary.slice(i+1, i+9);//this is the only line that is different between hash2integer and newhash2integer
+            var y = hash2integer5(b2) + n;
+            return y;
+        }
+    }
+    function hash2integer5(bin) {
+        var x = 0;
+        for (var i=0; i < bin.length; i++) {
+            var y = bin[i];
+            if ( y == "0" ) { x = x * 2; }
+            else { x = 1 + (x * 2) }
+        }
+        return x;
+    }
+    
+    return hash2integer2(h.concat([255]), 0, 0);
+}

@@ -1,43 +1,32 @@
 var market_explorer= (function(){
     var ZERO = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=";
-    //var div = document.createElement("div");
     var div = document.getElementById("market");
-    //document.body.appendChild(div);
     server_port.value = "8080";
     if (server_ip.value == "") {
-        //server_ip.value = "159.89.87.58";
         server_ip.value = default_ip();
-        //server_ip.value = "0.0.0.0";
     };
     (async function(){
-    if(auto_draw_config === true){
-        const urlParams = new URLSearchParams(window.location.search);
-        var mid = urlParams.get('mid');
-        mid = mid.replace(/\ /g, "+");
-        var canvas = document.getElementById("myCanvas");
-        var main_ctx = canvas.getContext("2d");
-        //rpc.post(["market", mid], function(market){
-        var market = await rpc.apost(["market", mid], get_ip(), 8091);
-        market = market[1];
-        console.log(JSON.stringify(market));
-            //rpc.post(["markets", mid], function(market2){
-        var market2 = await rpc.apost(["markets", mid]);
-        draw_internal(mid, market2);
-        console.log(JSON.stringify(market2));
-    };
-    if(market){
-        var liquidities = market[11].slice(1);
-        draw(market, liquidities, canvas.width, canvas.height, function(temp_canvas){
-            main_ctx.drawImage(temp_canvas, 0, 0, canvas.width, canvas.height);
-        });
-    };
+        if(auto_draw_config === true){
+            const urlParams = new URLSearchParams(window.location.search);
+            var mid = urlParams.get('mid');
+            mid = mid.replace(/\ /g, "+");
+            var canvas = document.getElementById("myCanvas");
+            var main_ctx = canvas.getContext("2d");
+            var market = await rpc.apost(["market", mid], get_ip(), 8091);
+            market = market[1];
+            var market2 = await rpc.apost(["markets", mid]);
+            draw_internal(mid, market2);
+        };
+        if(market){
+            var liquidities = market[11].slice(1);
+            draw(market, liquidities, canvas.width, canvas.height, function(temp_canvas){
+                main_ctx.drawImage(temp_canvas, 0, 0, canvas.width, canvas.height);
+            });
+        };
     })();
-//}, get_ip(), 8091);
-//};
 
     function draw_internal(mid, market){
         var cid1 = market[2];
-        console.log(cid1);
         var cid2 = market[5];
         var type2 = market[6];
         var type1 = market[3];
@@ -63,7 +52,6 @@ var market_explorer= (function(){
             .concat("<br> liquidity: ")
             .concat(volume)
             .concat("<br> price: ")
-            //.concat((amount2 / (amount1 + amount2)).toFixed(4))
             .concat(display_price.toFixed(4))
             .concat("");
         div.appendChild(id_div);
@@ -95,10 +83,6 @@ var market_explorer= (function(){
     
     async function draw(e_market, liquidities, width, height, callback){
         //draw returns a temporary canvas in a callback function, so we can store an image for later use.
-        //rpc.post(["markets", mid], function(market){
-        //full node
-        //console.log(JSON.stringify(market));
-        //console.log(JSON.stringify(e_market));
         //-record(market, {id, cid1, type1, amount1, cid2, type2, amount2, shares}).
         //var cid1 = market[2];
         //var cid2 = market[5];
@@ -111,20 +95,12 @@ var market_explorer= (function(){
 
         //making a seperate function to clean up the namespace a bit.
         //to get the market from the explorer
-        //rpc.post(["market", mid], function(e_market){
         var temp_canvas = document.createElement("canvas");
-        //var temp_canvas.getContext('2d');
         temp_canvas.width = width;
         temp_canvas.height = height;
         var ctx = temp_canvas.getContext("2d");
-            
-        //market = market[1];
-        //console.log(get_ip());
-        //console.log(JSON.stringify(e_market[10]));
-        //rpc.post(["height"], function(height){
         var height = await rpc.apost(["height"]);
         var prices = e_market[10].slice(1);
-        console.log(JSON.stringify(prices));
         for(var i = 0; i<prices.length; i++){
             var n = prices[i][2];
             if(cid1 === cid2){
@@ -139,13 +115,9 @@ var market_explorer= (function(){
                 console.log("unhandled price");
             }
         };
-        console.log(JSON.stringify(prices));
         var start_height = Math.min(prices.reverse()[0][1], liquidities.reverse()[0][1]);
         var end_height = height;
-        console.log(JSON.stringify(liquidities));
-        console.log(JSON.stringify(height));
         for(var i = 0; i<liquidities.length; i++){
-            console.log(JSON.stringify(i - liquidities.length - 1));
             var liq = liquidities[i];
             var l = liq[2];
             if(l < 10000000){//0.1 veo
@@ -157,7 +129,6 @@ var market_explorer= (function(){
                 end_height = height;
             };
         };
-        console.log(JSON.stringify(end_height));
         var max_prob = 1;
         draw_graph(prices,
                    start_height,
@@ -170,7 +141,6 @@ var market_explorer= (function(){
             .reduce(function(a, b){
                 return(Math.max(a, b[2]));
             }, 0);
-        //console.log(max_liquidity);
         draw_graph(liquidities,
                    start_height-Math.round(0.005*(end_height - start_height)),
                    end_height,
@@ -181,10 +151,7 @@ var market_explorer= (function(){
         draw_grid(6, 4, start_height, end_height, max_prob, max_liquidity, temp_canvas, ctx, function(){
             callback(temp_canvas);
         });
-    //});
-        //}, get_ip(), 8091);
     };
-    //});
 
 
     var colors = ["#880000",//red
@@ -266,39 +233,13 @@ var market_explorer= (function(){
             .concat("px Georgia");
         s = time_start
             .toFixed(0).toString();
-        //ctx.fillText(s, 0, h);
         for(var i = 1; i<columns; i++){
-        //    var blockheight =
-         //       Math.round(
-          //          time_start +
-           //             (time_range *
-            //             (1 - (i/columns))));
-            //console.log(blockheight);
             ctx.beginPath();
-            /*block_to_date(
-                blockheight,
-                function(s){
-                    console.log("success");
-                    ctx.fillText(s, (columns - i)*w/columns, h);
-                }
-            );*/
             ctx.moveTo(i*w/columns, 0);
             ctx.lineTo(i*w/columns, h);
             ctx.strokeStyle = colors[10];
             ctx.stroke();
             console.log(i);
-            /*
-            s = (time_start +
-                 (time_range *
-                  (1-(i/columns))))
-                .toFixed(0).toString();
-            ctx.fillText(s, (columns - i)*w/columns, h);
-            ctx.beginPath();
-            ctx.moveTo(i*w/columns, 0);
-            ctx.lineTo(i*w/columns, h);
-            ctx.strokeStyle = colors[10];
-            ctx.stroke();
-            */
         };
         return(draw_dates(time_start, time_range, 0, columns, w, h, ctx, callback));
     };
@@ -311,57 +252,30 @@ var market_explorer= (function(){
                 time_start +
                     (time_range *
                      (1 - (i/columns))));
-        //console.log(ctx);
-        //ctx.fillText("hello", 0, h);
         block_to_date(
             blockheight,
             function(s){
-                //ctx.fillText("EEE", 0, h);
-                console.log(s);
-                console.log((columns - i)*w/columns);
-                console.log(h);
-                
                 ctx.font = (Math.round(h/15)).toString()
                     .concat("px Georgia");
                 ctx.fillStyle = colors[1];
                 ctx.fillText(s, (columns-i-1)*w/columns, h);
-                //ctx.stroke();
                 return(draw_dates(time_start, time_range, i+1, columns, w, h, ctx, callback));
             });
     }; 
     async function block_to_date(N, callback){
-        //rpc.post(["block", N], function(block){
         var block = await rpc.apost(["block", N]);
         var time = block[4];
-        console.log(time);
         var start_time = 15192951759;
         var n = (time + start_time);//10 * seconds since jan 1 1970
-        console.log(n);
         var curdate = new Date(null);
         curdate.setTime(n*100);
-        //var final_now = curdate.toLocaleString();
-            var final_now = curdate.toGMTString();
-        //curdate.toGMTString();
-        //"Sun, 26 Apr 1970 17:46:40 GMT"
-        console.log(final_now);
-        //time_now = final_now.split(" ");
-        //time_now = time_now[1]
-        //    .concat(time_now[2])
-        //    .concat(time_now[4].slice(0, -3));
+        var final_now = curdate.toGMTString();
         final_now = final_now.match(/\d\d? \w\w\w /g)[0].trim().split(" ").reverse().reduce(function(a, b){return(a.concat(b))}, "");
-        console.log(final_now);
         return(callback(final_now));
-    //});
     };
-    //block_to_date(100000, function(date){
-    //    return(0);
-    //});
-
-
     market_explorer = {draw: draw};
     return({
         draw: draw
     });
 })();
 
-//var market_explorer = await market_explorer_fun();

@@ -13,7 +13,6 @@ var subcurrency_balance = (function(){
     div.appendChild(br());
     async function balance(){
         var cid_key = contract_id.value;
-        //merkle.request_proof("contracts", cid_key, function(c) {
         var c = await merkle.arequest_proof("contracts", cid_key);
         var many_types;
         if(c == "empty"){
@@ -24,7 +23,6 @@ var subcurrency_balance = (function(){
             many_types = c[2];
         }
         balance2(many_types, cid_key, c, "");
-        //});
     };
     async function balance2(type, cid, contract, s) {
         if(type < 1){
@@ -33,8 +31,6 @@ var subcurrency_balance = (function(){
         };
         var trie_key = sub_accounts.key(keys.pub(), cid, type);
         trie_key = btoa(array_to_string(trie_key));
-        //merkle.request_proof("sub_accounts", trie_key, function(x) {
-        //rpc.post(["sub_accounts", trie_key], function(x) {
         var x = await rpc.apost(["sub_accounts", trie_key]);
         var amount = 0;
         if(x[0] == "sub_acc"){
@@ -47,7 +43,6 @@ var subcurrency_balance = (function(){
             .concat(amount)
             .concat(s);
         balance2(type-1, cid, contract, s);
-        //});
     };
     return({value: function(x) { contract_id.value = x}
            });
