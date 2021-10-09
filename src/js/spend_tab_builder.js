@@ -23,7 +23,7 @@ function spend_tab_builder(div, selector){
     div.appendChild(button);
     div.appendChild(br());
 
-    function calculate_max(){
+    async function calculate_max(){
         if(selector.value == "veo"){
             var to = parse_address(recipient_text.value);
             spend_tx.max_send_amount(keys.pub(), to, function(m, tx_type){
@@ -38,9 +38,11 @@ function spend_tab_builder(div, selector){
             var type = parseInt(V[1]);
             var trie_key = sub_accounts.key(keys.pub(), cid, type);
             var trie_key = btoa(array_to_string(trie_key));
-            merkle.request_proof("sub_accounts", trie_key, function(x) {
-                amount_text.value = (x[1] / token_units()).toString();
-            });
+            //merkle.request_proof("sub_accounts", trie_key, function(x) {
+            var x = await merkle.arequest_proof("sub_accounts", trie_key);
+            //amount_text.value = (x[1] / token_units()).toString();
+            amount_text.value = write_veo(x[1]);
+        //});
         };
     };
     async function send(){

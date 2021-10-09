@@ -110,6 +110,7 @@ function keys_function1() {
             return (x * powrem(x, e - 1, p)) % p;
         }
     };
+    /*
     function decompress_pub(pub) {
         //unused, and does not work.
         //pub = "AhEuaxBNwXiTpEMTZI2gExMGpxCwAapTyFrgWMu5n4cI";
@@ -130,6 +131,7 @@ function keys_function1() {
         pub = [4].concat(big_integer_to_array(x, 32)).concat(big_integer_to_array(y, 32));
         return btoa(array_to_string(pub));
     }
+    */
     function compress_pub(p) {
         //unused and might not work.
         var b = atob(p);
@@ -217,12 +219,13 @@ function keys_function1() {
             update_pubkey();
         }
     }
-    function check_balance(Callback) {
+    async function check_balance(Callback) {
         var trie_key = pubkey_64();
         //var top_hash = hash(headers_object.serialize(headers_object.top()));
-        merkle.request_proof("accounts", trie_key, function(x) {
-	    Callback(x[1]);
-        });
+        //merkle.request_proof("accounts", trie_key, function(x) {
+        var x = await merkle.arequest_proof("accounts", trie_key);
+	Callback(x[1]);
+    //});
     }
     var update_balance_callback = function(){
         return(0);

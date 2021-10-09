@@ -614,8 +614,8 @@ IA = B*(2PA-1)
             return(0);
         }
         //var cid = contracts[0][1];
-        //var cid = tabs.swap.contract_to_cid(contracts[0]);
-        var cid = tabs.tabs.swap.tab.contract_to_cid(contracts[0]);
+        //var cid = contract_to_cid(contracts[0]);
+        var cid = contract_to_cid(contracts[0]);
         var source = contracts[0][8];
         var source_type = contracts[0][9];
         //rpc.post(["read", 3, cid], async function(oracle_text) {

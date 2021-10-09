@@ -1311,7 +1311,7 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
                             
                         console.log(JSON.stringify(txs));
                         //multi_tx.make(txs, function(tx){
-                        var tx = await multi_tx.make(txs);
+                        var tx = await multi_tx.amake(txs);
                         var fee_span = document.createElement("span");
                         fee_span.innerHTML = "<br>veo fees: "
                             .concat(((trading_fees + (slippage * loss) + tx[3])/token_units()).toFixed(8).toString());
@@ -1859,7 +1859,7 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
     };
     return({
         txs_maker: txs_maker,
-        contract_to_cid: contract_to_cid,
+        //contract_to_cid: contract_to_cid,
         calculate_gain: calculate_gain,
         calculate_loss: calculate_loss,
         get_market: get_market,

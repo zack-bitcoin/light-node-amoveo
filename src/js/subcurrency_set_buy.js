@@ -55,16 +55,17 @@ var subcurrency_set_buy = (function(){
         //});
     //});
     };
-    function amount_calc(N, amount, cid, callback) {
+    async function amount_calc(N, amount, cid, callback) {
         if(N == 0){
             return(callback(amount));
         };
         var key = sub_accounts.key(keys.pub(), cid, N);
         key = btoa(array_to_string(key));
-        merkle.request_proof("sub_accounts", key, function(sa){
-            var sub_amount = sa[1];
-            amount_calc(N-1, Math.min(sub_amount, amount), cid, callback);
-        });
+        //merkle.request_proof("sub_accounts", key, function(sa){
+        var sa = await merkle.arequest_proof("sub_accounts", key);
+        var sub_amount = sa[1];
+        amount_calc(N-1, Math.min(sub_amount, amount), cid, callback);
+    //});
         
     };
 

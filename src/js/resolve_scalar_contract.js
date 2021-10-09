@@ -17,7 +17,7 @@ var resolve_scalar_contract = (function(){
     div.appendChild(button);
     div.appendChild(br());
 
-    function resolve(){
+    async function resolve(){
         var Start = parseInt(oracle_height.value);
         var Text = oracle_question.value;
         var MP = parseInt(max_price.value);
@@ -46,61 +46,64 @@ var resolve_scalar_contract = (function(){
         console.log(JSON.stringify(CH));
         console.log(JSON.stringify([oracle_question.value, parseInt(max_price.value), parseInt(oracle_height.value)]));
         var cid = merkle.contract_id_maker(CH, 2);
-        merkle.request_proof("contracts", cid, function(c){
-            if(c=="empty"){
-                display.innerHTML = "that contract does not exist ".concat(cid);
-                return(0);
-            };
-            merkle.request_proof("oracles", oid, function(oracle){
-                if(oracle == "empty"){
-                    display.innerHTML = "oracle does not exist";
-                    console.log(oid);
-                    return(0);
-                };
-                if(oracle[2] == 0){
-                    display.innerHTML = "oracle is not yet resolved";
-                    console.log(oracle);
-                    return(0);
-                }
-                console.log(JSON.stringify(oracle));
+        //merkle.request_proof("contracts", cid, function(c){
+        var c = await merkle.arequest_proof("contracts", cid);
+        if(c=="empty"){
+            display.innerHTML = "that contract does not exist ".concat(cid);
+            return(0);
+        };
+            //merkle.request_proof("oracles", oid, function(oracle){
+        var oracle = await merkle.arequest_proof("oracles", oid);
+        if(oracle == "empty"){
+            display.innerHTML = "oracle does not exist";
+            console.log(oid);
+            return(0);
+        };
+        if(oracle[2] == 0){
+            display.innerHTML = "oracle is not yet resolved";
+            console.log(oracle);
+            return(0);
+        }
+        console.log(JSON.stringify(oracle));
 //" int 4294967295 int1 3 / ">>), 
-                merkle.request_proof("accounts", keys.pub(), async function(Acc){
-                    var Nonce = Acc[2] + 1;
-                    var fee = 152050;
-
-                    var evidence =
+                //merkle.request_proof("accounts", keys.pub(), async function(Acc){
+        var Acc = await merkle.arequest_proof("accounts", keys.pub());
+        var Nonce = Acc[2] + 1;
+        var fee = 152050;
+        
+        var evidence =
                         //string_to_array(atob("AJmZmZk="))
-                        ([0])
-                        .concat(integer_to_array(FinalPrice, 4))
-                        .concat([0])
-                        .concat(integer_to_array(Start, 4));
-                    var evidence = btoa(array_to_string(evidence));
-                    var tx1 = ["contract_evidence_tx",
-                               keys.pub(), Nonce, fee, contract,
-                               cid, evidence,//"AJmZmZk=",
-                               [-6, ["oracles", oid]]];
-                    console.log(JSON.stringify(tx1));
-                    var stx1 = keys.sign(tx1);
-                    
-                    var tx2 = ["contract_timeout_tx2",
-                               keys.pub(), Nonce+1, fee,
-                               cid, 0, 0, 0, 0];
-                    var stx2 = keys.sign(tx2);
-                    //post_txs([stx1], function(msg){
-                    var msg = await apost_txs([stx1]);
-                    display.innerHTML = msg;
-                        //post_txs([stx2], function(msg2){
-                    var msg2 = await apost_txs([stx2]);
-                    display.innerHTML = msg
-                        .concat("<br>")
-                        .concat(msg2);
-                        //});
-                    //});
-                });
-            });
-        });
+            ([0])
+            .concat(integer_to_array(FinalPrice, 4))
+            .concat([0])
+            .concat(integer_to_array(Start, 4));
+        var evidence = btoa(array_to_string(evidence));
+        var tx1 = ["contract_evidence_tx",
+                   keys.pub(), Nonce, fee, contract,
+                   cid, evidence,//"AJmZmZk=",
+                   [-6, ["oracles", oid]]];
+        console.log(JSON.stringify(tx1));
+        var stx1 = keys.sign(tx1);
+        
+        var tx2 = ["contract_timeout_tx2",
+                   keys.pub(), Nonce+1, fee,
+                   cid, 0, 0, 0, 0];
+        var stx2 = keys.sign(tx2);
+        //post_txs([stx1], function(msg){
+        var msg = await apost_txs([stx1]);
+        display.innerHTML = msg;
+        //post_txs([stx2], function(msg2){
+        var msg2 = await apost_txs([stx2]);
+        display.innerHTML = msg
+            .concat("<br>")
+            .concat(msg2);
+        //});
+        //});
+        //});
+        //});
+        //});
     };
-
+    
     return({
         height: function(x){oracle_height.value = x},
         oracle: function(x){oracle_question.value = x},

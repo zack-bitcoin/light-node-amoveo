@@ -11,19 +11,20 @@ var subcurrency_balance = (function(){
     var button = button_maker2("update balance", balance);
     div.appendChild(button);
     div.appendChild(br());
-    function balance(){
+    async function balance(){
         var cid_key = contract_id.value;
-        merkle.request_proof("contracts", cid_key, function(c) {
-            var many_types;
-            if(c == "empty"){
-                many_types = 10;
-                //display.innerHTML = "that contract does not exist"
-                //return(0);
-            } else {
-                many_types = c[2];
-            }
-            balance2(many_types, cid_key, c, "");
-        });
+        //merkle.request_proof("contracts", cid_key, function(c) {
+        var c = await merkle.arequest_proof("contracts", cid_key);
+        var many_types;
+        if(c == "empty"){
+            many_types = 10;
+            //display.innerHTML = "that contract does not exist"
+            //return(0);
+        } else {
+            many_types = c[2];
+        }
+        balance2(many_types, cid_key, c, "");
+        //});
     };
     async function balance2(type, cid, contract, s) {
         if(type < 1){

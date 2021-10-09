@@ -1,17 +1,24 @@
 
-
 function default_ip() {
-    return("159.89.87.58");
-    //return("0.0.0.0");
+    //return("159.89.87.58");
+    return("0.0.0.0");
 };
-
 
 
 function token_units() { return 100000000 }; // VEO
 function s2c(x) { return x / token_units(); }
-function c2s(x) {
-    return Math.floor(parseFloat(x.value, 10) * token_units());
+function write_veo(x) {
+    return((s2c(x)).toFixed(8));
+};
+function read_veo(X) {
+    return Math.floor(parseFloat(X.value, 10) * token_units());
+    //return Math.round(parseFloat(X.value, 10) * token_units());
 }
+
+//function c2s(x) {
+//    return Math.floor(parseFloat(x.value, 10) * token_units());
+//}
+/*
 function new_ss(code, prove, meta) {
     if (meta == undefined) {
         meta = 0;
@@ -21,6 +28,7 @@ function new_ss(code, prove, meta) {
 function new_cd(me, them, ssme, ssthem, expiration, cid) {
     return {"me": me, "them": them, "ssme": ssme, "ssthem": ssthem, "cid":cid, "expiration": expiration};
 }
+*/
 function big_array_to_int(l) {
     //var x = 0n;
     var x = 0;
@@ -65,24 +73,6 @@ function string_to_array(x) {
         a[i] = x.charCodeAt(i);
     }
     return Array.from(a);
-}
-function big_integer_to_array(i, size) {
-    var a = [];
-    for ( var b = 0; b < size ; b++ ) {
-        //var j = ((i % 256n) + 256n) % 256n;
-        //var j =((i % 256n) + 256n) % 256n;
-        var j = 0;
-        //console.log(j);
-        a.push(parseInt(j.toString()));
-        //a.push(((i % 256n) + 256n) % 256n);
-        //i = i / 256n;
-        i = 0;//i / 256n;
-        //a.push(i.remainder(256).plus(256).remainder(256));
-        //i = i.divide(256);
-        //a.push(((i % 256) + 256) % 256);
-        //i = Math.floor(i/256);
-    }
-    return a.reverse();
 }
 function integer_to_array(i, size) {
     var a = [];
@@ -192,10 +182,6 @@ function parse_address(A) {
     if (B) { return A3; } else { return 0; };
 }
 
-function read_veo(X) {
-    return Math.floor(parseFloat(X.value, 10) * token_units());
-}
-
 function random_cid(n) {
     if (n == 0) { return ""; }
     else {
@@ -206,7 +192,7 @@ function random_cid(n) {
 
 
 
-
+/*
 function pd_maker(height, price, portion, oid) {
     //PD = <<Height:32, Price:16, PortionMatched:16, MarketID/binary>>,
     var a = make_bytes(4, height);
@@ -226,6 +212,7 @@ function make_bytes(bytes, b) {
         return t.concat(l);
     }
 };
+*/
 
    /* 
 async function oracle_limit(oid, callback) {
@@ -276,7 +263,7 @@ function oracle_limit_grabber(question) {
 };
 */
 
-
+/*
 function check_spk_sig(pub, ch, sig) {
     //console.log("format check spk sig");
     //console.log(JSON.stringify([ch, sig, pub]));
@@ -350,6 +337,8 @@ function derivatives_load_db(y) {
 function default_period() {
     return 1000000;
 }
+*/
+/*
 function spk_maker(db, acc2, amount, period) {
     //console.log("spk maker amount ");
     //console.log(amount);
@@ -376,6 +365,8 @@ function spk_maker(db, acc2, amount, period) {
     //console.log(db.maxprice);//5000 //if this was 0, it would probably fix it.
     return market_trade(cd, amount, db.maxprice, sc, db.oid);
 };
+*/
+ /*   
 function scalar_to_prove2(ks) {
     return (ks).map(function(x) {
         return(["oracles", x]);
@@ -394,7 +385,6 @@ function rcs_to_prove(otv, oid, callback) {
         return(callback(to_prove));
     }
 };
-    
 function record_channel_state(sspk2, db, acc2, callback) {
     var meta = 0;
     return(rcs_to_prove(
@@ -420,7 +410,7 @@ function record_channel_state(sspk2, db, acc2, callback) {
             return(callback(cd, nacc));
         }));
 };
-
+*/
 
 function id_maker(start, gov1, gov2, question) {
     //for oracle ids.
@@ -461,7 +451,8 @@ async function apost_offer(
     if(!(second_offer)){
         signed_second_offer = 0;
     } else {
-        signed_second_offer = swaps.pack(second_offer);
+        signed_second_offer =
+            swaps.pack(second_offer);
     }
     var signed_offer;
     if(!(offer[0] === "signed")){
@@ -541,7 +532,7 @@ async function price_estimate_read(cid, source, source_type, callback){
                     //console.log(JSON.stringify([cid, source_type, market1, market2]));
     var liq = total_liquidity(market1, market2, market3);
     //return(callback(p_est, liq));
-    return([p_est, liq));
+    return([p_est, liq]);
 //});
 //});
 //});

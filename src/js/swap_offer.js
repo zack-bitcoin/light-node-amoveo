@@ -88,22 +88,23 @@ var swap_offer = (function(){
             }
         } else {
             var key = btoa(array_to_string(sub_accounts.key(keys.pub(), offer.cid1, offer.type1)));
-            return(merkle.request_proof("sub_accounts", key, function(sub_acc){
-                if(sub_acc == "empty"){
-                    display.innerHTML = "not enough subcurrency to  make this offer (possibly no key loaded?)";
-                    return(0);
-                };
-                bal = sub_acc[1];
-                if(offer.amount1 > bal){
-                    display.innerHTML = "not enough subcurrency to  make this offer";
-                    return(0);
-                } else {
-                    
-                    signed_offer = swaps.pack(offer);
-                    display.innerHTML = JSON.stringify(signed_offer);
-                    publish_swap_offer.offer(JSON.stringify(signed_offer));
-                };
-            }));
+            //return(merkle.request_proof("sub_accounts", key, function(sub_acc){
+            var sub_acc = await merkle.arequest_proof("sub_accounts", key);
+            if(sub_acc == "empty"){
+                display.innerHTML = "not enough subcurrency to  make this offer (possibly no key loaded?)";
+                return(0);
+            };
+            bal = sub_acc[1];
+            if(offer.amount1 > bal){
+                display.innerHTML = "not enough subcurrency to  make this offer";
+                return(0);
+            } else {
+                
+                signed_offer = swaps.pack(offer);
+                display.innerHTML = JSON.stringify(signed_offer);
+                publish_swap_offer.offer(JSON.stringify(signed_offer));
+            };
+            //}));
         };
             //console.log("about to publish");
             //publish_swap_offer.offer(JSON.stringify(signed_offer));

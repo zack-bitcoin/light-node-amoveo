@@ -60,9 +60,11 @@ function create_futarchy_tab_builder(div, selector){
         var true_price = (true_guess) / MP;
         var false_price = (false_guess) / MP;
         console.log(amount_text.value);
-        var amount = Math.round(parseFloat(amount_text.value)*token_units());
+        //var amount = Math.round(parseFloat(amount_text.value)*token_units());
+        var amount = read_veo(amount_text);
         console.log(amount);
-        var scalar_amount = Math.round(parseFloat(amount_text.value)*token_units());
+        //var scalar_amount = Math.round(parseFloat(amount_text.value)*token_units());
+        var scalar_amount = read_veo(amount_text);
         if(true_price<=0){
             display.innerHTML = "initial guess of true price must be greater than the minimum value that can be measured";
             return(0);
@@ -109,7 +111,8 @@ function create_futarchy_tab_builder(div, selector){
 
         var contract_buy_tx =
             ["contract_use_tx", 0, 0, 0, bin_cid,
-             scalar_amount, 2, Source, SourceType];
+             scalar_amount+2000,
+             2, Source, SourceType];
         console.log([true_price, scalar_amount]);
         console.log([false_price, scalar_amount]);
         //var scalar_true_txs =
@@ -129,7 +132,8 @@ function create_futarchy_tab_builder(div, selector){
         var txs = bin_txs
             .concat([contract_buy_tx])
             .concat(scalar_true_txs)
-            .concat(scalar_false_txs);
+            .concat(scalar_false_txs)
+        ;
         console.log(JSON.stringify(txs));
         var details = generate_message(txs);
         //return(0);
@@ -140,9 +144,8 @@ function create_futarchy_tab_builder(div, selector){
         //post_txs([stx], function(msg){
         var msg = await apost_txs([stx]);
         display.innerHTML = msg
-            .concat(details)
             .concat("</br>")
-            .concat(msg);
+            .concat(details);
         if(!(msg == "server rejected the tx")){
             keys.update_balance();
         };

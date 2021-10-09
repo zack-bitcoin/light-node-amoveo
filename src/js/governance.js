@@ -75,28 +75,29 @@
 	else if (id == 28) { return "oracle_question_liquidity"; }
 	else {return "not a governance id";}
     }
-    function lookup() {
+    async function lookup() {
 	governanceOutput.innerHTML = "";
 	var v = parseInt(oid.value);
 	console.log(v);
-	merkle.request_proof("governance", v, function(x) {
-	    console.log(JSON.stringify(x));
-	    var id = x[1];
-	    var value = tree_number_to_value(x[2]);
-	    var locked = x[3];
-	    var locked_text;
-	    if (locked == 0) {
-		locked_text = ". is not locked.";
-	    } else {
-		locked_text = ". is locked.";
+	//merkle.request_proof("governance", v, function(x) {
+	var x = await merkle.arequest_proof("governance", v);
+	console.log(JSON.stringify(x));
+	var id = x[1];
+	var value = tree_number_to_value(x[2]);
+	var locked = x[3];
+	var locked_text;
+	if (locked == 0) {
+	    locked_text = ". is not locked.";
+	} else {
+	    locked_text = ". is locked.";
 	    }
-	    var name = id_to_name(id);
-	    console.log(value);
-	    console.log((value).toString());
-	    //governanceOutput.appendChild(br());
-	    
-	    governanceOutput.appendChild(text("governance name ".concat(name).concat(". value is ").concat((value).toString()).concat(locked_text)));
-	    //governanceOutput.appendChild(text((value).toString()));
-	});
+	var name = id_to_name(id);
+	console.log(value);
+	console.log((value).toString());
+	//governanceOutput.appendChild(br());
+	
+	governanceOutput.appendChild(text("governance name ".concat(name).concat(". value is ").concat((value).toString()).concat(locked_text)));
+	//governanceOutput.appendChild(text((value).toString()));
+	//});
     };
 })();

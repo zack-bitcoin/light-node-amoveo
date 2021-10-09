@@ -1,5 +1,5 @@
 function merkle_proofs_main() {
-    async function averify_callback(tree, key) {
+    async function averify(tree, key) {
 	const top_hash = hash(headers_object.serialize(headers_object.top()));
         
 	const proof = await rpc.apost(["proof", btoa(tree), key, btoa(array_to_string(top_hash))]);
@@ -7,6 +7,7 @@ function merkle_proofs_main() {
 	var val = verify_merkle(key, proof);
 	return(val);
     }
+    /*
     async function verify_callback(tree, key, callback) {
 	const top_hash = hash(headers_object.serialize(headers_object.top()));
         
@@ -19,6 +20,7 @@ function merkle_proofs_main() {
 	return(callback(val));
         //});
     }
+    */
     function hash_member(hash, members) {
         for (var i = 0; i < members.length; i++) {
             var h2 = members.slice(32*i, 32*(i+1));
@@ -80,43 +82,47 @@ function merkle_proofs_main() {
 	var header_trees_hash = string_to_array(atob(headers_object.top()[3]));
 	var hash_tree_roots = hash(tree_roots);
 	var check = check_equal(header_trees_hash, hash_tree_roots);
+        var fail_fun = function() {return("fail")};
 	if (!(check)) {
             console.log("the hash of tree roots doesn't match the hash in the header.");
-	} else {
-            var tree_root = string_to_array(atob(x[2]));
-            var check2 = hash_member(tree_root, tree_roots);
-            if (!(check2)) {
-		console.log("that tree root is not one of the valid tree roots.");
-            } else {
-		var chain = x[4].slice(1);
-		chain.reverse();
-		var h = link_hash(chain[0]);
-		var check3 = check_equal(h, tree_root);
-		var check4 = chain_links(chain);
-		if (!(check3)) {
-                    console.log("the proof chain doesn't link to the tree root");
-		} else if (!(check4)){
-                    console.log("the proof chain has a broken link");
-		} else {
-                    var last = chain[chain.length - 1];
-                    var value = x[3];
-                    var lh = leaf_hash(value, trie_key);
-                    var check5 = chain_links_array_member(last, lh);
-                    if (check5) {
-			return value;
-			//we should learn to deal with proofs of empty data.
-                    } else {
-			console.log(JSON.stringify(x));
-			console.log(trie_key);
-                        console.log(value);
-			console.log("the value doesn't match the proof");
-                        return("fail");
-			//throw("bad");
-                    }
-		}
-            }
-	}
-    }
+            return(fail_fun());
+	};
+        var tree_root = string_to_array(atob(x[2]));
+        var check2 = hash_member(tree_root, tree_roots);
+        if (!(check2)) {
+	    console.log("that tree root is not one of the valid tree roots.");
+            return(fail_fun());
+        };
+	var chain = x[4].slice(1);
+	chain.reverse();
+	var h = link_hash(chain[0]);
+	var check3 = check_equal(h, tree_root);
+	var check4 = chain_links(chain);
+	if (!(check3)) {
+            console.log("the proof chain doesn't link to the tree root");
+            return(fail_fun());
+	};
+        if (!(check4)){
+            console.log("the proof chain has a broken link");
+            return(fail_fun());
+	};
+        var last = chain[chain.length - 1];
+        var value = x[3];
+        var lh = leaf_hash(value, trie_key);
+        var check5 = chain_links_array_member(last, lh);
+        if (!check5) {
+	    console.log(JSON.stringify(x));
+	    console.log(trie_key);
+            console.log(value);
+	    console.log("the value doesn't match the proof");
+            return(fail_fun());
+        };
+	//TODO we should learn to deal with proofs of empty data.
+        return(value);
+    //}
+        //}
+	//}
+    };
     function serialize_key(v, trie_key) {
 	var t = v[0];
 	if ( t == "gov" ) {
@@ -300,17 +306,18 @@ function merkle_proofs_main() {
             var question = string_to_array(atob(v[3])); //32 bytes size
             var orders = string_to_array(atob(v[7])); //32 bytes
             //var serialized = integer_to_array(v[1], 256).concat(
-            var serialized = ([]).concat(
-		id).concat(
-                    result).concat(
-			type).concat(
-                            starts).concat(
-				done_timer).concat(
-                                    governance).concat(
-					governance_amount).concat(
-                                            creator).concat(
-						question).concat(
-                                                    orders);
+            var serialized =
+                ([])
+                .concat(id)
+                .concat(result)
+                .concat(type)
+                .concat(starts)
+                .concat(done_timer)
+                .concat(governance)
+                .concat(governance_amount)
+                .concat(creator)
+                .concat(question)
+                .concat(orders);
 	    //console.log("serialized oracle");
 	    //console.log(JSON.stringify(serialized));
             return serialized;
@@ -328,15 +335,13 @@ function merkle_proofs_main() {
             console.log(t);
 	}
     }
-    function test() {
-	verify_callback("governance", 14, function(fun_limit) {
-	    console.log("merkle proof test result is: ");
-	    console.log(fun_limit);
-	});
-	verify_callback("oracles", "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=", function(fun_limit) {
-	    console.log("merkle proof test result is: ");
-	    console.log(fun_limit);
-	});
+    async function test() {
+	var fun_limit = await averify("governance", 14);
+	console.log("merkle proof test result is: ");
+	console.log(fun_limit);
+	var fun_limit = await averify("oracles", "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=");
+	console.log("merkle proof test result is: ");
+	console.log(fun_limit);
     }
     function id_maker(
         contract_hash, many_types,
@@ -354,8 +359,8 @@ function merkle_proofs_main() {
             .concat(integer_to_array(source_type, 2));
         return(btoa(array_to_string(hash(to_hash))));
     };
-    return {request_proof: verify_callback,
-            arequest_proof: averify_callback,
+    return {//request_proof: verify_callback,
+            arequest_proof: averify,
 	    verify: verify_merkle,
 	    serialize: serialize_tree_element,
 	    serialize_key: serialize_key,

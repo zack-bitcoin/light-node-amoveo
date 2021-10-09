@@ -112,57 +112,61 @@ function swap_viewer_creator(div2){
         };
 
     };
-    function maybe_make_contracts(cid, Txs, callback) {
+    async function maybe_make_contracts(cid, Txs, callback) {
         console.log("maybe making contracts");
         if(cid == "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="){
             return(callback(Txs));
         };
-        merkle.request_proof("contracts", cid, async function(Contract){
-            console.log("from merkle request");
-            if(Contract == "empty"){
-                console.log("contract empty");
-                //rpc.post(["read", 3, cid], function(z){
-                var z = await rpc.apost(["read", 3, cid], explore_swap_offer.ip_get, 8090);
-                console.log("from post ");
-                //if(z.length == 5){
-                if(z[0] == "scalar"){
-                    console.log("is scalar ");
-                    //{Text, Height, MaxPrice, Now}
-                    var tx = new_scalar_contract.make_tx(atob(z[1]), parseInt(z[3]), z[5], parseInt(z[6]));
-                    //var cid2 = merkle.contract_id_maker(tx[2], tx[4], tx[5], tx[6]);
-                    return(maybe_make_contracts(tx[5], [tx].concat(Txs), callback));
-                    //} else if (z[0] == "binary") {
-                    //console.log("is binary ");
-                    //var tx = new_contract.make_tx(parseInt(z[2]), atob(z[1]), z[4], parseInt(z[5]));
-                    //var cid2 = merkle.contract_id_maker(tx[2], tx[4], tx[5], tx[6]);
-                    //return(maybe_make_contracts(tx[5], [tx].concat(Txs), callback));
-                    //return([tx].concat(Txs));
-                    
-                } else if (z[0] === "contract"){
-                    //contract hash is not in the buy_veo_contract.
-                    var oracle_start_height = z[5];
-                    var blockchain = z[6];
-                    var amount = z[7];
-                    var ticker = z[8];
-                    var date = z[9];
-                    var TID = z[10];
-                    var address_timeout = z[4];
-                    var reusable_settings = buy_veo_contract.reusable_settings(oracle_start_height, blockchain, amount, ticker, date);
-                    var settings = buy_veo_contract.settings(reusable_settings, address_timeout, 1, TID);
-                    var contract1bytes = buy_veo_contract.contract1bytes(settings);
-                    var contract_hash = btoa(array_to_string(hash(contract1bytes)));
-                    var tx = buy_veo_contract.new_contract_tx(contract_hash);
-                    return(maybe_make_contracts(tx[5], [tx].concat(Txs), callback));
-                } else {
-                    display.innerHTML =
-                        "<p>You need to teach the server about this contract before you can bet on it. Use the teach scalar contract tool. </p>";
-                    return(0);
-                };
-                //}, explore_swap_offer.ip_get, 8090);
-            } else {
-                return(callback(Txs));
-            };
-        });
+        //merkle.request_proof("contracts", cid, async function(Contract){
+        var Contract = await merkle.arequest_proof("contracts", cid);
+        console.log("from merkle request");
+        if(!(Contract === "empty")){
+            return(callback(Txs));
+        };
+        //if(Contract == "empty"){
+        console.log("contract empty");
+        //rpc.post(["read", 3, cid], function(z){
+        var z = await rpc.apost(["read", 3, cid], explore_swap_offer.ip_get, 8090);
+        console.log("from post ");
+        //if(z.length == 5){
+        if(z[0] == "scalar"){
+            console.log("is scalar ");
+            //{Text, Height, MaxPrice, Now}
+            var tx = new_scalar_contract.make_tx(atob(z[1]), parseInt(z[3]), z[5], parseInt(z[6]));
+            //var cid2 = merkle.contract_id_maker(tx[2], tx[4], tx[5], tx[6]);
+            return(maybe_make_contracts(tx[5], [tx].concat(Txs), callback));
+            //} else if (z[0] == "binary") {
+            //console.log("is binary ");
+            //var tx = new_contract.make_tx(parseInt(z[2]), atob(z[1]), z[4], parseInt(z[5]));
+            //var cid2 = merkle.contract_id_maker(tx[2], tx[4], tx[5], tx[6]);
+            //return(maybe_make_contracts(tx[5], [tx].concat(Txs), callback));
+            //return([tx].concat(Txs));
+            
+        } else if (z[0] === "contract"){
+            //contract hash is not in the buy_veo_contract.
+            var oracle_start_height = z[5];
+            var blockchain = z[6];
+            var amount = z[7];
+            var ticker = z[8];
+            var date = z[9];
+            var TID = z[10];
+            var address_timeout = z[4];
+            var reusable_settings = buy_veo_contract.reusable_settings(oracle_start_height, blockchain, amount, ticker, date);
+            var settings = buy_veo_contract.settings(reusable_settings, address_timeout, 1, TID);
+            var contract1bytes = buy_veo_contract.contract1bytes(settings);
+            var contract_hash = btoa(array_to_string(hash(contract1bytes)));
+            var tx = buy_veo_contract.new_contract_tx(contract_hash);
+            return(maybe_make_contracts(tx[5], [tx].concat(Txs), callback));
+        } else {
+            display.innerHTML =
+                "<p>You need to teach the server about this contract before you can bet on it. Use the teach scalar contract tool. </p>";
+            return(0);
+        };
+        //}, explore_swap_offer.ip_get, 8090);
+        //} else {
+        //    return(callback(Txs));
+        //};
+        //});
     };
     function view2(txs, X, Y, original_limit_order_size, available_to_match) {
         //txs is the new_contracts parts.

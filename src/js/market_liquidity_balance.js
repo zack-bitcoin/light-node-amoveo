@@ -7,18 +7,19 @@ var market_liquidity_balance = (function(){
     div.appendChild(br());
     var button = button_maker2("check blance", doit);
     div.appendChild(button);
-    function doit(){
+    async function doit(){
         var key = sub_accounts.key(keys.pub(), mid.value, 0);
         var key = btoa(array_to_string(key));
-        merkle.request_proof("sub_accounts", key, function(x) {
-            var amount;
-            if(x == "empty"){
-                amount = 0;
-            } else {
-                amount = x[1];
-            };
-            display.innerHTML = ("you have this much: ").concat(amount);
-        });
+        //merkle.request_proof("sub_accounts", key, function(x) {
+        var x = await merkle.arequest_proof("sub_accounts", key);
+        var amount;
+        if(x == "empty"){
+            amount = 0;
+        } else {
+            amount = x[1];
+        };
+        display.innerHTML = ("you have this much: ").concat(amount);
+    //});
     };
     return({
         mid: (function(x){mid.value = x})

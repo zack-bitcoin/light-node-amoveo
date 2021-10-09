@@ -36,7 +36,8 @@ var dex_tools = (function(){
             markets, Source, SourceType, cid, type);
             //markets, ZERO, 0, cid, type);
         if(market === 0){
-            console.log(JSON.stringify(markets));
+            //console.log(JSON.stringify(markets));
+            console.log("they didn't post a 99% sell offer.");
             //they didn't post their offer to sell for 99% of the value. I guess they want to use an oracle.
             //return(cleanup());
             return(0);
