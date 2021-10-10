@@ -352,7 +352,7 @@ function crosschain_tab_builder(div, selector){
             .concat(" ");
         temp_div.appendChild(description);
         var link = document.createElement("a");
-        link.href = "offer_explorer.html?tid="
+        link.href = "explorers/offer_explorer.html?tid="
             .concat(tid);
         link.innerHTML = "contract offer in explorer ";
             link.target = "_blank";

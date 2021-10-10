@@ -169,7 +169,7 @@ function keys_function1() {
     function update_pubkey() {
         var pub = pubkey_64();
         var link = document.createElement("a");
-        link.href = "account_explorer.html?pubkey="
+        link.href = "explorers/account_explorer.html?pubkey="
             .concat(pub);
         link.innerHTML = pub;
         link.target = "_blank";

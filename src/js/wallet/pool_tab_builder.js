@@ -89,7 +89,7 @@ function pool_tab_builder(pool_tab, selector, hide_non_standard) {
         txs = txs.concat(make_tx(mid3, sa3, market3));
         display.innerHTML = sell_ls_msg(txs, markets);
         var cid_link = document.createElement("a");
-        cid_link.href = "contract_explorer.html?cid="
+        cid_link.href = "explorers/contract_explorer.html?cid="
             .concat(txs[0][8]);
         
         cid_link.innerHTML = "lookup contract";

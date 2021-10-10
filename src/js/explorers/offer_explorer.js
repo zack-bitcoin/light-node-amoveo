@@ -89,7 +89,7 @@
         display.appendChild(br());
     }
     var link = document.createElement("a");
-    link.href = "wallet.html";
+    link.href = "../wallet/wallet.html";
     link.innerHTML = "tool for trading contracts";
     link.target = "_blank";
     display.appendChild(link);

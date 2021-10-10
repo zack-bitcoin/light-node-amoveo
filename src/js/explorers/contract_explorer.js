@@ -74,6 +74,7 @@
 
     //from the explorer
     contract = contract[1];
+    console.log(JSON.stringify(contract));
     var source = contract[2];
     var source_type = contract[6];
     
@@ -115,6 +116,7 @@
     };
     var many_types = contract[3];
     var markets = contract[4];
+    console.log(JSON.stringify(markets));
     var markets_title = document.createElement("h4");
     markets_title.innerHTML = "Markets that involve this contract";
     div.appendChild(markets_title);
@@ -125,6 +127,7 @@
     make_bet_links(div, cid);
     var canvas = document.getElementById("theCanvas");
     var ctx = canvas.getContext("2d");
+    console.log(JSON.stringify(liquidity_lists));
     var liquidities =
         combine_liquidities(
             liquidity_lists.map(function(x){
@@ -210,7 +213,7 @@
         //div.appendChild(br());
 
         var true_link = document.createElement("a");
-        true_link.href = "wallet.html?cid_to_buy="
+        true_link.href = "../wallet/wallet.html?cid_to_buy="
             .concat(cid)
             .concat("&type_to_buy=1");
         true_link.innerHTML = "bet true";
@@ -218,7 +221,7 @@
         div.appendChild(true_link);
         div.appendChild(br());
         var false_link = document.createElement("a");
-        false_link.href = "wallet.html?cid_to_buy="
+        false_link.href = "../wallet/wallet.html?cid_to_buy="
             .concat(cid)
             .concat("&type_to_buy=2");
 
@@ -269,6 +272,7 @@
     };
     function combine_liquidities(LLs){
         //needs to be rewritten.
+        console.log(JSON.stringify(LLs));
         if(LLs.length === 1){
             return(LLs[0]);
         };

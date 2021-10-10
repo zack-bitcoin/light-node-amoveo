@@ -1363,7 +1363,7 @@ function swap_tab_builder(swap_tab, selector, hide_non_standard){
             };
         };
         var cid_link = document.createElement("a");
-        cid_link.href = "contract_explorer.html?cid="
+        cid_link.href = "explorers/contract_explorer.html?cid="
             .concat(currency[0]);
         cid_link.innerHTML = "currency info";//" shares ";
         cid_link.target = "_blank";

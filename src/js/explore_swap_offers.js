@@ -110,7 +110,7 @@ function explore_swap_offers_creator(div2, hide_server_select) {
             var p = document.createElement("span");
             var a = document.createElement("a");
             a.innerHTML = "more details";
-            a.href = "contract_explorer.html?cid=".concat(cid);
+            a.href = "explorers/contract_explorer.html?cid=".concat(cid);
             a.target = "_blank";
             if(contract[0] === "contract"){
                 p.innerHTML = await decode_market_veo_contract(cid, contract);

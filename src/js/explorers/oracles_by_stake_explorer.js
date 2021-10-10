@@ -29,7 +29,7 @@
         div.appendChild(info);
 
         link = document.createElement("a");
-        link.href = "explorers/oracle_explorer.html?oid="
+        link.href = "oracle_explorer.html?oid="
             .concat(oracle[1]);
         link.innerHTML = "view details";
         link.target = "_blank";

@@ -94,7 +94,7 @@
             var link = document.createElement("a");
             link.innerHTML = "contract with id: ".concat(cid);
             link.target = "_blank";
-            link.href = "contract_explorer.html?cid=".concat(cid);
+            link.href = "explorers/contract_explorer.html?cid=".concat(cid);
             option_div.appendChild(link);
             option_div.appendChild(br());
         } else {
@@ -223,7 +223,7 @@
             //if the oracle exists and isn't settled, link to the explorer for that oracle.
             console.log("explorer link");
             var a = document.createElement("a");
-            a.href = "oracle_explorer.html?oid="
+            a.href = "explorers/oracle_explorer.html?oid="
                 .concat(oid);
             a.innerHTML = "the oracle is live. you can see details about it here.";
             a.target = "_blank";
@@ -320,7 +320,7 @@
         var link = document.createElement("a");
         link.innerHTML = "oracle with id: ".concat(oid);
         link.target = "_blank";
-        link.href = "oracle_explorer.html?oid=".concat(oid);
+        link.href = "explorers/oracle_explorer.html?oid=".concat(oid);
         option_div.appendChild(link);
         option_div.appendChild(br());
     };
