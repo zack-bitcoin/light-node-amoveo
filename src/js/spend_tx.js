@@ -87,9 +87,9 @@ var spend_tx = (function () {
 	} else if (to === 0) {
 	    error_msg.innerHTML = "Badly formatted recipient's address";
 	} else {
-            return(make_tx2(from_acc, to, keys.pub(), amount, function(tx){
-                callback(tx);
-            }));
+            var x = await amake_tx2(
+                from_acc, to, keys.pub(), amount);
+            return(callback(x));
         };
     };
     async function spend_tokens() {
