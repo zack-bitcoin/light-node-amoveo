@@ -15,13 +15,18 @@ var subcurrency_set_buy = (function(){
     div.appendChild(br());
 
     async function doit(){
+        console.log("get account");
         var account = await rpc.apost(["account", keys.pub()]);
         if(account == "empty"){
             display.innerHTML = "load an account first";
             return(0);
         };
-        var contract = await merkle.arequest_proof("contracts", contract_id.value);
+        //var contract = await merkle.arequest_proof("contracts", contract_id.value);
+        console.log("get contract");
+        var contract = await rpc.apost(["contracts", contract_id.value]);
+        console.log("got contract");
         if(contract == "empty"){
+            console.log("that contract does not exist");
             display.innerHTML = "that contract does not exist";
             return(0);
         };

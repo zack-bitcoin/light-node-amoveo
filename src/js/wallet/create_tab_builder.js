@@ -39,7 +39,7 @@ function create_tab_builder(div, selector){
     var ticker_text = text_input("Ticker of Synthetic Asset (i.e. BTC)", stablecoin_div);
     stablecoin_div.appendChild(br());
     website_label = document.createElement("span");
-    website_label.innerHTML = "website to convert the BTC price to the price of your stablecoin.";
+    website_label.innerHTML = "website to convert the VEO price to the price of your stablecoin.";
     stablecoin_div.appendChild(website_label);
     stablecoin_div.appendChild(website_text);
     stablecoin_div.appendChild(br());
@@ -76,7 +76,7 @@ function create_tab_builder(div, selector){
 
     var coll_text = text_input("collateralization (i.e. \"2\" means 200%)", stablecoin_div);
     stablecoin_div.appendChild(br());
-    var starting_price_text = text_input("starting price of veo in your target currency (i.e. 0.002 BTC per VEO)", stablecoin_div);
+    var starting_price_text = text_input("starting price of veo in your target currency (i.e. 0.0002 BTC per VEO)", stablecoin_div);
     stablecoin_div.appendChild(br());
     var amount_text = text_input("amount of source currency to put into the market as liquidity", div);
     div.appendChild(br());
@@ -190,8 +190,9 @@ function create_tab_builder(div, selector){
         var CH = new_contract_tx[2];
         var cid = merkle.contract_id_maker(CH, 2, Source, SourceType);
         var txs = [new_contract_tx];
-        
-        if (amount1 == amount2) {
+        if (source_amount == 0) {
+            
+        } else if (amount1 == amount2) {
             txs = txs.concat([
                 ["contract_use_tx", 0,0,0,
                  cid, amount, 2,
@@ -304,7 +305,7 @@ function create_tab_builder(div, selector){
              0, MP, Source,
              SourceType];
         var x = await rpc.apost(msg, get_ip(), 8090);
-        console.log(x);
+        console.log(JSON.stringify(x));
         console.log("taught a scalar contract.");
         return(txs);
     };
@@ -315,6 +316,13 @@ function create_tab_builder(div, selector){
         var tx = await multi_tx.amake(txs);
         var stx = keys.sign(tx);
         var msg = await apost_txs([stx]);
+        var CH = txs[0][2];
+        var Source = txs[0][5];
+        var SourceType = txs[0][6];
+        var cid = merkle.contract_id_maker(CH, 2, Source, SourceType);
+        msg = msg.concat("<br>contract id: ")
+            .concat(cid)
+        ;
         display2.innerHTML = msg;
         if(!(msg == "server rejected the tx")){
             keys.update_balance();

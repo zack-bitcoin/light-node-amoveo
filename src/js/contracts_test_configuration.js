@@ -1,7 +1,7 @@
 (function(){
     //var cid = "Q9z6Ijo4+n6jtXqM13pfebsCSWQvoNDGsbEXvkUiFQQ=";
     //var cid = "vWSumtEl1WBhxaeVzu/MdBQtdmnuWTXMtupnKTDJ+vI=";
-    var cid = "xPxwlSQEkBUDwxl7P0mREFnp0eF7Bc366uAy7jtdK1g=";
+    var cid = "LhPyzJqttN/xkgzK0DeXzFhke7j572a9LPY+VR4gyVY=";
     var scalar_question = "btc price in USD - 10000";
     var binary_question = "1=1";
     var start_height = "5";
