@@ -25,7 +25,7 @@ function lookup_account1() {
     async function lookup_account_helper() {
         var x = lookup_account_address.value.trim();
         var y = await rpc.apost(["account", x]);
-        lookup_accounts_helper2(y);
+        lookup_account_helper2(y);
     }
     function lookup_account_helper2(x) {
         lookup_account.innerHTML = "balance: ".concat(x[1] / token_units()).concat(" VEO");

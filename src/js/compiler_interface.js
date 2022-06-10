@@ -62,8 +62,6 @@ macro data binary AQID ;
 
 sig data pub verify_sig 
 
-% this test is failing.
-
 `],
         ["function", `
 % function test
@@ -266,7 +264,6 @@ def ( ListOfSortedLists -- SortedList )
     drop drop
   else
     ( sort the first 2 lists, and append the result to the listofsortedlists. )
-    ( crashes in first merge )
     drop car tuck merge nil cons ++ recurse call
   then
 ;

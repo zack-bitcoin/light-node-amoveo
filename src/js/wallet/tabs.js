@@ -30,6 +30,7 @@ var tabs = (function(){
              ["crosschain", crosschain_tab_builder, "crosschain DEX sell veo"],
              ["crosschain2", crosschain_tab_builder2, "crosschain DEX buy veo"],
              ["crosschain3", crosschain_tab_builder3, "crosschain DEX"],
+             //["crosschain4", crosschain_tab_builder4, "crosschain DEX v2"],
              ["bet", bet_tab_builder, "bet"]
             ];
     }

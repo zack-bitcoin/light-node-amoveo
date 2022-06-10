@@ -91,8 +91,8 @@ function explore_swap_offers_creator(div2, hide_server_select) {
             var z = await rpc.apost(["read", m[2]], s_ip.value, parseInt(s_port.value));
             var orders = z[1][7];
             orders = orders.slice(1);
-            orders_div.innerHTML = "<h3>available trades in market "
-                .concat(m[2])
+            orders_div.innerHTML = "<h3>available trades" //in market "
+                //.concat(m[2])
                 .concat("</h3>");
             temp_div.appendChild(orders_div);
             display_orders(orders);
