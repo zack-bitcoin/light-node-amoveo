@@ -30,8 +30,34 @@
         console.log(final_now);
         return final_now;
     }
+    function exponent(a, b) {//a is type bigint. b is an int.
+        if (b == 0) { return BigInt(1); }
+        else if (b == 1) { return a; }
+        //else if ((b % 2) == 0) {return exponent(a.times(a), Math.floor(b / 2)); }
+        else if ((b % 2) == 0) {return exponent(a * a, b / 2); }
+        //else {return a.times(exponent(a, b-1)); }
+        else {return a * (exponent(a, b-1)); }
+    }
+    function sci2int(x) {
+        function pair2int(l) {
+            var b = l.pop();
+            var a = l.pop();
+            var c = exponent(BigInt(2), a);//c is a bigint
+	    //return c.times((256 + b)).divide(256);
+	    return c * ((256n + BigInt(b))) / 256n;
+        }
+        function sci2pair(i) {
+            var a = Math.floor(i / 256);
+            var b = i % 256;
+            return [a, b];
+        }
+        return pair2int(sci2pair(x));
+    }
     function lookup_block2(block) {
         block2 = block[1];
+        var diff = sci2int(block[5]);
+        console.log("lookup block 2");
+        console.log(diff);
         var current_block = document.getElementById("block div");
         if (block == "empty") {
 	    current_block.innerHTML = "this block doesn't exist.";
@@ -41,7 +67,7 @@
             var prev_hash = toHex(atob(block[2]));
 	    var time = to_now(time0);
 	    //acc, number, hash, txs, power, nonce, total_coins, db_root
-	    current_block.innerHTML = "block: ".concat(block[1]).concat("<br />was mined by: ").concat(miner).concat("<br />has timestamp: ").concat(time).concat("<br />prev hash: ").concat(prev_hash);
+	    current_block.innerHTML = "block: ".concat(block[1]).concat("<br />was mined by: ").concat(miner).concat("<br />has timestamp: ").concat(time).concat("<br />prev hash: ").concat(prev_hash).concat("<br /> difficulty: ").concat(diff / 1000000000000n);
         }
     }
 }
