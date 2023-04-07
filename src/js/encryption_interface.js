@@ -40,6 +40,10 @@
     function decrypt() {
 	var t = encrypted_received.value;
 	var t2 = keys.decrypt(JSON.parse(t));
-	decrypted_received.innerHTML = t2;
+	decrypted_received.innerHTML =
+            ("message from address: ")
+            .concat(t2[1])
+            .concat(" <br>")
+            .concat(t2[0]);
     }
 })();
