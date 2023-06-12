@@ -45,9 +45,10 @@ function encryption_main() {
         var fromkey = keys.ec().keyFromPublic(toHex(atob(atob(msg[3]))), 'hex');
 	console.log("verify message received ");
 	console.log(emsg[1]);
+        console.log(atob(msg[3]));
         //var b = verify(emsg[1], btoa(msg[1]), fromkey);
         var b = verify(emsg[1], msg[1], fromkey);
-        if (b) { return msg[2]
+        if (b) { return [msg[2], atob(msg[3])];
         } else { throw("encryption get error");
         }
     }
@@ -71,7 +72,7 @@ function encryption_main() {
         //console.log("sms 2 are ");
         //console.log(JSON.stringify(sm));
         //console.log(JSON.stringify(sm2));
-        var got = get(sm, key2);
+        var got = get(sm, key2)[0];
         console.log("got");
         console.log(JSON.stringify(got));
         test2();
@@ -86,7 +87,7 @@ function encryption_main() {
         var fromKey = keys.make();
         var toKey = keys.make();
         var sm = send([-6,1,2,3], btoa(fromHex(toKey.getPublic("hex"))), fromKey);
-        assert_eq(get(sm, toKey), [-6, 1, 2, 3]);
+        assert_eq(get(sm, toKey)[0], [-6, 1, 2, 3]);
         var masterPub64 = "BLDdkEzI6L8qmIFcSdnH5pfNAjEU11S9pHXFzY4U0JMgfvIMnwMxDOA85t6DKArhzbPJ1QaNBFHO7nRguf3El3I=";
         var master = keys.ec().keyFromPublic(toHex(atob(masterPub64)), 'hex');
         console.log("encryption test passed.");
