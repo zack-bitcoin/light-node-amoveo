@@ -3,7 +3,7 @@ function headers_main() {
     var mode = urlParams.get('mode');
     if (mode == "test") {
         mode = "test";
-        server_port.value = "8080";
+        server_port.value = "3010";
         console.log(server_ip.value);
         if (server_ip.value == "") {
             server_ip.value = "127.0.0.1";
@@ -27,9 +27,7 @@ function headers_main() {
     var headers_db = {};//store valid headers by hash
     var INITIAL_DIFFICULTY;
     var headers_batch = 5000;
-    if(false) {
-        //(mode == "test") {
-	//INITIAL_DIFFICULTY = 2500;
+    if (mode == "test") {
 	INITIAL_DIFFICULTY = 10;
 	retarget_frequency = 12;
 	forks = {two: 0, four: 0,//retarget_frequency,
@@ -95,6 +93,7 @@ function headers_main() {
     document.body.appendChild(wallet_text);
     //more_headers()
     function write_header(header, ewah) {
+        console.log("write header");
         var acc_difficulty = header[9];
         if ((acc_difficulty > top_diff) || ((mode == "test")&&((top_header == 0) || (header[1] > top_header[1])))) {
             top_diff = acc_difficulty;
@@ -326,6 +325,7 @@ function headers_main() {
 	return ewah;
     }
     function absorb_headers(h) {
+        console.log("absorb_headers");
         var get_more = false;
         for (var i = 1; i < h.length; i++ ) {
             var bl = check_pow(h[i]);
@@ -361,7 +361,7 @@ function headers_main() {
         }
     }
     async function more_headers() {
-        //console.log("more headers");
+        console.log("more headers");
         var n;
         if ( top_header == 0 ) {
             n = 0;
