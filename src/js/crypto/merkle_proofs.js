@@ -4,6 +4,9 @@ function merkle_proofs_main() {
         
 	const proof = await rpc.apost(["proof", btoa(tree), key, btoa(array_to_string(top_hash))]);
         if ((proof[3] == "empty")||(proof[3]==0)) { return("empty"); };
+        console.log(proof);
+        //var [true, leaves, tree] = verkle.verify(root, proof);
+        //or it returns false.
 	var val = verify_merkle(key, proof);
 	return(val);
     }
