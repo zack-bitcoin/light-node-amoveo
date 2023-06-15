@@ -91,8 +91,8 @@ var ipa = (function(){
         return(false);
     };
     function fr_decode(x) {
-        var x3 = string_to_array(atob(x)).reverse();
-        var x2 = array_to_int(x3, 32);
+        var x3 = verkle_binary.string_to_array(atob(x)).reverse();
+        var x2 = verkle_binary.array_to_int(x3, 32);
         return(fr.decode(x2));
     };
     function decode_extendeds(l){
@@ -100,11 +100,11 @@ var ipa = (function(){
         var x1;
         var u, v, z, t;
         for(var i = 0; i < l.length; i++){
-            x1 = string_to_array(atob(l[i]));
-            u = fq.decode(array_to_int(x1.slice(0, 32).reverse()));
-            v = fq.decode(array_to_int(x1.slice(32, 64).reverse()));
-            z = fq.decode(array_to_int(x1.slice(64, 96).reverse()));
-            t = fq.decode(array_to_int(x1.slice(96).reverse()));
+            x1 = verkle_binary.string_to_array(atob(l[i]));
+            u = fq.decode(verkle_binary.array_to_int(x1.slice(0, 32).reverse()));
+            v = fq.decode(verkle_binary.array_to_int(x1.slice(32, 64).reverse()));
+            z = fq.decode(verkle_binary.array_to_int(x1.slice(64, 96).reverse()));
+            t = fq.decode(verkle_binary.array_to_int(x1.slice(96).reverse()));
             r.push(new Extended(u, v, z, t));
         };
         return(r);

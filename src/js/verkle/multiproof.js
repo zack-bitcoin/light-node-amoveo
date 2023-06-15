@@ -6,24 +6,24 @@ var multiproof = (function(){
         //ys is a list of fr encoded values.
         var b = [];
         for(var i = 0; i<cs.length; i++){
-            b = b.concat(integer_to_array(fr.encode(zs[i]), 32));
-            b = b.concat(integer_to_array(fr.encode(ys[i]), 32));
-            b = b.concat(integer_to_array(fq.encode(cs[i].x), 32));
-            b = b.concat(integer_to_array(fq.encode(cs[i].y), 32));
+            b = b.concat(verkle_binary.integer_to_array(fr.encode(zs[i]), 32));
+            b = b.concat(verkle_binary.integer_to_array(fr.encode(ys[i]), 32));
+            b = b.concat(verkle_binary.integer_to_array(fq.encode(cs[i].x), 32));
+            b = b.concat(verkle_binary.integer_to_array(fq.encode(cs[i].y), 32));
         };
-        var h = hash(b);
-        var x = array_to_int(h, 32);
+        var h = verkle_hash(b);
+        var x = verkle_binary.array_to_int(h, 32);
         return(x % fr.order());
     };
     function calc_T(a, r){
         //a is a affine point.
         //r is the result of R, so an integer less than fr.order().
         var b = [];
-        b = b.concat(integer_to_array(fq.encode(a.x), 32));
-        b = b.concat(integer_to_array(fq.encode(a.y), 32));
-        b = b.concat(integer_to_array(fr.encode(r), 32));
-        var h = hash(b);
-        var x = array_to_int(h, 32);
+        b = b.concat(verkle_binary.integer_to_array(fq.encode(a.x), 32));
+        b = b.concat(verkle_binary.integer_to_array(fq.encode(a.y), 32));
+        b = b.concat(verkle_binary.integer_to_array(fr.encode(r), 32));
+        var h = verkle_hash(b);
+        var x = verkle_binary.array_to_int(h, 32);
         return(x % fr.order());
         
     //B = <<C1:256, C2:256, R:256,
@@ -130,7 +130,7 @@ var multiproof = (function(){
         var p = points.gen_point(0);
         //console.log(p);
         var r = calc_R([p], [6n], [5n]);
-        return(r === fr.decode(array_to_int(string_to_array(atob("ZH19WZA9dBN/b0UWEjP1Ogiz/UlHXjkIBWvHNeDnVQ8=")).reverse(), 32))); // should be
+        return(r === fr.decode(verkle_binary.array_to_int(verkle_binary.string_to_array(atob("ZH19WZA9dBN/b0UWEjP1Ogiz/UlHXjkIBWvHNeDnVQ8=")).reverse(), 32))); // should be
     };
     function range(a, b){
         if(a >= b){ return([]);}
@@ -456,16 +456,16 @@ var multiproof = (function(){
         var a = atob(x);
         if(a.length === 32){
             //is an fr.
-            var b = string_to_array(a).reverse();
-            var c = array_to_int(b, 32);
+            var b = verkle_binary.string_to_array(a).reverse();
+            var c = verkle_binary.array_to_int(b, 32);
             return(fr.decode(c));
         } else if(a.length === 128){
             //must be an extended then.
-            var x1 = string_to_array(a);
-            var u = fq.decode(array_to_int(x1.slice(0, 32).reverse()));
-            var v = fq.decode(array_to_int(x1.slice(32, 64).reverse()));
-            var z = fq.decode(array_to_int(x1.slice(64, 96).reverse()));
-            var t = fq.decode(array_to_int(x1.slice(96).reverse()));
+            var x1 = verkle_binary.string_to_array(a);
+            var u = fq.decode(verkle_binary.array_to_int(x1.slice(0, 32).reverse()));
+            var v = fq.decode(verkle_binary.array_to_int(x1.slice(32, 64).reverse()));
+            var z = fq.decode(verkle_binary.array_to_int(x1.slice(64, 96).reverse()));
+            var t = fq.decode(verkle_binary.array_to_int(x1.slice(96).reverse()));
             var d = new Extended(u, v, z, t);
             return(d);
         } else {

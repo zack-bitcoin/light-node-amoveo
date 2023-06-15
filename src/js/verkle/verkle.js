@@ -25,7 +25,7 @@ var verkle = (function(){
         var is_string = (typeof(x) === 'string');
         if(is_string){
             var s = atob(x);
-            var a = string_to_array(s);
+            var a = verkle_binary.string_to_array(s);
             if(a.length === 32){
                 return([x]);
             } else {
@@ -93,7 +93,7 @@ var verkle = (function(){
         };
         if(typeof(tree[0]) === 'string'){
             var s = atob(tree[0]);
-            var a = string_to_array(s);
+            var a = verkle_binary.string_to_array(s);
             return(fill_points(
                 pts.slice(1),
                 tree.slice(1),
@@ -103,11 +103,11 @@ var verkle = (function(){
                            [tree[0]].concat(result)));
     };
     function leaf_hash(key, val){
-        var key2 = string_to_array(atob(key));
-        var val2 = string_to_array(atob(val));
+        var key2 = verkle_binary.string_to_array(atob(key));
+        var val2 = verkle_binary.string_to_array(atob(val));
         var leaf = key2.concat(val2);
-        var h = hash(leaf);
-        var n = array_to_int(h);
+        var h = verkle_hash(leaf);
+        var n = verkle_binary.array_to_int(h);
         var result = (n % fr.order());
         return(result);
     };
@@ -177,7 +177,7 @@ var verkle = (function(){
         var list2 = points.affine2extended(
             points.compressed2affine_batch(list));
         var commitg = list2[0];
-        var decompressed = list2.slice(1);
+       var decompressed = list2.slice(1);
         var tree = fill_points(decompressed, tree0, [])[0];
         var root1 = decompressed[0];
         return([tree, open0, root1, commitg]);

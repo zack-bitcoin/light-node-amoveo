@@ -4,10 +4,26 @@ function merkle_proofs_main() {
         
 	const proof = await rpc.apost(["proof", btoa(tree), key, btoa(array_to_string(top_hash))]);
         if ((proof[3] == "empty")||(proof[3]==0)) { return("empty"); };
-        console.log(proof);
+        //console.log(proof);
+        var val;
+        if(typeof(proof[1]) == "string"){
+            console.log("a merkle");
+	    var val = verify_merkle(key, proof);
+        } else {
+            console.log("a verkle");
+            var result = verkle.verify(top_hash, proof);
+            console.log(result);
+        };
+        //example verkle [-7,
+        //[-6, "b2n...", [...]],
+        //"ce+...",
+        //array257[...]]
+
+        //example merkle {Hash, Value, Proof} %where proof is a list of hashes.
+        // [-7, "bin", "bin", array]
+
         //var [true, leaves, tree] = verkle.verify(root, proof);
         //or it returns false.
-	var val = verify_merkle(key, proof);
 	return(val);
     }
     function hash_member(hash, members) {

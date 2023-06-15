@@ -13,7 +13,7 @@ var points = (function(){
     
     function compressed2affine(X0){
         //base64 encoded to affine.
-        var X = string_to_array(atob(X0));
+        var X = verkle_binary.string_to_array(atob(X0));
         return(compressed2affine2(X));
     };
     function compressed2affine2(X){
@@ -27,7 +27,7 @@ var points = (function(){
         } else {
             S = 0n;
         };
-        var U0 = array_to_int(P);
+        var U0 = verkle_binary.array_to_int(P);
         var U = fq.decode(U0);
         var UU = fq.mul(U, U);
         var DUU = fq.sub(1n, fq.mul(D, UU));
@@ -37,7 +37,7 @@ var points = (function(){
     };
     function compressed2affine_batch(l){
         var q = l.map(function(x){
-            var y = string_to_array(atob(x));
+            var y = verkle_binary.string_to_array(atob(x));
             var b1 = y[0];
             var p = JSON.parse(JSON.stringify(y));
             var s;
@@ -47,7 +47,7 @@ var points = (function(){
             } else {
                 s = 0n;
             };
-            var u = fq.decode(array_to_int(p));
+            var u = fq.decode(verkle_binary.array_to_int(p));
             var uu = fq.mul(u, u);
             var duu = fq.sub(1n, fq.mul(D, uu));
             var t = fq.add(1n, uu);
@@ -106,11 +106,11 @@ var points = (function(){
         var x = p.x;
         var y = p.y;
         var x2 = fq.encode(x);
-        var arr = integer_to_array(x2, 32).reverse();
+        var arr = verkle_binary.integer_to_array(x2, 32).reverse();
         if(!(fq.is_positive(y))){
             arr[0] = arr[0] + 128;
         };
-        var result = array_to_string(arr);
+        var result = verkle_binary.array_to_string(arr);
         return(btoa(result));
     };
     function clear_torsion(p) {
@@ -123,9 +123,9 @@ var points = (function(){
             var p2 = clear_torsion(p);
             var p3 = p2.toAffine();
             var p4 = affine2compressed(p3);//in base64
-            var bin = string_to_array(atob(p4));
-            //var n = array_to_int(string_to_array(bin).reverse());
-            var n = array_to_int(bin);
+            var bin = verkle_binary.string_to_array(atob(p4));
+            //var n = verkle_binary.array_to_int(verkle_binary.string_to_array(bin).reverse());
+            var n = verkle_binary.array_to_int(bin);
             var result = (n % EllipticGroupOrder);
             return(result);
         } else {
@@ -172,8 +172,8 @@ var points = (function(){
     };
     function gen_point(x) {
         //there are 513 generator points. so x is an integer from 0 to 512.
-        var a = integer_to_array(BigInt(x), 32);
-        var h = hash(a);
+        var a = verkle_binary.integer_to_array(BigInt(x), 32);
+        var h = verkle_hash(a);
         //console.log(a);
         //console.log(h);
         return gen_point2(h);
@@ -184,9 +184,9 @@ var points = (function(){
         var b = compressed2affine2(x);
         if(b[0] === "error"){
             //console.log("gen point next");
-            var n = array_to_int(x);
+            var n = verkle_binary.array_to_int(x);
             var n2 = n+1n;
-            var x2 = integer_to_array(n2, 32).reverse();
+            var x2 = verkle_binary.integer_to_array(n2, 32).reverse();
             //console.log(x);
             //console.log(x2);
             return(gen_point2(x2));
@@ -264,8 +264,8 @@ var points = (function(){
         var p0 = "Zmh6rfhivXdsj8GLjp+OIAiXFIVu4jOzkCpZHQ1fKSU=";
         var a0 = compressed2affine(p0);
         var e0 = Extended.fromAffine(a0);
-        var h0 = hash(e0);
-        var h1 = array_to_int(string_to_array(atob("3EGjINsYRlYMN3Hyv/98ZiQyvZDbWhpzqNy/BTjI8Qs=")).reverse(), 32);
+        var h0 = verkle_hash(e0);
+        var h1 = verkle_binary.array_to_int(verkle_binary.string_to_array(atob("3EGjINsYRlYMN3Hyv/98ZiQyvZDbWhpzqNy/BTjI8Qs=")).reverse(), 32);
         console.log(h0);
         console.log(fr.decode(h1));
 
