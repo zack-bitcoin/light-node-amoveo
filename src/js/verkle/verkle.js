@@ -182,17 +182,23 @@ var verkle = (function(){
         var root1 = decompressed[0];
         return([tree, open0, root1, commitg]);
     };
-    function verify(root, proof){
+    function verify(root0, proof){
         var [tree0, commitg0, open0] = proof;
         var [tree, open0, root1, commitg] =
             decompress_proof(open0, tree0, commitg0);
         //tree should be [rootpoint, {0, pt},[{186, pt},{115, l}], [{187, pt}, {115, l}],[{188, pt}, {115, l}]]
         var root = tree[0];
-        var rest = tree.slice(1);
+        var rest = tree.slice(1);//e
 
         var domain = precomputes.domain();
+        console.log(root0); //binary length 32
+        console.log([root1, root, root0]);
+        if(!(points.eq(root1, root0))){
+            console.log("verify fail unequal roots 0");
+            return(false);
+        };
         if(!(points.eq(root1, root))){
-            console.log("verify fail unequal roots");
+            console.log("verify fail unequal roots 1");
             return(false);
         };
             //rest should be [{0, pt},[{186, pt},{115, l}], [{187, pt}, {115, l}],[{188, pt}, {115, l}]]

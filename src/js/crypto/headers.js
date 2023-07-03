@@ -57,6 +57,7 @@ function headers_main() {
             top_header = ls_check2[0];
             write_header(top_header, ls_check2[1]);
         } else {
+            console.log("writing top header");
             top_header = ["header", 130700, "yClicPvrQ4Ul5sk4hbsrJ62drzli1tue/mf8TYW2dZU=", "Dq6o8Xg3qiUVzMpzXkKijFtlhFd66KQlw2qiN8x37KI=", "bZM+MzTkULo4gzZ8hBlZLqTfWDmvxCnSL684GZSFCn8=", 803559907, 13378, 3, "AAAAAAAAAAAAB4P1tQgLilI01L0VFKSUOcygSIIAAAA=", 2.3808044578490653e+21, 5982];
         //write_header(top_header, 670203372402906);
             write_header(top_header, 781489233254590);
@@ -368,7 +369,8 @@ function headers_main() {
         } else {
             n = top_header[1];
         }
-        var x = await rpc.apost(["headers", headers_batch + 1, n]);
+        //console.log([headers_batch+1, n]);
+        var x = await rpc.apost(["headers", headers_batch + 1, n+1]);
         absorb_headers(x);
     }
     function serialize_header(x) {
