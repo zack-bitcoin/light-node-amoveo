@@ -68,7 +68,7 @@ function copy_address(){
 
     copyToClipboard(pubkey_64());
 
-    //var p2p_url = url(8090, "159.89.87.58");
+    //var p2p_url = url(8090, "64.227.21.70");
     var p2p_msg2 = ["read", 2, "BJuFSK/rvU1hFktvgKMMmLTYZPJ0C2jQdEWv4FjeymsY0FiCVqw/rzdDydqA1yGqcOBVBYObxFFy1B5J68H+9L8="];
     rpc.default_explorer(p2p_msg2, function(X){
         console.log("sent message to p2p server.");

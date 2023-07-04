@@ -312,14 +312,14 @@ var ZYX = (function otc_finisher2() {
 
             //code for sending the signed channel close to the website.
 
-            //var p2p_url = url(8090, "159.89.87.58");
+            //var p2p_url = url(8090, "64.227.21.70");
             var p2p_msg = ["add", 2, imsg];
             rpc.default_explorer(p2p_msg, function(X){
                 console.log("sent message to p2p server.");
                 console.log(JSON.stringify(X))
             });
             console.log(keys.pub().toString());
-            //var p2p_url = url(8090, "159.89.87.58");
+            //var p2p_url = url(8090, "64.227.21.70");
             var p2p_msg2 = ["read", 2, theirAddress];
             rpc.default_explorer(p2p_msg2, function(X){
                 console.log("sent message to p2p server.");

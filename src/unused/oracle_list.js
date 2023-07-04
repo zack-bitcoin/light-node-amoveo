@@ -736,7 +736,7 @@ function showPositions(){
         internalNonce = 0;
 
 
-                            //var p2p_url = url(8090, "159.89.87.58");
+                            //var p2p_url = url(8090, "64.227.21.70");
                             var p2p_msg2 = ["read", 2, keys.pub()];
                             rpc.default_explorer(p2p_msg2, function(X){
                                 console.log("sent message to p2p server.");

@@ -149,7 +149,7 @@ var CBA = (function otc_listener() {
             rpc.post(["oracle", db.oid], function(x) {
                 var question;
                 if (x == 0) {
-                    //question = "UNKNOWN: this oracle has not yet been created. You can use this page http://159.89.87.58:8080/new_oracle.html to generate the same ID to verify what this contract is betting on.";
+                    //question = "UNKNOWN: this oracle has not yet been created. You can use this page http://64.227.21.70:8080/new_oracle.html to generate the same ID to verify what this contract is betting on.";
                     question = atob(y[23]);
                     var oracle_start = y[22];
                     var oid0 = y[9];
