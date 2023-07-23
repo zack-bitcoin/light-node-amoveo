@@ -12,7 +12,7 @@
     });
     div.appendChild(button);
     div.appendChild(br());
-    function make_bet(oid) {
+    async function make_bet(oid) {
         var from = keys.pub();
         var acc = await rpc.apost(["account", from]);
 	var nonce = acc[2] + 1;

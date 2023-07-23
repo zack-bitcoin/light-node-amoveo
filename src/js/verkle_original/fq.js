@@ -75,12 +75,11 @@ var fq = (function(){
         var V = pow(A*2n, ((N - 5n) / 8n));
         var AV = mul(A, V);
         var I = mul(mul(2n, AV), V);
-        var J = mul(AV, sub(I, 1n));
-        //console.log([A, V, AV, I, J, neg(J)]);
-        return([J, neg(J)]);
+        var R = mul(AV, sub(I, 1n));
+        return([R, neg(R)]);
     };
-    function is_positive(X){
-        var M = encode(X);
+    function is_positive(N){
+        var M = encode(N);
         return((M % 2n) == 0);
     };
 

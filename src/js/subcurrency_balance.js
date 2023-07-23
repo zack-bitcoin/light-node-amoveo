@@ -31,7 +31,9 @@ var subcurrency_balance = (function(){
         };
         var trie_key = sub_accounts.key(keys.pub(), cid, type);
         trie_key = btoa(array_to_string(trie_key));
-        var x = await rpc.apost(["sub_accounts", trie_key]);
+        var x = await rpc.apost(["sub_accounts", trie_key]);//this version is to see your zeroth confirmation balance.
+        //var x = await merkle.arequest_proof(
+        //    "sub_accounts", trie_key);
         var amount = 0;
         if(x[0] == "sub_acc"){
             amount = x[1];

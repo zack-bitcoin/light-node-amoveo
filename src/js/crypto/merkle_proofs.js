@@ -1,6 +1,7 @@
 function merkle_proofs_main() {
     async function averify(tree, key) {
 	const top_hash = hash(headers_object.serialize(headers_object.top()));
+        const trees_hash = headers_object.top()[3];
         
 	const proof = await rpc.apost(["proof", btoa(tree), key, btoa(array_to_string(top_hash))]);
         if ((proof[3] == "empty")||(proof[3]==0)) { return("empty"); };
@@ -10,9 +11,25 @@ function merkle_proofs_main() {
             console.log("a merkle");
 	    var val = verify_merkle(key, proof);
         } else {
-            console.log("a verkle");
-            var result = verkle.verify(top_hash, proof);
-            console.log(result);
+            //todo, verify that the top_hash matches in the proof.
+            //console.log("a verkle");
+            //console.log(proof);
+            var [proof2, leaves] = proof.slice(1);
+            //console.log(strip67(proof));
+            //[-7, [-6, "string", (3)], "string", [-6, "AAAAA...", (257)]]
+            //var result = verkle.verify(top_hash, strip67(proof));
+            //console.log("verkle to verify");
+            //console.log([proof2, strip67(proof2)]);
+            //console.log([strip67(leaves)]);
+            //console.log([trees_hash, strip67(proof2), strip67(leaves)]);
+            var result = verkle.verify(trees_hash, strip67(proof2), strip67(leaves));
+            if(result[0]){
+                //proof succeeded, return the correct val.
+                val = strip67(leaves)[0];//first element because we don't support batches yet.
+                console.log(val);
+            } else {
+                1+1n;
+            }
         };
         //example verkle [-7,
         //[-6, "b2n...", [...]],
@@ -26,6 +43,22 @@ function merkle_proofs_main() {
         //or it returns false.
 	return(val);
     }
+    function strip67(l) {
+        if(Array.isArray(l)){
+            if((l.length) === 0) {
+                return(l);
+            };
+            if(l[0] === -6) {
+                return(strip67(l.slice(1)));
+            };
+            if(l[0] === -7) {
+                return(strip67(l.slice(1)));
+            };
+            return(l.map(function(x) {return(strip67(x))}));
+        } else {
+            return(l);
+        };
+    };
     function hash_member(hash, members) {
         for (var i = 0; i < members.length; i++) {
             var h2 = members.slice(32*i, 32*(i+1));

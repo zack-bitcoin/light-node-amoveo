@@ -18,11 +18,11 @@
     subcurrency_combiner.contract_id(cid);
 
     swap_offer.timelimit("10");
-    swap_offer.amount1("1010000");
-    swap_offer.amount2("1010000");
+    swap_offer.amount1("2010000");
+    swap_offer.amount2("1000000");
     //swap_offer.cid2(cid);
-    swap_offer.cid2("dD76riHgEABZxODlZHgy74/3V8In7gk+xoPjUieUB2M=");
-    swap_offer.type2("1");
+    swap_offer.cid1("h8wgjLqkBkxxj5XodJA30Lj7cySCtJ3egSS3JFX4Pb4=");
+    swap_offer.type1("1");
     /*
     */ 
 //    resolve_binary_contract.oracle_height(start_height);

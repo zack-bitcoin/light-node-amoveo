@@ -26,9 +26,10 @@ var verkle_binary = (function(){
         //this is not the inverse function of array_to_int.
         //because array to int is accepting big endian encoded binaries, but integer_to_array is returning little endian encoded binaries.
         var a = [];
+        i = BigInt(i);
         for ( var b = 0; b < size ; b++ ) {
             
-            c = ((i % 256n) + 256n) % 256n;
+            c = ((BigInt(i) % 256n) + 256n) % 256n;
             a.push(Number(c));
             i = i/256n;
         }

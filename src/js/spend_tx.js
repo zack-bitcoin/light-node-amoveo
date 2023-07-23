@@ -46,13 +46,14 @@ var spend_tx = (function () {
     async function afee_lookup(to, callback){
         var acc = await rpc.apost(["account", to]);
         var tx_type = "spend";
-        var gov_id = 15;
+        //var gov_id = 15;
         if((acc === 0) || (acc === "empty")){
             tx_type = "create_acc_tx";
-            gov_id = 14;
+        //    gov_id = 14;
         };
-	var gov_fee = await merkle.arequest_proof("governance", gov_id);
-	var fee = tree_number_to_value(gov_fee[2]) + 50;
+	//var gov_fee = await merkle.arequest_proof("governance", gov_id);
+	//var fee = tree_number_to_value(gov_fee[2]) + 50;
+        var fee = 151118 + 50;
         return([fee, tx_type]);
     };
     async function amake_tx(to, from, amount){

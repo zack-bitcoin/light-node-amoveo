@@ -35,6 +35,7 @@ function keys_function1() {
         var watch_only_instructions = document.createTextNode("put your pubkey here to make a watch-only wallet that is unable to spend money.");
         var watch_only_pubkey = document.createElement("input");
         watch_only_pubkey.type = "text";
+        watch_only_pubkey.value = "BIVZhs16gtoQ/uUMujl5aSutpImC4va8MewgCveh6MEuDjoDvtQqYZ5FeYcUhY/QLjpCBrXjqvTtFiN4li0Nhjo=";
         var watch_only_button = button_maker2("load pubkey", watch_only_func); 
     }
     var pub_div = document.createElement("div");

@@ -40,6 +40,7 @@
     div.appendChild(make_id);
     glossary.link(div, "oracle_id");
     div.appendChild(br());
+    /*
     var gov_title = document.createElement("h3");
     gov_title.innerHTML = "new governance oracle";
     div.appendChild(gov_title);
@@ -53,7 +54,8 @@
     div.appendChild(br());
     var gov_button = button_maker2("make governance oracle", gov_maker);
     div.appendChild(gov_button);
-
+    */
+    /*
     div.appendChild(br());
     var amoveo_futarchy_title = document.createElement("h3");
     amoveo_futarchy_title.innerHTML = "amoveo governance futarchy oracle";
@@ -69,6 +71,7 @@
     div.appendChild(br());
     var futarchy_button = button_maker2("amoveo governance futarchy oracle", governance_futarchy_oracle);
     div.appendChild(futarchy_button);
+    */
     div.appendChild(br());
     
     async function governance_futarchy_oracle() {

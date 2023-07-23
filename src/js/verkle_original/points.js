@@ -13,32 +13,21 @@ var points = (function(){
     
     function compressed2affine(X0){
         //base64 encoded to affine.
-        var X = verkle_binary.string_to_array(atob(X0));
+        var X = string_to_array(atob(X0));
         return(compressed2affine2(X));
     };
     function compressed2affine2(X){
         // array encoded to affine.
-        if(!(X.length === 32)){
-            console.log("bad length");
-            1+1n;
-        };
         var B1 = X[0];
         var P = JSON.parse(JSON.stringify(X));
         var S;
-        if (B1 >= 128) {
+        if (B1 > 128) {
             P[0] = P[0] - 128;
             S = 1n;
         } else {
             S = 0n;
         };
-        var U0 = verkle_binary.array_to_int(P);
-        if(U0 > fq.order()) {
-            console.log(P[0]);
-            console.log(U0);
-            console.log(fq.order());
-            console.log("failure");
-            1+1n;
-        };
+        var U0 = array_to_int(P);
         var U = fq.decode(U0);
         var UU = fq.mul(U, U);
         var DUU = fq.sub(1n, fq.mul(D, UU));
@@ -48,17 +37,17 @@ var points = (function(){
     };
     function compressed2affine_batch(l){
         var q = l.map(function(x){
-            var y = verkle_binary.string_to_array(atob(x));
+            var y = string_to_array(atob(x));
             var b1 = y[0];
             var p = JSON.parse(JSON.stringify(y));
             var s;
-            if(b1 >= 128){
+            if(b1 > 128){
                 p[0] = p[0] - 128;
                 s = 1n;
             } else {
                 s = 0n;
             };
-            var u = fq.decode(verkle_binary.array_to_int(p));
+            var u = fq.decode(array_to_int(p));
             var uu = fq.mul(u, u);
             var duu = fq.sub(1n, fq.mul(D, uu));
             var t = fq.add(1n, uu);
@@ -102,13 +91,12 @@ var points = (function(){
             var V;
             if(SB == S2){ V = V1; }
             else { V = V2; }
+            //console.log([U, V]);
+            //console.log(Point.BASE);
             var P = new Point(U, V);
             var OnCurve = is_on_curve(P);
-            if(OnCurve){
-                return(P);}
-            else{
-                return(["error", "not on curve"])
-            };
+            if(OnCurve){return(P);}
+            else{return(["error", "not on curve"])};
         };
     };
     function affine2compressed(p) {
@@ -118,11 +106,11 @@ var points = (function(){
         var x = p.x;
         var y = p.y;
         var x2 = fq.encode(x);
-        var arr = verkle_binary.integer_to_array(x2, 32).reverse();
+        var arr = integer_to_array(x2, 32).reverse();
         if(!(fq.is_positive(y))){
             arr[0] = arr[0] + 128;
         };
-        var result = verkle_binary.array_to_string(arr);
+        var result = array_to_string(arr);
         return(btoa(result));
     };
     function clear_torsion(p) {
@@ -130,29 +118,14 @@ var points = (function(){
         var p2 = p.double().double().double();
         return(p2);
     };
-    function hash2(p){
-        //returns a 32 byte fr encoded value.
-        if(p instanceof Extended){
-            var p2 = clear_torsion(p);
-            var p3 = p2.toAffine();
-            var p4 = affine2compressed(p3);//in base64
-            var bin = verkle_binary.string_to_array(atob(p4));
-            var n = verkle_binary.array_to_int(bin);
-            var p5 = fr.encode(n);
-            var p6 = btoa(verkle_binary.array_to_string(verkle_binary.integer_to_array(p5, 32)));
-            return(p6);
-        } else {
-            return(["error", "hash of this is not implemented"]);
-        };
-    };
     function point_hash(p){
-        //returns an integer less than the group order.
         if(p instanceof Extended){
             var p2 = clear_torsion(p);
             var p3 = p2.toAffine();
             var p4 = affine2compressed(p3);//in base64
-            var bin = verkle_binary.string_to_array(atob(p4));
-            var n = verkle_binary.array_to_int(bin);
+            var bin = string_to_array(atob(p4));
+            //var n = array_to_int(string_to_array(bin).reverse());
+            var n = array_to_int(bin);
             var result = (n % EllipticGroupOrder);
             return(result);
         } else {
@@ -180,9 +153,7 @@ var points = (function(){
         if(!(a instanceof Extended)){
             return(["error", "error, can only  mupltiply extended points, a"]);
         };
-        r = r % EllipticGroupOrder;
-        //console.log([a, r]);//[point, bigint]
-        return(a.multiplyUnsafe(r));
+           return(a.multiplyUnsafe(r));
     };
     function add(a, b){
         if(!(a instanceof Extended)){
@@ -201,8 +172,8 @@ var points = (function(){
     };
     function gen_point(x) {
         //there are 513 generator points. so x is an integer from 0 to 512.
-        var a = verkle_binary.integer_to_array(BigInt(x), 32);
-        var h = verkle_hash(a);
+        var a = integer_to_array(BigInt(x), 32);
+        var h = hash(a);
         //console.log(a);
         //console.log(h);
         return gen_point2(h);
@@ -213,9 +184,9 @@ var points = (function(){
         var b = compressed2affine2(x);
         if(b[0] === "error"){
             //console.log("gen point next");
-            var n = verkle_binary.array_to_int(x);
+            var n = array_to_int(x);
             var n2 = n+1n;
-            var x2 = verkle_binary.integer_to_array(n2, 32).reverse();
+            var x2 = integer_to_array(n2, 32).reverse();
             //console.log(x);
             //console.log(x2);
             return(gen_point2(x2));
@@ -293,8 +264,8 @@ var points = (function(){
         var p0 = "Zmh6rfhivXdsj8GLjp+OIAiXFIVu4jOzkCpZHQ1fKSU=";
         var a0 = compressed2affine(p0);
         var e0 = Extended.fromAffine(a0);
-        var h0 = verkle_hash(e0);
-        var h1 = verkle_binary.array_to_int(verkle_binary.string_to_array(atob("3EGjINsYRlYMN3Hyv/98ZiQyvZDbWhpzqNy/BTjI8Qs=")).reverse(), 32);
+        var h0 = hash(e0);
+        var h1 = array_to_int(string_to_array(atob("3EGjINsYRlYMN3Hyv/98ZiQyvZDbWhpzqNy/BTjI8Qs=")).reverse(), 32);
         console.log(h0);
         console.log(fr.decode(h1));
 
@@ -324,7 +295,6 @@ var points = (function(){
         extended2affine_batch: extended2affine_batch,
         is_on_curve: is_on_curve,
         hash: point_hash,
-        hash2: hash2,
         extended_zero: extended_zero,
         eq: eq,
         a_eq: a_eq,

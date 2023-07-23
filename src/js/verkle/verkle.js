@@ -56,6 +56,8 @@ var verkle = (function(){
     };
     //verify2
     function fill_points(pts, tree, result){
+        //console.log("fill points\n");
+        //console.log(pts);
         if(tree.length === 0){
             //console.log("finished filling points");
             return([result.reverse(), pts]);
@@ -70,16 +72,22 @@ var verkle = (function(){
                 pts, tree.slice(1),
                 [tree[0]].concat(result)));
         }
-        if(pts.length === 0){
-            console.log("ran out of points");
-            1+1n;
-        };
+//        if((pts.length === 0)){
+//            console.log("ran out of points");
+//            console.log([tree, result]);
+//            1+1n;
+//        };
            
         if((tree[0] instanceof Array)&&
            (tree[0].length === 2)&&
            (typeof(tree[0][0]) === 'number')&&
            (typeof(tree[0][1]) === 'string')
           ){
+            if((pts.length === 0)){
+                console.log("ran out of points");
+                console.log([tree, result]);
+                1+1n;
+            };
             return(fill_points(
                 pts.slice(1), tree.slice(1),
                 [[tree[0][0], pts[0]]]
@@ -92,6 +100,11 @@ var verkle = (function(){
                                t2.concat(result)));
         };
         if(typeof(tree[0]) === 'string'){
+            if((pts.length === 0)){
+                console.log("ran out of points");
+                console.log([tree, result]);
+                1+1n;
+            };
             var s = atob(tree[0]);
             var a = verkle_binary.string_to_array(s);
             return(fill_points(
@@ -103,8 +116,16 @@ var verkle = (function(){
                            [tree[0]].concat(result)));
     };
     function leaf_hash(key, val){
-        var key2 = verkle_binary.string_to_array(atob(key));
-        var val2 = verkle_binary.string_to_array(atob(val));
+        if(!((typeof(key) === "string"))){
+            1+1n;
+        };
+        if(!((typeof(val) === "string"))){
+            1+1n;
+        };
+        //var key2 = verkle_binary.string_to_array(atob(key));
+        //var val2 = verkle_binary.string_to_array(atob(val));
+        var key2 = key;
+        var val2 = val;
         var leaf = key2.concat(val2);
         var h = verkle_hash(leaf);
         var n = verkle_binary.array_to_int(h);
@@ -112,15 +133,16 @@ var verkle = (function(){
         return(result);
     };
     function unfold(root, rest, r){
-        //empty case
         if(!(rest)){
             console.log("error, rest does not exist.");
             1+1n;
             return(0);
         }
+        //empty case
         if((rest instanceof Array) &&
            (rest.length === 2) &&
-           (rest[1] === 0n)){
+           ((rest[1] === 0n)||
+            (rest[1] === 0))){
             console.log("empty case");
             var result = [[root, rest[0], 0n]]
                 .concat(r);
@@ -165,52 +187,663 @@ var verkle = (function(){
             return(first.concat(second));
         };
         console.log("unfold failure. unhandled case");
+        console.log(rest);
         return("error");
     };
     function decompress_proof(open0, tree0, commitg0){
+        //verify_verkle:decompress_proof
         var cpl = compressed_points_list(tree0);
         if(cpl.length === 0){
             console.log("error, nothing to prove");
+            1+u1;
             return("error");
         };
         var list = [commitg0].concat(cpl);
-        var list2 = points.affine2extended(
-            points.compressed2affine_batch(list));
+        //console.log(list);
+        //console.log(points.compressed2affine_batch([commitg0]));
+        var list1 = points.compressed2affine_batch(list);
+        //console.log(list1);
+        if(list1[0][0] === "error"){
+            console.log("error, invalid commit point in proof");
+            console.log(commitg0);
+            console.log(list1[0]);
+            console.log(points.compressed2affine(commitg0));
+            console.log(points.compressed2affine_batch([commitg0]));
+            1+u1;
+            return("error");
+        };
+        var list2 = points.affine2extended(list1);
         var commitg = list2[0];
-       var decompressed = list2.slice(1);
-        var tree = fill_points(decompressed, tree0, [])[0];
+        var decompressed = list2.slice(1);
+        var tree;
+        if(decompressed.length === 0) {
+            tree = tree0;
+        } else {
+            tree = fill_points(
+                decompressed, tree0, [])[0];
+        }
         var root1 = decompressed[0];
-        return([tree, open0, root1, commitg]);
+        var open = open0.map(function(x){
+            return(verkle_binary.array_to_int(
+                verkle_binary.string_to_array(x)));
+        });
+        return([tree, open, root1, commitg]);
     };
-    function verify(root0, proof){
+    function trees2_to_keys(l) {
+        return(l.map(function(x){return(trees2_key(x))}));
+    };
+    function a2as(x){
+        //byte array to ascii
+        return(btoa(verkle_binary.array_to_string(x)));
+    };
+    function as2a(x){
+        //ascii to byte array
+        return(verkle_binary.string_to_array(atob(x)));
+    };
+    function whash(x){
+        //byte array to ascii
+        return(a2as(verkle_hash(x)));
+    };
+        
+    function trees2_key(x) {
+        //todo, other keys besides acc.
+        var key;
+        if(x[0] === "acc"){
+            var pub = x[3];
+            var pub2 = trees2_compress_pub(pub);
+            //return(verkle_hash(string_to_array(atob(pub2))));
+            return(whash(pub2));
+        };
+        if(x[0] === "oracle"){
+            var id = x[1];
+            var s = as2a(id).concat([0]);
+            return(whash(s));
+        };
+        if(x[0] === "matched"){
+            var acc = x[1];
+            var acc2 = trees2_compress_pub(acc);
+            var oracle = x[2];
+            var s = as2a(acc2)
+            var s = acc2.concat(as2a(oracle)).concat([1]);
+            return(whash(s));
+        };
+        if(x[0] === "unmatched_head"){
+            //var head = x[1];
+            //var many = x[2];
+            var oid = x[3];
+            var s = as2a(oid).concat([2]);
+            return(whash(s));
+        };
+        if(x[0] === "unmatched"){
+            var acc = x[1];
+            var oracle = x[2];
+            var acc2 = trees2_compress_pub(acc);
+            if(JSON.stringify(acc2) === JSON.stringify([
+                0,0,0,0,0,0,0,0,
+                0,0,0,0,0,0,0,0,
+                0,0,0,0,0,0,0,0,
+                0,0,0,0,0,0,0,0,
+                0,0,0,0,0,0,0,0,
+                0,0,0,0,0,0,0,0,
+                0,0,0,0,0,0,0,0,
+                0,0,0,0,0,0,0,1])){
+                var s = as2a(oracle).concat([2]);
+                return(whash(s));
+            }
+            var s = acc2.concat(as2a(oracle)).concat([3]);
+            return(whash(s));
+        };
+/*        if(x[0] === "oracle_bets"){
+            //var t = x[1];
+            //var f = x[2];
+            //var b = x[3];
+            var id = x[4];
+            var s = as2a(id);
+            return(whash(s));
+        };
+        if(x[0] === "orders"){
+            var aid = x[1];
+            var s = as2a(aid);
+            return(whash(s));
+        };
+*/
+        if(x[0] === "sub_acc"){
+            //sub_accounts:make_key(P, CID, T);%65+32+32 = 129 bytes
+            var pubkey = x[3];
+            var type = x[5];
+            var cid = x[4];
+            
+            var s = as2a(pubkey).concat(as2a(cid)).concat(integer_to_array(type, 32));
+            return(whash(s));
+        };
+        if(x[0] === "contract"){
+            var code = x[1];
+            var many_types = x[2];
+            var source = x[8];
+            var source_type = x[9];
+            var s = as2a(code)
+                .concat(as2a(source))
+                .concat(integer_to_array(many_types, 2))
+                .concat(integer_to_array(source_type, 2));
+            console.log("contract serialized");
+            console.log(s);
+            return(whash(s));
+    //contracts:make_id(C, MT, S, ST);%32+32+2+2 = 68 bytes.
+        };
+        if(x[0] === "trade"){
+            var value = x[2];
+            var s = as2a(value).concat([6]);
+            return(whash(s));
+        };
+        if(x[0] === "market"){
+            var id = x[1];
+            var s = as2a(id).concat([7]);
+            console.log("market id maker");
+            console.log(id);
+            console.log(as2a(id));
+            console.log(s);
+            return(whash(s));
+        };
+        if(x[0] === "receipt"){
+            var id = x[1];
+            var s = as2a(id).concat([8]);
+            return(whash(s));
+        };
+        1+u1;
+    };
+    function trees2_compress_pub(pub){
+        //ascii -> array of bytes.
+        var p_1_264 = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAB";
+        var p_1_520 = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAE=";
+        var p_0_520 = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=";
+        var p_0_264 = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
+        if((pub === p_1_264) || (pub === p_1_520)){
+            return p_1_264;
+        };
+        if((pub === p_0_264) || (pub === p_0_520)){
+            return p_0_264;
+        };
+        var pub2 = string_to_array(atob(pub));
+        if((pub2.length == 65) && (pub2[0] === 4)){
+            var x = pub2.slice(1, 33);
+            var y = array_to_int(pub2.slice(33));
+            var positive = y % 2;
+            return([(6+positive)].concat(x));
+        }
+        1+u1;
+    };
+    function trees2_compress_pub(pub){
+        //ascii -> array of bytes.
+        var p_1_264 = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAB";
+        var p_1_520 = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAE=";
+        var p_0_520 = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=";
+        var p_0_264 = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
+        if((pub === p_1_264) || (pub === p_1_520)){
+            return p_1_264;
+        };
+        if((pub === p_0_264) || (pub === p_0_520)){
+            return p_0_264;
+        };
+        var pub2 = string_to_array(atob(pub));
+        if((pub2.length == 65) && (pub2[0] === 4)){
+            var x = pub2.slice(1, 33);
+            var y = array_to_int(pub2.slice(33));
+            var positive = y % 2;
+            return([(6+positive)].concat(x));
+        }
+        1+u1;
+    };
+    function trees2_serialize(x) {
+            //returns an array of bytes
+        if(x[0] === "acc"){
+            //need pubkey, nonce, and balance.
+            var balance = integer_to_array(x[1], 8);
+            var nonce = integer_to_array(x[2], 4);
+            var pub = x[3];
+            var pub2 = trees2_compress_pub(pub);
+            //console.log(pub2);
+            //var pub3 = string_to_array(atob(pub2));
+    //<<Pub2/binary, Balance:64, Nonce:32>>;
+            return(pub2.concat(balance).concat(nonce));
+        };
+        if(x[0] === "oracle"){
+            var id = x[1];
+            var result = x[2];
+            var question = x[3];
+            var starts = x[4];
+            var type = x[5];
+            var creator = x[8];
+            var done_timer = x[9];
+            var orders_hash = x[7];
+
+            var creator2 = trees2_compress_pub(creator);
+            var s = as2a(id)
+                .concat([result])
+                .concat([type])
+                .concat(verkle_binary.integer_to_array(starts, 4))
+                .concat(verkle_binary.integer_to_array(done_timer, 4))
+                .concat(creator2)
+                .concat(as2a(question))
+                .concat(as2a(orders_hash));
+            return(s);
+        };
+        if(x[0] === "matched"){
+            var account = x[1];
+            var oracle = x[2];
+            var t = x[3];
+            var f = x[4];
+            var bad = x[5];
+
+            var a2 = trees2_compress_pub(account);
+            var s = a2
+                .concat(as2a(oracle))
+                .concat(verkle_binary.integer_to_array(t, 8))
+                .concat(verkle_binary.integer_to_array(f, 8))
+                .concat(verkle_binary.integer_to_array(bad, 8));
+            return(s);
+        };
+        if(x[0] === "unmatched"){
+            var account = x[1];
+            var oracle = x[2];
+            var amount = x[3];
+            var pointer = x[4];
+
+            var a2 = trees2_compress_pub(account);
+            var p2 = trees2_compress_pub(pointer);
+            var s = a2
+                .concat(as2a(oracle))
+                .concat(verkle_binary.integer_to_array(amount, 8))
+                .concat(p2);
+            return(s);
+        };
+        if(x[0] === "unmatched_head"){
+            var head = x[1];
+            var many = x[2];
+            var oid = x[3];
+
+            var zero8 = [0,0,0,0,0,0,0,0];
+            var zero16 = zero8.concat(zero8);
+            var zero32 = zero16.concat(zero16);
+            var zero64 = zero32.concat(zero32);
+            var zero65 = zero64.concat([0]);
+
+            var head2 = trees2_compress_pub(head);
+
+            var s = zero65
+                .concat(as2a(oid))
+                .concat(verkle_binary.integer_to_array(many, 8))
+                .concat(head2);
+            return(s);
+        };
+        if(x[0] === "sub_acc"){
+            var balance = x[1];
+            var nonce = x[2];
+            var pubkey = x[3];
+            var cid = x[4];
+            var type = x[5];
+
+            var p2 = trees2_compress_pub(pubkey);
+            var s = verkle_binary.integer_to_array(balance, 8)
+                .concat(verkle_binary.integer_to_array(nonce, 4))
+                .concat(verkle_binary.integer_to_array(type, 4))
+                .concat(p2)
+                .concat(as2a(cid));
+            return(s);
+        };
+        if(x[0] === "contract"){
+            var code = x[1];
+            var many_types = x[2];
+            var nonce = x[3];
+            var lm = x[4];
+            var delay = x[5];
+            var closed = x[6];
+            var result = x[7];
+            var source = x[8];
+            var source_type = x[9];
+            var sink = x[10];
+            var volume = x[11];
+
+            var s = as2a(code)
+                .concat(as2a(result))
+                .concat(as2a(source))
+                .concat(as2a(sink))
+                .concat(verkle_binary.integer_to_array(source_type, 2))
+                .concat(verkle_binary.integer_to_array(many_types, 2))
+                .concat(verkle_binary.integer_to_array(nonce, 4))
+                .concat(verkle_binary.integer_to_array(delay, 4))
+                .concat([closed])
+                .concat(verkle_binary.integer_to_array(volume,8));
+            return(s);
+        };
+        if(x[0] === "trade"){
+            var height = x[1];
+            var value = x[2];
+
+            var s = as2a(value)
+                .concat(verkle_binary.integer_to_array(height,4));
+            return(s);
+        };
+        if(x[0] === "market"){
+            var id = x[1];
+            var c1 = x[2];
+            var t1 = x[3];
+            var a1 = x[4];
+            var c2 = x[5];
+            var t2 = x[6];
+            var a2 = x[7];
+            var shares = x[8];
+            var s = as2a(id)
+                .concat(as2a(c1))
+                .concat(as2a(c2))
+                .concat(verkle_binary.integer_to_array(t1, 2))
+                .concat(verkle_binary.integer_to_array(t2, 2))
+                .concat(verkle_binary.integer_to_array(a1, 8))
+                .concat(verkle_binary.integer_to_array(a2, 8))
+                .concat(verkle_binary.integer_to_array(shares, 8));
+            return(s);
+        };
+        if(x[0] === "receipt"){
+            var tid = x[2];
+            var pub = x[3];
+            var nonce = x[4];
+
+            var p2 = trees2_compress_pub(pub);
+            var s = as2a(tid)
+                .concat(p2)
+                .concat(verkle_binary.integer_to_array(nonce, 4));
+            return(s);
+        };
+        1+1n;
+    };
+    function restore_leaves_proof(proofs, leaves) {
+        //a clone of the function from trees2.erl
+
+//restore_leaves_proof([], T) -> {[], T};
+        if((proofs instanceof Array) &&
+           ((proofs.length) === 0)) {
+            console.log("restore leaves case 1");
+            return([[], leaves]);
+        };
+//restore_leaves_proof([{I, 0}], T) -> 
+//    {[{I, 0}], T};
+        if((proofs instanceof Array) &&
+           ((proofs.length) === 1) &&
+           ((proofs[0] instanceof Array)) &&
+           ((proofs[0].length === 2)) &&
+           ((proofs[0][1] === 0))){
+            console.log("restore leaves case 2");
+            return([[proofs[0][0], 0], leaves]);
+        };
+//restore_leaves_proof(X, [{Tree, K}|T]) ->
+//% skip empty slot
+//    restore_leaves_proof(X, T);
+        if((leaves instanceof Array) &&
+           (leaves[0] instanceof Array) &&
+           (leaves[0].length === 2)){
+            console.log("restore leaves case 3 - skip empty slot");
+            return(restore_leaves_proof(proofs, leaves.slice(1)));
+        };
+        /*
+restore_leaves_proof([{I, 1}], [L|T]) -> 
+    case L of
+        {Tree, Key} -> 
+            {[{I, 0}], T};
+        _ -> 
+            V = hash:doit(serialize(L)),
+            K = key(L),
+            {[{I, {K, V}}], T}
+    end;
+        */
+        if((proofs instanceof Array) &&
+           ((proofs.length) === 1) &&
+           ((proofs[0] instanceof Array)) &&
+           ((proofs[0].length === 2)) &&
+           ((proofs[0][1] === 1))){
+            var l = leaves[0];
+            var t = leaves.slice(1);
+            if((l instanceof Array) &&
+               (l.length === 2)){
+                console.log("restore leaves case 4");
+                return([[[proofs[0][0], 0]], t]);
+            };
+            console.log("restore leaves case 5");
+            //console.log(l);
+            //console.log(trees2_serialize(l));
+            var v = btoa(verkle_binary.array_to_string(verkle_hash(trees2_serialize(l))));
+            var k = trees2_key(l);
+            var i = proofs[0][0];
+            //console.log([i, k, v]);
+            return([[[i, [k, v]]], t]);
+        };
+        
+        /*
+restore_leaves_proof(Proofs, Leaves) 
+  when is_tuple(Proofs) -> 
+    {Proofs2, Leaves2} = 
+        restore_leaves_proof(
+          tuple_to_list(Proofs), Leaves),
+    {list_to_tuple(Proofs2), Leaves2};
+restore_leaves_proof([H|T], L) -> 
+    {H2, L2} = restore_leaves_proof(H, L),
+    {T2, L3} = restore_leaves_proof(T, L2),
+    {[H2|T2], L3};
+        */
+        if((proofs instanceof Array) &&
+           (proofs.length > 0)) {
+            //console.log("restore leaves case 6");
+            //console.log(proofs);
+            var [h2, leaves2] =
+                restore_leaves_proof(
+                    proofs[0], leaves);
+            var [t2, leaves3] =
+                restore_leaves_proof(
+                    proofs.slice(1), leaves2);
+            return([([h2]).concat(t2), leaves3]);
+        };
+//restore_leaves_proof(X, L) when is_integer(X) ->
+//    {X, L}.
+        if(Number.isInteger(proofs)){
+            console.log("restore leaves case 7");
+            return([proofs, leaves]);
+        };
+        /*
+restore_leaves_proof(<<X:256>>, L) ->
+    {<<X:256>>, L};
+        */
+        if(typeof(proofs) === "string"){
+            //console.log("restore leaves case 8");
+            return([proofs, leaves]);
+        }
+        return(0);
+    };
+    function verify(root0, proof, things){
+        //trees2:verify_proof
+        var proof2 = restore_leaves_proof(proof, things)[0];
+        console.log(proof);
+        console.log("after restore leaves proof");
+        console.log(things);
+        console.log(proof2[0]);
+        var bool = verkle_verify(root0, proof2);
+
+        if(!(bool[0] === true)){
+            console.log("invalid verkle proof.");
+            1+u1;
+        };
+        var leaves = bool[1];
+        var proof_tree = bool[2];
+        var ks = trees2_to_keys(things);
+
+        var hs = things.map(function(a){
+            if((a instanceof Array) &&
+               (a.length === 2) &&
+               (typeof(a[0]) === "string")){
+                return(0);
+            } else {
+                return(verkle_hash(trees2_serialize(a)));
+            };
+        });
+
+        var khs = ks.map(function(e, i){return([e, btoa(verkle_binary.array_to_string(hs[i]))])});
+        var is_valid = merge_same(khs, leaves);
+        return([is_valid, proof_tree]);
+    };
+    function merge_same(need, got){
+        //from trees2
+        //need and got are Arrays.
+        if((need.length === 0) //&&
+         //  (got.length === 0)
+          ){
+            console.log("merge same done");
+            return(true);
+        };
+        if((need[0][0] === got[0][1][0]) &&
+           Number.isInteger(got[0][0])){
+            console.log("merge same case 1");
+            return(merge_same(need.slice(1), got));
+        };
+        if((need[0][1] === 0) &&
+           (got[0].length === 2) &&
+           (got[0][1].length === 2) &&
+           (Number.isInteger(got[0][0]))){
+            console.log("merge same case 2");
+            var key = need[0][0];
+            var d = got[0][0];
+            var lkey = got[0][1][0];
+            var val = got[0][1][1];
+            var t2 = got.slice(1);
+
+            var key2 = leaf_verkle_path_maker(key);
+            var lkey2 = leaf_verkle_path_maker(lkey);
+
+            if(key === lkey){
+                console.log("can't double store in a batch");
+                1 + u1;
+            };
+
+            var ssd = starts_same_depth(key2, lkey2, d);
+            if(ssd === true){
+                return(merge_same(
+                    need.slice(1),
+                    ([[d, [lkey, val]]]).concat(t2)));
+            };
+            if(ssd === skip){
+                return(merge_same([[key, 0]].concat(t1), t2));
+            };
+            if(ssd === false){
+                1 + u1;
+            }
+            1+ 1n;
+        };
+        if((need[0][1] === 0) &&
+           (got[0][1] === 0)){
+            console.log("merge same case 3");
+            var key = need[0][0];
+            var key2 = leaf_verkle_path_maker(key);
+            var branch = got[0][0];
+            var bool = starts_same(
+                key2, branch.slice().reverse());
+            if(bool){
+                return(merge_same(
+                    need.slice(1),
+                    [[branch, 0]].concat(t2)));
+            } else {
+                return(merge_same(
+                    [[key, 0]].concat(need.slice(1)),
+                    got.slice(1)));
+            }
+        };
+        if(got[0][1] === 0){
+            //nothing left to match on this branch.
+            console.log("merge same case 4");
+            merge_same(need, got.slice(1));
+        };
+        if((got[0][1].length === 2) &&
+           (Number.isInteger(got[0][0])) &&
+           (typeof(got[0][1][0]) === "string") &&
+           (typeof(got[0][1][1]) === "string")){
+               //nothing left to match on this leaf
+            console.log("merge same case 5");
+            merge_same(need, got.slice(1));
+        };
+        console.log("merge same uncaught situation");
+        console.log([need, got]);
+    };
+    function starts_same(key, branch){
+        //check that the first part of key completely matches branch, one byte at a time.
+        //return true or false
+        console.log(key1);
+        console.log(branch);
+        1+1n;
+    };
+    function starts_same_depth(key1, key2, d){
+        //check that the first part of key1 completely matches the first part of key2. check d many bytes.
+        //return true or false or skip.
+        // when a mismatch is found within D, if key2 has a lower valued byte than key1, return skip. if key1 is lower, then return false. if they match up to d, then return true.
+        console.log(key1);
+        console.log(key2);
+        console.log(d);
+        1+1n;
+    };
+    function leaf_verkle_path_maker(s) {
+        if(!(Number.isInteger(s))){
+            1+u1;
+        };
+        var a = verkle_binary.integer_to_array(s, 32);
+        //the erlang version had a list of bytes, this is a list of integers.
+        return(a);
+        
+    };
+    function verkle_verify(root0, proof){
+        //this is like verify in the verkle repository.
         var [tree0, commitg0, open0] = proof;
-        var [tree, open0, root1, commitg] =
+        //console.log("verkle verify");
+        //console.log(commitg0);
+        var [tree, open, root1, commitg] =
             decompress_proof(open0, tree0, commitg0);
+        //console.log([tree0, tree]);
+        //1 + 1n;
+        //console.log("tree is");
+        //console.log(tree);
+        //console.log(tree0);
         //tree should be [rootpoint, {0, pt},[{186, pt},{115, l}], [{187, pt}, {115, l}],[{188, pt}, {115, l}]]
         var root = tree[0];
-        var rest = tree.slice(1);//e
+        var rest = tree.slice(1);//rest has lists of bytes, when it should have base64 encoded strings.
+
+        //var proof2 = restore_leaves_proof(rest, leaves)[0];
 
         var domain = precomputes.domain();
-        console.log(root0); //binary length 32
-        console.log([root1, root, root0]);
-        if(!(points.eq(root1, root0))){
+        if(!((points.hash2(root)) === root0)){
+            console.log([root, root0]);
+            console.log(points.hash2(root));
             console.log("verify fail unequal roots 0");
-            return(false);
+            return([false]);
         };
         if(!(points.eq(root1, root))){
             console.log("verify fail unequal roots 1");
-            return(false);
+            return([false]);
         };
             //rest should be [{0, pt},[{186, pt},{115, l}], [{187, pt}, {115, l}],[{188, pt}, {115, l}]]
         //return(0);
+        console.log("verify about to unfold");
+        console.log([root, rest]);//rest has stuff like [115, ["keyAAAAAA", "ValAAAAAA"]]
         var tree2 = unfold(root, rest, []);
+        //console.log(tree2);//[[pt, int, bigint], ...]
+        //1 + 1n;
+        //var tree2 = unfold(root, proof2, []);
         var [commits, zs0, ys] = split3parts(tree2);
         var zs1 = index2domain(zs0);
+        var zs = zs1.map(function(x){
+            return(fr.encode(x));});
+        //console.log(zs[0]);
+        //console.log([commitg, open, commits, zs, ys]);
+        // point, 256 ints, 6 points, 6 ints, 6 ints
+        //1+1n;
         var b2 = multiproof.verify(
-            [commitg, open0], commits, zs1, ys);
+            //[commitg, open0], commits, zs1, ys);
+            [commitg, open], commits, zs, ys);
         if(!(b2)){
             console.log("verify fail, multiproof verify");
-            return(false);
+            return([false]);
         };
         return([true, leaves(rest), tree]);
 
@@ -248,8 +881,8 @@ var verkle = (function(){
            (typeof(r[1][1]) === 'string')){
             return([r]);
         };
-        return([leaves(r[0]).concat(
-            leaves(r.slice(1)))]);
+        return(leaves(r[0]).concat(
+            leaves(r.slice(1))));
     };
     function test(){
         var root = "kw9EIb+hCX0VL5MAcv4tdLq7UyPEF/wHBV2Nj6FCSGptCA6y0RKWgk7crzvXtKDW9FLFEA6emxCChsCcSShbVSYAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAZ3mYcSRygmoZh/CTWUvnknDXH9wrz7Cp4K3AuoCP/jk=";
@@ -530,7 +1163,9 @@ var verkle = (function(){
   "oc7KG5r9pAOSeAypV+sMv4mpY6eZb/FlwRqoIcw9+QA="]];
         var opening =
             multiproof.decode_helper(proof[2]);
-        return(verify(root, [proof[0], proof[1], opening]));
+        root = "78xQJBcuSQGEioAqZK2Njt4h69FISZ6ZzobeW+CqQQk=";
+        return(verkle_verify(root, [proof[0], proof[1], opening]));
+        //return(verify([proof[0], proof[1], opening]));
 
     };
     return({

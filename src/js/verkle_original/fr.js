@@ -19,13 +19,11 @@ var fr = (function(){
         return(redc(x*y));
     };
     function encode(x){
-        if(x < 0){
-            return(neg(encode(-x)));
+        if((x > N)||(x < 0)){
+            return(["error", "can't montgomery encode outside of bounds"]);
+        } else {
+            return(redc(R2 * x));
         };
-        if(x > N){
-            return(encode(x % N));
-        };
-        return(redc(R2 * x));
     };
     function order(){
         var x = N;

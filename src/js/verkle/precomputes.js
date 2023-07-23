@@ -9,33 +9,56 @@ var precomputes = (function(){
     };
 
     var cached_domain;
+    function stringify_bigint_list(d){
+        var d2 = [];
+        d.map(function(x){
+            d2 = d2.concat(x.toString());
+        });
+        return(JSON.stringify(d2));
+    };
+    function parse_bigint_list(d){
+        var d2 = JSON.parse(d);
+        return(d2.map(function(x){
+            return(BigInt(x));
+        }));
+    };
     function domain(){
-        if(cached_domain){
-            return(cached_domain);
-        };
-        var x = calc_domain(256);
-        cached_domain = x;
+        var result = cache_helper(
+            cached_domain, "precompute_domain",
+            function(){return(calc_domain(256))},
+            stringify_bigint_list, parse_bigint_list);
+        cached_domain = result;
+        return(result);
+    };
+
+    function cache_helper(
+        cache, ls_string, calc, stringify, parse){
+        if(cache){return(cache)};
+        var ls = localStorage.getItem(ls_string);
+        if(ls){return(parse(ls));};
+        var x = calc();
+        localStorage.setItem(ls_string, stringify(x));
         return(x);
     };
 
-    var cached_da;
+    var cached_da;//256 big integers
     function da(){
-        if(cached_da){
-            return(cached_da);
-        };
-        var x = poly.calc_da(domain());
-        cached_da = x;
-        return(x);
+        var result = cache_helper(
+            cached_da, "precompute_da",
+            function(){return(poly.calc_da(domain()))},
+            stringify_bigint_list, parse_bigint_list);
+        cached_da = result;
+        return(result);
     };
 
     var cached_a;
     function a(){
-        if(cached_a){
-            return(cached_a);
-        };
-        var x = poly.calc_a(domain());
-        cached_a = x;
-        return(x);
+        var result = cache_helper(
+            cached_a, "precompute_a",
+            function(){return(poly.calc_a(domain()))},
+            stringify_bigint_list, parse_bigint_list);
+        cached_a = result;
+        return(result);
     };
 
     var cached_ghq;
