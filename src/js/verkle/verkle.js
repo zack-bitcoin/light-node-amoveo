@@ -248,6 +248,9 @@ var verkle = (function(){
     function trees2_key(x) {
         //todo, other keys besides acc.
         var key;
+        if(x.length === 2){
+            return(x[1]);
+        };
         if(x[0] === "acc"){
             var pub = x[3];
             var pub2 = trees2_compress_pub(pub);
@@ -307,6 +310,7 @@ var verkle = (function(){
             return(whash(s));
         };
 */
+        //if(x[0] === "sub_acc"){
         if(x[0] === "sub_acc"){
             //sub_accounts:make_key(P, CID, T);%65+32+32 = 129 bytes
             var pubkey = x[3];
@@ -349,6 +353,7 @@ var verkle = (function(){
             var s = as2a(id).concat([8]);
             return(whash(s));
         };
+        console.log(x);
         1+u1;
     };
     function trees2_compress_pub(pub){
@@ -581,6 +586,7 @@ var verkle = (function(){
            (leaves[0] instanceof Array) &&
            (leaves[0].length === 2)){
             console.log("restore leaves case 3 - skip empty slot");
+            console.log(leaves[0]);
             return(restore_leaves_proof(proofs, leaves.slice(1)));
         };
         /*
@@ -609,6 +615,11 @@ restore_leaves_proof([{I, 1}], [L|T]) ->
             console.log("restore leaves case 5");
             //console.log(l);
             //console.log(trees2_serialize(l));
+            if(!(l)){
+                console.log(leaves);
+                console.log(proofs);
+                1+1n;
+            };
             var v = btoa(verkle_binary.array_to_string(verkle_hash(trees2_serialize(l))));
             var k = trees2_key(l);
             var i = proofs[0][0];
@@ -696,11 +707,16 @@ restore_leaves_proof(<<X:256>>, L) ->
             console.log("merge same done");
             return(true);
         };
+        //console.log("verkle merge same");
+        //console.log(need);
+        //console.log(got);
+        //([X|T1], T2 = [{D, X}|_]) when is_integer(D)
         if((need[0][0] === got[0][1][0]) &&
            Number.isInteger(got[0][0])){
             console.log("merge same case 1");
             return(merge_same(need.slice(1), got));
         };
+//[{Key, 0}|T1],[{D, {LKey, Val}}|T2] when is_integer(D)
         if((need[0][1] === 0) &&
            (got[0].length === 2) &&
            (got[0][1].length === 2) &&
@@ -734,14 +750,24 @@ restore_leaves_proof(<<X:256>>, L) ->
             }
             1+ 1n;
         };
-        if((need[0][1] === 0) &&
+//[{Key, 0}|T1], [{Branch, 0}|T2]
+        if(((need[0][1] === 0) || (need[0][1] === "")) &&
            (got[0][1] === 0)){
             console.log("merge same case 3");
             var key = need[0][0];
+            //console.log(need);
+            //console.log(got);
+            //console.log(key);
             var key2 = leaf_verkle_path_maker(key);
             var branch = got[0][0];
+            if(typeof(branch) === 'number'){
+                branch = [branch];
+            };
+            //console.log(key2);
+            //console.log(branch);
             var bool = starts_same(
-                key2, branch.slice().reverse());
+                //key2, branch.slice().reverse());
+                key2.slice().reverse(), branch.slice());
             if(bool){
                 return(merge_same(
                     need.slice(1),
@@ -755,6 +781,8 @@ restore_leaves_proof(<<X:256>>, L) ->
         if(got[0][1] === 0){
             //nothing left to match on this branch.
             console.log("merge same case 4");
+            //console.log(need);
+            //console.log(got);
             merge_same(need, got.slice(1));
         };
         if((got[0][1].length === 2) &&
@@ -771,9 +799,13 @@ restore_leaves_proof(<<X:256>>, L) ->
     function starts_same(key, branch){
         //check that the first part of key completely matches branch, one byte at a time.
         //return true or false
-        console.log(key1);
-        console.log(branch);
-        1+1n;
+        if(branch.length === 0){
+            return(true);
+        };
+        if(branch[0] === key[0]){
+            return(starts_same(key.slice(1), branch.slice(1)));
+        };
+        return(false);
     };
     function starts_same_depth(key1, key2, d){
         //check that the first part of key1 completely matches the first part of key2. check d many bytes.
@@ -785,13 +817,12 @@ restore_leaves_proof(<<X:256>>, L) ->
         1+1n;
     };
     function leaf_verkle_path_maker(s) {
-        if(!(Number.isInteger(s))){
-            1+u1;
-        };
-        var a = verkle_binary.integer_to_array(s, 32);
+        if(Number.isInteger(s)){
+            var a = verkle_binary.integer_to_array(s, 32);
         //the erlang version had a list of bytes, this is a list of integers.
-        return(a);
-        
+            return(a);
+        };
+        return(verkle_binary.string_to_array(atob(s)));
     };
     function verkle_verify(root0, proof){
         //this is like verify in the verkle repository.

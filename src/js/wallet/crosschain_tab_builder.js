@@ -193,7 +193,6 @@ function crosschain_tab_builder(div, selector){
     async function release_buttons(temp_div){
         var l = await swap_offer_downloader.subaccounts(
             1, is_sell_veo_contract, contract_api);
-        //[[cid, sa, contract]...]
         l.map(function(x){
             var cid = x[0];
             var sa = x[1];
@@ -219,6 +218,10 @@ function crosschain_tab_builder(div, selector){
             };
             var swap = await dex_tools.lowest2(
                 dc.source, dc.source_type, cid, IP);
+        if(swap === 0) {
+            console.log("they didn't post a 99% sell offer. looks like they want to use the oracle.");
+            1+1n;
+        };
             var combine_tx = [
                 "contract_use_tx", 0,0,0, cid,
                 -balance, 2, dc.source, dc.source_type];
@@ -357,7 +360,6 @@ function crosschain_tab_builder(div, selector){
         link.innerHTML = "contract offer in explorer ";
             link.target = "_blank";
         temp_div.appendChild(link);
-        console.log(JSON.stringify(offer));
         if((offer.amount2 / offer.amount1) > 2){
             console.log("offer with excess colateralization blocked");
             return(0);

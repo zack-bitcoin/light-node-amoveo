@@ -62,7 +62,7 @@ function swap_viewer_creator(div2){
         }else{
                 //contract1 = Y.cid1
                 //    .concat(" type ")
-                //    .concat(Y.type1);
+            //    .concat(Y.type1);
             contract1 = await contract_text(
                 Y.cid1, Y.type1);
         }
@@ -77,9 +77,7 @@ function swap_viewer_creator(div2){
                 Y.cid2, Y.type2);
         }
         update_display(Y, now, contract1, contract2, available_to_match, original_limit_order_size);
-        console.log("amount to make contracts");
         maybe_make_contracts(Y.cid2, [], function(txs){
-            console.log("made contracts");
             
             view2(txs, X, Y, original_limit_order_size, available_to_match);
         });
@@ -88,8 +86,7 @@ function swap_viewer_creator(div2){
 
     async function contract_text(cid, type) {
         var contract = await rpc.apost(
-            ["read", 3, cid], default_ip(), 8090);
-        console.log(JSON.stringify(contract));
+            ["read", 3, cid], IP, 8090);
         if((contract[0] === "scalar") &&
            (contract[6] === 0) &&//priced in veo
            (contract[3] === 1)//binary contract

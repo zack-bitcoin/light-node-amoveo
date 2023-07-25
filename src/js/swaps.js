@@ -85,7 +85,6 @@ var swaps = (function(){
     function unpack(SO) {
 //-record(swap_tx, {from, offer, fee}).
         //-record(swap_tx2, {from, nonce, fee, offer, match_parts}).
-        console.log(JSON.stringify(SO));
         var b = verify1(SO);
         if(!b){
             console.log("bad signature on offer");
@@ -93,7 +92,6 @@ var swaps = (function(){
         };
         var offer = SO[1];
         var swap_type = offer[0];
-        console.log(JSON.stringify(swap_type));
         if(swap_type === "swap_offer") {
             var R = {};
             R.acc1 = offer[1];
@@ -129,6 +127,10 @@ var swaps = (function(){
         };
     };
     async function make_tx(SO, matched_parts, callback) {
+        if(SO === 0) {
+            console.log("swap offer is 0?");
+            1+1n;
+        };
         var fee = 200000;
 //-record(swap_tx, {from, offer, fee}).
 //-record(swap_tx2, {from, nonce, fee, offer, match_parts}).
@@ -139,12 +141,9 @@ var swaps = (function(){
         //instead of immediately accepting the swap, we should check what currencies this person owns.
         //sell as much as you can of your own, and buy more as needed to complete their trade. If you do not have the source currency to buy more, then fail and give an error message.
         var R = unpack(SO);
-        console.log(JSON.stringify(R));
         var CID = R.cid2;
         var Type = R.type2;
         var Amount = R.amount2;
-        console.log("make txs1");
-        console.log(CID);
         make_txs2(CID, Type, Amount, function(Txs){
             if(Txs == "error"){
                 console.log("error");
@@ -153,15 +152,18 @@ var swaps = (function(){
             if(Txs == []) {
                 callback(swap_tx);
             } else {
-                console.log(JSON.stringify(Txs));
+                //console.log(JSON.stringify(Txs));
                 Txs = [swap_tx].concat(Txs);
+                //console.log(JSON.stringify(Txs));
                 callback(Txs);
             };
         });
     };
     async function make_txs2(CID, Type, Amount, callback){
-        console.log("make txs2");
-        console.log(CID);
+        if(!(CID)){
+            console.log("what cid to use?");
+            1+1n;
+        };
         var fee = 200000;
         if(Type == 0){//they want veo
             var Acc = await merkle.arequest_proof("accounts", keys.pub());
@@ -176,13 +178,10 @@ var swaps = (function(){
                 }
                 */
         } else {//they want a subcurrency
-            console.log([keys.pub(), CID, Type]);
             var SKey = btoa(array_to_string(sub_accounts.key(keys.pub(), CID, Type)));
-            console.log(SKey);
             var SA = await merkle.arequest_proof("sub_accounts", SKey);
-            console.log(SA);
             var bal;
-            if(SA == "empty"){
+            if((SA == "empty")||(SA.length === 2)){
                 bal = 0
             } else {
                 bal = SA[1];
@@ -193,7 +192,7 @@ var swaps = (function(){
                 var Contract = await merkle.arequest_proof("contracts", CID);
                 var z = await rpc.apost(["read", 3, CID], get_ip(), 8090);
                 var Source, SourceType, MT;
-                if(Contract == "empty"){
+                if((Contract == "empty")||(Contract.length < 3)){
                     if(!(z)){
                         console.log("need to teach the contract to the server first.")
                         return(0);
@@ -217,11 +216,15 @@ var swaps = (function(){
                         return(0);
                     };
                 } else {
-                    console.log(Contract);
                     Source = Contract[8];
                     SourceType = Contract[9];
                     MT = Contract[2];
                 }
+                if(!(Number.isInteger(bal))){
+                    console.log("bal isn't a number");
+                    console.log(bal);
+                    1+1n;
+                };
                 var Tx = ["contract_use_tx", 0, 0, 0, CID, Amount - bal, MT, Source, SourceType];
                 make_txs2(Source, SourceType, Amount - bal, function(L){return(callback(L.concat([Tx])))});
             };

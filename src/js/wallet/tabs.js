@@ -61,7 +61,7 @@ var tabs = (function(){
         //display.innerHTML = "<h3>looking up which currencies you own.</h3>";
         setTimeout(async function(){
             const response = await rpc.apost(["account", keys.pub()], get_ip(), 8091);
-            if(response == "error") {
+            if((response == "error") || (response.length === 2)) {
                 //display.innerHTML = "<h3>load a key with funds.</h3>";
             } else {
                 sub_accs = response[1][3].slice(1);

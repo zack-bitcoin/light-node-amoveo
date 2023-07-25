@@ -105,7 +105,8 @@ var swap_offer_downloader = (function(){
             ["account", keys.pub()],
             IP, 8091);
         //console.log(JSON.stringify(account));
-        if(account === "error"){
+        //if((account === "error") || (account.length === 2)){
+        if((account === "error")){
             return([]);
         };
         account = account[1];
