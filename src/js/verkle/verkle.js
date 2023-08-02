@@ -566,7 +566,7 @@ var verkle = (function(){
 //restore_leaves_proof([], T) -> {[], T};
         if((proofs instanceof Array) &&
            ((proofs.length) === 0)) {
-            console.log("restore leaves case 1");
+            //console.log("restore leaves case 1");
             return([[], leaves]);
         };
 //restore_leaves_proof([{I, 0}], T) -> 
@@ -576,7 +576,7 @@ var verkle = (function(){
            ((proofs[0] instanceof Array)) &&
            ((proofs[0].length === 2)) &&
            ((proofs[0][1] === 0))){
-            console.log("restore leaves case 2");
+            //console.log("restore leaves case 2");
             return([[proofs[0][0], 0], leaves]);
         };
 //restore_leaves_proof(X, [{Tree, K}|T]) ->
@@ -585,9 +585,17 @@ var verkle = (function(){
         if((leaves instanceof Array) &&
            (leaves[0] instanceof Array) &&
            (leaves[0].length === 2)){
-            console.log("restore leaves case 3 - skip empty slot");
-            console.log(leaves[0]);
+            //console.log("restore leaves case 3 - skip empty slot");
+            //console.log(proofs);
+            //console.log(leaves);
+            //console.log(leaves[0]);
             return(restore_leaves_proof(proofs, leaves.slice(1)));
+        };
+//restore_leaves_proof(X, L) when is_integer(X) ->
+//    {X, L}.
+        if(Number.isInteger(proofs)){
+            //console.log("restore leaves case 7");
+            return([proofs, leaves]);
         };
         /*
 restore_leaves_proof([{I, 1}], [L|T]) -> 
@@ -600,11 +608,16 @@ restore_leaves_proof([{I, 1}], [L|T]) ->
             {[{I, {K, V}}], T}
     end;
         */
-        if((proofs instanceof Array) &&
+        if(//(leaves.length > 0) &&
+           (proofs instanceof Array) &&
            ((proofs.length) === 1) &&
            ((proofs[0] instanceof Array)) &&
            ((proofs[0].length === 2)) &&
-           ((proofs[0][1] === 1))){
+                ((proofs[0][1] === 1))){
+            if(leaves.length === 0){
+                //console.log(proofs);
+                1+1n;
+            };
             var l = leaves[0];
             var t = leaves.slice(1);
             if((l instanceof Array) &&
@@ -612,14 +625,7 @@ restore_leaves_proof([{I, 1}], [L|T]) ->
                 console.log("restore leaves case 4");
                 return([[[proofs[0][0], 0]], t]);
             };
-            console.log("restore leaves case 5");
-            //console.log(l);
-            //console.log(trees2_serialize(l));
-            if(!(l)){
-                console.log(leaves);
-                console.log(proofs);
-                1+1n;
-            };
+            //console.log("restore leaves case 5");
             var v = btoa(verkle_binary.array_to_string(verkle_hash(trees2_serialize(l))));
             var k = trees2_key(l);
             var i = proofs[0][0];
@@ -651,12 +657,6 @@ restore_leaves_proof([H|T], L) ->
                     proofs.slice(1), leaves2);
             return([([h2]).concat(t2), leaves3]);
         };
-//restore_leaves_proof(X, L) when is_integer(X) ->
-//    {X, L}.
-        if(Number.isInteger(proofs)){
-            console.log("restore leaves case 7");
-            return([proofs, leaves]);
-        };
         /*
 restore_leaves_proof(<<X:256>>, L) ->
     {<<X:256>>, L};
@@ -670,10 +670,10 @@ restore_leaves_proof(<<X:256>>, L) ->
     function verify(root0, proof, things){
         //trees2:verify_proof
         var proof2 = restore_leaves_proof(proof, things)[0];
-        console.log(proof);
-        console.log("after restore leaves proof");
-        console.log(things);
-        console.log(proof2[0]);
+        //console.log(proof);
+        //console.log("after restore leaves proof");
+        //console.log(things);
+        //console.log(proof2[0]);
         var bool = verkle_verify(root0, proof2);
 
         if(!(bool[0] === true)){
@@ -713,7 +713,7 @@ restore_leaves_proof(<<X:256>>, L) ->
         //([X|T1], T2 = [{D, X}|_]) when is_integer(D)
         if((need[0][0] === got[0][1][0]) &&
            Number.isInteger(got[0][0])){
-            console.log("merge same case 1");
+            //console.log("merge same case 1");
             return(merge_same(need.slice(1), got));
         };
 //[{Key, 0}|T1],[{D, {LKey, Val}}|T2] when is_integer(D)
@@ -721,7 +721,7 @@ restore_leaves_proof(<<X:256>>, L) ->
            (got[0].length === 2) &&
            (got[0][1].length === 2) &&
            (Number.isInteger(got[0][0]))){
-            console.log("merge same case 2");
+            //console.log("merge same case 2");
             var key = need[0][0];
             var d = got[0][0];
             var lkey = got[0][1][0];
@@ -735,14 +735,15 @@ restore_leaves_proof(<<X:256>>, L) ->
                 console.log("can't double store in a batch");
                 1 + u1;
             };
-
-            var ssd = starts_same_depth(key2, lkey2, d);
+            console.log("starts same depth not implemented");
+            var ssd = starts_same_depth(
+                key2.slice().reverse(), lkey2.slice().reverse(), d);
             if(ssd === true){
                 return(merge_same(
                     need.slice(1),
                     ([[d, [lkey, val]]]).concat(t2)));
             };
-            if(ssd === skip){
+            if(ssd === "skip"){
                 return(merge_same([[key, 0]].concat(t1), t2));
             };
             if(ssd === false){
@@ -753,11 +754,8 @@ restore_leaves_proof(<<X:256>>, L) ->
 //[{Key, 0}|T1], [{Branch, 0}|T2]
         if(((need[0][1] === 0) || (need[0][1] === "")) &&
            (got[0][1] === 0)){
-            console.log("merge same case 3");
+            //console.log("merge same case 3");
             var key = need[0][0];
-            //console.log(need);
-            //console.log(got);
-            //console.log(key);
             var key2 = leaf_verkle_path_maker(key);
             var branch = got[0][0];
             if(typeof(branch) === 'number'){
@@ -780,9 +778,7 @@ restore_leaves_proof(<<X:256>>, L) ->
         };
         if(got[0][1] === 0){
             //nothing left to match on this branch.
-            console.log("merge same case 4");
-            //console.log(need);
-            //console.log(got);
+            //console.log("merge same case 4");
             merge_same(need, got.slice(1));
         };
         if((got[0][1].length === 2) &&
@@ -790,7 +786,7 @@ restore_leaves_proof(<<X:256>>, L) ->
            (typeof(got[0][1][0]) === "string") &&
            (typeof(got[0][1][1]) === "string")){
                //nothing left to match on this leaf
-            console.log("merge same case 5");
+            //console.log("merge same case 5");
             merge_same(need, got.slice(1));
         };
         console.log("merge same uncaught situation");
@@ -811,10 +807,16 @@ restore_leaves_proof(<<X:256>>, L) ->
         //check that the first part of key1 completely matches the first part of key2. check d many bytes.
         //return true or false or skip.
         // when a mismatch is found within D, if key2 has a lower valued byte than key1, return skip. if key1 is lower, then return false. if they match up to d, then return true.
-        console.log(key1);
-        console.log(key2);
-        console.log(d);
-        1+1n;
+        if(d < 1){
+            return(true);
+        };
+        if(key1[0] === key2[0]){
+            return(starts_same_depth(key1.slice(1),key2.slice(1), d-1));
+        };
+        if(key2[0] < key1[0]){
+            return("skip");
+        };
+        return(false);
     };
     function leaf_verkle_path_maker(s) {
         if(Number.isInteger(s)){

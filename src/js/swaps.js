@@ -192,12 +192,13 @@ var swaps = (function(){
                 var Contract = await merkle.arequest_proof("contracts", CID);
                 var z = await rpc.apost(["read", 3, CID], get_ip(), 8090);
                 var Source, SourceType, MT;
+                var new_contract_tx = [];
                 if((Contract == "empty")||(Contract.length < 3)){
                     if(!(z)){
                         console.log("need to teach the contract to the server first.")
                         return(0);
                     };
-                    console.log("contract doesn't yet exist");
+                    //console.log("contract doesn't yet exist");
                     if(z[0] == "scalar"){
                         MT = 2;
                         Source = z[5];
@@ -215,6 +216,14 @@ var swaps = (function(){
                         console.log("server gave us a contract format we don't understand.");
                         return(0);
                     };
+                    //console.log(z);
+                    //1+1n;
+                    //z: ["scalar", "MT0x", 0,1, [], "AAAAAA...", 0]
+//-record(scalar, {text, height, max_price, now, source = <<0:256>>, source_type = 0}).
+                    //ch = hash:doit(compiler_chalang:doit(<<"macro...">>));
+                    var CH = scalar_derivative.hash(
+                        scalar_derivative.maker(atob(z[1]), z[3]));
+                    new_contract_tx = [["contract_new_tx", 0,CH,0, MT, Source, SourceType]];
                 } else {
                     Source = Contract[8];
                     SourceType = Contract[9];
@@ -226,7 +235,9 @@ var swaps = (function(){
                     1+1n;
                 };
                 var Tx = ["contract_use_tx", 0, 0, 0, CID, Amount - bal, MT, Source, SourceType];
-                make_txs2(Source, SourceType, Amount - bal, function(L){return(callback(L.concat([Tx])))});
+                var txs = new_contract_tx.concat([Tx]);
+                //make_txs2(Source, SourceType, Amount - bal, function(L){return(callback(L.concat([Tx])))});
+                make_txs2(Source, SourceType, Amount - bal, function(L){return(callback(L.concat(txs)))});
             };
         };
     };
