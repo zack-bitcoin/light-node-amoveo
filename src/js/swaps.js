@@ -223,7 +223,7 @@ var swaps = (function(){
                     //ch = hash:doit(compiler_chalang:doit(<<"macro...">>));
                     var CH = scalar_derivative.hash(
                         scalar_derivative.maker(atob(z[1]), z[3]));
-                    new_contract_tx = [["contract_new_tx", 0,CH,0, MT, Source, SourceType]];
+                    new_contract_tx = [["contract_new_tx", 0,CH,0, MT, Source, SourceType]];//TODO, maybe it would be cleaner to use new_scalar_contract.make_tx for this instead of duplicating code.
                 } else {
                     Source = Contract[8];
                     SourceType = Contract[9];

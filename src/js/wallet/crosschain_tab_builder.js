@@ -365,17 +365,25 @@ function crosschain_tab_builder(div, selector){
             return(0);
         };
         var accept_button = button_maker2("accept the offer", function(){
-            var new_contract_tx = new_scalar_contract.make_tx(dc.text, 1);
+            //var new_contract_tx = new_scalar_contract.make_tx(dc.text, 1);
+                console.log("here");
             swaps.make_tx(trade, 1, async function(txs){
-                var tx = await multi_tx.amake([new_contract_tx].concat(txs));
+                console.log("here");
+                //var tx = await multi_tx.amake([new_contract_tx].concat(txs));
+                var tx = await multi_tx.amake(txs);
+                console.log(tx);
                 var stx = keys.sign(tx);
                 var msg = await apost_txs([stx]);
+                console.log("here");
                 if(msg === "server rejected the tx"){
+                console.log("here");
                     display.innerHTML = msg;
                 } else {
+                console.log("here");
                     display.innerHTML = "accepted trade offer and " .concat(msg);
                     var offer99 = swaps.accept_99(offer);
                     apost_offer(display, IP, offer99);
+                console.log("here");
                     refresh();
                 }
             });
