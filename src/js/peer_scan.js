@@ -16,10 +16,11 @@
         if((ip.slice[1] === 127) &&
            (ip.slice[2] === 0) &&
            (ip.slice[3] === 0) &&
-           (ip.slice([4] === 1)){
+           (ip.slice[4] === 1)){
+
            } else {
-        var m = "";
-        m += "<p>ip: ".concat(JSON.stringify(ip.slice(1))).concat("height: ").concat(JSON.stringify(height)).concat(", port: ").concat(JSON.stringify(port));
+               var m = "";
+               m += "<p>ip: ".concat(JSON.stringify(ip.slice(1))).concat("height: ").concat(JSON.stringify(height)).concat(", port: ").concat(JSON.stringify(port));
         if(r) {
             m += (", fork number: ").concat(JSON.stringify(r));
         };
