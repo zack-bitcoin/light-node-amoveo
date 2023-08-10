@@ -13,10 +13,10 @@
         var port = p[0][1][2];
         var height = p[0][2][1];
         var r = await rpc.apost(["version", 3], list_to_string(ip.slice(1)), 8080);
-        if((ip.slice[1] === 127) &&
-           (ip.slice[2] === 0) &&
-           (ip.slice[3] === 0) &&
-           (ip.slice[4] === 1)){
+        if((ip[1] === 127) &&
+           (ip[2] === 0) &&
+           (ip[3] === 0) &&
+           (ip[4] === 1)){
 
            } else {
                var m = "";
