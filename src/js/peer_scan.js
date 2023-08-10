@@ -13,6 +13,7 @@
         var port = p[0][1][2];
         var height = p[0][2][1];
         var r = await rpc.apost(["version", 3], list_to_string(ip.slice(1)), 8080);
+        console.log(ip);
         if((ip[1] === 127) &&
            (ip[2] === 0) &&
            (ip[3] === 0) &&
