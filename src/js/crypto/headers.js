@@ -53,9 +53,8 @@ function headers_main() {
             write_header(top_header, ls_check2[1]);
         } else {
             console.log("writing top header");
-            top_header = ["header", 130700, "yClicPvrQ4Ul5sk4hbsrJ62drzli1tue/mf8TYW2dZU=", "Dq6o8Xg3qiUVzMpzXkKijFtlhFd66KQlw2qiN8x37KI=", "bZM+MzTkULo4gzZ8hBlZLqTfWDmvxCnSL684GZSFCn8=", 803559907, 13378, 3, "AAAAAAAAAAAAB4P1tQgLilI01L0VFKSUOcygSIIAAAA=", 2.3808044578490653e+21, 5982];
-        //write_header(top_header, 670203372402906);
-            write_header(top_header, 781489233254590);
+            //top_header = ["header", 130700, "yClicPvrQ4Ul5sk4hbsrJ62drzli1tue/mf8TYW2dZU=", "Dq6o8Xg3qiUVzMpzXkKijFtlhFd66KQlw2qiN8x37KI=", "bZM+MzTkULo4gzZ8hBlZLqTfWDmvxCnSL684GZSFCn8=", 803559907, 13378, 3, "AAAAAAAAAAAAB4P1tQgLilI01L0VFKSUOcygSIIAAAA=", 2.3808044578490653e+21, 5982];
+            reset_headers();
         };
 
 //to find the ewah headers_object.read_ewah(hash(headers_object.serialize(headers_object.top())));
@@ -89,14 +88,21 @@ function headers_main() {
     document.body.appendChild(wallet_text);
     //more_headers()
     function write_header(header, ewah) {
-        //console.log("write header");
+        console.log("write header");
         var acc_difficulty = header[9];
-        if ((acc_difficulty > top_diff) || ((mode == "test")&&((top_header == 0) || (header[1] > top_header[1])))) {
+        //if ((acc_difficulty > top_diff) || ((mode == "test")&&((top_header == 0) || (header[1] > top_header[1])))) {
+        if ((acc_difficulty > top_header[9]) || ((mode == "test")&&((top_header == 0) || (header[1] > top_header[1])))) {
+            console.log("higher than top");
             top_diff = acc_difficulty;
             top_header = header;
             //console.log("write_header current height");
             wallet_text.innerHTML = "Current height: " + header[1];
+            wallet_text.appendChild(
+                button_maker2("resync headers", function(){
+                    reset_headers();
+                }));
         }
+        console.log([[acc_difficulty, top_diff], [header[1], top_header[1]]]);
         h = hash(serialize_header(header));
         headers_db[h] = [header, ewah];
         localStorage.setItem("ls_top_header", JSON.stringify([header, ewah]));
@@ -154,6 +160,20 @@ function headers_main() {
 		return [Diff, EWAH]; }
         }
     }
+
+    function reset_headers() {
+        console.log("reset headers");
+        top_header = ["header",276531,"dSzACGhNFY0Sjnwj3dpaQCvzFM5MJfK1MI0RmtDVTlY=","hTdhbf+xdg+ZV8R2hgRu7khOCWpbZ1DBtocIPr9n0AA=","MrLgXG9GY4ARAHZY6KAtV+yc7O0RkM/v9PcWqRjjyt8=",1744369729,12234,3,"AAAAAAAAAAAAWRG+zQAAAADH8WmoAAAAAACphAAAaDQ=",2.776916678648946e+21,5982];
+        top_diff = top_header[9];
+        write_header(top_header, 34596086075867);
+        wallet_text.innerHTML = "Current height: " + top_header[1];
+        wallet_text.appendChild(
+            button_maker2("resync headers", function(){
+                reset_headers();
+            }));
+        more_headers();
+    };
+
     function new_target(header, EWAH0) {
 	//console.log(EWAH0);
 	var EWAH = bigInt.max(EWAH0, 1);
@@ -324,12 +344,15 @@ function headers_main() {
     }
     function absorb_headers(h) {
         console.log("absorb_headers");
+        console.log(h);
         var get_more = false;
         for (var i = 1; i < h.length; i++ ) {
+            console.log("absorb headers loop");
             var bl = check_pow(h[i]);
 	    var b = bl[0];
 	    var ewah = bl[1];
             if ( b ) {
+                console.log("good header\n");
                 var header = h[i];
                 var height = header[1];
                 var header_hash = hash(serialize_header(header));
@@ -346,6 +369,8 @@ function headers_main() {
                 if (!(header_hash in headers_db)) {
                     get_more = true;
                 }
+                console.log("writing good header\n");
+                console.log([header, ewah]);
                 write_header(header, ewah);}
             else {
                 console.log("bad pow on header");
@@ -354,10 +379,14 @@ function headers_main() {
         }
         if (get_more) { more_headers(); }
         else {
-            keys.update_balance();
             console.log("absorb headers current height");
             console.log(top_header);
             wallet_text.innerHTML = "Current height: " + top_header[1];
+            wallet_text.appendChild(
+                button_maker2("resync headers", function(){
+                    reset_headers();
+                }));
+            keys.update_balance();
         }
     }
     async function more_headers() {
