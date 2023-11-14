@@ -132,9 +132,9 @@ function keys_function1() {
         var s = a[64];
         var f;
         if ((s % 2) == 0) {
-            f = 2;
+            f = 6;
         } else {
-            f = 3;
+            f = 7;
         }
         return btoa(array_to_string([f].concat(x)))
     }
@@ -278,7 +278,8 @@ function keys_function1() {
             keys_internal: (function() {return keys_internal;}),
             update_balance:update_balance,
             update_balance_callback: (function (x) {
-                update_balance_callback = x;})
+                update_balance_callback = x;}),
+            compress_pub: compress_pub
            };
 }
 var keys = keys_function1();

@@ -88,6 +88,11 @@ function append_children(d, l) {
         d.appendChild(l[i]);
     }
 }
+function title(a) {
+    var x2 = document.createElement("h2");
+    x2.innerHTML = a;
+    return x2;
+};
 function text(a) {
     var x2 = document.createElement("h8");
     x2.innerHTML = a;
