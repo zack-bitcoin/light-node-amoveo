@@ -56,10 +56,10 @@
             div.appendChild(l);
         });
     };
-    if (boss_off.length > 0) {
+    if (boss_of.length > 0) {
         //make links for all the bosses.
         div.appendChild(title("has employees"));
-        boss_off.map(function(id){
+        boss_of.map(function(id){
             var s = "";
             s = s.concat(id);
             s = s.concat(" <br> ");
