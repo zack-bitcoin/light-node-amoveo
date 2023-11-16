@@ -128,7 +128,7 @@
         s = s.concat("<br>");
         s = s.concat("time: ").concat(time);
         console.log(job);
-        jid_error.innerHTML = JSON.stringify(s);
+        jid_error.innerHTML = s;
     };
     
     async function create_new_job(){

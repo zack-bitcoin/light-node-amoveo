@@ -12,27 +12,62 @@
     div.appendChild(br());
 
     var pubkey_text = document.createElement("div");
-    pubkey_text.innerHTML = "your pubkey: "
+    pubkey_text.innerHTML = "pubkey: "
         .concat(pubkey);
     div.appendChild(pubkey_text);
 
     var balance_text = document.createElement("div");
-    balance_text.innerHTML = "your balance: ?";
+    balance_text.innerHTML = "balance: ?";
     div.appendChild(balance_text);
 
     var account = await rpc.apost(
         ["account", pubkey]);
     var balance = account[1];
         
-    balance_text.innerHTML = "your balance: "
+    balance_text.innerHTML = "balance: "
         .concat((balance/100000000).toFixed(8));
 
     var account = await rpc.apost(
         ["account", pubkey], get_ip(), 8091);
+    console.log(account);
     var acc = account[1];
     var txs = acc[2];
     var sub_accs = acc[3];
     var liquidity_shares = acc[4];
+    var worker_for = acc[5].slice(1);
+    var boss_of = acc[6].slice(1);
+
+    function link(ref, text){
+        var link = document.createElement("a");
+        link.href = ref;
+        link.innerHTML = text;
+        link.target = "_blank";
+        return(link);
+    };
+    
+    if (worker_for.length > 0){
+        //make links for all the workers.
+        div.appendChild(title("has jobs"));
+        worker_for.map(function(id){
+            var s = "";
+            s = s.concat(id);
+            s = s.concat(" <br> ");
+            var l = link("../job_explorer.html?id=".concat(id), s);
+            div.appendChild(l);
+        });
+    };
+    if (boss_off.length > 0) {
+        //make links for all the bosses.
+        div.appendChild(title("has employees"));
+        boss_off.map(function(id){
+            var s = "";
+            s = s.concat(id);
+            s = s.concat(" <br> ");
+            var l = link("../job_explorer.html?id=".concat(id), s);
+            div.appendChild(l);
+            
+        });
+    };
     make_tx_links(txs.slice(1));
 
     function make_tx_links(txs){
