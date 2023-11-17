@@ -41,7 +41,7 @@
     s = s.concat("<br>");
     s = s.concat("time: ").concat(time);
     var info = document.createElement("div");
-    div.innerHTML(info);
+    div.appendChild(info);
 
     var explorer_info = await rpc.apost(
         ["job", jid]);
