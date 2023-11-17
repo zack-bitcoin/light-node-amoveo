@@ -27,6 +27,9 @@ function headers_main() {
     var headers_db = {};//store valid headers by hash
     var INITIAL_DIFFICULTY;
     var headers_batch = 5000;
+    var wallet_text = document.createElement("div");
+    wallet_text.innerHTML = "Downloading blockchain data";
+    document.body.appendChild(wallet_text);
     if (mode == "test") {
 	INITIAL_DIFFICULTY = 10;
 	retarget_frequency = 12;
@@ -83,9 +86,6 @@ function headers_main() {
         }, 60000);
     };
     auto_sync_headers();
-    var wallet_text = document.createElement("div");
-    wallet_text.innerHTML = "Downloading blockchain data";
-    document.body.appendChild(wallet_text);
     //more_headers()
     function write_header(header, ewah) {
         console.log("write header");
