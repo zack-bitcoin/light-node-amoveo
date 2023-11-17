@@ -17,8 +17,6 @@
     div.appendChild(jid_text);
 
     var job = await rpc.apost(["jobs", jid]);
-    console.log(jid);
-    console.log(job);
     var id = job[1];
     var worker = job[2];
     var boss = job[3];
