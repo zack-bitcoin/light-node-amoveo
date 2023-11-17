@@ -16,7 +16,7 @@
         .concat(jid);
     div.appendChild(jid_text);
 
-    var job = await rpc.apost(["job", jid]);
+    var job = await rpc.apost(["jobs", jid]);
     console.log(jid);
     console.log(job);
     var id = job[1];
