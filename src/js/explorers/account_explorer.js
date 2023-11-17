@@ -29,8 +29,8 @@
 
     var account = await rpc.apost(
         ["account", pubkey], get_ip(), 8091);
-    console.log(account);
     var acc = account[1];
+    console.log(acc);
     var txs = acc[2];
     var sub_accs = acc[3];
     var liquidity_shares = acc[4];
@@ -55,6 +55,7 @@
             var l = link("../job_explorer.html?id=".concat(id), s);
             div.appendChild(l);
         });
+        div.appendChild(br());
     };
     if (boss_of.length > 0) {
         //make links for all the bosses.
@@ -65,9 +66,10 @@
             s = s.concat(" <br> ");
             var l = link("../job_explorer.html?id=".concat(id), s);
             div.appendChild(l);
-            
         });
+        div.appendChild(br());
     };
+    div.appendChild(title("transactions starting with the most recent"));
     make_tx_links(txs.slice(1));
 
     function make_tx_links(txs){
