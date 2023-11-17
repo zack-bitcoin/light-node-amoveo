@@ -7,7 +7,7 @@
     };
     const urlParams = new URLSearchParams(window.location.search);
     var jid = urlParams.get('jid');
-    jid = pubkey.replace(/\ /g, "+");
+    jid = jid.replace(/\ /g, "+");
 
     div.appendChild(br());
 
