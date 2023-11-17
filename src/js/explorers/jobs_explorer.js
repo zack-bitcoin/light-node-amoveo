@@ -27,12 +27,12 @@
     var N64 = 18446744073709551616;//2^64
     var salary_per_block = value * salary / N64;
     var s = "";
-    s = s.concat("job id: ").concat(id);
-    s = s.concat("<br>");
-    s = s.concat("worker: ").concat(worker);
-    s = s.concat("<br>");
-    s = s.concat("boss: ").concat(boss);
-    s = s.concat("<br>");
+    //s = s.concat("job id: ").concat(id);
+    //s = s.concat("<br>");
+    s = s.concat("worker: <a href='./account_explorer.html?pubkey=").concat(worker);
+    s = s.concat("'></a><br>");
+    s = s.concat("boss: <a href='./account_explorer.html?pubkey=").concat(boss);
+    s = s.concat("'></a><br>");
     s = s.concat("value: ").concat(write_veo(value));
     s = s.concat("<br>");
     s = s.concat("salary per block: ").concat(write_veo(salary_per_block));
