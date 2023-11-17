@@ -1,4 +1,4 @@
-(function(){
+(async function(){
     var div = document.createElement("div");
     document.body.appendChild(div);
     server_port.value = "8080";
