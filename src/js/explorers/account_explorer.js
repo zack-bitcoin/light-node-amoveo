@@ -52,7 +52,7 @@
             var s = "";
             s = s.concat(id);
             s = s.concat(" <br> ");
-            var l = link("../job_explorer.html?id=".concat(id), s);
+            var l = link("../jobs_explorer.html?id=".concat(id), s);
             div.appendChild(l);
         });
         div.appendChild(br());
@@ -64,7 +64,7 @@
             var s = "";
             s = s.concat(id);
             s = s.concat(" <br> ");
-            var l = link("../job_explorer.html?id=".concat(id), s);
+            var l = link("../jobs_explorer.html?id=".concat(id), s);
             div.appendChild(l);
         });
         div.appendChild(br());
