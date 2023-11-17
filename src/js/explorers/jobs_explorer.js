@@ -30,9 +30,13 @@
     //s = s.concat("job id: ").concat(id);
     //s = s.concat("<br>");
     s = s.concat("worker: <a href='./account_explorer.html?pubkey=").concat(worker);
-    s = s.concat("'></a><br>");
+    s = s.concat("'>");
+    s = s.concat(worker);
+    s = s.concat("</a><br>");
     s = s.concat("boss: <a href='./account_explorer.html?pubkey=").concat(boss);
-    s = s.concat("'></a><br>");
+    s = s.concat("'>");
+    s = s.concat(boss);
+    s = s.concat("</a><br>");
     s = s.concat("value: ").concat(write_veo(value));
     s = s.concat("<br>");
     s = s.concat("salary per block: ").concat(write_veo(salary_per_block));
