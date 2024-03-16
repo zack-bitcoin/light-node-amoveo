@@ -128,17 +128,24 @@
             tx_text.appendChild(br());
             tx_text.appendChild(br());
         } else if (type === "spend") {
+            var from = tx[1];
             var to = tx[4];
             var amount = tx[5];
-            var link = document.createElement("a");
-            link.href = "account_explorer.html?pubkey="
-                .concat(to);
-            link.innerHTML = to;
-            link.target = "_blank";
-            tx_text.innerHTML = "Spend. <br>"
-                .concat("to: ")
+            var to_link = make_link("to: ".concat(to), "account_explorer.html?pubkey=".concat(to));
+            var from_link = make_link("from: ".concat(from), "account_explorer.html?pubkey=".concat(from));
+
+//            var link = document.createElement("a");
+//            link.href = "account_explorer.html?pubkey="
+//                .concat(to);
+//            link.innerHTML = to;
+//            link.target = "_blank";
+            tx_text.innerHTML = "Spend. <br>";
+//                .concat("to: ");
                 //.concat(to)
-            tx_text.appendChild(link);
+            tx_text.appendChild(to_link);
+            tx_text.appendChild(br());
+            tx_text.appendChild(from_link);
+            tx_text.appendChild(br());
             var span = document.createElement("span");
             span.innerHTML = ""
                 .concat("<br> amount: ")
