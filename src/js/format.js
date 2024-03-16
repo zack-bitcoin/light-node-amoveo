@@ -366,13 +366,13 @@ function newhash2integer(h) {
         }
         return x;
     }
-//    return hash2integer2(h.concat([255]), 0, 0);
+    return hash2integer2(h.concat([255]), 0, 0);
+}
 
-    function make_link(i, h) {
-        var link = document.createElement("a");
-        link.href = h;
-        link.innerHTML = i;
-        link.target = "_blank";
-        return link;
-    }
+function make_link(i, h) {
+    var link = document.createElement("a");
+    link.href = h;
+    link.innerHTML = i;
+    link.target = "_blank";
+    return link;
 }
