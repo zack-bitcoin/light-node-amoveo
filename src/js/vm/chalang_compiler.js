@@ -202,7 +202,6 @@ var chalang_compiler = (function() {
                 i = i + 1;
                 more = ([4]).concat(n_bytes(2, n));
             } else if(b){ more = [b];
-            } else if(b){ more = [b];
             } else if(fun){
                 more = ([2,0,0,0,32])
                     .concat(fun);

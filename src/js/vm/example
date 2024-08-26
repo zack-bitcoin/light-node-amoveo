@@ -1,0 +1,14 @@
+comment stuff
+%commentl ljsf
+and % another
+() abc
+ab(comment) def
+;abc
+[[adding:spaces,to]places]
+: quad dup dup ;
+var x = 55;
+var y = 2;
+      var abcd = 2;
+                           abc def
+         defjeje
+." an example string "

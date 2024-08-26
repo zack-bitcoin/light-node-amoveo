@@ -1,0 +1,4 @@
+
+macro test_macro 3 4 5 ;
+
+test_macro 1234 test_macro

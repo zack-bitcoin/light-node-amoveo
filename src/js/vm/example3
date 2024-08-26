@@ -1,0 +1,29 @@
+
+( a b c 
+multiline comment
+)
+var foo bar ; %variable declaration
+foo 4 ! %storing a value in the variable
+macro [ nil ; forth style comment
+macro , swap cons ;
+macro ] , reverse ;
+: square dup * ;
+: map2
+  car swap r@ call rot cons swap
+  nil ==
+  if
+    drop drop reverse 
+  else 
+    drop recurse call 
+  then ; 
+macro map 
+  >r nil swap map2 call r> drop 
+
+; 
+macro test 
+[ 5,6, 7] 
+square print print print map 
+[25, 36, 49] 
+== >r drop drop r> 
+;
+test
