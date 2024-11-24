@@ -787,6 +787,8 @@ restore_leaves_proof(<<X:256>>, L) ->
            (typeof(got[0][1][1]) === "string")){
                //nothing left to match on this leaf
             //console.log("merge same case 5");
+            console.log(need);
+            console.log(got);
             merge_same(need, got.slice(1));
         };
         console.log("merge same uncaught situation");
