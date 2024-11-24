@@ -787,7 +787,8 @@ restore_leaves_proof(<<X:256>>, L) ->
            (typeof(got[0][1][1]) === "string")){
                //nothing left to match on this leaf
             //console.log("merge same case 5");
-            console.log(need);
+            console.log(need);//[[  "6h7+94mc26FqSZo8RSBePvAq+xAIbUMNNXHe7+0WfQE=",  "Jbju3MVaZp+vDoDtGyD0JxOm2/pSNm4qZ7bNuutMEqI="]
+        
             console.log(got);
             merge_same(need, got.slice(1));
         };
