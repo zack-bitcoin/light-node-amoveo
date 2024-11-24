@@ -698,6 +698,70 @@ restore_leaves_proof(<<X:256>>, L) ->
         var is_valid = merge_same(khs, leaves);
         return([is_valid, proof_tree]);
     };
+    function merge_same_unfinished(need, got){
+        if((need.length === 0) &&
+           (got.length === 0)){
+            console.log("merge same done");
+            return(true);
+        }
+        const D_is_num = Number.is_integer(D);
+        const X = need[0];
+        const Dpair = got[0];
+        const D = Dpair[0];
+        const X2 = Dpair[1];
+        if((X === X2) && (D_is_num)){
+            //merge same case 1
+            return(merge_same(need.slice(1),
+                              got.slice(1)))
+        };
+        const KeyCheck = X[1];
+        if((KeyCheck === 0) && (X2 === 0)){
+            //merge same case 3
+            const Key = X;
+            const Key2 = leaf_verkle_path_maker(Key);
+            const Branch = D;
+            if(typeof(Branch) === 'number'){
+                Branch = [Branch];
+            };
+            var bool = starts_same(
+                Key2.slice().reverse(), branch.slice());
+            if(bool){
+                return(merge_same(
+                    need.slice(1),
+                    [[branch, 0]].concat(t2)));
+            } else {
+                return(merge_same(
+                    [[Key, 0]].concat(need.slice(1)),
+                    got.slice(1)));
+            }
+            ///
+        };
+        const Key = X[0];
+        const LKey = X2[0];
+        const Val = X2[1];
+        if(D_is_num && (KeyCheck === 0)){
+            //case 2
+            const LKey = D;
+            const Val = X2
+
+
+            ////
+
+        };
+        if(X2 === 0){
+            //case 4. nothing left to match on this branch
+            return(merge_same(need, got.slice(1)));
+        };
+        if(D_is_num && is_string(X2[0]) && is_string(X2[1])){
+            // case 5.
+            //nothing left to match with this leaf. maybe it was from an empty branch.
+            return(merge_same(need, got.slice(1)));
+        }
+
+        print("merge same failed")
+        u1 + 0;
+
+    };
     function merge_same(need, got){
         //from trees2
         //need and got are Arrays.
@@ -713,7 +777,7 @@ restore_leaves_proof(<<X:256>>, L) ->
         //([X|T1], T2 = [{D, X}|_]) when is_integer(D)
         if((need[0][0] === got[0][1][0]) &&
            Number.isInteger(got[0][0])){
-            //console.log("merge same case 1");
+            console.log("merge same case 1");
             return(merge_same(need.slice(1), got));
         };
 //[{Key, 0}|T1],[{D, {LKey, Val}}|T2] when is_integer(D)
@@ -721,7 +785,7 @@ restore_leaves_proof(<<X:256>>, L) ->
            (got[0].length === 2) &&
            (got[0][1].length === 2) &&
            (Number.isInteger(got[0][0]))){
-            //console.log("merge same case 2");
+            console.log("merge same case 2");
             var key = need[0][0];
             var d = got[0][0];
             var lkey = got[0][1][0];
@@ -735,7 +799,6 @@ restore_leaves_proof(<<X:256>>, L) ->
                 console.log("can't double store in a batch");
                 1 + u1;
             };
-            console.log("starts same depth not implemented");
             var ssd = starts_same_depth(
                 key2.slice().reverse(), lkey2.slice().reverse(), d);
             if(ssd === true){
@@ -754,7 +817,7 @@ restore_leaves_proof(<<X:256>>, L) ->
 //[{Key, 0}|T1], [{Branch, 0}|T2]
         if(((need[0][1] === 0) || (need[0][1] === "")) &&
            (got[0][1] === 0)){
-            //console.log("merge same case 3");
+            console.log("merge same case 3");
             var key = need[0][0];
             var key2 = leaf_verkle_path_maker(key);
             var branch = got[0][0];
@@ -778,7 +841,7 @@ restore_leaves_proof(<<X:256>>, L) ->
         };
         if(got[0][1] === 0){
             //nothing left to match on this branch.
-            //console.log("merge same case 4");
+            console.log("merge same case 4");
             merge_same(need, got.slice(1));
         };
         if((got[0][1].length === 2) &&
@@ -786,10 +849,10 @@ restore_leaves_proof(<<X:256>>, L) ->
            (typeof(got[0][1][0]) === "string") &&
            (typeof(got[0][1][1]) === "string")){
                //nothing left to match on this leaf
-            //console.log("merge same case 5");
+            console.log("merge same case 5");
             console.log(need);//[[  "6h7+94mc26FqSZo8RSBePvAq+xAIbUMNNXHe7+0WfQE=",  "Jbju3MVaZp+vDoDtGyD0JxOm2/pSNm4qZ7bNuutMEqI="]
         
-            console.log(got);
+            console.log(got);// [ 135, [  "4LIGFLcXPe9xpULOZa/bQL4v8PKjFeVS2pH3BaYZh6U=",  "BfcUsJ/YzlRISODohz7MBUE28G3PtKS9KOCG/ewW1eY="]]
             merge_same(need, got.slice(1));
         };
         console.log("merge same uncaught situation");
