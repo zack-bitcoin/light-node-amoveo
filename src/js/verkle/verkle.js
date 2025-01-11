@@ -329,8 +329,6 @@ var verkle = (function(){
                 .concat(as2a(source))
                 .concat(integer_to_array(many_types, 2))
                 .concat(integer_to_array(source_type, 2));
-            console.log("contract serialized");
-            console.log(s);
             return(whash(s));
     //contracts:make_id(C, MT, S, ST);%32+32+2+2 = 68 bytes.
         };
@@ -342,10 +340,6 @@ var verkle = (function(){
         if(x[0] === "market"){
             var id = x[1];
             var s = as2a(id).concat([7]);
-            console.log("market id maker");
-            console.log(id);
-            console.log(as2a(id));
-            console.log(s);
             return(whash(s));
         };
         if(x[0] === "receipt"){
@@ -371,28 +365,8 @@ var verkle = (function(){
         var pub2 = string_to_array(atob(pub));
         if((pub2.length == 65) && (pub2[0] === 4)){
             var x = pub2.slice(1, 33);
-            var y = array_to_int(pub2.slice(33));
-            var positive = y % 2;
-            return([(6+positive)].concat(x));
-        }
-        1+u1;
-    };
-    function trees2_compress_pub(pub){
-        //ascii -> array of bytes.
-        var p_1_264 = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAB";
-        var p_1_520 = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAE=";
-        var p_0_520 = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=";
-        var p_0_264 = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
-        if((pub === p_1_264) || (pub === p_1_520)){
-            return p_1_264;
-        };
-        if((pub === p_0_264) || (pub === p_0_520)){
-            return p_0_264;
-        };
-        var pub2 = string_to_array(atob(pub));
-        if((pub2.length == 65) && (pub2[0] === 4)){
-            var x = pub2.slice(1, 33);
-            var y = array_to_int(pub2.slice(33));
+            //var y = array_to_int(pub2.slice(33));
+            var y = array_to_int(pub2.slice(64));
             var positive = y % 2;
             return([(6+positive)].concat(x));
         }
@@ -622,7 +596,7 @@ restore_leaves_proof([{I, 1}], [L|T]) ->
             var t = leaves.slice(1);
             if((l instanceof Array) &&
                (l.length === 2)){
-                console.log("restore leaves case 4");
+                //console.log("restore leaves case 4");
                 return([[[proofs[0][0], 0]], t]);
             };
             //console.log("restore leaves case 5");
@@ -695,13 +669,30 @@ restore_leaves_proof(<<X:256>>, L) ->
         });
 
         var khs = ks.map(function(e, i){return([e, btoa(verkle_binary.array_to_string(hs[i]))])});
+        //console.log("about to merge same khs leaves");
+        //console.log(ks);
+        //console.log(khs);//[ "6h7+94mc26FqSZo8RSBePvAq+xAIbUMNNXHe7+0WfQE=", "wVzPc8b2RYTElEJKvIn/bFLIJxJ2GM0edU2l5doba4E=" ] //comes from the input of the expected output. This is the part that is broken.
+        //console.log(leaves);//[ 135, [ "4LIGFLcXPe9xpULOZa/bQL4v8PKjFeVS2pH3BaYZh6U=", "4Iw4u+HBpcGeQH1Pr5zKnwhbyB7aXAKqwj/DWo0/wks=" ] //comes from verkle_verify
+
+        /*
+          example normal
+[
+  "okdweey0xMzUYFiC5WCiPM8xY77bpKZy5F/sC0umFI4=",
+  "Uher0xi6fGO9Mzy6fQ635tUCH953fyZ09ayPShbBA1M="
+]
+[20, [
+"okdweey0xMzUYFiC5WCiPM8xY77bpKZy5F/sC0umFI4=",
+"Uher0xi6fGO9Mzy6fQ635tUCH953fyZ09ayPShbBA1M="
+]
+]
+         */
         var is_valid = merge_same(khs, leaves);
         return([is_valid, proof_tree]);
     };
     function merge_same_unfinished(need, got){
         if((need.length === 0) &&
            (got.length === 0)){
-            console.log("merge same done");
+            //console.log("merge same done");
             return(true);
         }
         const D_is_num = Number.is_integer(D);
@@ -768,16 +759,21 @@ restore_leaves_proof(<<X:256>>, L) ->
         if((need.length === 0) //&&
          //  (got.length === 0)
           ){
-            console.log("merge same done");
             return(true);
         };
         //console.log("verkle merge same");
         //console.log(need);
         //console.log(got);
         //([X|T1], T2 = [{D, X}|_]) when is_integer(D)
+        if(!(got[0])){
+            console.log("dont' got got!");
+            console.log(need);
+            console.log(got);
+            return(-1);
+        }
         if((need[0][0] === got[0][1][0]) &&
            Number.isInteger(got[0][0])){
-            console.log("merge same case 1");
+            //console.log("merge same case 1");
             return(merge_same(need.slice(1), got));
         };
 //[{Key, 0}|T1],[{D, {LKey, Val}}|T2] when is_integer(D)
@@ -785,7 +781,7 @@ restore_leaves_proof(<<X:256>>, L) ->
            (got[0].length === 2) &&
            (got[0][1].length === 2) &&
            (Number.isInteger(got[0][0]))){
-            console.log("merge same case 2");
+            //console.log("merge same case 2");
             var key = need[0][0];
             var d = got[0][0];
             var lkey = got[0][1][0];
@@ -817,7 +813,9 @@ restore_leaves_proof(<<X:256>>, L) ->
 //[{Key, 0}|T1], [{Branch, 0}|T2]
         if(((need[0][1] === 0) || (need[0][1] === "")) &&
            (got[0][1] === 0)){
-            console.log("merge same case 3");
+            //console.log("merge same case 3");
+            //console.log(need);
+            //console.log(got);
             var key = need[0][0];
             var key2 = leaf_verkle_path_maker(key);
             var branch = got[0][0];
@@ -830,10 +828,12 @@ restore_leaves_proof(<<X:256>>, L) ->
                 //key2, branch.slice().reverse());
                 key2.slice().reverse(), branch.slice());
             if(bool){
+                //console.log("started same");
                 return(merge_same(
                     need.slice(1),
                     [[branch, 0]].concat(t2)));
             } else {
+                //console.log("did not start same");
                 return(merge_same(
                     [[key, 0]].concat(need.slice(1)),
                     got.slice(1)));
@@ -841,7 +841,7 @@ restore_leaves_proof(<<X:256>>, L) ->
         };
         if(got[0][1] === 0){
             //nothing left to match on this branch.
-            console.log("merge same case 4");
+            //console.log("merge same case 4");
             merge_same(need, got.slice(1));
         };
         if((got[0][1].length === 2) &&
@@ -849,10 +849,7 @@ restore_leaves_proof(<<X:256>>, L) ->
            (typeof(got[0][1][0]) === "string") &&
            (typeof(got[0][1][1]) === "string")){
                //nothing left to match on this leaf
-            console.log("merge same case 5");
-            console.log(need);//[[  "6h7+94mc26FqSZo8RSBePvAq+xAIbUMNNXHe7+0WfQE=",  "Jbju3MVaZp+vDoDtGyD0JxOm2/pSNm4qZ7bNuutMEqI="]
-        
-            console.log(got);// [ 135, [  "4LIGFLcXPe9xpULOZa/bQL4v8PKjFeVS2pH3BaYZh6U=",  "BfcUsJ/YzlRISODohz7MBUE28G3PtKS9KOCG/ewW1eY="]]
+            //console.log("merge same case 5");
             merge_same(need, got.slice(1));
         };
         console.log("merge same uncaught situation");
@@ -899,7 +896,6 @@ restore_leaves_proof(<<X:256>>, L) ->
         //console.log(commitg0);
         var [tree, open, root1, commitg] =
             decompress_proof(open0, tree0, commitg0);
-        //console.log([tree0, tree]);
         //1 + 1n;
         //console.log("tree is");
         //console.log(tree);
@@ -924,7 +920,6 @@ restore_leaves_proof(<<X:256>>, L) ->
             //rest should be [{0, pt},[{186, pt},{115, l}], [{187, pt}, {115, l}],[{188, pt}, {115, l}]]
         //return(0);
         console.log("verify about to unfold");
-        console.log([root, rest]);//rest has stuff like [115, ["keyAAAAAA", "ValAAAAAA"]]
         var tree2 = unfold(root, rest, []);
         //console.log(tree2);//[[pt, int, bigint], ...]
         //1 + 1n;
