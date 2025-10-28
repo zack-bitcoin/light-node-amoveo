@@ -163,9 +163,12 @@ function headers_main() {
 
     function reset_headers() {
         console.log("reset headers");
-        top_header = ["header",276531,"dSzACGhNFY0Sjnwj3dpaQCvzFM5MJfK1MI0RmtDVTlY=","hTdhbf+xdg+ZV8R2hgRu7khOCWpbZ1DBtocIPr9n0AA=","MrLgXG9GY4ARAHZY6KAtV+yc7O0RkM/v9PcWqRjjyt8=",1744369729,12234,3,"AAAAAAAAAAAAWRG+zQAAAADH8WmoAAAAAACphAAAaDQ=",2.776916678648946e+21,5982];
+        top_header = ["header",382475,"Mz/YLBXVHCc71MUaJ3v4WQ9F3q1BR0npoY9Yo42nNOs=","ywQ/FsKVhHGfmD6MQUKr6QGrECdD9Sx+0R2Eed5Xrg0=","AxyOlSDHL1AEv27OcEhX1Kdt8cckmT1W9sRLBUGhMBo=",2423756550,12445,3,"AAAAAAAAAAAAXH/jQgAAAAAOAAAAAAAAAANMuR0AEBI=",2813523611113861677056,5982];
+
+        //top_header = ["header",276531,"dSzACGhNFY0Sjnwj3dpaQCvzFM5MJfK1MI0RmtDVTlY=","hTdhbf+xdg+ZV8R2hgRu7khOCWpbZ1DBtocIPr9n0AA=","MrLgXG9GY4ARAHZY6KAtV+yc7O0RkM/v9PcWqRjjyt8=",1744369729,12234,3,"AAAAAAAAAAAAWRG+zQAAAADH8WmoAAAAAACphAAAaDQ=",2.776916678648946e+21,5982];
         top_diff = top_header[9];
-        write_header(top_header, 34596086075867);
+        //write_header(top_header, 34596086075867);
+        write_header(top_header, 73551618054340);
         wallet_text.innerHTML = "Current height: " + top_header[1];
         wallet_text.appendChild(
             button_maker2("resync headers", function(){
